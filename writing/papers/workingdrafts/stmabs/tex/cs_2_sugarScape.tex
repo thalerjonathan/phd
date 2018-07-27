@@ -1,33 +1,20 @@
 \section{Case Study 2: Sugarscape (Second Encounter)}
-One of the first  Agent-Based Simulation model which rose to some prominence was the Sugarscape model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon of real-world societies. In this simulation a population of agents move around in a discrete 2d environment and interact with each other and the environment in many different ways. The main features of this model are:
+\label{sec:cs_sugarscape}
 
-\begin{itemize}
-	\item Searching, harvesting and consuming of resources.
-	\item Wealth and age distributions.
-	\item Seasons in the environment and migration of agents.
-	\item Pollution of the environment.
-	\item Population dynamics under sexual reproduction.
-	\item Cultural processes and transmission.
-	\item Combat and assimilation.
-	\item Bilateral decentralized trading (bartering) between agents with endogenous demand and supply.
-	\item Emergent Credit-Networks.
-	\item Disease Processes, Transmission and immunology.
-\end{itemize}
+One of the first  Agent-Based Simulation model which rose to some prominence was the Sugarscape model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon of real-world societies. In this simulation a population of agents move around in a discrete 2d environment and interact with each other and the environment in many different ways. The main features of this model are (amongst others)are: searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology.
 
-We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of the book \cite{epstein_growing_1996}. There, in each step agents search (move) to the cell with the most sugar they see with their vision, harvest all of it from the environment and consume sugar because of their metabolism. Sugar regrows in the environment over time. Only one agent can occupy a cell at a time. Agents don't age and cannot die from age. If agents run out of sugar due to their metabolism, they die from starvation and are removed from the simulation. The model parameters are as follows:
+We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of the book \cite{epstein_growing_1996}. There, in each step agents search (move) to the cell with the most sugar they see with their vision, harvest all of it from the environment and consume sugar because of their metabolism. Sugar regrows in the environment over time. Only one agent can occupy a cell at a time. Agents don't age and cannot die from age. If agents run out of sugar due to their metabolism, they die from starvation and are removed from the simulation. In this section the authors report that the initial number of agents quickly drops and stabilises around a level depending on the model parameters. This is in accordance with our results as we show in Figure \ref{fig:vis_sugarscape} and guarantees that we don't run out of agents. The model parameters are as follows:
 
 \begin{itemize}
 	\item Sugar Endowment: each agent has an initial sugar endowment random uniform distributed between 5 and 25 units.
 	\item Sugar Metabolism: each agent has a sugar metabolism random uniform distributed between 1 and 5.
 	\item Agent Vision: each agent has a vision random uniform distributed between 1 and 6 in each of the 4 directions (N, W, S, E). 
 	\item Sugar Growback: sugar grows back by 1.0 unit per step until the maximum capacity of a cell is reached.
-	\item Agent Number: initially 500 agents. In this case the authors of the SugarScape book report that the initial number of agents quickly drops and stabilises, which is in unison with our results as we show in Figure TODO. This behaviour also guarantees that we don't run out of agents
+	\item Agent Number: initially 500 agents.
 	\item Environment Size: 50 x 50 cells with toroid boundaries which wrap around in both x and y dimension.
 \end{itemize}
 
-The model specification requires to shuffle agents before every step (Footnote 12 on page 26). In the State approach we do this explicitly but in the STM approach this happens automatically due to race-conditions in concurrency thus we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step. The important difference between the two approaches is that in the State approach we have full control over this randomness but in the STM not - also this means that repeated runs with the same initial conditions might lead to slightly different results.
-
-TODO: show a picture generated by our software after initialisation, and then after the number of agents has stabelised
+The model specification requires to shuffle agents before every step (Footnote 12 on page 26). In the Sequential approach we do this explicitly but in the STM approach this happens automatically due to race-conditions in concurrency thus we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step. The important difference between the two approaches is that in the State approach we have full control over this randomness but in the STM not - also this means that repeated runs with the same initial conditions might lead to slightly different results.
 
 \begin{figure}
 \begin{center}
@@ -63,212 +50,120 @@ Note that we omit the graphical rendering in the functional approach because it 
 
 Note that in contrast to the SIR case-study we don't provide an IO implementation because we focus on different thing here. The focus here is on how different data-structures can make a huge impact on the performance.
 
-\subsection{Naive Approach using TVar and concurrent Environment}
-Experiments with varying number of cores. The results are reported in Table \ref{tab:naive_stm_results}.
-
-state: shuffles agents after every step
-environment in STM is run as concurrent agent
+\subsection{Naive Approach}
+In this first approach we compare the non-concurrent \textit{Sequential} approach against an implementation using \textit{STM} where we vary the number of cores. In the \textit{STM} implementation we share the environment in the same way as in the SIR case study of Section \ref{sec:cs_sir} using a \textit{TVar}. The environment is also run as a concurrent agent at the same time with the population agents and accesses the \textit{TVar} as well. The results are reported in Table \ref{tab:naive_results_time}. TODO: figure
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-               & Cores & Steps            & Ratio          \\ \hline \hline 
-    	State  & 1     & 1,693.1 (8.305)  & 28.219 (0.138) \\ \hline \hline
-   		STM    & 1     & 1,854.2 (29.519) & 30.904 (0.491) \\ \hline
-   		STM    & 2     & 2,129.5 (61.414) & 35.492 (1.023) \\ \hline
-   		STM    & 3     & 2,312.5 (71.658) & 38.542 (1.194) \\ \hline
-   		STM    & 4     & 2,238.8 (36.307) & 37.312 (0.605) \\ \hline
+                   & Cores & Steps          & Retry-Ratio   \\ \hline \hline 
+    	Sequential & 1     & 28.2 (0.1) & N/A 				\\ \hline \hline
+   		STM        & 1     & 30.9 (0.5) & 0.004 			\\ \hline
+   		STM        & 2     & 35.5 (1.0) & 1.0 				\\ \hline
+   		STM        & 3     & 38.5 (1.2) & 2.2 				\\ \hline
+   		STM        & 4     & 37.3 (0.6) & 3.4
    	\end{tabular}
   	
-  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores.}
+  	\caption{Steps per second and retry-ratio on 50x50 grid and 500 initial agents using the \textit{Sequential} and \textit{TVar} in a concurrent environment.}
 	\label{tab:naive_results_time}
 \end{table}
 
-We also compared the average retry-ratio on varying number of cores.
+Clearly the concurrent \textit{STM} implementation outperforms the \textit{Sequential} one but the results are below expectations - clearly the speed-up is not as much as we hoped for. This is immediately reflected in the retry-ratios which rise up to more than 3 on 4 cores which means that each agent re-tries its computation \textit{on average} 3 times in each step. Can we do better?
+
+Obviously our first naive approach has two serious shortcomings. First, running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. It could happen in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications. Second, using \textit{TVar} to share the environment is a very inefficient choice: \textit{every} write to a cell leads to a retry independent whether the reading agent read that changed cell or not because the data-structure does not distinguish between individual cells. The first shortcoming can be addressed by running the environment synchronous after all agents have run, the second shortcoming can be addressed by using a \textit{TArray} instead. Let us address the first shortcoming first.
+
+\subsection{Synchronous Environment}
+We simply run the environment synchronous after all agents have run in a step. The results are reported in Table \ref{tab:naive_results_syncenv_time}.
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Commits           & Retries            & Ratio \\ \hline \hline 
-    	1     & 498,881 (3,042.4) & 2,407.8 (248.56)   & 0.004 \\ \hline
-   		2     & 557,800 (7,503.3) & 592,890 (8,827.9)  & 1.062 \\ \hline
-   		3     & 540,700 (7,530.2) & 1,189,100 (19,771) & 2.199 \\ \hline
-   		4     & 486,850 (7,927.9) & 1,646,800 (29,939) & 3.382 \\ \hline
+  	\begin{tabular}{ c || c | c }
+        Cores & Steps          & Retry-Ratio \\ \hline \hline 
+    	1     & 31.1 (0.3) & 0.004 		     \\ \hline
+   		2     & 35.4 (0.6) & 1.1 			 \\ \hline
+   		3     & 38.8 (0.9) & 2.1 			 \\ \hline
+   		4     & 37.4 (0.7) & 3.4
    	\end{tabular}
   	
-  	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores.}
-	\label{tab:naive_results_retries}
-\end{table}
-
-\subsection{Running Environment non-concurrently}
-Running concurrently is strictly speaking wrong because could lead to runs where the regrowth happens after the agent harvests which violates the model specifications. 
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Steps            & Ratio           \\ \hline \hline 
-    	1     & 1,868.8 (19.129) & 31.146 (0.318) \\ \hline
-   		2     & 2,121.1 (36.294) & 35.352 (0.604) \\ \hline
-   		3     & 2,325 (53.570)   & 38.750 (0.892) \\ \hline
-   		4     & 2,245 (40.175)   & 37.417 (0.669) \\ \hline \hline
-   	\end{tabular}
-  	
-  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores with a synchronous environment.}
+  	\caption{Steps per second and retry-ratio on 50x50 grid and 500 initial agents using a \textit{TVar} in a synchronous environment.}
 	\label{tab:naive_results_syncenv_time}
 \end{table}
 
-We also compared the average retry-ratio on varying number of cores.
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Commits           & Retries            & Ratio \\ \hline \hline 
-    	1     & 482,790 (23,061)  & 2,397.9 (263.88)   & 0.004 \\ \hline
-   		2     & 500,300 (20,063)  & 526,000 (21,586)   & 1.051 \\ \hline
-   		3     & 500,230 (22,588)  & 1,065,700 (67,492) & 2.130 \\ \hline
-   		4     & 524,593 (2,733.7) & 1,779,600 (10,131) & 3.392 \\ \hline
-   	\end{tabular}
-  	
-  	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores with a synchronous environment.}
-	\label{tab:naive_results_syncenv_retries}
-\end{table}
-
-Seems to have no effect, can omit it and replace the results when running with environment 
+When looking at the results we see that running the environment synchronously might have led to a correct implementation but the performance difference is insignificant. It seems that the choice of the \textit{TVar} is the limiting factor. Let us now switch to an implementation using the \textit{TArray} data-structure.
 
 \subsection{From TVar to TArray}
-Sync Environment: runs after all agents.
+In this implementation we replaced the \textit{TVar} by a \textit{TArray} data-structure which should reduce the number of retries substantially and thus improve performance by a considerable factor. By using a \textit{TArray} we can avoid the situation where a write to a cell in a far distant location of the environment will lead to a retry of an agent which never even touched that cell. Also we ran the environment synchronously. The results are reported in Table \ref{tab:tarray_results_syncenv_time}. TODO: figure
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Steps            & Ratio          \\ \hline \hline 
-    	1     & 3,047.8 (11.042) & 50.796 (0.184) \\ \hline
-   		2     & 4,127.2 (31.824) & 68.788 (0.530) \\ \hline
-   		3     & 4,641.2 (31.459) & 77.354 (0.524) \\ \hline
-   		4     & 5,215.5 (29.057) & 86.925 (0.484) \\ \hline \hline
+  	\begin{tabular}{ c || c | c  }
+        Cores & Steps          & Retry-Ratio \\ \hline \hline 
+    	1     & 50.796 (0.184) & 0.001 		 \\ \hline
+   		2     & 68.788 (0.530) & 0.01 		 \\ \hline
+   		3     & 77.354 (0.524) & 0.02 		 \\ \hline
+   		4     & 86.925 (0.484) & 0.03
    	\end{tabular}
   	
-  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a synchronous environment.}
+  	\caption{Steps per second and retry-ratio on 50x50 grid and 500 initial agents using a \textit{TArray} in a synchronous environment.}
 	\label{tab:tarray_results_syncenv_time}
 \end{table}
 
-We also compared the average retry-ratio on varying number of cores.
+Now we are arriving at substantial performance improvements, which is directly reflected in the retry-ratios which are close to 0. Also this makes the point of this section crystal clear: selecting the right transactional data-structure is paramount for best performance when using STM. Out of interest we ran the \textit{TArray} implementation with a concurrent environment to see how much impact this has, and indeed it has some impact and reduces performance by quite some factor but is still considerable faster than a \textit{TVar} synchronous environment approach. What is interesting is that the performance on 2 cores drops below the one of 1 core TODO: why?.
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Commits            & Retries         & Ratio \\ \hline \hline 
-    	1     & 563,920 (5,154.9)  & 876.50 (24.716) & 0.001 \\ \hline
-   		2     & 830,650 (9,477.8)  & 10,447 (344.75) & 0.012 \\ \hline
-   		3     & 972,140 (14,752)   & 22,363 (468.52) & 0.023 \\ \hline
-   		4     & 1,081,600 (25,923) & 31,550 (826.17) & 0.029 \\ \hline
+  	\begin{tabular}{ c || c | c }
+        Cores & Steps       & Retry-Ratio \\ \hline \hline 
+    	1     & 52.8 (0.9)  & 0.002 	  \\ \hline
+   		2     & 51.1 (0.9)  & 0.05 		  \\ \hline
+   		3     & 62.2 (1.6)  & 0.03		  \\ \hline
+   		4     &  65.0 (0.7) & 0.04
    	\end{tabular}
   	
-  	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a synchronous environment.}
-	\label{tab:tarray_results_syncenv_retries}
-\end{table}
-
---------------------------------------
-Concurrent Environment
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Steps            & Ratio          \\ \hline \hline 
-    	1     & 3,172.5 (52.110) & 52.875 (0.868) \\ \hline
-   		2     & 3,067.9 (52.675) & 51.131 (0.877) \\ \hline
-   		3     & 3,730.8 (99.419) & 62.179 (1.657) \\ \hline
-   		4     & 3,900.8 (42.580) & 65.012 (0.709) \\ \hline \hline
-   	\end{tabular}
-  	
-  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a concurrent environment.}
+  	\caption{Steps per second and retry-ratio on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a concurrent environment.}
 	\label{tab:tarray_results_concenv_time}
 \end{table}
 
-We also compared the average retry-ratio on varying number of cores.
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Cores & Commits           & Retries          & Ratio \\ \hline \hline 
-   		1     & 629,560 (2,305.4) & 1,532.4 (29.364) & 0.002 \\ \hline
-    	2     & 599,710 (13,168)  & 30,562 (388.31)  & 0.051 \\ \hline
-   		3     & 754,550 (6,270.2) & 29,972 (229.26)  & 0.039 \\ \hline
-   		4     & 789,870 (9,210.6) & 32,961 (402.55)  & 0.041 \\ \hline
-   	\end{tabular}
-  	
-  	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a concurrent environment.}
-	\label{tab:tarray_naive_results_concenv_retries}
-\end{table}
-
 \subsection{Scaling up Agents}
-So far we always kept the initial number of agents at 500 and due to the model specification the number drops quickly to around 250-270 and stabelises around there due to the carrying capacity of the environment as described in the Book on page TODO. We now want to see the scaling property of our approaches when increasing the number of agents. For this we slightly change the implementation: always when an agent dies it spawns a new one. This ensures that we keep the number of agents always constant (fluctuactes slightly between 500 and 497) over the whole duration. This ensures a constant load of concurrent processes interacting with each other and demonstrates also the ability to terminate and fork threads dynamically during the simulation.
-Except for the State approach we run all experiments with 4 cores. Also in this case the environment is run after all agents are run. We look into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment).
+So far we always kept the initial number of agents at 500, which due to the model specification the number drops quickly to around 200 and stabilises around there due to the carrying capacity of the environment as described in the books \cite{epstein_growing_1996} section \textit{Carrying Capacity} (p. 30). We now want to see the scaling property of our approaches when increasing the number of agents. For this we slightly change the implementation: always when an agent dies it spawns a new one. This ensures that we keep the number of agents always constant (still fluctuates slightly between 500 and 490) over the whole duration. This ensures a constant load of concurrent processes interacting with each other and demonstrates also the ability to terminate and fork threads dynamically during the simulation.
+Except for the Sequential approach we run all experiments with 4 cores with a concurrent environment. We look into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment). The results are reported in Table \ref{tab:state_results_agentsscale_time} with the average retry-ratios on 2,500 agents shown in Table \ref{tab:tvartarray_results_agentsscale_retries}. TODO: figure
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Agents  & Steps           & Ratio          \\ \hline \hline 
-    	500     & 847.25 (5.775)  & 14.121 (0.096) \\ \hline
-   		1,000   & 410.5 (5.529)   & 6.841 (0.092)  \\ \hline
-   		1,500   & 270.0 (6.989)   & 4.5 (0.116)    \\ \hline
-   		2,000   & 198.12 (4.223)  & 3.302 (0.07)   \\ \hline 
-   		2,500   & 158.50 (7.764)  & 2.641 (0.129)  \\ \hline 
+        Agents  & Sequential     & TVar       & TArray     \\ \hline \hline 
+    	500     & 14.121 (0.096) & 21.1 (0.2) & \textbf{74.4} (1.1) \\ \hline
+   		1,000   & 6.841 (0.092)  & 11.3 (0.3) & \textbf{56.8} (0.2) \\ \hline
+   		1,500   & 4.5 (0.116)    & 8.1 (0.03) & \textbf{45.2} (0.2) \\ \hline
+   		2,000   & 3.302 (0.07)   & 6.2 (0.01) & \textbf{37.0} (0.2) \\ \hline 
+   		2,500   & 2.641 (0.129)  &5.2 (0.02)  & \textbf{31.7} (0.3)
    	\end{tabular}
   	
-  	\caption{Performance on 50x50 grid and varying number of agents using the State approach.}
+  	\caption{Steps per second on 50x50 grid and varying number of agents.}
 	\label{tab:state_results_agentsscale_time}
 \end{table}
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Agents  & Steps            & Ratio          \\ \hline \hline 
-    	500     & 1,270.9 (14.337) & 21.181 (0.238) \\ \hline
-   		1,000   & 679.50 (18.142)  & 11.325 (0.302) \\ \hline
-   		1,500   & 490.62 (2.133)   & 8.177 (0.035)  \\ \hline
-   		2,000   & 377.12 (0.640)   & 6.285 (0.010)  \\ \hline 
-   		2,500   & 316.38 (1.060)   & 5.272 (0.017)  \\ \hline 
+  	\begin{tabular}{ c || c | c }
+                    & TVar   & TArray \\ \hline \hline 
+		Retry-Ratio & 3.28 & 0.01
    	\end{tabular}
   	
-  	\caption{Performance on 50x50 grid and varying number of agents using the TVar approach.}
-	\label{tab:tvar_results_agentsscale_time}
-\end{table}
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Agents  & Steps            & Ratio          \\ \hline \hline 
-    	500     & 4,468.2 (67.753) & 74.471 (1.129) \\ \hline
-   		1,000   & 3,410.5 (16.449) & 56.842 (0.274) \\ \hline
-   		1,500   & 2,717.9 (12.955) & 45.298 (0.215) \\ \hline
-   		2,000   & 2,221.2 (13.446) & 37.021 (0.224) \\ \hline 
-   		2,500   & 1,904 (19.346)   & 31.733 (0.322) \\ \hline 
-   	\end{tabular}
-  	
-  	\caption{Performance on 50x50 grid and varying number of agents using the TArray approach.}
-	\label{tab:tarray_results_agentsscale_time}
-\end{table}
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c | c }
-               & Commits            & Retries              & Ratio \\ \hline \hline 
-		TVar   & 550,530 (4,521.1)  & 1,810,100 (15,043) & 3.2880 \\ \hline   		
-   		TArray & 3,151,600 (37,727) & 46,283 (735.93)      & 0.014 \\ \hline
-   	\end{tabular}
-  	
-  	\caption{Retries on 50x50 grid and 2,500 constant agents using \textit{TVar} and \textit{TArray} in a synchronous environment.}
+  	\caption{Retry-Ratios on 50x50 grid and 2,500 constant agents using \textit{TVar} and \textit{TArray} in a synchronous environment.}
 	\label{tab:tvartarray_results_agentsscale_retries}
 \end{table}
 
+Obviously the \textit{TArray} approach shows best scaling performance which is due to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels as can be seen in Table \ref{tab:tvartarray_results_agentsscale_retries}.
 
-\subsection{Insights}
-Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and indeed, the performance goes down dramatically as reported in table TODO when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahls law where the environment becomes the limiting factor of the simulation.
-Depending on the underlying data-structure used for the environment we have to options. In the case of the State and TVar implementation we build on an indexed array which we can updated in parallel using the existing data-parallel support in Haskell (TODO: explain). In the case of the TArray approach we have no option but to run the update of every cell within its own thread. We leave both for further research as it is out of scope of this paper.
+\subsection{Comparison with other approaches}
+The paper \cite{lysenko_framework_2008} reports a performance of 17 steps in RePast (non-parallel), 18 steps in MASON and 2000 steps per seconds on a GPU on a 128x128 grid. Although our \textit{Sequential} implementation which runs non-parallel as well outperforms the RePast and MASON implementations one must be very well aware that these results were generated in 2008, on 10 year older hardware - the performance might have caught up by now and even outperform our functional sequential approach. 
 
-Comparison with imperative approaches: they are running it on 128x128 and on 10 year old single-core machines  \cite{lysenko_framework_2008}
-% RePast & 1     & N/A             & 17    \\ \hline \hline
-% GPU    & N/A   & N/A             & 2000  \\ \hline \hline
+Indeed, when we run the SugarScape example of RePast with the same model parameters as ours on the same machine (see Table \ref{tab:machine_specs}) we arrive at roughly 450 steps per second - a factor of more than 5 faster than even our STM implementation on 4 cores. This might seem quite shocking, even more so because RePast also performs visual output, rendering the SugarScape in every step. Still our research is a first step and might result in future work increasing performance.
 
+The very high performance on the GPU does not concern us here as it follows a very different approach than we do here. Our focus is on speeding up implementations on the CPU as directly as possible without locking overhead. When following a GPU approach one needs to map the model to the GPU which is a delicate and non-trivial approach. With our approach we show that speed-up with concurrency is very possible without the low-level locking details or the need to map to GPU.
+
+Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and indeed, the performance goes down dramatically when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahls law where the environment becomes the limiting factor of the simulation. Depending on the underlying data-structure used for the environment we have two options to solving this problem. In the case of the Sequential and TVar implementation we build on an indexed array which we can updated in parallel using the existing data-parallel support in Haskell (TODO: explain). In the case of the TArray approach we have no option but to run the update of every cell within its own thread. We leave both for further research as it is out of scope of this paper. 
+
+\subsection{Discussion}
 Interpretation of the performance data leads to the following insights:

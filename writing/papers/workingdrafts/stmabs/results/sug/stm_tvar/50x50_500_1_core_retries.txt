@@ -1,0 +1,26 @@
+STM transaction statistics (2018-07-28 16:19:00.535054814 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       515576       2212       0.00
+STM transaction statistics (2018-07-28 16:20:00.914677464 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       526022       2668       0.01
+STM transaction statistics (2018-07-28 16:21:01.317682317 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       533257       2691       0.01
+STM transaction statistics (2018-07-28 16:22:01.964224009 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       532861       2689       0.01
+STM transaction statistics (2018-07-28 16:23:02.34662938 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       534813       2240       0.00
+STM transaction statistics (2018-07-28 16:24:02.740860315 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       531580       2214       0.00
+STM transaction statistics (2018-07-28 16:25:03.454764171 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       530606       2221       0.00
+STM transaction statistics (2018-07-28 16:26:03.839567908 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       524616       2238       0.00
+
+

@@ -61,31 +61,32 @@ Note that we omit the graphical rendering in the functional approach because it 
 \subsection{Constant Agent Size}
 In this first approach we compare the non-concurrent \textit{Sequential} approach against an implementation using \textit{STM} where we vary the number of cores. In the \textit{STM} implementation we share the environment in the same way as in the SIR case study of Section \ref{sec:cs_sir} using a \textit{TVar}. The results are reported in Table \ref{tab:constant_agents_results} and can be seen in Figure \ref{fig:constant_agents_results}. 
 
-TODO: re-run experiments: currently Sequential
+TODO: re-run experiments: TArray
+TODO: re-run STM TVar 4, seems to look not right??  
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
                    & Cores & Steps & Retries  \\ \hline \hline 
-    	Sequential & 1     & 28.2  & N/A      \\ \hline \hline   
+    	Sequential & 1     & 39.4  & N/A      \\ \hline \hline   
 
-    	Lock-Based & 1     &  & N/A    \\ \hline
-    	Lock-Based & 2     &  & N/A    \\ \hline
-    	Lock-Based & 3     &  & N/A    \\ \hline
-    	Lock-Based & 4     &  & N/A    \\ \hline \hline   
+    	Lock-Based & 1     & 43.0 & N/A       \\ \hline
+    	Lock-Based & 2     & 51.8 & N/A       \\ \hline
+    	Lock-Based & 3     & 57.4 & N/A       \\ \hline
+    	Lock-Based & 4     & 58.1 & N/A       \\ \hline \hline   
    		
-   		STM TVar   & 1     & 31.1  & 0.004    \\ \hline
-   		STM TVar   & 2     & 35.4  & 1.1 	  \\ \hline
-   		STM TVar   & 3     & 38.8  & 2.1 	  \\ \hline
-   		STM TVar   & 4     & 37.4  & 3.4	  \\ \hline \hline   
+   		STM TVar   & 1     & 47.3 & 0.0       \\ \hline
+   		STM TVar   & 2     & 53.5 & 1.1       \\ \hline
+   		STM TVar   & 3     & 57.1 & 2.2 	  \\ \hline
+   		STM TVar   & 4     & 53.0 & 3.2	  \\ \hline \hline   
    		
-   		STM TArray & 1     & 50.8  & 0.001    \\ \hline
-   		STM TArray & 2     & 68.8  & 0.01	  \\ \hline
-   		STM TArray & 3     & 77.4  & 0.02	  \\ \hline
-   		STM TArray & 4     & 86.9  & 0.03	  \\ \hline \hline   
+   		STM TArray & 1     & 50.8 TODO & TODO 0.001    \\ \hline
+   		STM TArray & 2     & 68.8 TODO & TODO 0.01	  \\ \hline
+   		STM TArray & 3     & 77.4 TODO & TODO 0.02	  \\ \hline
+   		STM TArray & 4     & 86.9 TODO & TODO  0.03	  \\ \hline \hline   
    	\end{tabular}
   	
-  	\caption{Steps per second and retries on 50x50 grid and 500 initial agents using the \textit{Sequential} and \textit{TVar} on an asynchronous and synchronous environment.}
+  	\caption{Steps per second and retries on 50x50 grid and 500 initial agents.}
 	\label{tab:constant_agents_results}
 \end{table}
 

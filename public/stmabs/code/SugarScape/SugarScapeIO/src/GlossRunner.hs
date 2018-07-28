@@ -21,10 +21,9 @@ runWithGloss :: RandomGen g
              -> SimContext g
              -> SugContext
              -> SimStepOut
-             -> Bool
              -> String 
              -> IO ()
-runWithGloss durSecs dt initSimCtx sugCtx initOut stmStatsFlag perfFile = do
+runWithGloss durSecs dt initSimCtx sugCtx initOut perfFile = do
   let freq     = 0
       winSize  = (800, 800)
       winTitle = "SugarScape"
@@ -39,12 +38,12 @@ runWithGloss durSecs dt initSimCtx sugCtx initOut stmStatsFlag perfFile = do
         freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
         (modelToPicture winSize)  -- model-to-picture function
-        (renderStep durSecs dt sugCtx outRef stmStatsFlag perfFile)    -- 
+        (renderStep durSecs dt sugCtx outRef perfFile)    -- 
     else 
       animateIO
         (displayGlossWindow winTitle winSize)
         white
-        (renderStepAnimate winSize durSecs dt sugCtx outRef stmStatsFlag perfFile)
+        (renderStepAnimate winSize durSecs dt sugCtx outRef perfFile)
         (const $ return ())
 
   return ()
@@ -65,15 +64,14 @@ renderStep :: RandomGen g
            -> DTime
            -> SugContext
            -> IORef (SimContext g)
-           -> Bool
            -> String
            -> ViewPort
            -> Float
            -> SimStepOut
            -> IO SimStepOut
-renderStep durSecs dt sugCtx ssRef stmStatsFlag perfFile _ _ _ = do
+renderStep durSecs dt sugCtx ssRef perfFile _ _ _ = do
   simCtx <- readIORef ssRef
-  (simCtx', out) <- simulationStep dt sugCtx simCtx stmStatsFlag
+  (simCtx', out) <- simulationStep dt sugCtx simCtx
   writeIORef ssRef simCtx'
 
   _ <- checkTime durSecs simCtx' perfFile
@@ -86,13 +84,12 @@ renderStepAnimate :: RandomGen g
                   -> DTime
                   -> SugContext
                   -> IORef (SimContext g)
-                  -> Bool
                   -> String
                   -> Float
                   -> IO GLO.Picture
-renderStepAnimate winSize durSecs dt sugCtx ssRef stmStatsFlag perfFile _ = do
+renderStepAnimate winSize durSecs dt sugCtx ssRef perfFile _ = do
   simCtx <- readIORef ssRef
-  (simCtx', out) <- simulationStep dt sugCtx simCtx stmStatsFlag
+  (simCtx', out) <- simulationStep dt sugCtx simCtx
   writeIORef ssRef simCtx'
 
   _ <- checkTime durSecs simCtx' perfFile

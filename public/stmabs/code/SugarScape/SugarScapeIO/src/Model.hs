@@ -20,6 +20,8 @@ module Model
   , nextAgentId
   , readEnvironment
   , writeEnvironment
+  , lockEnvironment
+  , unlockEnvironment
   , (<°>)
   
   , sugarGrowbackUnits
@@ -31,9 +33,11 @@ module Model
   , visionRangeStandard
   ) where
 
+import Control.Concurrent.MVar
+import Data.IORef
+
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Concurrent.STM
 import FRP.BearRiver
 
 import Discrete
@@ -78,8 +82,9 @@ data SugAgentOut g = SugAgentOut
   }
 
 data SugContext = SugContext 
-  { sugCtxEnv     :: TVar SugEnvironment
-  , sugCtxNextAid :: TVar AgentId
+  { sugCtxEnv     :: IORef SugEnvironment
+  , sugCtxEnvSem  :: MVar ()
+  , sugCtxNextAid :: IORef AgentId
   }
 
 type SugAgentMonad g = ReaderT SugContext (RandT g IO)
@@ -91,17 +96,28 @@ nextAgentId = do
   ctx <- ask
   let aidVar = sugCtxNextAid ctx
 
-  aid <- lift $ lift $ readTVar aidVar
-  _   <- lift $ lift $ writeTVar aidVar (aid + 1)
+  lift $ lift $ atomicModifyIORef aidVar (\aid -> (aid + 1, aid))
 
-  return aid
-  
+lockEnvironment :: RandomGen g 
+                => (SugAgentMonad g) ()
+lockEnvironment = do
+  ctx <- ask
+  let envSem = sugCtxEnvSem ctx
+  lift $ lift $ takeMVar envSem
+
+unlockEnvironment :: RandomGen g 
+                  => (SugAgentMonad g) ()
+unlockEnvironment = do
+  ctx <- ask
+  let envSem = sugCtxEnvSem ctx
+  lift $ lift $ putMVar envSem ()
+
 readEnvironment :: RandomGen g 
                 => (SugAgentMonad g) SugEnvironment
 readEnvironment = do
   ctx <- ask
   let envVar = sugCtxEnv ctx
-  lift $ lift $ readTVar envVar
+  lift $ lift $ readIORef envVar
 
 writeEnvironment :: RandomGen g 
                 => SugEnvironment
@@ -109,7 +125,7 @@ writeEnvironment :: RandomGen g
 writeEnvironment e = do
   ctx <- ask
   let envVar = sugCtxEnv ctx
-  lift $ lift $ writeTVar envVar e
+  lift $ lift $ writeIORef envVar e
 
 (<°>) :: SugAgentOut g
       -> SugAgentOut g

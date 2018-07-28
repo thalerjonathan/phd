@@ -79,8 +79,6 @@ executable SugarScapeIO
                       , parallel
                       , random
                       , split
-                      , stm
-                      , stm-stats
                       , transformers
                       , time
                       

@@ -15,6 +15,8 @@ import Model
 import Random
 import Utils
 
+-- TODO: lock the environment!
+
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
          => Bool

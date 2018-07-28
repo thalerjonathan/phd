@@ -10,12 +10,11 @@ module Simulation
   , checkTime
   ) where
 
+import           Data.IORef
 import           Data.Maybe
 import           System.Random
 
 import           Control.Concurrent
-import           Control.Concurrent.STM
-import           Control.Concurrent.STM.Stats
 import           Control.Monad.Random
 import           Control.Monad.Reader
 import           Data.Time.Clock
@@ -41,9 +40,8 @@ simulationStep :: RandomGen g
                => DTime
                -> SugContext
                -> SimContext g
-               -> Bool
                -> IO (SimContext g, SimStepOut)
-simulationStep dt sugCtx simCtx stmStatsFlag = do
+simulationStep dt sugCtx simCtx  = do
   let dtVars = simCtxDtVars simCtx
       aoVars = simCtxAoVars simCtx
       t      = simCtxTime simCtx
@@ -56,8 +54,8 @@ simulationStep dt sugCtx simCtx stmStatsFlag = do
   mapM_ (`putMVar` dt) dtVars
   -- wait for results
   aos <- mapM takeMVar aoVars
-  -- read the latest environment
-  env <- readTVarIO $ sugCtxEnv sugCtx
+  -- read the latest environment, no need to lock here because agents won't access them
+  env <- readIORef $ sugCtxEnv sugCtx
 
   let newAs = concatMap (\(_, ao) -> sugAoNew ao) aos
       obs   = foldr (\(aid, ao) acc -> 
@@ -65,7 +63,7 @@ simulationStep dt sugCtx simCtx stmStatsFlag = do
           then (aid, fromJust $ sugAoObservable ao) : acc  
           else acc) [] aos
 
-  (newDtVars, newAoVars, g') <- spawnAgents newAs g sugCtx stmStatsFlag
+  (newDtVars, newAoVars, g') <- spawnAgents newAs g sugCtx 
 
   let (dtVars', aoVars') = foldr (\((_, ao), dv, aov) acc@(accDtVars, accAoVars) -> 
         if isDead ao 
@@ -79,13 +77,9 @@ simulationStep dt sugCtx simCtx stmStatsFlag = do
   simCtx' <- if isJust envAg
               then do
                 --putStrLn "Running Environment non-concurrently"
-                (_, envAg', g'') <- runAgentStep (fromJust envAg) dt g' sugCtx stmStatsFlag
+                (_, envAg', g'') <- runAgentStep (fromJust envAg) dt g' sugCtx
                 return $ mkSimContex dtVars'' aoVars'' t' g'' start (steps + 1) (Just envAg')
               else return $ mkSimContex dtVars'' aoVars'' t' g' start (steps + 1) envAg
-
-  --let mt = mod (floor t') 10 :: Integer
-  --when (mt == 0) dumpSTMStats
-  --dumpSTMStats
   
   return (simCtx', (t, env, obs))
 
@@ -93,16 +87,15 @@ spawnAgents :: RandomGen g
             => [(AgentId, SugAgent g)]
             -> g
             -> SugContext
-            -> Bool
             -> IO ([MVar DTime], [MVar (AgentId, SugAgentOut g)], g)
-spawnAgents [] g0 _ _ = return ([], [], g0)
-spawnAgents ((aid, a) : as) g0 sugCtx stmStatsFlag = do
+spawnAgents [] g0 _ = return ([], [], g0)
+spawnAgents ((aid, a) : as) g0 sugCtx = do
   let (g', g'') = split g0
 
   dtVar <- newEmptyMVar 
-  aoVar <- createAgentThread dtVar g' sugCtx aid a stmStatsFlag
+  aoVar <- createAgentThread dtVar g' sugCtx aid a
 
-  (dtVars, aoVars, g) <- spawnAgents as g'' sugCtx stmStatsFlag
+  (dtVars, aoVars, g) <- spawnAgents as g'' sugCtx
 
   return (dtVar : dtVars, aoVar : aoVars, g)
 
@@ -111,15 +104,14 @@ runAgentStep :: RandomGen g
              ->  DTime
              -> g
              -> SugContext
-             -> Bool
              -> IO (SugAgentOut g, SugAgent g, g)
-runAgentStep sf dt rng sugCtx stmStatsFlag = do
+runAgentStep sf dt rng sugCtx = do
   -- compute next step
   let sfDtReader  = unMSF sf SugAgentIn
       sfCtxReader = runReaderT sfDtReader dt
       sfRand      = runReaderT sfCtxReader sugCtx
       sfSTM       = runRandT sfRand rng
-  ((ao, sf'), rng') <- if stmStatsFlag then trackSTMConf stmConf "SugarScape" sfSTM else atomically sfSTM 
+  ((ao, sf'), rng') <- sfSTM 
   -- NOTE: running STM with stats results in considerable lower performance the more STM actions are run concurrently
   return (ao, sf', rng')
 
@@ -129,9 +121,8 @@ createAgentThread :: RandomGen g
                   -> SugContext
                   -> AgentId
                   -> SugAgent g
-                  -> Bool
                   -> IO (MVar (AgentId, SugAgentOut g))
-createAgentThread dtVar rng0 sugCtx aid a stmStatsFlag = do
+createAgentThread dtVar rng0 sugCtx aid a = do
     -- create the var where the result will be posted to
     retVar <- newEmptyMVar
     _ <- forkIO $ agentThread a rng0 retVar
@@ -146,7 +137,7 @@ createAgentThread dtVar rng0 sugCtx aid a stmStatsFlag = do
       -- wait for next dt to compute next step
       dt <- takeMVar dtVar
 
-      (ao, sf', rng') <- runAgentStep sf dt rng sugCtx stmStatsFlag
+      (ao, sf', rng') <- runAgentStep sf dt rng sugCtx
       
       -- post result to main thread
       putMVar retVar (aid, ao)
@@ -171,12 +162,6 @@ mkSimContex dtVars aoVars t g start steps envAg = SimContext {
   , simCtxStart  = start
   , simCtxSteps  = steps
   , simCtxEnvAg  = envAg
-  }
-
-stmConf :: TrackSTMConf
-stmConf = defaultTrackSTMConf {
-    tryThreshold   = Nothing
-  , globalTheshold = Nothing
   }
 
 checkTime :: RandomGen g

@@ -12,9 +12,7 @@ module Environment
 
 import Data.Maybe
 
-import Control.Concurrent.STM
 import Control.Monad.Random
-import Control.Monad.Reader
 import Control.Monad.State.Strict
 import FRP.BearRiver
 
@@ -56,12 +54,12 @@ regrow = regrowSugar sugarGrowbackUnits
 sugEnvironment :: RandomGen g 
                => SugAgent g
 sugEnvironment = proc _ -> do
-  ctx <- arrM_ (lift ask) -< ()
-  let envVar = sugCtxEnv ctx
-  env <- arrM (lift . lift . lift . readTVar) -< envVar
+  arrM_ (lift lockEnvironment) -< ()
 
+  env <- arrM_ (lift readEnvironment) -< ()
   (_, env') <- arrM (lift . runStateT regrow) -< env
 
-  arrM (\(envVar, env') -> lift $ lift $ lift $ writeTVar envVar env') -< (envVar, env')
+  arrM (lift . writeEnvironment) -< env'
+  arrM_ (lift unlockEnvironment) -< ()
 
   returnA -< agentOut

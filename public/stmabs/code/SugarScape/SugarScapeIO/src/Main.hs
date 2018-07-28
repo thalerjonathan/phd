@@ -1,10 +1,10 @@
 module Main where
 
+import           Control.Concurrent.MVar
+import           Data.IORef
 import           System.IO
 import           System.Random
 
-import           Control.Concurrent.STM
-import           Control.Concurrent.STM.Stats
 import           Control.Monad.Random
 import           Data.Time.Clock
 import           FRP.BearRiver
@@ -24,8 +24,7 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let stmStatsFlag = False  -- collects STM statistics. WARNING: reduces performance!
-      envConc      = False -- runs the environment agent concurrently
+  let envConc      = False -- runs the environment agent concurrently
       rebirthFlag  = False  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
       perfFile     = "50x50_500_4_core_rebirth.txt"
       glossOut     = True
@@ -43,11 +42,13 @@ main = do
       -- initial simulation state
       (initAis, _)           = unzip initAs
 
-  envVar <- newTVarIO initEnv
-  aidVar <- newTVarIO $ maximum initAis
+  envVar <- newIORef initEnv
+  envSem <- newMVar ()
+  aidVar <- newIORef $ maximum initAis
 
   let sugCtx = SugContext {
       sugCtxEnv     = envVar
+    , sugCtxEnvSem  = envSem
     , sugCtxNextAid = aidVar
     }
 
@@ -56,28 +57,26 @@ main = do
   let initAs' = if envConc then (0, sugEnvironment) : initAs else initAs
       envAg   = if envConc then Nothing else Just sugEnvironment
 
-  (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx stmStatsFlag
+  (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx
   -- initial simulation context
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0 envAg
 
   if glossOut
-    then runWithGloss durationSecs dt initSimCtx sugCtx initOut stmStatsFlag perfFile
-    else simulate dt initSimCtx sugCtx stmStatsFlag perfFile
+    then runWithGloss durationSecs dt initSimCtx sugCtx initOut perfFile
+    else simulate dt initSimCtx sugCtx perfFile
 
 simulate :: RandomGen g
          => DTime
          -> SimContext g
          -> SugContext
-         -> Bool
          -> String
          -> IO ()
-simulate dt simCtx sugCtx stmStatsFlag perfFile = do
-  (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx stmStatsFlag
+simulate dt simCtx sugCtx perfFile = do
+  (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx
 
   -- NOTE: need to print t otherwise lazy evaluation would omit all computation
   putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
   
   ret <- checkTime durationSecs simCtx' perfFile
-  if ret 
-    then when stmStatsFlag dumpSTMStats
-    else simulate dt simCtx' sugCtx stmStatsFlag perfFile
+
+  unless ret (simulate dt simCtx' sugCtx perfFile)

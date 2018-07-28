@@ -43,7 +43,7 @@ regrowSugar rate
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate})
+                  ((sugEnvSugarLevel c) + rate)}) -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
     regrowSugarToMax :: (MonadState SugEnvironment m) => m ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})

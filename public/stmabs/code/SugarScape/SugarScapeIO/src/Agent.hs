@@ -84,9 +84,11 @@ agentMetabolism = do
           => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
     agentDies = do
       lift lockEnvironment
-      env <- lift readEnvironment
+
+      env  <- lift readEnvironment
       env' <- unoccupyPosition env
       lift $ writeEnvironment env'
+
       lift unlockEnvironment
       return $ kill agentOut
 
@@ -95,16 +97,24 @@ birthNewAgent :: RandomGen g
               -> StateT SugAgentState (SugAgentMonad g) (AgentId, SugAgent g)
 birthNewAgent rebirthFlag = do
       lift lockEnvironment
-      env       <- lift readEnvironment
-      newAid    <- lift nextAgentId
-      newCoord  <- findUnoccpiedRandomPosition env
+
+      env                 <- lift readEnvironment
+      newAid              <- lift nextAgentId
+      (newCoord, newCell) <- findUnoccpiedRandomPosition env
+      (newA, newAState)   <- lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+
+      -- need to occupy the cell to prevent other agents occupying it
+      let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
+          env'     = changeCellAt newCoord newCell' env
+
+      lift $ writeEnvironment env'
       lift unlockEnvironment
-      (newA, _) <- lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+
       return (newAid, newA)
   where
     findUnoccpiedRandomPosition :: RandomGen g
                                 => SugEnvironment
-                                -> StateT SugAgentState (SugAgentMonad g) Discrete2dCoord
+                                -> StateT SugAgentState (SugAgentMonad g) (Discrete2dCoord, SugEnvCell)
     findUnoccpiedRandomPosition env = do
       let (maxX, maxY) = envDisc2dDims env
 
@@ -117,7 +127,7 @@ birthNewAgent rebirthFlag = do
       ifThenElse
         (cellOccupied c) 
         (findUnoccpiedRandomPosition env)
-        (return randCoord)
+        (return (randCoord, c))
 
 agentMove :: RandomGen g
           => AgentId
@@ -188,7 +198,7 @@ agentMoveTo aid cellCoord env = do
 
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
-  s   <- get
+  s <- get
 
   let cell = cellAt cellCoord env'
       co   = cell { sugEnvOccupier = Just (cellOccupier aid s) }

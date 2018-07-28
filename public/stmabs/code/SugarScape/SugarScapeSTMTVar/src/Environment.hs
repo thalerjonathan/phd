@@ -12,9 +12,7 @@ module Environment
 
 import Data.Maybe
 
-import Control.Concurrent.STM
 import Control.Monad.Random
-import Control.Monad.Reader
 import Control.Monad.State.Strict
 import FRP.BearRiver
 
@@ -45,7 +43,7 @@ regrowSugar rate
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate})
+                  ((sugEnvSugarLevel c) + rate)}) -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
     regrowSugarToMax :: (MonadState SugEnvironment m) => m ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
@@ -56,12 +54,8 @@ regrow = regrowSugar sugarGrowbackUnits
 sugEnvironment :: RandomGen g 
                => SugAgent g
 sugEnvironment = proc _ -> do
-  ctx <- arrM_ (lift ask) -< ()
-  let envVar = sugCtxEnv ctx
-  env <- arrM (lift . lift . lift . readTVar) -< envVar
-
-  (_, env') <- arrM (lift . runStateT regrow) -< env
-
-  arrM (\(envVar, env') -> lift $ lift $ lift $ writeTVar envVar env') -< (envVar, env')
+  env       <- arrM_ (lift readEnvironment)    -< ()
+  (_, env') <- arrM  (lift . runStateT regrow) -< env
+  _         <- arrM  (lift . writeEnvironment) -< env'
 
   returnA -< agentOut

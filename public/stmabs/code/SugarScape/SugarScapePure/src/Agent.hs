@@ -64,58 +64,47 @@ birthNewAgent :: RandomGen g
               => Bool
               -> StateT SugAgentState (SugAgentMonadT g) (AgentId, SugAgentDef g)
 birthNewAgent rebirthFlag = do
-      newAid    <- lift nextAgentId
-      newCoord  <- findUnoccpiedRandomPosition
-      (newA, _) <- lift $ lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+      newAid              <- lift nextAgentId
+      (newCoord, newCell) <- findUnoccpiedRandomPosition
+      (newA, newAState)   <- lift $ lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+
+      -- need to occupy the cell to prevent other agents occupying it
+      let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
+      lift $ lift $ changeCellAtM newCoord newCell' 
+
       return (newAid, newA)
   where
     findUnoccpiedRandomPosition :: RandomGen g
-                                => StateT SugAgentState (SugAgentMonadT g) Discrete2dCoord
+                                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
     findUnoccpiedRandomPosition = do
       e <- lift $ lift get
       (c, coord) <- lift $ lift $ lift $ randomCell e
       ifThenElse
         (cellOccupied c) 
         findUnoccpiedRandomPosition
-        (return coord)
-
-agentDies :: RandomGen g
-          => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-agentDies = do
-  unoccupyPosition
-  return $ kill agentOut
-
-unoccupyPosition :: RandomGen g
-                 => StateT SugAgentState (SugAgentMonadT g) ()
-unoccupyPosition = do
-  (coord, cell) <- agentCellOnCoord
-  let cell' = cell { sugEnvOccupier = Nothing }
-  lift $ lift $ changeCellAtM coord cell'
-
-agentCellOnCoord :: RandomGen g
-                 => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
-agentCellOnCoord = do
-  coord <- gets sugAgCoord
-  cell  <- lift $ lift $ cellAtM coord
-  return (coord, cell)
+        (return (coord, c))
 
 agentMetabolism :: RandomGen g
                 => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 agentMetabolism = do
-  s <- get
-  let sugarMetab = sugAgSugarMetab s
+    sugarMetab <- gets sugAgSugarMetab
+    sugarLevel <- gets sugAgSugarLevel
 
-  sugarLevel <- gets sugAgSugarLevel
+    let sugarLevel' = max 0 (sugarLevel - sugarMetab)
 
-  let newSugarLevel = max 0 (sugarLevel - sugarMetab)
-  
-  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel })
+    updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
 
-  ifThenElseM
-    starvedToDeath
-    agentDies
-    (return agentOut)
-
+    ifThenElseM
+      starvedToDeath
+      agentDies
+      (return agentOut)
+  where
+    agentDies :: RandomGen g
+              => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+    agentDies = do
+      unoccupyPosition
+      return $ kill agentOut
+      
 starvedToDeath :: RandomGen g
                => StateT SugAgentState (SugAgentMonadT g) Bool
 starvedToDeath = do
@@ -127,13 +116,13 @@ agentMove :: RandomGen g
           -> StateT SugAgentState (SugAgentMonadT g) ()
 agentMove aid = do
   cellsInSight <- agentLookout
-  coord <- gets sugAgCoord
+  coord        <- gets sugAgCoord
 
   let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
   ifThenElse 
     (null unoccupiedCells)
-    agentStayAndHarvest
+    (agentHarvestCell coord)
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
@@ -143,7 +132,8 @@ agentMove aid = do
         let bf = bestCellFunc
         let bestCells = selectBestCells bf coord unoccupiedCells'
         (cellCoord, _) <- lift $ lift $ lift $ randomElemM bestCells
-        agentMoveAndHarvestCell aid cellCoord)
+        agentHarvestCell cellCoord 
+        agentMoveTo aid cellCoord)
 
 agentLookout :: RandomGen g
              => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvCell)]
@@ -152,17 +142,19 @@ agentLookout = do
   coord <- gets sugAgCoord
   lift $ lift $ neighboursInNeumannDistanceM coord vis False
 
-agentStayAndHarvest :: RandomGen g
-                    => StateT SugAgentState (SugAgentMonadT g) ()
-agentStayAndHarvest = gets sugAgCoord >>= agentHarvestCell
-
-agentMoveAndHarvestCell :: RandomGen g
-                        => AgentId
-                        -> Discrete2dCoord 
-                        -> StateT SugAgentState (SugAgentMonadT g) ()
-agentMoveAndHarvestCell aid cellCoord = do
-  agentHarvestCell cellCoord 
-  agentMoveTo aid cellCoord
+unoccupyPosition :: RandomGen g
+                 => StateT SugAgentState (SugAgentMonadT g) ()
+unoccupyPosition = do
+    (coord, cell) <- agentCellOnCoord
+    let cell' = cell { sugEnvOccupier = Nothing }
+    lift $ lift $ changeCellAtM coord cell'
+  where
+    agentCellOnCoord :: RandomGen g
+                    => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
+    agentCellOnCoord = do
+      coord <- gets sugAgCoord
+      cell  <- lift $ lift $ cellAtM coord
+      return (coord, cell)
 
 agentMoveTo :: RandomGen g
              => AgentId

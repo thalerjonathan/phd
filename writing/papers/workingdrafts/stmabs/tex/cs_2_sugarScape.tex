@@ -20,7 +20,7 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/sugarscape/vis/sugarscape_t60_environment.png}
-			\caption{Visualisation of the Sugarscape at $t = 50$.}
+			\caption{Visualisation of the Sugarscape at $t = 50$. TODO: retake the pictures}
 			\label{fig:vis_sugarscape_t50_environment}
 		\end{subfigure}
     	
@@ -29,12 +29,12 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 		\begin{subfigure}[b]{0.6\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/sugarscape/vis/sugarscape_t60_dynamics.png}
-			\caption{Dynamics population size over 50 steps.}
+			\caption{Dynamics population size over 50 steps. TODO: retake the picture.}
 			\label{fig:vis_sugarscape_t50_dynamics}
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Visualisation of our SugarScape implementation and dynamics of the population size over 50 steps.}
+	\caption{Visualisation of our SugarScape implementation and dynamics of the population size over 50 steps. The white numbers in the blue agent circles are the agents unique ids.}
 	\label{fig:vis_sugarscape}
 \end{center}
 \end{figure}
@@ -44,11 +44,13 @@ We compare three different implementations
 
 \begin{enumerate}
 	\item Sequential - All agents are run after another (including the environment) and the environment is shared amongst the agents using the State Monad.
-	\item STM TVar - All agents are run concurrently and the environment is shared using a \textit{TVar} amongst the agents. The environment is either run asynchronously concurrently at the same time with the agents or synchronously after all agents are run in a step.
-	\item STM TArray - All agents are run concurrently and the environment is shared using a \textit{TArray} amongst the agents. The environment is either run asynchronously concurrently at the same time with the agents or synchronously after all agents are run in a step.
+	\item Lock-Based - TODO
+	\item STM TVar - All agents are run concurrently and the environment is shared using a \textit{TVar} amongst the agents.
+	\item STM TArray - All agents are run concurrently and the environment is shared using a \textit{TArray} amongst the agents. 
 \end{enumerate}
 
 The model specification requires to shuffle agents before every step (Footnote 12 on page 26). In the \textit{Sequential} approach we do this explicitly but in both STM approaches this happens automatically due to race-conditions in concurrency thus we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step. The important difference between the two approaches is that in the State approach we have full control over this randomness but in the STM not - also this means that repeated runs with the same initial conditions might lead to slightly different results.
+Note that in the concurrent implementations we could have two options for running the environment: either running it asynchronously as a concurrent agent at the same time with the population agents or synchronously after all agents have run. We must be careful though as running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. It could happen in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications (TODO: reference the book where it shows that environment grows after / before all agents).
 
 We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation over 60 seconds.
 
@@ -56,60 +58,44 @@ For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machi
 
 Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is crucial in ABS, it is not what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step piped into a file, thus omitting slow output to the console. Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in ridiculous high number of steps per second but which obviously don't really reflect the true computations done.
 
-\subsection{Naive Approach}
-In this first approach we compare the non-concurrent \textit{Sequential} approach against an implementation using \textit{STM} where we vary the number of cores. In the \textit{STM} implementation we share the environment in the same way as in the SIR case study of Section \ref{sec:cs_sir} using a \textit{TVar}. For running the environment we implemented two approaches: running it asynchronously as a concurrent agent at the same time with the population agents and synchronously after all agents have run. The results are reported in Table \ref{tab:naive_results_time} and can be seen in Figure \ref{fig:naive_results_time}. 
+\subsection{Constant Agent Size}
+In this first approach we compare the non-concurrent \textit{Sequential} approach against an implementation using \textit{STM} where we vary the number of cores. In the \textit{STM} implementation we share the environment in the same way as in the SIR case study of Section \ref{sec:cs_sir} using a \textit{TVar}. The results are reported in Table \ref{tab:constant_agents_results} and can be seen in Figure \ref{fig:constant_agents_results}. 
+
+TODO: re-run experiments: currently Sequential
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c || c | c }
-                   & Cores & Steps (async) & Retries (async) & Steps (sync) & Retries (sync) \\ \hline \hline 
-    	Sequential & 1     & N/A           & N/A 			 & 28.2         & N/A            \\ \hline \hline    
-   		STM        & 1     & 30.9          & 0.004 			 & 31.1 	    & 0.004          \\ \hline
-   		STM        & 2     & 35.5          & 1.0 		     & 35.4         & 1.1 			 \\ \hline
-   		STM        & 3     & 38.5          & 2.2 			 & 38.8 	    & 2.1 			 \\ \hline
-   		STM        & 4     & 37.3          & 3.4             & 37.4         & 3.4
+  	\begin{tabular}{ c || c | c | c }
+                   & Cores & Steps & Retries  \\ \hline \hline 
+    	Sequential & 1     & 28.2  & N/A      \\ \hline \hline   
+
+    	Lock-Based & 1     &  & N/A    \\ \hline
+    	Lock-Based & 2     &  & N/A    \\ \hline
+    	Lock-Based & 3     &  & N/A    \\ \hline
+    	Lock-Based & 4     &  & N/A    \\ \hline \hline   
+   		
+   		STM TVar   & 1     & 31.1  & 0.004    \\ \hline
+   		STM TVar   & 2     & 35.4  & 1.1 	  \\ \hline
+   		STM TVar   & 3     & 38.8  & 2.1 	  \\ \hline
+   		STM TVar   & 4     & 37.4  & 3.4	  \\ \hline \hline   
+   		
+   		STM TArray & 1     & 50.8  & 0.001    \\ \hline
+   		STM TArray & 2     & 68.8  & 0.01	  \\ \hline
+   		STM TArray & 3     & 77.4  & 0.02	  \\ \hline
+   		STM TArray & 4     & 86.9  & 0.03	  \\ \hline \hline   
    	\end{tabular}
   	
   	\caption{Steps per second and retries on 50x50 grid and 500 initial agents using the \textit{Sequential} and \textit{TVar} on an asynchronous and synchronous environment.}
-	\label{tab:naive_results_time}
+	\label{tab:constant_agents_results}
 \end{table}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/tvar_concenv_500_50x50.png}
-	\caption{Steps per second and retries on 50x50 grid and 500 initial agents using the \textit{Sequential} and \textit{TVar} on an asynchronous and synchronous environment. TODO: incorporate both sync and async into same figure}
-	\label{fig:naive_results_time}
-\end{figure}
 
 Clearly the concurrent \textit{STM} implementation outperforms the \textit{Sequential} one but the results are below expectations - clearly the speed-up is not as much as we hoped for. This is immediately reflected in the retry-ratios which rise up to more than 3 on 4 cores which means that each agent re-tries its computation \textit{on average} 3 times in each step. Can we do better?
 
-Obviously our first naive approach has two serious shortcomings. First, running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. It could happen in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications. Second, using \textit{TVar} to share the environment is a very inefficient choice: \textit{every} write to a cell leads to a retry independent whether the reading agent read that changed cell or not because the data-structure can not distinguish between individual cells.
+Second, using \textit{TVar} to share the environment is a very inefficient choice: \textit{every} write to a cell leads to a retry independent whether the reading agent read that changed cell or not because the data-structure can not distinguish between individual cells.
 
-The first shortcoming is already addressed by running the environment synchronously after all agents have run. When looking at the results we see that running the environment synchronously might have led to a correct implementation but the performance difference is insignificant. It seems that the choice of the \textit{TVar} is the limiting factor. This is also the second shortcoming and can be addressed by using a \textit{TArray} instead. Let us now switch to an implementation using the \textit{TArray} data-structure.
+The first shortcoming is already addressed by running the environment synchronously after all agents have run. When looking at the results we see that running the environment synchronously might have led to a correct implementation but the performance difference is insignificant. It seems that the choice of the \textit{TVar} is the limiting factor. This is also the second shortcoming and can be addressed by using a \textit{TArray} instead. 
 
-\subsection{From TVar to TArray}
-In this implementation we replaced the \textit{TVar} by a \textit{TArray} data-structure which should reduce the number of retries substantially and thus improve performance by a considerable factor. By using a \textit{TArray} we can avoid the situation where a write to a cell in a far distant location of the environment will lead to a retry of an agent which never even touched that cell. Also we ran the environment synchronously. The results are reported in Table \ref{tab:tarray_results_syncenv_time} and can be seen in Figure \ref{fig:tarray_results_syncenv_time}.
-
-\begin{table}
-	\centering
-  	\begin{tabular}{ c || c | c || c | c }
-        Cores & Steps (sync) & Retries (sync) & Steps (async) & Retries (async) \\ \hline \hline 
-    	1     & 50.8         & 0.001 		    & 52.8        & 0.002 \\ \hline
-   		2     & 68.8         & 0.01 		    & 51.1        & 0.05 \\ \hline
-   		3     & 77.4         & 0.02 		    & 62.2        & 0.03 \\ \hline
-   		4     & 86.9         & 0.03             & 65.0        & 0.04
-   	\end{tabular}
-  	
-  	\caption{Steps per second and retries on 50x50 grid and 500 initial agents using a \textit{TArray} on an asynchronous and synchronous environment.}
-	\label{tab:tarray_results_syncenv_time}
-\end{table}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/tarray_syncenv_500_50x50.png}
-	\caption{Steps per second and retries on 50x50 grid and 500 initial agents using a \textit{TArray} on an asynchronous and synchronous environment. TODO: incorporate both sync and async into same figure}
-	\label{fig:tarray_results_syncenv_time}
-\end{figure}
+Let us now switch to an implementation using the \textit{TArray} data-structure. In this implementation we replaced the \textit{TVar} by a \textit{TArray} data-structure which should reduce the number of retries substantially and thus improve performance by a considerable factor. By using a \textit{TArray} we can avoid the situation where a write to a cell in a far distant location of the environment will lead to a retry of an agent which never even touched that cell. Also we ran the environment synchronously. The results are reported in Table \ref{tab:tarray_results_syncenv_time} and can be seen in Figure \ref{fig:tarray_results_syncenv_time}.
 
 Now we are arriving at substantial performance improvements, which is directly reflected in the retry-ratios which are close to 0. Also this makes the point of this section crystal clear: selecting the right transactional data-structure is paramount for best performance when using STM. Out of interest we ran the \textit{TArray} implementation with a concurrent environment to see how much impact this has, and indeed it has some impact and reduces performance by quite some factor but is still considerable faster than a \textit{TVar} synchronous environment approach. What is interesting is that the performance on 2 cores drops below the one of 1 core TODO: why?.
 
@@ -122,15 +108,17 @@ We now want to see the scaling property of our approaches when increasing the nu
 
 Except for the \textit{Sequential} approach we ran all experiments with 4 cores with a concurrent environment. We looked into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment). We also measured the average retries both for \textit{TVar} and \textit{TArray} under 2,500 agents where the \textit{TArray} approach shows best scaling performance with 0.01 retries whereas \textit{TVar} averages at 3.28 retries. Again this can be attributed to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels. The results are reported in Table \ref{tab:state_results_agentsscale_time} and can be seen in Figure \ref{fig:state_results_agentsscale_time}.
 
+TODO: re-run experiments
+
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Agents  & Sequential & TVar       & TArray        \\ \hline \hline 
-    	500     & 14.1       & 21.1       & \textbf{74.4} \\ \hline
-   		1,000   & 6.8        & 11.3       & \textbf{56.8} \\ \hline
-   		1,500   & 4.5        & 8.1        & \textbf{45.2} \\ \hline
-   		2,000   & 3.3        & 6.2        & \textbf{37.0} \\ \hline 
-   		2,500   & 2.6        & 5.2        & \textbf{31.7}
+  	\begin{tabular}{ c || c | c | c | c }
+        Agents  & Sequential & Lock-Based & TVar       & TArray        \\ \hline \hline 
+    	500     & 14.1       & 			  &	21.1       & \textbf{74.4} \\ \hline
+   		1,000   & 6.8        & 			  & 11.3       & \textbf{56.8} \\ \hline
+   		1,500   & 4.5        & 			  & 8.1        & \textbf{45.2} \\ \hline
+   		2,000   & 3.3        & 			  & 6.2        & \textbf{37.0} \\ \hline 
+   		2,500   & 2.6        & 			  & 5.2        & \textbf{31.7}
    	\end{tabular}
   	
   	\caption{Steps per second on 50x50 grid and varying number of agents.}

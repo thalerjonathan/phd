@@ -41,13 +41,13 @@ regrowSugar rate env
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate}) env
+                  ((sugEnvSugarLevel c) + rate)}) env -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
     regrowSugarToMax :: STM ()
     regrowSugarToMax = updateAllCells (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c}) env
 
 regrow :: SugEnvironment -> STM ()
-regrow env = regrowSugar sugarGrowbackUnits env
+regrow = regrowSugar sugarGrowbackUnits
 
 sugEnvironment :: RandomGen g 
                => SugAgent g

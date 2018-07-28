@@ -59,19 +59,56 @@ chapterII rebirthFlag aid _ain _age = do
       ao' <- observable 
       return $ ao <°> ao')
 
+agentMetabolism :: RandomGen g
+                => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
+agentMetabolism = do
+    sugarMetab <- gets sugAgSugarMetab
+    sugarLevel <- gets sugAgSugarLevel
+
+    let newSugarLevel = max 0 (sugarLevel - sugarMetab)
+
+    updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel })
+
+    ifThenElseM
+      starvedToDeath
+      agentDies
+      (return agentOut)
+  where
+    starvedToDeath :: RandomGen g
+                  => StateT SugAgentState (SugAgentMonad g) Bool
+    starvedToDeath = do
+      sugar <- gets sugAgSugarLevel
+      return $ sugar <= 0
+      
+    agentDies :: RandomGen g
+              => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
+    agentDies = do
+      env  <- lift readEnvironment
+      env' <- unoccupyPosition env
+      lift $ writeEnvironment env'
+
+      return $ kill agentOut
+
 birthNewAgent :: RandomGen g
               => Bool
               -> StateT SugAgentState (SugAgentMonad g) (AgentId, SugAgent g)
 birthNewAgent rebirthFlag = do
-      env       <- lift readEnvironment
-      newAid    <- lift nextAgentId
-      newCoord  <- findUnoccpiedRandomPosition env
-      (newA, _) <- lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+      env                 <- lift readEnvironment
+      newAid              <- lift nextAgentId
+      (newCoord, newCell) <- findUnoccpiedRandomPosition env
+      (newA, newAState)   <- lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+
+      -- need to occupy the cell to prevent other agents to occupy it before the spawning of the agent
+      let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
+          env'     = changeCellAt newCoord newCell' env
+
+      lift $ writeEnvironment env'
+
       return (newAid, newA)
   where
     findUnoccpiedRandomPosition :: RandomGen g
                                 => SugEnvironment
-                                -> StateT SugAgentState (SugAgentMonad g) Discrete2dCoord
+                                -> StateT SugAgentState (SugAgentMonad g) (Discrete2dCoord, SugEnvCell)
     findUnoccpiedRandomPosition env = do
       let (maxX, maxY) = envDisc2dDims env
 
@@ -84,65 +121,23 @@ birthNewAgent rebirthFlag = do
       ifThenElse
         (cellOccupied c) 
         (findUnoccpiedRandomPosition env)
-        (return randCoord)
-
-agentDies :: RandomGen g
-          => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-agentDies = do
-  unoccupyPosition
-  return $ kill agentOut
-
-unoccupyPosition :: RandomGen g
-                 => StateT SugAgentState (SugAgentMonad g) ()
-unoccupyPosition = do
-  env           <- lift readEnvironment
-  (coord, cell) <- agentCellOnCoord env
-  let cell' = cell { sugEnvOccupier = Nothing }
-      env'  = changeCellAt coord cell' env
-  lift $ writeEnvironment env'
-
-agentCellOnCoord :: RandomGen g 
-                 => SugEnvironment
-                 -> StateT SugAgentState (SugAgentMonad g) (Discrete2dCoord, SugEnvCell)
-agentCellOnCoord env = do
-  coord <- gets sugAgCoord
-  let cell = cellAt coord env
-  return (coord, cell)
-
-agentMetabolism :: RandomGen g
-                => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-agentMetabolism = do
-  sugarMetab <- gets sugAgSugarMetab
-  sugarLevel <- gets sugAgSugarLevel
-
-  let newSugarLevel = max 0 (sugarLevel - sugarMetab)
-
-  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel })
-
-  ifThenElseM
-    starvedToDeath
-    agentDies
-    (return agentOut)
-
-starvedToDeath :: RandomGen g
-               => StateT SugAgentState (SugAgentMonad g) Bool
-starvedToDeath = do
-  sugar <- gets sugAgSugarLevel
-  return $ sugar <= 0
+        (return (randCoord, c))
 
 agentMove :: RandomGen g
           => AgentId
           -> StateT SugAgentState (SugAgentMonad g) ()
 agentMove aid = do
-  cellsInSight <- agentLookout
-  coord        <- gets sugAgCoord
   env          <- lift readEnvironment
+  cellsInSight <- agentLookout env
+  coord        <- gets sugAgCoord
 
   let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
   ifThenElse 
     (null unoccupiedCells)
-    agentStayAndHarvest
+    (do
+      env' <- agentHarvestCell coord env
+      lift $ writeEnvironment env')
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
@@ -151,58 +146,64 @@ agentMove aid = do
         let bf               = bestCellFunc
         let bestCells        = selectBestCells bf coord unoccupiedCells'
         (cellCoord, _) <- lift $ lift $ randomElemM bestCells
-        agentMoveAndHarvestCell aid cellCoord)
+        env'           <- agentHarvestCell cellCoord env
+        env''          <- agentMoveTo aid cellCoord env'
+        lift $ writeEnvironment env'')
 
+------------------------------------------------------------------------------
+-- ALL FUNCTIONS BELOW TAKE AN ENVIRONMENT AND MAY RETURN AN ENVIRONMENT
 agentLookout :: RandomGen g
-             => StateT SugAgentState (SugAgentMonad g) [(Discrete2dCoord, SugEnvCell)]
-agentLookout = do
+             => SugEnvironment
+             -> StateT SugAgentState (SugAgentMonad g) [(Discrete2dCoord, SugEnvCell)]
+agentLookout env = do
   vis   <- gets sugAgVision
   coord <- gets sugAgCoord
-  env   <- lift readEnvironment
   return $ neighboursInNeumannDistance coord vis False env
 
-agentStayAndHarvest :: RandomGen g
-                    => StateT SugAgentState (SugAgentMonad g) ()
-agentStayAndHarvest = gets sugAgCoord >>= agentHarvestCell
-
-agentMoveAndHarvestCell :: RandomGen g
-                        => AgentId
-                        -> Discrete2dCoord 
-                        -> StateT SugAgentState (SugAgentMonad g) ()
-agentMoveAndHarvestCell aid cellCoord = do
-  agentHarvestCell cellCoord 
-  agentMoveTo aid cellCoord
+unoccupyPosition :: RandomGen g
+                 => SugEnvironment
+                 -> StateT SugAgentState (SugAgentMonad g) SugEnvironment
+unoccupyPosition env = do
+    (coord, cell) <- agentCellOnCoord
+    let cell' = cell { sugEnvOccupier = Nothing }
+        env'  = changeCellAt coord cell' env
+    return env'
+  where
+    agentCellOnCoord :: RandomGen g 
+                    => StateT SugAgentState (SugAgentMonad g) (Discrete2dCoord, SugEnvCell)
+    agentCellOnCoord = do
+      coord <- gets sugAgCoord
+      let cell = cellAt coord env
+      return (coord, cell)
 
 agentMoveTo :: RandomGen g
              => AgentId
              -> Discrete2dCoord 
-             -> StateT SugAgentState (SugAgentMonad g) ()
-agentMoveTo aid cellCoord = do
-  unoccupyPosition
+             -> SugEnvironment
+             -> StateT SugAgentState (SugAgentMonad g) SugEnvironment
+agentMoveTo aid cellCoord env = do
+  env' <- unoccupyPosition env
 
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
   s   <- get
-  env <- lift readEnvironment
 
-  let cell = cellAt cellCoord env
+  let cell = cellAt cellCoord env'
       co   = cell { sugEnvOccupier = Just (cellOccupier aid s) }
-      env' = changeCellAt cellCoord co env
+      env'' = changeCellAt cellCoord co env'
 
-  lift $ writeEnvironment env'
+  return env''
 
 agentHarvestCell :: RandomGen g
                  => Discrete2dCoord 
-                 -> StateT SugAgentState (SugAgentMonad g) ()
-agentHarvestCell cellCoord = do
-  env <- lift readEnvironment
-
+                 -> SugEnvironment
+                 -> StateT SugAgentState (SugAgentMonad g) SugEnvironment
+agentHarvestCell cellCoord env = do
   let cell = cellAt cellCoord env
 
   sugarLevelAgent <- gets sugAgSugarLevel
 
-  let sugarLevelCell = sugEnvSugarLevel cell
-
+  let sugarLevelCell     = sugEnvSugarLevel cell
   let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
 
   updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
@@ -210,4 +211,4 @@ agentHarvestCell cellCoord = do
   let cellHarvested = cell { sugEnvSugarLevel = 0.0 }
       env'          = changeCellAt cellCoord cellHarvested env
 
-  lift $ writeEnvironment env'
+  return env'

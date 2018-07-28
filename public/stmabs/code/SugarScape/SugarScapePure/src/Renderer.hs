@@ -21,7 +21,7 @@ renderSugarScapeFrame :: (Int, Int)
                       -> [AgentObservable SugAgentObservable]
                       -> GLO.Picture
 renderSugarScapeFrame wSize@(wx, wy) t e ss
-    = GLO.Pictures (envPics ++ agentPics) -- ++ [timeStepTxt])
+    = GLO.Pictures (timeStepTxt : envPics ++ agentPics)
   where
     (dx, dy) = dimensionsDisc2d e
     cellWidth = fromIntegral wx / fromIntegral dx
@@ -29,11 +29,10 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss
 
     cells = allCellsWithCoords e
 
-    -- agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
     agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
     envPics = map (renderEnvCell (cellWidth, cellHeight) wSize t) cells
 
-    _timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
+    timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
 
     halfWSizeX = fromIntegral wx / 2.0 
     halfWSizeY = fromIntegral wy / 2.0 

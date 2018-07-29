@@ -44,7 +44,7 @@ We compare three different implementations
 
 \begin{enumerate}
 	\item Sequential - All agents are run after another (including the environment) and the environment is shared amongst the agents using the State Monad.
-	\item Lock-Based - TODO
+	\item Lock-Based - All agents are run concurrently and the environment is shared using an \textit{IORef} amongst the agents which acquire and release a lock when accessing it.
 	\item STM TVar - All agents are run concurrently and the environment is shared using a \textit{TVar} amongst the agents.
 	\item STM TArray - All agents are run concurrently and the environment is shared using a \textit{TArray} amongst the agents. 
 \end{enumerate}
@@ -59,10 +59,7 @@ For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machi
 Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is crucial in ABS, it is not what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step piped into a file, thus omitting slow output to the console. Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in ridiculous high number of steps per second but which obviously don't really reflect the true computations done.
 
 \subsection{Constant Agent Size}
-In this first approach we compare the non-concurrent \textit{Sequential} approach against an implementation using \textit{STM} where we vary the number of cores. In the \textit{STM} implementation we share the environment in the same way as in the SIR case study of Section \ref{sec:cs_sir} using a \textit{TVar}. The results are reported in Table \ref{tab:constant_agents_results} and can be seen in Figure \ref{fig:constant_agents_results}. 
-
-TODO: re-run experiments: TArray
-TODO: re-run STM TVar 4, seems to look not right??  
+In this first approach we compare the performance of all implementations on varying numbers of cores. The results are reported in Table \ref{tab:varying_cores} and can be seen in Figure \ref{fig:varying_cores}. 
 
 \begin{table}
 	\centering
@@ -70,27 +67,40 @@ TODO: re-run STM TVar 4, seems to look not right??
                    & Cores & Steps & Retries  \\ \hline \hline 
     	Sequential & 1     & 39.4  & N/A      \\ \hline \hline   
 
-    	Lock-Based & 1     & 43.0 & N/A       \\ \hline
-    	Lock-Based & 2     & 51.8 & N/A       \\ \hline
-    	Lock-Based & 3     & 57.4 & N/A       \\ \hline
-    	Lock-Based & 4     & 58.1 & N/A       \\ \hline \hline   
+    	Lock-Based & 1     & 43.0  & N/A       \\ \hline
+    	Lock-Based & 2     & 51.8  & N/A       \\ \hline
+    	Lock-Based & 3     & 57.4  & N/A       \\ \hline
+    	Lock-Based & 4     & 58.1  & N/A       \\ \hline \hline   
    		
-   		STM TVar   & 1     & 47.3 & 0.0       \\ \hline
-   		STM TVar   & 2     & 53.5 & 1.1       \\ \hline
-   		STM TVar   & 3     & 57.1 & 2.2 	  \\ \hline
-   		STM TVar   & 4     & 53.0 & 3.2	  \\ \hline \hline   
+   		STM TVar   & 1     & 47.3  & 0.0       \\ \hline
+   		STM TVar   & 2     & 53.5  & 1.1       \\ \hline
+   		STM TVar   & 3     & 57.1  & 2.2 	   \\ \hline
+   		STM TVar   & 4     & 53.0  & 3.2	   \\ \hline \hline   
    		
-   		STM TArray & 1     & 50.8 TODO & TODO 0.001    \\ \hline
-   		STM TArray & 2     & 68.8 TODO & TODO 0.01	  \\ \hline
-   		STM TArray & 3     & 77.4 TODO & TODO 0.02	  \\ \hline
-   		STM TArray & 4     & 86.9 TODO & TODO  0.03	  \\ \hline \hline   
+   		STM TArray & 1     & 45.4  & 0.0 	   \\ \hline
+   		STM TArray & 2     & 65.3  & 0.02      \\ \hline
+   		STM TArray & 3     & 75.7  & 0.04      \\ \hline
+   		STM TArray & 4     & 84.4  & 0.05	   \\ \hline \hline   
    	\end{tabular}
   	
-  	\caption{Steps per second and retries on 50x50 grid and 500 initial agents.}
-	\label{tab:constant_agents_results}
+  	\caption{Steps per second and retries on 50x50 grid and 500 initial agents on varying cores.}
+	\label{tab:varying_cores}
 \end{table}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth, angle=0]{./fig/sugarscape/varying_cores.png}
+	\caption{Steps per second and retries on 50x50 grid and 500 initial agents on varying cores.}
+	\label{fig:varying_cores}
+\end{figure}
+
+As expected, the \textit{Sequential} implementation is the slowest. 
+
 Clearly the concurrent \textit{STM} implementation outperforms the \textit{Sequential} one but the results are below expectations - clearly the speed-up is not as much as we hoped for. This is immediately reflected in the retry-ratios which rise up to more than 3 on 4 cores which means that each agent re-tries its computation \textit{on average} 3 times in each step. Can we do better?
+
+
+TODO: the Tarray seems to scale up by 10 steps per second for every core added, it would be interesting to see how far this could go
+
 
 Second, using \textit{TVar} to share the environment is a very inefficient choice: \textit{every} write to a cell leads to a retry independent whether the reading agent read that changed cell or not because the data-structure can not distinguish between individual cells.
 
@@ -109,17 +119,17 @@ We now want to see the scaling property of our approaches when increasing the nu
 
 Except for the \textit{Sequential} approach we ran all experiments with 4 cores with a concurrent environment. We looked into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment). We also measured the average retries both for \textit{TVar} and \textit{TArray} under 2,500 agents where the \textit{TArray} approach shows best scaling performance with 0.01 retries whereas \textit{TVar} averages at 3.28 retries. Again this can be attributed to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels. The results are reported in Table \ref{tab:state_results_agentsscale_time} and can be seen in Figure \ref{fig:state_results_agentsscale_time}.
 
-TODO: re-run experiments
+TODO: re-run all experiments, select same spot on rebirth otherwise will take too much time to find a new spot e.g. when 2,500 agents
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c | c }
         Agents  & Sequential & Lock-Based & TVar       & TArray        \\ \hline \hline 
-    	500     & 14.1       & 			  &	21.1       & \textbf{74.4} \\ \hline
-   		1,000   & 6.8        & 			  & 11.3       & \textbf{56.8} \\ \hline
-   		1,500   & 4.5        & 			  & 8.1        & \textbf{45.2} \\ \hline
-   		2,000   & 3.3        & 			  & 6.2        & \textbf{37.0} \\ \hline 
-   		2,500   & 2.6        & 			  & 5.2        & \textbf{31.7}
+    	500     & TODO 14.1       & TODO			  &	TODO 21.1       & TODO \textbf{74.4} \\ \hline
+   		1,000   & TODO 6.8        & TODO 			  & TODO 11.3       & TODO \textbf{56.8} \\ \hline
+   		1,500   & TODO 4.5        & TODO 			  & TODO 8.1        & TODO \textbf{45.2} \\ \hline
+   		2,000   & TODO 3.3        & TODO 			  & TODO 6.2        & TODO \textbf{37.0} \\ \hline 
+   		2,500   & TODO 2.6        & TODO 			  & TODO 5.2        & TODO \textbf{31.7}
    	\end{tabular}
   	
   	\caption{Steps per second on 50x50 grid and varying number of agents.}
@@ -128,8 +138,8 @@ TODO: re-run experiments
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/agents_performance.png}
-	\caption{Steps per second on 50x50 grid and varying number of agents.}
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/varying_agents.png}
+	\caption{Steps per second on 50x50 grid and varying number of agents. TODO: re-render figure}
 	\label{fig:state_results_agentsscale_time}
 \end{figure}
 
@@ -145,4 +155,3 @@ Note that we kept the grid-size constant because we implemented the environment 
 \subsection{Discussion}
 In this section basically drives home the important point that selecting the right transactional data-structure is of utmost importance to maximise performance when scaling up to multiple cores. Unfortunately for this model the performance is nowhere comparable to imperative approaches which we attribute to the inherent deeper complexity of the model where it seems that imperative implementations seem to have an advantage.
 
-TODO: we need a lock-based implementation for Sugarscape as well because this is the whole point of this paper! also the performance is so bad that we need some little selling point here

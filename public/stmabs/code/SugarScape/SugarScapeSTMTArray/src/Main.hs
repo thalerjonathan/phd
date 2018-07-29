@@ -27,12 +27,12 @@ main = do
 
   let stmStatsFlag = False  -- collects STM statistics. WARNING: reduces performance!
       envConc      = False -- runs the environment agent concurrently
-      rebirthFlag  = False  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
-      perfFile     = "50x50_500_4_core_concEnv.txt"
-      glossOut     = True
+      rebirthFlag  = True  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
+      perfFile     = "50x50_2500_4_core_rebirth.txt"
+      glossOut     = False
       rngSeed      = 42
       dt           = 1.0 
-      agentCount   = 500
+      agentCount   = 2500
       envSize      = (50, 50)
       -- initial RNG
       g0           = mkStdGen rngSeed

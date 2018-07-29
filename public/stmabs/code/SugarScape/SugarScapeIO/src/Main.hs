@@ -25,8 +25,8 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let envConc      = False -- runs the environment agent concurrently
-      rebirthFlag  = False  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
-      perfFile     = "50x50_500_4_core.txt"
+      rebirthFlag  = True  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
+      perfFile     = "50x50_500_4_core_rebrith.txt"
       glossOut     = False
       rngSeed      = 42
       dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents

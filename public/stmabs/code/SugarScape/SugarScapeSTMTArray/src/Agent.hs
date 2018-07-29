@@ -144,9 +144,6 @@ agentMove aid = do
         agentHarvestCell cellCoord env
         agentMoveTo aid cellCoord env)
 
-------------------------------------------------------------------------------
--- ALL FUNCTIONS BELOW TAKE AN ENVIRONMENT WHICH MUST BE LOCKED AND MAY RETURN A CHANGED ENVIRONMENT
-
 agentLookout :: RandomGen g
              => SugEnvironment
              -> StateT SugAgentState (SugAgentMonad g) [(Discrete2dCoord, SugEnvCell)]

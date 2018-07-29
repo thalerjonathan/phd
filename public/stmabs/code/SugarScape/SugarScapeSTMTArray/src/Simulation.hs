@@ -84,10 +84,6 @@ simulationStep dt sugCtx simCtx stmStatsFlag = do
                 return $ mkSimContex dtVars'' aoVars'' t' g'' start (steps + 1) (Just envAg')
               else return $ mkSimContex dtVars'' aoVars'' t' g' start (steps + 1) envAg
 
-  --let mt = mod (floor t') 10 :: Integer
-  --when (mt == 0) dumpSTMStats
-  --dumpSTMStats
-  
   return (simCtx', (t, envCells, obs))
 
 spawnAgents :: RandomGen g

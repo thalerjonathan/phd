@@ -1,0 +1,11 @@
+1951 steps after 60.0 sec. is a ratio of 32.516666666666666
+2027 steps after 60.0 sec. is a ratio of 33.78333333333333
+2018 steps after 60.0 sec. is a ratio of 33.63333333333333
+2047 steps after 60.0 sec. is a ratio of 34.11666666666667
+2011 steps after 60.0 sec. is a ratio of 33.516666666666666
+2055 steps after 60.0 sec. is a ratio of 34.25
+1953 steps after 60.0 sec. is a ratio of 32.55
+1923 steps after 60.0 sec. is a ratio of 32.05
+
+ratios = [32.51, 33.78, 33.63, 34.11, 33.51, 34.25, 32.55, 32.05]
+mean (ratios) = 33.299

@@ -26,11 +26,11 @@ main = do
 
   let envConc      = False -- runs the environment agent concurrently
       rebirthFlag  = True  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
-      perfFile     = "50x50_500_4_core_rebrith.txt"
+      perfFile     = "50x50_2500_4_core_rebrith.txt"
       glossOut     = False
       rngSeed      = 42
       dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
-      agentCount   = 500
+      agentCount   = 2500
       envSize      = (50, 50)
 
       -- initial RNG

@@ -160,7 +160,7 @@ Of very much interest when using STM is the retry-ratio, which obviously depends
 Independent of the number of agents we always have a retry-ratio of 0.0. This indicates that this model is \textit{very} well suited to STM, which is also directly reflected in the substantial better performance over the Lock-Based implementation. Obviously this ratio stems from the fact, that in our implementation we have \textit{very} few writes (only when an agent changes e.g. from Susceptible to Infected or from Infected to Recovered) and mostly reads. Also we conducted runs on lower number of cores which resulted in fewer retries, which was what we expected.
 
 \subsection{Discussion}
-Interpretation of the performance data leads to the following insights:
+Reflecting of the performance data leads to the following insights:
 \begin{enumerate}
 	%\item On a single core, no transaction retries should happen, the results support that assumption.
 	\item Running in STM and sharing state using a transactional variable is much more time- and memory-efficient than running in the State Monad but potentially sacrifices determinism: repeated runs might not lead to same dynamics despite same initial conditions.

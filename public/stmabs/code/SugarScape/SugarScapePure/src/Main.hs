@@ -23,10 +23,10 @@ main = do
 
   let glossOut    = False
       rebirthFlag = True -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
-      perfFile    = "50x50_500_rebirth.txt"
+      perfFile    = "50x50_2000_rebirth.txt"
       rngSeed     = 42
       dt          = 1.0
-      agentCount  = 500
+      agentCount  = 2000
       envSize     = (50, 50)
 
       -- initial RNG

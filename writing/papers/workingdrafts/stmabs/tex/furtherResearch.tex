@@ -3,10 +3,16 @@ Despite the promising proof-of-concept, still there is more work needed:
 
 \begin{itemize}
 	\item implement other Sugarscape chapers, more involved, also direct synchronous communication between agents which is not directly possible e.g. on a GPU: future research, also need look at more more models
+	
 	\item We have not focused on implementing an approach like \textit{Sense-Think-Act} cycle as mentioned in \cite{xiao_survey_2018}. This could offer lot of potential for parallelisation due to sense and think happening isolated for each agent without interfering with global shared data. We expect additional speed-up from such an approach but leave this for further research.
+	
 	\item So far we only looked at a time-driven model. It would be of fundamental interest whether we can somehow apply STM and concurrency to an event-driven approach as well. We hypothesise that it is not as striking and easy due to the fundamental sequential approach to even-processing. Generally one could run agents concurrently and undo actions when there are inconsistencies - something which STM supports out of the box. atm it is a time-driven lock-step approach. it would be interesting to see how an event-driven approach through an underlying PDES implementation would perform
+	
 	\item So far we only looked at asynchronous agent-interactions through TVar and TChan: agents modify the data or send a message but don't synchronise on a reply. Also a receiving agent doesn't do synchronised waiting for messages or data-changes. Still, in some models we need this synchronous way of agent-interactions where agents interact over multiple steps within the same global time-step. We yet have to come up with an easy-to-use solution for this problem using STM.
+	
 	\item Partitioning the environment into subsets which can be updated concurrently / parallel could speed up the environment updating as well. Is particularly easy in FP and using STM TArray.
+	
 	\item going towards distribution using Cloud haskell.
+	
 	\item Amazon AWS allows to scale up to potentially thousands of cores - it would be highly interesting to see the performance of STM there. Also it would be of interest to see how well it scales to thousands of cores and investigate where the limit is when performance begins to decrease due to increasing numbers of retries.
 \end{itemize}

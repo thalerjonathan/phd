@@ -1,14 +1,10 @@
 \section{Background }
 \label{sec:background}
 
-TODO: The Limits of Software Transactional Memory \cite{perfumo_limits_2008}
-TODO: Composable Memory Transactions \cite{harris_composable_2005}
-TODO: Transactional memory with data invariants \cite{harris_transactional_2006}
-TODO: A survey on parallel and distributed multi-agent systems for high performance computing simulations \cite{rousset_survey_2016}
-TODO: Software Transactional Memory vs. Locking in a Functional Language \cite{castor_software_2011}
-
+The authors of \cite{perfumo_limits_2008} (The Limits of Software Transactional Memory ) analyse several Haskell STM programs with respect to their transactional behaviour. They identified the rollback rate as one of the key metric which determines the scalability of an application. Although STM might promise better performance, they also warn of the overhead it introduces which could be quite substantial in particular for programs which do not perform much work inside transactions as their commit overhead appears to be high.
+ 
 TODO: be very careful, i copied some sentences directly from the relevant papers
-The whole concept of our approach is built on the usage of Software Transactional Memory (STM), where we follow the main paper \cite{harris_composable_2005} on STM \footnote{We also make use of the excellent tutorial \url{http://book.realworldhaskell.org/read/software-transactional-memory.html}.}. 
+The whole concept of our approach is built on the usage of Software Transactional Memory (STM), where we follow the main paper \cite{harris_composable_2005, harris_transactional_2006} on STM \footnote{We also make use of the excellent tutorial \url{http://book.realworldhaskell.org/read/software-transactional-memory.html}.}. 
 
 Concurrent programming is notoriously difficult to get right because reasoning about the interactions of multiple concurrently running threads and low level operational details of synchronisation primitives and locks is \textit{very hard}. The main problems are:
 

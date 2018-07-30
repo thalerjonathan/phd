@@ -64,25 +64,16 @@ birthNewAgent :: RandomGen g
               => Bool
               -> StateT SugAgentState (SugAgentMonadT g) (AgentId, SugAgentDef g)
 birthNewAgent rebirthFlag = do
-      newAid              <- lift nextAgentId
-      (newCoord, newCell) <- findUnoccpiedRandomPosition
-      (newA, newAState)   <- lift $ lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+  newAid              <- lift nextAgentId
+  (newCoord, newCell) <- agentCellOnCoord
+  (newA, newAState)   <- lift $ lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
 
-      -- need to occupy the cell to prevent other agents occupying it
-      let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
-      lift $ lift $ changeCellAtM newCoord newCell' 
+  -- need to occupy the cell to prevent other agents occupying it
+  let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
+  lift $ lift $ changeCellAtM newCoord newCell' 
 
-      return (newAid, newA)
-  where
-    findUnoccpiedRandomPosition :: RandomGen g
-                                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
-    findUnoccpiedRandomPosition = do
-      e <- lift $ lift get
-      (c, coord) <- lift $ lift $ lift $ randomCell e
-      ifThenElse
-        (cellOccupied c) 
-        findUnoccpiedRandomPosition
-        (return (coord, c))
+  return (newAid, newA)
+
 
 agentMetabolism :: RandomGen g
                 => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
@@ -145,16 +136,16 @@ agentLookout = do
 unoccupyPosition :: RandomGen g
                  => StateT SugAgentState (SugAgentMonadT g) ()
 unoccupyPosition = do
-    (coord, cell) <- agentCellOnCoord
-    let cell' = cell { sugEnvOccupier = Nothing }
-    lift $ lift $ changeCellAtM coord cell'
-  where
-    agentCellOnCoord :: RandomGen g
-                    => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
-    agentCellOnCoord = do
-      coord <- gets sugAgCoord
-      cell  <- lift $ lift $ cellAtM coord
-      return (coord, cell)
+  (coord, cell) <- agentCellOnCoord
+  let cell' = cell { sugEnvOccupier = Nothing }
+  lift $ lift $ changeCellAtM coord cell'
+
+agentCellOnCoord :: RandomGen g
+                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
+agentCellOnCoord = do
+  coord <- gets sugAgCoord
+  cell  <- lift $ lift $ cellAtM coord
+  return (coord, cell)
 
 agentMoveTo :: RandomGen g
              => AgentId

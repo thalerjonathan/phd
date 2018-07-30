@@ -110,8 +110,6 @@ Let us now switch to an implementation using the \textit{TArray} data-structure.
 
 Now we are arriving at substantial performance improvements, which is directly reflected in the retry-ratios which are close to 0. Also this makes the point of this section crystal clear: selecting the right transactional data-structure is paramount for best performance when using STM. Out of interest we ran the \textit{TArray} implementation with a concurrent environment to see how much impact this has, and indeed it has some impact and reduces performance by quite some factor but is still considerable faster than a \textit{TVar} synchronous environment approach. What is interesting is that the performance on 2 cores drops below the one of 1 core TODO: why?.
 
-TODO: figure which combines all the previous figures into one: TVar sync and async with TArray sync and async
-
 \subsection{Scaling up Agents}
 So far we always kept the initial number of agents at 500, which due to the model specification, quickly drops to around 200 and stabilises around this value due to the carrying capacity of the environment as described in the book \cite{epstein_growing_1996} section \textit{Carrying Capacity} (p. 30).
 
@@ -124,34 +122,45 @@ TODO: re-run all experiments, select same spot on rebirth otherwise will take to
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c | c }
-        Agents  & Sequential & Lock-Based & TVar       & TArray        \\ \hline \hline 
-    	500     & TODO 14.1       & TODO			  &	TODO 21.1       & TODO \textbf{74.4} \\ \hline
-   		1,000   & TODO 6.8        & TODO 			  & TODO 11.3       & TODO \textbf{56.8} \\ \hline
-   		1,500   & TODO 4.5        & TODO 			  & TODO 8.1        & TODO \textbf{45.2} \\ \hline
-   		2,000   & TODO 3.3        & TODO 			  & TODO 6.2        & TODO \textbf{37.0} \\ \hline 
-   		2,500   & TODO 2.6        & TODO 			  & TODO 5.2        & TODO \textbf{31.7}
+        Agents  & Sequential & Lock-Based & TVar (3 cores)  & TVar (4 cores) & TArray        \\ \hline \hline 
+    	500     & 14.4       & 20.2		  &	20.1            & 18.5       	 & TODO 74.4 \\ \hline
+   		1,000   & 6.8        & 10.8 	  & 10.4            & 9.5       	 & TODO 56.8 \\ \hline
+   		1,500   & 4.7        & 8.1 		  & 7.9             & 7.3			 & TODO 45.2 \\ \hline
+   		2,000   & 4.4        & 7.6 		  & 7.4             & 6.7    		 & TODO 37.0 \\ \hline 
+   		2,500   & 5.3        & 5.4 		  & 9.2             & 8.9			 & TODO 31.7
    	\end{tabular}
   	
-  	\caption{Steps per second on 50x50 grid and varying number of agents.}
+  	\caption{Steps per second on 50x50 grid and varying number of agents with 4 (and 3) cores except Sequential (1 core).}
 	\label{tab:state_results_agentsscale_time}
 \end{table}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/varying_agents.png}
-	\caption{Steps per second on 50x50 grid and varying number of agents. TODO: re-render figure}
+	\caption{Steps per second on 50x50 grid and varying number of agents with 4 (and 3) cores except Sequential (1 core). TODO: re-render figure}
 	\label{fig:state_results_agentsscale_time}
 \end{figure}
+
+What seems to be very surprising is that in all cases except the Lock-Based implementation the performance with 2,500 agents is \textit{better} than the one with 2,000 agents. The reason for this is that in the case of 2,500 agents, when an agent tries to move it can't move anywhere because all cells are already occupied
+
+Why better performance with 2,500 than 2000 in Seqeuential and TVar 3,4 and TArray? because lazyness of haskell AND agents don't need to measure best cell because they know there is no place to go so they stay. This is in general observable: the higher the numbers the smoother the performance decrease. The exception is the lock-based approach which locks in any case - this shows another benefit of the STM approach over the lock-based.
 
 \subsection{Comparison with other approaches}
 The paper \cite{lysenko_framework_2008} reports a performance of 17 steps in RePast, 18 steps in MASON (both non-parallel) and 2000 steps per second on a GPU on a 128x128 grid. Although our \textit{Sequential} implementation which runs non-parallel as well outperforms the RePast and MASON implementations one must be very well aware that these results were generated in 2008, on 10 year older hardware - the performance might have caught up by now and even outperform our functional \textit{Sequential} approach. 
 
-Indeed, when we run the SugarScape example of RePast with the same model parameters as ours on the same machine (see Table \ref{tab:machine_specs}) we arrive at roughly 450 steps per second - a factor of more than 5 faster than even our STM \textit{TArray} implementation on 4 cores. This might seem quite shocking, even more so because RePast also performs visual output, rendering the SugarScape in every step. When scaling up the agents to 2,500 the RePast version arrives around roughly 95 steps per second which is still faster by a factor of 3 than our 4 core \textit{TArray} implementation. Still our research is just a first step and might result in future work increasing performance.
+Indeed, when we run the SugarScape example of RePast with the same model parameters as ours on the same machine (see Table \ref{tab:machine_specs}) we arrive at roughly 450 steps per second - a factor of more than 5 faster than even our STM \textit{TArray} implementation on 4 cores. This might seem quite shocking, even more so because RePast also performs visual output, rendering the SugarScape in every step. When scaling up the agents to 2,500 the RePast version arrives around roughly 95 steps per second which is still faster by a factor of 3 than our 4 core \textit{TArray} implementation. We attribute this substantial performance difference to  the inherent deeper complexity of the model where it seems that imperative implementations seem to have an advantage. Still our research is just a first step and might result in future work increasing performance.
 
-The very high performance on the GPU does not concern us here as it follows a very different approach than we do here. Our focus is on speeding up implementations on the CPU as directly as possible without locking overhead. When following a GPU approach one needs to map the model to the GPU which is a delicate and non-trivial approach. With our approach we show that speed-up with concurrency is very possible without the low-level locking details or the need to map to GPU.
+The very high performance on the GPU does not concern us here as it follows a very different approach than we do here. Our focus is on speeding up implementations on the CPU as directly as possible without locking overhead. When following a GPU approach one needs to map the model to the GPU which is a delicate and non-trivial approach. With our approach we show that speed-up with concurrency is very possible without the low-level locking details or the need to map to GPU. Also some feature as bilateral trading between agents where a pair of agents need to come to a conclusion over multiple synchronous steps is difficult or even impossible to implement on a GPU whereas this is easily possible using STM on a CPU as well.
 
-Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and indeed, the performance goes down dramatically when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahls law where the environment becomes the limiting factor of the simulation. Depending on the underlying data-structure used for the environment we have two options to solving this problem. In the case of the \textit{Sequential} and \textit{TVar} implementation we build on an indexed array which we can updated in parallel using the existing data-parallel support in Haskell. In the case of the \textit{TArray} approach we have no option but to run the update of every cell within its own thread. We leave both for further research as it is out of scope of this paper. 
+Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and experiments which we haven't included here show that the performance goes down dramatically when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahl's law where the environment becomes the limiting factor of the simulation. Depending on the underlying data-structure used for the environment we have two options to solve this problem. In the case of the \textit{Sequential} and \textit{TVar} implementation we build on an indexed array which we can be updated in parallel using the existing data-parallel support in Haskell. In the case of the \textit{TArray} approach we have no option but to run the update of every cell within its own thread. We leave both for further research as it is out of scope of this paper.
 
 \subsection{Discussion}
-In this section basically drives home the important point that selecting the right transactional data-structure is of utmost importance to maximise performance when scaling up to multiple cores. Unfortunately for this model the performance is nowhere comparable to imperative approaches which we attribute to the inherent deeper complexity of the model where it seems that imperative implementations seem to have an advantage.
-
+Reflecting of the performance data leads to the following insights:
+\begin{itemize}	
+	\item Selecting the right transactional data-structure is very model-specific and can lead to dramatically different performance results. In this case the \textit{TArray} performed best due to many writes, in the SIR case-study a \textit{TVar} showed good enough results due to the very low number of writes.
+	\item A \textit{TArray} might come with an overhead, performing worse on low number of cores than a \textit{TVar} approach but has the benefit of quickly scaling up to multiple cores.
+	\item When not carefully selecting the right transactional data-structure which supports fine-grained concurrency a lock-based implementation might perform as well or even outperform the STM approach as can be seen when using the \textit{TVar}.
+	\item Depending on the transactional data-structure scaling up to multiple cores hits a limit earlier or later. In the case of the \textit{TVar} the best performance is reached with 3 cores. With the \textit{TArray} we didn't reach this limit yet with 4 cores - we leave this for further research as it might be well beyond tens of cores.
+	\item A well implemented STM approach with a  carefully selected transactional data-structure consistently outperforms the lock-based approach and scales up to multiple cores considerably better.
+	\item Unfortunately for this model the performance is nowhere comparable to imperative approaches which we attribute to the inherent deeper complexity of the model where it seems that imperative implementations seem to have an advantage.
+\end{itemize}

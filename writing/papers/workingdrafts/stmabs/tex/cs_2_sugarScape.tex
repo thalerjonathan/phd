@@ -111,7 +111,7 @@ TODO: re-run all experiments, select same spot on rebirth otherwise will take to
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c | c }
+  	\begin{tabular}{ c || c | c | c | c | c }
         Agents  & Sequential & Lock-Based & TVar (3 cores) & TVar (4 cores) & TArray  \\ \hline \hline 
     	500     & 14.4       & 20.2		  &	20.1           & 18.5       	& 71.9    \\ \hline
    		1,000   & 6.8        & 10.8 	  & 10.4           & 9.5       	    & 54.8    \\ \hline
@@ -133,8 +133,8 @@ TODO: re-run all experiments, select same spot on rebirth otherwise will take to
 
 As expected, the \textit{TArray} implementation outperforms all others substantially. Also as expected, the \textit{TVar} implementation on 3 cores is faster than on 4 cores as well when scaling up to more agents. The \textit{Lock-Based} approach performs about the same as the \textit{TVar} on 3 cores because of the very similar approaches: both access the \textit{whole} environment. Still the \textit{TVar} approach uses one core less to arrive at the same performance, thus strictly speaking outperforming the \textit{Lock-Based} implementation.
 
-What seems to be very surprising is that in the \textit{Sequential} and \textit{TVar} cases the performance with 2,500 agents is \textit{better} than the one with 2,000 agents. The reason for this is that in the case of 2,500 agents, when an agent tries to move it can't move anywhere because all cells are already occupied. In this case the agent won't rank the cells in order of their pay-off (max sugar) to move to but just stays where it is. Also Haskells laziness plays a role here: the agents actually never look at the content of the cells in this case but only the number which means that the cells themselves are never evaluated which further increases performance. 
-In the case of the \textit{Lock-Based} approach we still arrive at a lower performance because it locks in any case - this shows a benefit of the STM \textit{TVar} over the \textit{Lock-Based} approach.
+What seems to be very surprising is that in the \textit{Sequential} and \textit{TVar} cases the performance with 2,500 agents is \textit{better} than the one with 2,000 agents. The reason for this is that in the case of 2,500 agents, when an agent tries to move it can't move anywhere because all cells are already occupied. In this case the agent won't rank the cells in order of their pay-off (max sugar) to move to but just stays where it is.  Due to Haskells laziness the agents actually never look at the content of the cells in this case but only the number which means that the cells themselves are never evaluated which further increases performance. This leads to the better performance in case of \textit{Sequential} and \textit{TVar} because both exploit laziness.
+In the case of the \textit{Lock-Based} approach we still arrive at a lower performance because the limiting factor are the unconditional locks. In the case of the \textit{TArray} approach we also arrive at a lower performance because we perform STM reads on the neighbouring cells which are not subject to lazy evaluation.
 
 We also measured the average retries both for \textit{TVar} and \textit{TArray} under 2,500 agents where the \textit{TArray} approach shows best scaling performance with 0.01 retries whereas \textit{TVar} averages at 3.28 retries. Again this can be attributed to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels.
 

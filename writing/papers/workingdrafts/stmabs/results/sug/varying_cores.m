@@ -13,15 +13,21 @@ cores = [1, 2, 3, 4];
 figure;
 hold on;
 yyaxis left
-plot(cores, sequential, 'Color', [0.7, 0, 0], 'LineWidth', 2);
-plot(cores, io, 'Color', [0, 0, 0.8], 'LineWidth', 2);
-plot(cores, stm_tvar, 'Color', [0, 0.7, 0], 'LineWidth', 2);
-plot(cores, stm_tarray, 'Color', [0, 0.7, 0], 'LineWidth', 2);
+% plot(cores, sequential, 'Color', [0.7, 0, 0], 'LineWidth', 2);
+% plot(cores, io, 'Color', [0, 0, 0.8], 'LineWidth', 2);
+% plot(cores, stm_tvar, 'Color', [0, 0.7, 0], 'LineWidth', 2);
+% plot(cores, stm_tarray, 'Color', [0, 0.7, 0], 'LineWidth', 2);
+plot(cores, sequential);
+plot(cores, io);
+plot(cores, stm_tvar);
+plot(cores, stm_tarray);
 ylabel ("Steps per second");
 
 yyaxis right
-plot (cores, stm_tvar_retries, 'Color', [0.9, 0.7, 0], 'LineWidth', 2);
-plot (cores, stm_tarray_retries, 'Color', [0.9, 0.7, 0], 'LineWidth', 2);
+% plot (cores, stm_tvar_retries, 'Color', [0.9, 0.7, 0], 'LineWidth', 2);
+% plot (cores, stm_tarray_retries, 'Color', [0.9, 0.7, 0], 'LineWidth', 2);
+plot (cores, stm_tvar_retries);
+plot (cores, stm_tarray_retries);
 ylabel ("Retries");
 
 legend ("Sequential", "Lock-Based", "STM TVar", "STM TArray", "STM TVar Retries", "STM TArray Retries");

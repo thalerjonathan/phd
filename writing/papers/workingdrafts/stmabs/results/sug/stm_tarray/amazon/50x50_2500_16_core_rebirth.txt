@@ -1,0 +1,11 @@
+2395 steps after 60.0 sec. is a ratio of 39.916666666666664
+2354 steps after 60.0 sec. is a ratio of 39.233333333333334
+2389 steps after 60.0 sec. is a ratio of 39.81666666666667
+2374 steps after 60.0 sec. is a ratio of 39.56666666666667
+2348 steps after 60.0 sec. is a ratio of 39.13333333333333
+2353 steps after 60.0 sec. is a ratio of 39.21666666666667
+2382 steps after 60.0 sec. is a ratio of 39.7
+2351 steps after 60.0 sec. is a ratio of 39.18333333333333
+
+ratios = [39.91, 39.23, 39.81, 39.56, 39.13, 39.21, 39.7, 39.18]
+mean (ratios) =  39.466

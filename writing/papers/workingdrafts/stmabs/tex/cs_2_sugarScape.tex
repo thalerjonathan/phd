@@ -107,8 +107,6 @@ We now want to see performance of our approaches under increased number of agent
 
 Except for the \textit{Sequential} approach we ran all experiments with 4 (3) cores. We looked into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment). The results are reported in Table \ref{tab:state_results_agentsscale_time} and can be seen in Figure \ref{fig:state_results_agentsscale_time}.
 
-TODO: re-run all experiments, select same spot on rebirth otherwise will take too much time to find a new spot e.g. when 2,500 agents
-
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c | c | c }
@@ -137,6 +135,26 @@ What seems to be very surprising is that in the \textit{Sequential} and \textit{
 In the case of the \textit{Lock-Based} approach we still arrive at a lower performance because the limiting factor are the unconditional locks. In the case of the \textit{TArray} approach we also arrive at a lower performance because we perform STM reads on the neighbouring cells which are not subject to lazy evaluation.
 
 We also measured the average retries both for \textit{TVar} and \textit{TArray} under 2,500 agents where the \textit{TArray} approach shows best scaling performance with 0.01 retries whereas \textit{TVar} averages at 3.28 retries. Again this can be attributed to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels.
+
+\subsection{Going Large-Scale}
+To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{TArray} cases, we ran the two experiments (carrying capacity and rebirthing) on Amazon S2 instances with increasing number of cores starting with 16 until we ran into decreasing returns. The results are reported in Table \ref{tab:varying_cores_amazon} and can be seen in Figure \ref{fig:varying_cores_amazon}.
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+                   & Cores & Carrying Capacity & Rebirthing \\ \hline \hline 
+    	Lock-Based & 16    & 53.9              & 4.4        \\ \hline
+    	Lock-Based & 32    & 44.2              & 3.6        \\ \hline
+   		
+   		STM TArray & 16    & 116.8             & 39.5       \\ \hline
+   		STM TArray & 32    & 109.8             & 31.3       \\ \hline
+   	\end{tabular}
+  	
+  	\caption{Steps per second on varying cores in Amazon S2 Cloud.}
+	\label{tab:varying_cores_amazon}
+\end{table}
+
+As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the rebirthing experiment because of the much larger number of concurrent agents. The \textit{TArray} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. At this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism and environment process.
 
 \subsection{Comparison with other approaches}
 The paper \cite{lysenko_framework_2008} reports a performance of 17 steps in RePast, 18 steps in MASON (both non-parallel) and 2000 steps per second on a GPU on a 128x128 grid. Although our \textit{Sequential} implementation which runs non-parallel as well outperforms the RePast and MASON implementations one must be very well aware that these results were generated in 2008, on 10 year older hardware - the performance might have caught up by now and even outperform our functional \textit{Sequential} approach. 

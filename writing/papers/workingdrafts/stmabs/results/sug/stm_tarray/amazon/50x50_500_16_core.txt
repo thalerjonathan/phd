@@ -1,0 +1,11 @@
+7025 steps after 60.0 sec. is a ratio of 117.08333333333333
+7012 steps after 60.0 sec. is a ratio of 116.86666666666666
+6971 steps after 60.0 sec. is a ratio of 116.18333333333334
+6916 steps after 60.0 sec. is a ratio of 115.26666666666667
+6902 steps after 60.0 sec. is a ratio of 115.03333333333333
+7150 steps after 60.0 sec. is a ratio of 119.16666666666667
+7118 steps after 60.0 sec. is a ratio of 118.63333333333334
+6983 steps after 60.0 sec. is a ratio of 116.38333333333334
+
+ratios = [117.08, 116.86, 116.18, 115.26, 115.03, 119.16, 118.63, 116.38]
+mean (ratios) = 116.82

@@ -106,11 +106,11 @@ In this experiment we varied the grid size and used constantly 4 cores. Because 
 	\centering
   	\begin{tabular}{ c || c | c | c | c }
         Grid-Size          & STM              & Lock-Based (4 cores) & Lock-Based (3 cores) & RePast (1 core) \\ \hline \hline 
-   		51 x 51 (2,601)    & 20.2             & 41.9                 & 38.6                 & \textbf{10.8}\\ \hline
-   		101 x 101 (1,0201) & \textbf{74.5}    & 170.5                & 171.6                & 107.40 \\ \hline
-   		151 x 151 (22,801) & \textbf{168.5}   & 376.9 (0)              & 404.1 (0)              & 464.017  (0) \\ \hline
-   		201 x 201 (40,401) & \textbf{302.4}   & 672.0 (0)              & 720.6 (0)              & 1,227.68 (0)  \\ \hline
-   		251 x 251 (63,001) & \textbf{495.7} (0) & 1,027.3 (0)            & 1,117.2 (0)            &3 ,283.63 (0)
+   		51 x 51 (2,601)    & 20.2             & 41.9                 & 38.6                 & \textbf{10.8}   \\ \hline
+   		101 x 101 (1,0201) & \textbf{74.5}    & 170.5                & 171.6                & 107.40          \\ \hline
+   		151 x 151 (22,801) & \textbf{168.5}   & 376.9                & 404.1                & 464.017         \\ \hline
+   		201 x 201 (40,401) & \textbf{302.4}   & 672.0                & 720.6                & 1,227.68        \\ \hline
+   		251 x 251 (63,001) & \textbf{495.7}   & 1,027.3              & 1,117.2              & 3,283.63
   	\end{tabular}
 
   	\caption{Performance on varying grid sizes.}
@@ -145,12 +145,12 @@ Of very much interest when using STM is the retry-ratio, which obviously depends
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Grid-Size 		   & Commits    & Retries  & Ratio \\ \hline \hline 
-   		51 x 51 (2,601)    & 2,601,000  & 1306.5   & 0.0 \\ \hline
-   		101 x 101 (10,201) & 10,201,000 & 3712.5   & 0.0 \\ \hline
-   		151 x 151 (22,801) & 22,801,000 & 8189.5   & 0.0 \\ \hline
-   		201 x 201 (40,401) & 40,401,000 & 13285 (0.0) & 0.0 \\ \hline 
-   		251 x 251 (63,001) & 63,001,000 & 21217 (0.0) & 0.0
+        Grid-Size 		   & Commits    & Retries & Ratio \\ \hline \hline 
+   		51 x 51 (2,601)    & 2,601,000  & 1306.5  & 0.0 \\ \hline
+   		101 x 101 (10,201) & 10,201,000 & 3712.5  & 0.0 \\ \hline
+   		151 x 151 (22,801) & 22,801,000 & 8189.5  & 0.0 \\ \hline
+   		201 x 201 (40,401) & 40,401,000 & 13285   & 0.0 \\ \hline 
+   		251 x 251 (63,001) & 63,001,000 & 21217   & 0.0
   	\end{tabular}
   	
   	\caption{Retries Ratio of STM Monad experiments on varying grid sizes on 4 cores.}
@@ -170,7 +170,7 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
     	Lock-Based & 32    & 73.1    & TODO    \\ \hline \hline 
    		
    		STM        & 16    & 8.6     & 237.0   \\ \hline
-   		STM        & 32    & 12.0    & TODO    \\ \hline
+   		STM        & 32    & 12.0    & 248.7   \\ \hline
    	\end{tabular}
   	
   	\caption{Performance on varying cores on Amazon S2 Services.}
@@ -182,7 +182,6 @@ As expected, the \textit{Lock-Based} approach doesn't scale up to many cores bec
 \subsection{Discussion}
 Reflecting of the performance data leads to the following insights:
 \begin{enumerate}
-	%\item On a single core, no transaction retries should happen, the results support that assumption.
 	\item Running in STM and sharing state using a transactional variable is much more time- and memory-efficient than running in the State Monad but potentially sacrifices determinism: repeated runs might not lead to same dynamics despite same initial conditions.
 	\item Running STM on multiple cores concurrently \textit{does} lead to a significant performance improvement \textit{for that model}.
 	\item STM outperforms the Lock-Based implementation substantially and scales much better to multiple cores.

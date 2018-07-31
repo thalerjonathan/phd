@@ -137,20 +137,20 @@ In the case of the \textit{Lock-Based} approach we still arrive at a lower perfo
 We also measured the average retries both for \textit{TVar} and \textit{TArray} under 2,500 agents where the \textit{TArray} approach shows best scaling performance with 0.01 retries whereas \textit{TVar} averages at 3.28 retries. Again this can be attributed to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels.
 
 \subsection{Going Large-Scale}
-To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{TArray} cases, we ran the two experiments (carrying capacity and rebirthing) on Amazon S2 instances with increasing number of cores starting with 16 until we ran into decreasing returns. The results are reported in Table \ref{tab:varying_cores_amazon} and can be seen in Figure \ref{fig:varying_cores_amazon}.
+To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{TArray} cases, we ran the two experiments (carrying capacity and rebirthing) on Amazon S2 instances with increasing number of cores starting with 16 until we ran into decreasing returns. The results are reported in Table \ref{tab:varying_cores_amazon}.
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
                    & Cores & Carrying Capacity & Rebirthing \\ \hline \hline 
     	Lock-Based & 16    & 53.9              & 4.4        \\ \hline
-    	Lock-Based & 32    & 44.2              & 3.6        \\ \hline
+    	Lock-Based & 32    & 44.2              & 3.6        \\ \hline \hline 
    		
    		STM TArray & 16    & 116.8             & 39.5       \\ \hline
    		STM TArray & 32    & 109.8             & 31.3       \\ \hline
    	\end{tabular}
   	
-  	\caption{Steps per second on varying cores in Amazon S2 Cloud.}
+  	\caption{Steps per second on varying cores on Amazon S2 Services.}
 	\label{tab:varying_cores_amazon}
 \end{table}
 

@@ -1,4 +1,4 @@
-\section{Case Study 2: Sugarscape (Second Encounter)}
+\section{Case Study 2: SugarScape} %(Second Encounter)
 \label{sec:cs_sugarscape}
 
 One of the first models in Agent-Based Simulation was the seminal Sugarscape model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon observed in real-world societies. In this model a population of agents move around in a discrete 2D environment where sugar grows and interact with each other and the environment in many different ways. The main features of this model are (amongst others): searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology.
@@ -20,7 +20,7 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/sugarscape/vis/sugarscape_t60_environment.png}
-			\caption{Visualisation of the Sugarscape at $t = 50$. TODO: retake the pictures}
+			\caption{Visualisation of the Sugarscape at $t = 50$}
 			\label{fig:vis_sugarscape_t50_environment}
 		\end{subfigure}
     	
@@ -29,7 +29,7 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 		\begin{subfigure}[b]{0.6\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/sugarscape/vis/sugarscape_t60_dynamics.png}
-			\caption{Dynamics population size over 50 steps. TODO: retake the picture.}
+			\caption{Dynamics population size over 50 steps}
 			\label{fig:vis_sugarscape_t50_dynamics}
 		\end{subfigure}
 	\end{tabular}
@@ -125,7 +125,7 @@ Except for the \textit{Sequential} approach we ran all experiments with 4 (3) co
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/varying_agents.png}
-	\caption{Steps per second on 50x50 grid and varying number of agents with 4 (and 3) cores except Sequential (1 core). TODO: re-render figure}
+	\caption{Steps per second on 50x50 grid and varying number of agents with 4 (and 3) cores except Sequential (1 core).}
 	\label{fig:state_results_agentsscale_time}
 \end{figure}
 
@@ -137,7 +137,7 @@ In the case of the \textit{Lock-Based} approach we still arrive at a lower perfo
 We also measured the average retries both for \textit{TVar} and \textit{TArray} under 2,500 agents where the \textit{TArray} approach shows best scaling performance with 0.01 retries whereas \textit{TVar} averages at 3.28 retries. Again this can be attributed to the better transactional data-structure which reduces retry-ratio substantially to near-zero levels.
 
 \subsection{Going Large-Scale}
-To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{TArray} cases, we ran the two experiments (carrying capacity and rebirthing) on Amazon S2 instances with increasing number of cores starting with 16 until we ran into decreasing returns. The results are reported in Table \ref{tab:varying_cores_amazon}.
+To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{TArray} cases, we ran the two experiments (carrying capacity and rebirthing) on Amazon S2 instances with increasing number of cores starting with 16 until we ran into decreasing returns. The results are reported in Table \ref{tab:sug_varying_cores_amazon}.
 
 \begin{table}
 	\centering
@@ -151,7 +151,7 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
    	\end{tabular}
   	
   	\caption{Steps per second on varying cores on Amazon S2 Services.}
-	\label{tab:varying_cores_amazon}
+	\label{tab:sug_varying_cores_amazon}
 \end{table}
 
 As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the rebirthing experiment because of the much larger number of concurrent agents. The \textit{TArray} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. At this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism and environment process.

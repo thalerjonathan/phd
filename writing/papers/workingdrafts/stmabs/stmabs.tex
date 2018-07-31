@@ -50,7 +50,7 @@
 
 % Title portion. Note the short title for running heads
 \title[A Tale Of Lock-Free Agents]{A Tale Of Lock-Free Agents}
-\subtitle{The potential of Software Transactional Memory in concurrent Agent-Based Simulation}
+\subtitle{The potential of Software Transactional Memory in parallel Agent-Based Simulation}
 
 %Lock-Free Concurrent Agent-Based Simulation
 
@@ -66,27 +66,20 @@
   \postcode{NG8 1BB}
   \country{United Kingdom}}
 
-\begin{abstract}
-TODO: select journals
-- ACM Transactions on Modeling and Computer Simulation (TOMACS): https://tomacs.acm.org/
-- ?
+%TODO: select journals
+%- ACM Transactions on Modeling and Computer Simulation (TOMACS): https://tomacs.acm.org/
+%- ?
+
+TODO: write STM and ABS
+TODO: write the background section
 
 %TODO: do 8 runs for all SIR experiments, some are lacking: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 % => not necessary anymore, because i got rid of the STD because it only clutted up space and made the tables confusing but didnt really
 % add anyhting because so low. Also the SIR experiments which lack STD don't really need many replications because their numbers are 
 % very clear
 
-TODO: re-run Sugarscape experiments
--> fix the environment +1 bug => results in fewer agents
--> stream-line the environment access in STM like in IO to reduce the STM calls 
-
-TODO: write performance discussion of sugarscape
-TODO: write conclusion
-TODO: write further Research
-
-TODO: write the background section
-TODO: write STM and ABS
-TODO: write Introduction
+\begin{abstract}
+With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations. Unfortunately the established programming languages in the field, Python, Java and C++, are not very well suited to tackle the complexities of parallel programming. In this paper we propose the use of Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell which in combination allow to overcome the problems and complexities of lock-based parallel implementations of imperative approaches. We present two case studies where we compare the performance of lock-based and STM based implementations on two different well known Agent-Based Models where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the STM based implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further by utilizing the pure functional language Haskell we gain additional benefits like immutable data and lack of side-effects guaranteed at compile-time, something of fundamental importance and benefit in parallel programming.
 \end{abstract}
 
 %
@@ -129,15 +122,15 @@ TODO: write Introduction
 % End generated code
 %
 
-\keywords{Agent-Based Simulation, Software Transactional Memory, Functional Reactive Programming, Haskell}
+\keywords{Agent-Based Simulation, Parallel Programming, Parallelism, Concurrency, Software Transactional Memory, Functional Programming, Haskell}
 
 \maketitle
 
 \input{./tex/introduction.tex}
 
-\input{./tex/background.tex}
-
 \input{./tex/relatedWork.tex}
+
+\input{./tex/background.tex}
 
 \input{./tex/stmAndABS.tex}
 

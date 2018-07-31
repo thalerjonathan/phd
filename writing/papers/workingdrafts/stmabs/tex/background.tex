@@ -3,6 +3,9 @@
 
 The authors of \cite{perfumo_limits_2008} (The Limits of Software Transactional Memory ) analyse several Haskell STM programs with respect to their transactional behaviour. They identified the rollback rate as one of the key metric which determines the scalability of an application. Although STM might promise better performance, they also warn of the overhead it introduces which could be quite substantial in particular for programs which do not perform much work inside transactions as their commit overhead appears to be high.
  
+ In the paper \cite{heindl_modeling_2009} the authors used a model of STM to simulate optimistic and pessimistic STM behaviour under various scenarios using the AnyLogic simulation package. They concluded that optimistic STM may lead to 25\% less retries of transactions.
+
+
 TODO: be very careful, i copied some sentences directly from the relevant papers
 The whole concept of our approach is built on the usage of Software Transactional Memory (STM), where we follow the main paper \cite{harris_composable_2005, harris_transactional_2006} on STM \footnote{We also make use of the excellent tutorial \url{http://book.realworldhaskell.org/read/software-transactional-memory.html}.}. 
 

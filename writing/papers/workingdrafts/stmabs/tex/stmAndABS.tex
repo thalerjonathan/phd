@@ -1,6 +1,11 @@
 \section{STM and ABS}
+\label{sec:stm_abs}
+
+TODO: create a diagram which visualises the lock-step approach using draw.io
 
 For a proof-of-concept we changed the reference implementation of the agent-based SIR model on a 2D-grid as described in the paper TODO: my own IFL publication. In it, a State Monad is used to share the grid across all agents where all agents are run after each other to guarantee exclusive access to the state. We replaced the State Monad by the STM Monad, share the grid through a \textit{TVar} and run every agent within its own thread. All agents are run at the same time but synchronise after each time-step which is done through the main-thread.
+
+lightweight threads in haskell allow to spawn tens of thousands of threads without killing the machine
 
 We make STM the innermost Monad within a RandT transformer:
 \begin{HaskellCode}

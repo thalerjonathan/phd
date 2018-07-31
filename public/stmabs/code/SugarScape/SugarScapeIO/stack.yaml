@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-10.4
+resolver: lts-12.4
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -41,6 +41,7 @@ resolver: lts-10.4
 extra-deps:
 - dunai-0.4.0.0
 - bearriver-0.10.4.3
+- IfElse-0.85
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

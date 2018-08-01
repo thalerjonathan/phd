@@ -5,12 +5,13 @@ We presented a high-level agent-based approach to the SIR model in the previous 
 
 In \cite{thaler_art_2017} two fundamental problems of implementing an agent-based simulation from a programming-language agnostic point of view is discussed. The first problem is how agents can be pro-active and the second how interactions and communication between agents can happen. For agents to be pro-active, they must be able to perceive the passing of time, which means there must be a concept of an agent-process which executes over time. Interactions between agents can be reduced to the problem of how an agent can expose information about its internal state which can be perceived by other agents. Further the authors have shown the influence of different deterministic and non-deterministic elements in agent-based simulation on the dynamics and how the influence of non-determinism can completely break them down or result in different dynamics despite same initial conditions. This means that we want to rule out any potential source of non-determinism.
 
-In this section we will derive a pure functional approach for an agent-based simulation of the SIR model in which we will pose solutions to the previously mentioned problems. We will start out with a very naive approach and show its limitations which we overcome by adding FRP. Then in further steps we will add more concepts and generalisations, ending up at the final approach which utilises Monadic Stream Functions, a generalisation of FRP. 
+In this section we will derive a pure functional approach for an agent-based simulation of the SIR model in which we will pose solutions to the previously mentioned problems. We will start out with a straight forward approach in Yampa and show its limitations. Then in further steps we will add more concepts and generalisations, ending up at the final approach which utilises Monadic Stream Functions, a generalisation of FRP.
 
 Of paramount importance is to keep our implementations pure which rules out the use of the IO Monad and thus any potential source of non-determinism under all circumstances because we would loose all compile time guarantees about reproducibility. Still we will make use of the Random and State Monad which indeed allow side-effects but the crucial point here is that we restrict side-effects only to these types in a controlled way without allowing general unrestricted effects
 \footnote{The code of all steps can be accessed freely through the following URL: \url{https://github.com/thalerjonathan/phd/tree/master/public/purefunctionalepidemics/code}}.
 
-\input{./tex/naiveBeginning.tex}
+% feedback from all reviewers, referees and other people suggested that this naive beginnings step is a detour
+%\input{./tex/naiveBeginning.tex}
 
 \input{./tex/addingFRP.tex}
 

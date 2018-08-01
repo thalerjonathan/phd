@@ -74,6 +74,8 @@ fallingMass p0 v0 = proc _ -> do
 To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
 
 \subsection{Monadic Stream Functions}
+REFEREE TODO: "this section feels cut off, needs more explanation because the rest builds heavy on it" => more explanation probably with an example.
+
 Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016, perez_extensible_2017}:
 \begin{HaskellCode}
 newtype MSF m a b =

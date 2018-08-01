@@ -1,5 +1,10 @@
 \subsection{Naive beginnings}
 \label{sec:naive_beginnigs}
+TODO REFEREE: "its too simple to be of much interest" => make clear it is very simple and firth steps, we need to start simple to introduce the basic concepts.
+TODO REFEREE: "move to arrowized expression unconvincing first: hard-coding of delta t, felt entirely artificial, just add a reader monad and be done with it" => fair point, mention that we could have added a ReaderT to get rid of it but that we intentionally decided not to do so because this is the approach followed later in BearRiver thus we make another case.
+
+TODO: it seems we are running into space problems => compact this subsection into the next
+
 We start by modelling the states of the agents. Infected agents are ill for some duration, meaning we need to keep track when an infected agent recovers. Also a simulation is stepped in discrete or continuous time-steps thus we introduce a notion of \textit{time} and $\Delta t$ by defining:
 
 \begin{HaskellCode}

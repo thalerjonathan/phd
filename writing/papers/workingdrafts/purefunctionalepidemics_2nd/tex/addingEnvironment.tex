@@ -1,6 +1,6 @@
 \subsection{Adding an environment}
 \label{sec:step5_environment}
-In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamentally different approach to agent interaction but is as valid as the approach in the previous steps.
+In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamentally different approach to agent interaction but is as valid as the approach in the previous steps. 
 
 In ABS agents are often situated within a discrete 2D environment \cite{epstein_growing_1996} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants.
 
@@ -27,6 +27,8 @@ We can directly map the SIR model to a discrete 2D environment by placing the ag
 	\label{fig:abs_neighbourhoods}
 \end{center}
 \end{figure}
+
+We also implemented this spatial approach in Java using the ABS library RePast to have a comparison with a state of the art approach and came to the same results as shown in Figure \ref{fig:sir_env}. This supports that our pure functional can produce such results as well and compares positively to state of the art approaches in the field.
 
 \subsubsection{Implementation}
 We start by defining our discrete 2D environment for which we use an indexed two dimensional array. In each cell the agents will store their current state, thus we use the \textit{SIRState} as type for our array data:

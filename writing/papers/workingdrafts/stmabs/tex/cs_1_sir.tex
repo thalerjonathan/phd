@@ -176,7 +176,7 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 
-As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. TODO: why? need to check retries  %At this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism.
+As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. TODO: why? need to check retries  TODO: the INCREASE in time can only happen due to more retries %At this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism. 
 
 \subsection{Discussion}
 Reflecting of the performance data leads to the following insights:

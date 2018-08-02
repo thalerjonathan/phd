@@ -115,7 +115,7 @@ Except for the \textit{Sequential} approach we ran all experiments with 4 (3) co
    		1,000   & 6.8        & 10.8 	  & 10.4           & 9.5       	    & 54.8    \\ \hline
    		1,500   & 4.7        & 8.1 		  & 7.9            & 7.3			& 44.1    \\ \hline
    		2,000   & 4.4        & 7.6 		  & 7.4            & 6.7    		& 37.0    \\ \hline 
-   		2,500   & 5.3        & 5.4 		  & 9.2            & 8.9			& 33.3
+   		2,500   & 5.3        & 5.4 		  & 9.2            & 8.9			& 33.3    \\ \hline \hline
    	\end{tabular}
   	
   	\caption{Steps per second on 50x50 grid and varying number of agents with 4 (and 3) cores except Sequential (1 core).}
@@ -147,7 +147,7 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
     	Lock-Based & 32    & 44.2              & 3.6        \\ \hline \hline 
    		
    		STM TArray & 16    & 116.8             & 39.5       \\ \hline
-   		STM TArray & 32    & 109.8             & 31.3       \\ \hline 
+   		STM TArray & 32    & 109.8             & 31.3       \\ \hline \hline 
    	\end{tabular}
   	
   	\caption{Steps per second on varying cores on Amazon S2 Services.}

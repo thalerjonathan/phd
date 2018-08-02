@@ -47,12 +47,6 @@ sirTest = dSwitch
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
-{-
-  let steps = replicate 1 (1.0, Nothing) 
-  let ret = embed sirTest ([], steps)
-
-  print ret
--}
 
   let g = mkStdGen rngSeed
   let as = initAgents agentCount infectedCount
@@ -71,7 +65,7 @@ runSimulation :: RandomGen g
 runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
   where
     steps = floor $ t / dt
-    dts = replicate steps (dt, Nothing) -- keep input the same as initial one, will be ignored anyway
+    dts = replicate steps (dt, Nothing)
     n = length as
 
     (rngs, _) = rngSplits g n []

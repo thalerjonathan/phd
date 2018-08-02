@@ -2,21 +2,16 @@
 
 module Main where 
 
--- first import: base
 import           Data.Maybe
 import           Text.Printf
 import           System.IO
 
--- second import: 3rd party libraries
 import           Control.Monad.Random
 import           Control.Monad.State.Strict
 import           Data.MonadicStreamFunction
 import qualified Data.Map as Map
 import qualified Data.PQueue.Min as PQ
--- import           Debug.Trace
 
--- third import: project local
--- none
 
 type EventId      = Integer
 type Time         = Double
@@ -152,7 +147,6 @@ susceptibleAgent aid =
     susceptibleAgentInfected = proc e ->
       case e of
         (Contact _ s) ->
-          -- TODO replace with case
           if Infected == s
             then do
               r <- arrM_ (lift $ randomBoolM infectivity) -< ()

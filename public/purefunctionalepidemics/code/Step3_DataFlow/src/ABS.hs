@@ -65,7 +65,7 @@ runSimulation :: RandomGen g
 runSimulation g t dt as = map (map aoObservable) aoss
   where
     steps = floor $ t / dt
-    dts = replicate steps (dt, Nothing) -- keep input the same as initial one, will be ignored anyway
+    dts = replicate steps (dt, Nothing)
     n = length as
 
     (rngs, _) = rngSplits g n []

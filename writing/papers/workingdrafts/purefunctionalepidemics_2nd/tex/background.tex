@@ -29,6 +29,8 @@ They exhibit the following properties:
 \end{itemize}
 
 \subsection{Functional Reactive Programming}
+\label{sec:back_frp}
+
 Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 
 The central concept in Arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. 

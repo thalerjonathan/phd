@@ -5,7 +5,7 @@ In this paper we challenge this metaphor and explore ways of approaching ABS in 
 
 As use case we introduce the SIR model of epidemiology with which one can simulate epidemics, that is the spreading of an infectious disease through a population, in a realistic way.
 
-Over the course of four steps, we derive all necessary concepts required for a full agent-based implementation. We start from a very simple solution running in the Random Monad which has all general concepts already there and then refine it in various ways, making the transition to Functional Reactive Programming (FRP) \cite{wan_functional_2000} and to Monadic Stream Functions (MSF) \cite{perez_functional_2016}.
+Over the course of three steps, we derive all necessary concepts required for a full agent-based implementation. We start with a Functional Reactive Programming (FRP) \cite{wan_functional_2000} solution using Yampa \cite{hudak_arrows_2003} to introduce most of the general concepts and then make the transition to Monadic Stream Functions (MSF) \cite{perez_functional_2016} which allow us to add more advanced concepts of ABS to pure functional programming.
 
 The aim of this paper is to show how ABS can be implemented in \textit{pure} Haskell and what the benefits and drawbacks are. By doing this we give the reader a good understanding of what ABS is, what the challenges are when implementing it and how we solve these in our approach.
 

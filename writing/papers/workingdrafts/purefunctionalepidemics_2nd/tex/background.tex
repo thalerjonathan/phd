@@ -76,7 +76,7 @@ fallingMass p0 v0 = proc _ -> do
 To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
 
 \subsection{Monadic Stream Functions}
-REFEREE TODO: "this section feels cut off, needs more explanation because the rest builds heavy on it" => more explanation probably with an example.
+\label{sec:back_msf}
 
 Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016, perez_extensible_2017}:
 \begin{HaskellCode}
@@ -84,4 +84,52 @@ newtype MSF m a b =
   MSF { unMSF :: MSF m a b -> a -> m (b, MSF m a b) }
 \end{HaskellCode}
 
-MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m => (a -> m b) -> MSF m a b} and \textit{arrM\_ :: Monad m => m b -> MSF m a b}.
+MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m => (a -> m b) -> MSF m a b} and \textit{arrM\_ :: Monad m => m b -> MSF m a b}. A part of the library Dunai is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which enables one to run arbitrary monadic computations in a signal function. BearRiver simply adds a monadic parameter \textit{m} to each SF which indicates the monadic context this signal function runs in.
+
+To show how arrowized programming with MSFs works we extend the falling mass example from above to incorporate monads. In this example we assume that in each step we want to accelerate our velocity \textit{v} not by the gravity constant anymore but by a random number in the range of 0 to 9.81. Further we want to count the number of steps it takes us to hit the floor, that is when position \textit{p} is less than 0. Also when hitting the floor we want to print a debug message to the console with the velocity by which the mass has hit the floor and how many steps it took.
+
+We define a corresponding monad stack with \textit{IO} as the innermost Monad, followed by a \textit{RandT} transformer for drawing random-numbers and finally a \textit{StateT} transformer to count the number of steps we compute. We can access the monadic functions using \textit{arrM} in case we need to pass an argument and \textit{\_arrM} in case no argument to the monadic function is needed:
+
+\begin{HaskellCode}
+type FallingMassStack g = StateT Int (RandT g IO)
+type FallingMassMSF g   = SF (FallingMassStack g) () Double
+
+fallingMassMSF :: RandomGen g => Double -> Double -> FallingMassMSF g
+fallingMassMSF v0 p0 = proc _ -> do
+  -- drawing random number for our gravity range
+  r <- arrM_ (lift $ lift $ getRandomR (0, 9.81)) -< ()
+
+  v <- arr (+v0) <<< integral -< (-r)
+  p <- arr (+p0) <<< integral -< v
+
+  -- count steps
+  arrM_ (lift (modify (+1))) -< ()
+
+  if p > 0
+    then returnA -< p
+    -- we have hit the floor
+    else do
+      -- get number of steps
+      s <- arrM_ (lift get) -< ()
+      -- write to console
+      arrM (liftIO . putStrLn) -< "hit floor with v " ++ show v ++ 
+                                  " after " ++ show s ++ " steps"
+      returnA -< p
+\end{HaskellCode}
+
+To run the \textit{fallingMassMSF} function until it hits the floor we proceed as follows:
+
+\begin{HaskellCode}
+runMSF :: RandomGen g => g -> Int -> FallingMassMSF g -> IO ()
+runMSF g s msf = do
+  let msfReaderT = unMSF msf ()
+      msfStateT  = runReaderT msfReaderT 0.1
+      msfRand    = runStateT msfStateT s
+      msfIO      = runRandT msfRand g
+
+  (((p, msf'), s'), g') <- msfIO
+  
+  when (p > 0) (runMSF g' s' msf')
+\end{HaskellCode}
+
+Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double} which carries the $\Delta t$. This is the reason why we need one extra lift for accessing \textit{StateT} and \textit{RandT}. Thus \textit{unMSF} returns a computation in the \textit{ReaderT Double} Monad which we need to peel away using \textit{runReaderT}. This then results in a \textit{StateT Int} computation which we evaluate by using \textit{runStateT} and the current number of steps as state. This then results in another monadic computation of \textit{RandT} Monad which we evaluate using \textit{runRandT}. This finally returns an \textit{IO} computation which we simply evaluate to arrive at the final result.

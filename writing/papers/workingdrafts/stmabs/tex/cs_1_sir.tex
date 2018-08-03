@@ -5,7 +5,7 @@ Our first case study is the SIR model which is a very well studied and understoo
 
 In it, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. 
 
-We followed in our agent-based implementation of the SIR model the work \cite{macal_agent-based_2010} but extended it by placing the agents on a discrete 2D grid using a Moore (8) neighbourhood TODO: cite my own PFE paper. In this case agents interact with each other indirectly through the shared discrete 2D grid by writing their current state on their cell which neighbours can read. A visualisation can be seen in Figure \ref{fig:vis_sir}.
+We followed in our agent-based implementation of the SIR model the work \cite{macal_agent-based_2010} but extended it by placing the agents on a discrete 2D grid using a Moore (8) neighbourhood \cite{thaler_pure_2019}. In this case agents interact with each other indirectly through the shared discrete 2D grid by writing their current state on their cell which neighbours can read. A visualisation can be seen in Figure \ref{fig:vis_sir}.
 
 It is important to note that due to the continuous-time nature of the SIR model, our implementation follows the time-driven \cite{meyer_event-driven_2014} approach and maps naturally to the continuous time-semantics and state-transitions provided by FRP. By sampling the system with very small $\Delta t$ this means that we have comparatively very few writes to the shared environment which will become important when discussing the performance results.
 
@@ -38,13 +38,13 @@ It is important to note that due to the continuous-time nature of the SIR model,
 In this case study we compare the performance of the following implementations under varying numbers of CPU cores and agent numbers:
 
 \begin{enumerate}
-	\item Sequential - This is the original implementation we also discuss in TODO: cite my own PFE paper. In it the discrete 2D grid is shared amongst all agents using the State Monad. Agents are run sequentially after another thus ensuring exclusive read/write access to it. Because we are neither running in the STM or IO Monad there is no way we can run this implementation concurrently.
+	\item Sequential - This is the original implementation as discussed in \cite{thaler_pure_2019}. In it the discrete 2D grid is shared amongst all agents using the State Monad. Agents are run sequentially after another thus ensuring exclusive read/write access to it. Because we are neither running in the STM or IO Monad there is no way we can run this implementation concurrently.
 	\item STM - This is the same implementation like the State Monad but instead of sharing the discrete 2D grid in a State Monad, agents run in the STM Monad and have access to the discrete 2D grid through a transactional variable \textit{TVar}. This means that the reads and writes of the discrete 2D grid are exactly the same but happen always through the \textit{TVar}. Also each agent is run within its own thread, thus enabling true concurrency when the simulation is actually run on multiple cores (which can be configured by the Haskell Runtime System).
 	\item Lock-Based - This is exactly the same implementation like the STM Monad but instead of running in STM, the agents now run in IO. They share the discrete 2D grid using an \textit{IORef} and have access to an \textit{MVar} to synchronise access to the it. Also each agent is run within its own thread.
 	\item RePast - To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we implemented a Java version of the SIR model using RePast with the State-Chart feature. This implementation cannot run on multiple cores concurrently but gives a good estimate of the single core performance of imperative approaches. Also there exists a RePast High Performance Computing library for implementing large-scale distributed simulations in C++ - we leave this for further research as an implementation and comparison is out of scope of this paper.
 \end{enumerate}
 
-Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ except in RePast for which we don't have access to the underlying implementation of the state-chart and left it as it is. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report the average. Further, we checked the visual outputs and the dynamics and they look qualitatively the same to the reference implementation of the State Monad TODO: cite my own PFE paper. In the experiments we varied the number of agents (grid size) and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x is the number of cores between 1 and 4. 
+Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ except in RePast for which we don't have access to the underlying implementation of the state-chart and left it as it is. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report the average. Further, we checked the visual outputs and the dynamics and they look qualitatively the same to the reference \textit{Sequentialo} implementation \cite{thaler_pure_2019}. In the experiments we varied the number of agents (grid size) and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x is the number of cores between 1 and 4. 
 
 \begin{table}
 	\centering
@@ -165,8 +165,8 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 	\centering
   	\begin{tabular}{ c || c | c | c }
                    & Cores & 51x51   & 251x251 \\ \hline \hline 
-    	Lock-Based & 16    & 72.5    & TODO    \\ \hline
-    	Lock-Based & 32    & 73.1    & TODO    \\ \hline \hline 
+    	Lock-Based & 16    & 72.5    & 1830.5  \\ \hline
+    	Lock-Based & 32    & 73.1    & 1882.2  \\ \hline \hline 
    		
    		STM        & 16    & 8.6     & 237.0   \\ \hline
    		STM        & 32    & 12.0    & 248.7   \\ \hline \hline
@@ -176,15 +176,15 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 
-As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. %At this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism. 
-
-TODO: why? need to check retries  
-TODO: the INCREASE in time can only happen due to more retries 
-16 cores 251x251: 0.0 retry-ratio
-32 cores 251x251: 0.0 retry ratio
-
-16 cores 51x51: 0.0 retry-ratio
-32 cores 51x51: 0.0 retry ratio
+As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. In both cases we have a retry-ratio of 0 which means it seems that at this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism. 
+%
+%TODO: why? need to check retries  
+%TODO: the INCREASE in time can only happen due to more retries 
+%16 cores 251x251: 0.0 retry-ratio
+%32 cores 251x251: 0.0 retry ratio
+%
+%16 cores 51x51: 0.0 retry-ratio
+%32 cores 51x51: 0.0 retry ratio
 
 \subsection{Discussion}
 Reflecting of the performance data leads to the following insights:

@@ -50,7 +50,7 @@ We compare three different implementations
 \end{enumerate}
 
 The model specification requires to shuffle agents before every step (Footnote 12 on page 26). In the \textit{Sequential} approach we do this explicitly but in both STM approaches this happens automatically due to race-conditions in concurrency thus we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step. The important difference between the two approaches is that in the State approach we have full control over this randomness but in the STM not - also this means that repeated runs with the same initial conditions might lead to slightly different results.
-Note that in the concurrent implementations we could have two options for running the environment: either running it asynchronously as a concurrent agent at the same time with the population agents or synchronously after all agents have run. We must be careful though as running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. It could happen in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications (TODO: reference the book where it shows that environment grows after / before all agents).
+Note that in the concurrent implementations we could have two options for running the environment: either running it asynchronously as a concurrent agent at the same time with the population agents or synchronously after all agents have run. We must be careful though as running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. It could happen in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications.
 
 We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation over 60 seconds.
 
@@ -142,26 +142,26 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-                   & Cores & Carrying Capacity & Rebirthing \\ \hline \hline 
-    	Lock-Based & 16    & 53.9              & 4.4        \\ \hline
-    	Lock-Based & 32    & 44.2              & 3.6        \\ \hline \hline 
+                   & Cores & Carrying Capacity & Rebirthing  \\ \hline \hline 
+    	Lock-Based & 16    & 53.9              & 4.4         \\ \hline
+    	Lock-Based & 32    & 44.2              & 3.6         \\ \hline \hline 
    		
-   		STM TArray & 16    & 116.8             & 39.5       \\ \hline
-   		STM TArray & 32    & 109.8             & 31.3       \\ \hline \hline 
+   		STM TArray & 16    & 116.8 (0.23)      & 39.5 (0.08) \\ \hline
+   		STM TArray & 32    & 109.8 (0.41)      & 31.3 (0.18) \\ \hline \hline 
    	\end{tabular}
   	
   	\caption{Steps per second on varying cores on Amazon S2 Services.}
 	\label{tab:sug_varying_cores_amazon}
 \end{table}
 
-As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the rebirthing experiment because of the much larger number of concurrent agents. The \textit{TArray} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. At this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism and environment process. 
-
-TODO: the INCREASE in time can only happen due to more retries
-Carrying Capacity 16 core ~ 0.23 retry-ratio
-Carrying Capacity 32 core ~ 0.41 retry-ratio
-
-Rebirthing 16 core ~ 0.08 retry-ratio
-Rebirthing 32 core ~ 0.18 retry-ratio
+As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in even more decreased performance. This is particularly obvious in the rebirthing experiment because of the much larger number of concurrent agents. The \textit{TArray} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. We indicated the retry-ratio in brackets and see that they go up from 16 to 32 which is part of the reason why performance drops as at this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism and environment process. 
+%
+%TODO: the INCREASE in time can only happen due to more retries
+%Carrying Capacity 16 core ~ 0.23 retry-ratio
+%Carrying Capacity 32 core ~ 0.41 retry-ratio
+%
+%Rebirthing 16 core ~ 0.08 retry-ratio
+%Rebirthing 32 core ~ 0.18 retry-ratio
 
 \subsection{Comparison with other approaches}
 The paper \cite{lysenko_framework_2008} reports a performance of 17 steps in RePast, 18 steps in MASON (both non-parallel) and 2000 steps per second on a GPU on a 128x128 grid. Although our \textit{Sequential} implementation which runs non-parallel as well outperforms the RePast and MASON implementations one must be very well aware that these results were generated in 2008, on 10 year older hardware - the performance might have caught up by now and even outperform our functional \textit{Sequential} approach. 

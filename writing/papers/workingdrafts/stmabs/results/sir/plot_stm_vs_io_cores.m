@@ -3,12 +3,14 @@ io = [60.564, 42.779, 38.586, 41.555];
 cores = [1, 2, 3, 4];
 
 figure;
-loglog (cores, stm, "linewidth", 2, "color", [0, 0.7, 0]);
+loglog (cores, stm, '-', "color", [0, 0.7, 0]);
 hold on;
-loglog (cores, io, "linewidth", 2, "color", [0.7, 0, 0]);
+loglog (cores, io, '--', "color", [0.7, 0, 0]);
 
 legend ("STM", "IO");
 xlabel ("Cores");
 ylabel ("Average Time sec.");
 
-title ("Performance STM vs IO on 51x51 Grid with varying Cores");
+grid on;
+
+%title ("Performance STM vs IO on 51x51 Grid with varying Cores");

@@ -1,35 +1,47 @@
 {-# LANGUAGE Arrows     #-}
 module Main where
 
-import System.IO
+import           System.IO
+import           Text.Printf
 
-import Control.Monad.Random
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Monad.Trans.MSF.Random
-import Data.Array.IArray
-import FRP.BearRiver
+import           Control.Monad.Random
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Control.Monad.Trans.MSF.Random
+import           Data.Array.IArray
+import           FRP.BearRiver
 import qualified Graphics.Gloss as GLO
 import qualified Graphics.Gloss.Interface.IO.Game as GLOGame
-
-import SIR
 
 type Disc2dCoord  = (Int, Int)
 type SIREnv       = Array Disc2dCoord SIRState
 type SIRMonad g   = StateT SIREnv (Rand g)
 type SIRAgent g   = SF (SIRMonad g) () ()
 
+data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+
+type SimSF g = SF (SIRMonad g) () SIREnv
+
+data SimCtx g = SimCtx 
+  { simSf    :: SimSF g
+  , simEnv   :: SIREnv
+  , simRng   :: g
+  , simSteps :: Integer
+  , simInput :: (Int, Bool, Bool, Bool)
+  , simTime  :: Time
+  }
+
+contactRate :: Double
+contactRate = 5.0
+
+infectivity :: Double
+infectivity = 0.05
+
+illnessDuration :: Double
+illnessDuration = 15.0
+
 agentGridSize :: (Int, Int)
-agentGridSize = (51, 51)
-
-rngSeed :: Int
-rngSeed = 123
-
-dt :: DTime
-dt = 0.1
-
-t :: Time
-t = 500
+agentGridSize = (11, 11)
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -41,70 +53,77 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let g         = mkStdGen rngSeed
-      (as, e)   = initAgentsEnv agentGridSize
+  let dt        = 0.1
+      rngSeed   = 42 -- 123 -- 42 leads to recovery without any infection
+      
+      g         = mkStdGen rngSeed
+      (as, env) = initAgentsEnv agentGridSize
+      sfs       = map (uncurry sirAgent) as
+      sf        = stepSimulation sfs
+      simCtx    = mkSimCtx sf env g 0 0
 
-      es        = runSimulation g t dt e as
+  runSimulation dt simCtx
 
-      ass       = environmentsToAgentDyns es
-      dyns      = aggregateAllStates ass
-      fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
-  
-  writeAggregatesToFile fileName dyns
-  render es
-
-environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
-environmentsToAgentDyns = map elems
-
-render :: [SIREnv] -> IO ()
-render es = GLOGame.playIO
-    (GLO.InWindow winTitle winSize (0, 0))
-    GLO.white
-    10
-    (length es - 1, False, False, False)
-    worldToPic
-    handleInput
-    stepWorld
+runSimulation :: RandomGen g
+              => DTime
+              -> SimCtx g
+              -> IO ()
+runSimulation dt simCtx 
+  = GLOGame.playIO
+      (GLO.InWindow winTitle winSize (0, 0))
+      GLO.white
+      5
+      simCtx
+      worldToPic
+      handleInput
+      stepWorld
 
   where
-    (cx, cy) = agentGridSize
-    (wx, wy) = winSize
-    cellWidth = (fromIntegral wx / fromIntegral cx) :: Double
+    (cx, cy)   = agentGridSize
+    (wx, wy)   = winSize
+    cellWidth  = (fromIntegral wx / fromIntegral cx) :: Double
     cellHeight = (fromIntegral wy / fromIntegral cy) :: Double
 
-    worldToPic :: (Int, Bool, Bool, Bool) -> IO GLO.Picture
-    worldToPic (i, _, _, _) = do
-      let e = es !! i
-      let as = assocs e
-      let aps = map renderAgent as
+    worldToPic :: RandomGen g
+               => SimCtx g 
+               -> IO GLO.Picture
+    worldToPic ctx = do
+      let env = simEnv ctx
+          as  = assocs env
+          aps = map renderAgent as
+          t   = simTime ctx
 
-      let (tcx, tcy) = transformToWindow (0, -2)
-      let timeTxt = "t = " ++ show (fromIntegral i * dt)
-      let timeStepTxt = GLO.color GLO.black $ GLO.translate tcx tcy $ GLO.scale 0.1 0.1 $ GLO.Text timeTxt
+          (tcx, tcy) = transformToWindow (0, -2)
+          timeTxt = "t = " ++ printf "%0.2f" t
+          timeStepTxt = GLO.color GLO.black $ GLO.translate tcx tcy $ GLO.scale 0.5 0.5 $ GLO.Text timeTxt
       
       return $ GLO.Pictures $ aps ++ [timeStepTxt]
 
-    handleInput :: GLOGame.Event -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
-    handleInput evt w@(i, inc, dec, boost) = 
-      case evt of
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyLeft) GLOGame.Down _ _) -> return (i, inc, True, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyRight) GLOGame.Down _ _) -> return (i, True, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Down _ _) -> return (i, inc, dec, True)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyLeft) GLOGame.Up _ _) -> return (i, inc, False, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyRight) GLOGame.Up _ _) -> return (i, False, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Up _ _) -> return (i, inc, dec, False)
+    handleInput :: RandomGen g
+                => GLOGame.Event 
+                -> SimCtx g
+                -> IO (SimCtx g)
+    handleInput _ = return 
 
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyDown) GLOGame.Down _ _) -> return (0, inc, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyUp) GLOGame.Down _ _) -> return (length es - 1, inc, dec, boost)
-        _ -> return w
+    stepWorld :: RandomGen g
+              => Float 
+              -> SimCtx g
+              -> IO (SimCtx g)
+    stepWorld _  ctx = do
+      let env                  = simEnv ctx
+          g                    = simRng ctx
 
-    stepWorld :: Float -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
-    stepWorld _ (i, inc, dec, boost) = do
-      let delta = if boost then 10 else 1
+          sf                   = simSf ctx
+          sfReader             = unMSF sf ()
+          sfState              = runReaderT sfReader dt
+          sfRand               = runStateT sfState env
+          (((_, simSf'), env'), g') = runRand sfRand g
+      
+          steps   = simSteps ctx + 1
+          t       = simTime ctx + dt
+          ctx'    = mkSimCtx simSf' env' g' steps t
 
-      let i' = if inc then min (length es - 1) (i+delta) else i
-      let i'' = if dec then max 0 (i'-delta) else i'
-      return (i'', inc, dec, boost)
+      return ctx'
 
     renderAgent :: (Disc2dCoord, SIRState) -> GLO.Picture
     renderAgent (coord, Susceptible) 
@@ -132,6 +151,22 @@ render es = GLOGame.playIO
         x' = fromRational (toRational (fromIntegral x * rw)) - halfXSize
         y' = fromRational (toRational (fromIntegral y * rh)) - halfYSize
 
+mkSimCtx :: RandomGen g
+         => SimSF g
+         -> SIREnv
+         -> g
+         -> Integer
+         -> Time
+         -> SimCtx g
+mkSimCtx sf env g steps t = SimCtx {
+    simSf    = sf
+  , simEnv   = env
+  , simRng   = g
+  , simSteps = steps
+  , simTime  = t
+  , simInput = (0, False, False, False)
+  }
+
 initAgentsEnv :: (Int, Int) -> ([(Disc2dCoord, SIRState)], SIREnv)
 initAgentsEnv (xd, yd) = (as, e)
   where
@@ -146,24 +181,6 @@ initAgentsEnv (xd, yd) = (as, e)
     as = inf : sus
 
     e = array ((0, 0), (xd - 1, yd - 1)) as
-
-runSimulation :: RandomGen g
-              => g 
-              -> Time 
-              -> DTime 
-              -> SIREnv
-              -> [(Disc2dCoord, SIRState)] 
-              -> [SIREnv]
-runSimulation g t dt e as = es
-  where
-    steps = floor $ t / dt
-    dts = replicate steps ()
-    sfs = map (uncurry sirAgent) as
-
-    esReader = embed (stepSimulation sfs) dts
-    esState = runReaderT esReader dt
-    esRand = evalStateT esState e
-    es = evalRand esRand g
 
 stepSimulation :: RandomGen g
                => [SIRAgent g]
@@ -248,11 +265,11 @@ neighbours :: SIREnv
            -> [SIRState]
 neighbours e (x, y) (dx, dy) n = map (e !) nCoords'
   where
-    nCoords = map (\(x', y') -> (x + x', y + y')) n
-    nCoords' = filter (\(x, y) -> x >= 0 && 
-                                  y >= 0 && 
-                                  x <= (dx - 1) &&
-                                  y <= (dy - 1)) nCoords
+    nCoords  = map (\(x', y') -> (x + x', y + y')) n
+    nCoords' = filter (\(nx, ny) -> nx >= 0 && 
+                                    ny >= 0 && 
+                                    nx <= (dx - 1) &&
+                                    ny <= (dy - 1)) nCoords
 allNeighbours :: SIREnv -> [SIRState]
 allNeighbours = elems
 

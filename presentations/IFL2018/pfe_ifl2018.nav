@@ -6,71 +6,67 @@
 \headcommand {\sectionentry {1}{Introduction}{3}{Introduction}{0}}
 \headcommand {\beamer@sectionpages {1}{2}}
 \headcommand {\beamer@subsectionpages {1}{2}}
-\headcommand {\beamer@subsectionentry {0}{1}{1}{3}{The Model and the Problem}}\headcommand {\beamer@subsectionpages {3}{2}}
-\headcommand {\slideentry {1}{1}{1}{3/3}{The Model and the Problem}{0}}
+\headcommand {\slideentry {1}{0}{1}{3/3}{}{0}}
 \headcommand {\beamer@framepages {3}{3}}
-\headcommand {\slideentry {1}{1}{2}{4/4}{The Model and the Problem}{0}}
+\headcommand {\slideentry {1}{0}{2}{4/4}{}{0}}
 \headcommand {\beamer@framepages {4}{4}}
-\headcommand {\slideentry {1}{1}{3}{5/5}{The Model and the Problem}{0}}
+\headcommand {\slideentry {1}{0}{3}{5/5}{}{0}}
 \headcommand {\beamer@framepages {5}{5}}
-\headcommand {\slideentry {1}{1}{4}{6/6}{The Model and the Problem}{0}}
+\headcommand {\slideentry {1}{0}{4}{6/6}{}{0}}
 \headcommand {\beamer@framepages {6}{6}}
-\headcommand {\beamer@subsectionentry {0}{1}{2}{7}{The Integrated Approach}}\headcommand {\beamer@subsectionpages {3}{6}}
-\headcommand {\slideentry {1}{2}{1}{7/10}{The Integrated Approach}{0}}
-\headcommand {\beamer@framepages {7}{10}}
-\headcommand {\slideentry {1}{2}{2}{11/12}{The Integrated Approach}{0}}
-\headcommand {\beamer@framepages {11}{12}}
-\headcommand {\slideentry {1}{2}{3}{13/13}{The Integrated Approach}{0}}
+\headcommand {\slideentry {1}{0}{5}{7/7}{}{0}}
+\headcommand {\beamer@framepages {7}{7}}
+\headcommand {\slideentry {1}{0}{6}{8/8}{}{0}}
+\headcommand {\beamer@framepages {8}{8}}
+\headcommand {\sectionentry {2}{Agent-Based SIR in Haskell}{9}{Agent-Based SIR in Haskell}{0}}
+\headcommand {\beamer@sectionpages {3}{8}}
+\headcommand {\beamer@subsectionpages {3}{8}}
+\headcommand {\slideentry {2}{0}{1}{9/9}{}{0}}
+\headcommand {\beamer@framepages {9}{9}}
+\headcommand {\slideentry {2}{0}{2}{10/10}{}{0}}
+\headcommand {\beamer@framepages {10}{10}}
+\headcommand {\slideentry {2}{0}{3}{11/11}{}{0}}
+\headcommand {\beamer@framepages {11}{11}}
+\headcommand {\slideentry {2}{0}{4}{12/12}{}{0}}
+\headcommand {\beamer@framepages {12}{12}}
+\headcommand {\slideentry {2}{0}{5}{13/13}{}{0}}
 \headcommand {\beamer@framepages {13}{13}}
-\headcommand {\sectionentry {2}{Bad News: Hardness Results}{14}{Bad News: Hardness Results}{0}}
-\headcommand {\beamer@sectionpages {3}{13}}
-\headcommand {\beamer@subsectionpages {7}{13}}
-\headcommand {\beamer@subsectionentry {0}{2}{1}{14}{Hardness of PP-Partitioning of Haplotype Matrices}}\headcommand {\beamer@subsectionpages {14}{13}}
-\headcommand {\slideentry {2}{1}{1}{14/15}{Hardness of PP-Partitioning of Haplotype Matrices}{0}}
-\headcommand {\beamer@framepages {14}{15}}
-\headcommand {\slideentry {2}{1}{2}{16/16}{Hardness of PP-Partitioning of Haplotype Matrices}{0}}
+\headcommand {\slideentry {2}{0}{6}{14/14}{}{0}}
+\headcommand {\beamer@framepages {14}{14}}
+\headcommand {\slideentry {2}{0}{7}{15/15}{}{0}}
+\headcommand {\beamer@framepages {15}{15}}
+\headcommand {\slideentry {2}{0}{8}{16/16}{}{0}}
 \headcommand {\beamer@framepages {16}{16}}
-\headcommand {\slideentry {2}{1}{3}{17/17}{Hardness of PP-Partitioning of Haplotype Matrices}{0}}
+\headcommand {\slideentry {2}{0}{9}{17/17}{}{0}}
 \headcommand {\beamer@framepages {17}{17}}
-\headcommand {\beamer@subsectionentry {0}{2}{2}{18}{Hardness of PP-Partitioning of Genotype Matrices}}\headcommand {\beamer@subsectionpages {14}{17}}
-\headcommand {\slideentry {2}{2}{1}{18/19}{Hardness of PP-Partitioning of Genotype Matrices}{0}}
-\headcommand {\beamer@framepages {18}{19}}
-\headcommand {\slideentry {2}{2}{2}{20/20}{Hardness of PP-Partitioning of Genotype Matrices}{0}}
+\headcommand {\sectionentry {3}{Adding Spatiality}{18}{Adding Spatiality}{0}}
+\headcommand {\beamer@sectionpages {9}{17}}
+\headcommand {\beamer@subsectionpages {9}{17}}
+\headcommand {\slideentry {3}{0}{1}{18/18}{}{0}}
+\headcommand {\beamer@framepages {18}{18}}
+\headcommand {\slideentry {3}{0}{2}{19/19}{}{0}}
+\headcommand {\beamer@framepages {19}{19}}
+\headcommand {\slideentry {3}{0}{3}{20/20}{}{0}}
 \headcommand {\beamer@framepages {20}{20}}
-\headcommand {\slideentry {2}{2}{3}{21/21}{Hardness of PP-Partitioning of Genotype Matrices}{0}}
+\headcommand {\slideentry {3}{0}{4}{21/21}{}{0}}
 \headcommand {\beamer@framepages {21}{21}}
-\headcommand {\sectionentry {3}{Good News: Tractability Results}{22}{Good News: Tractability Results}{0}}
-\headcommand {\beamer@sectionpages {14}{21}}
-\headcommand {\beamer@subsectionpages {18}{21}}
-\headcommand {\beamer@subsectionentry {0}{3}{1}{22}{Perfect Path Phylogenies}}\headcommand {\beamer@subsectionpages {22}{21}}
-\headcommand {\slideentry {3}{1}{1}{22/22}{Perfect Path Phylogenies}{0}}
+\headcommand {\slideentry {3}{0}{5}{22/22}{}{0}}
 \headcommand {\beamer@framepages {22}{22}}
-\headcommand {\slideentry {3}{1}{2}{23/23}{Perfect Path Phylogenies}{0}}
+\headcommand {\slideentry {3}{0}{6}{23/23}{}{0}}
 \headcommand {\beamer@framepages {23}{23}}
-\headcommand {\slideentry {3}{1}{3}{24/24}{Perfect Path Phylogenies}{0}}
+\headcommand {\sectionentry {4}{Discussion}{24}{Discussion}{0}}
+\headcommand {\beamer@sectionpages {18}{23}}
+\headcommand {\beamer@subsectionpages {18}{23}}
+\headcommand {\slideentry {4}{0}{1}{24/24}{}{0}}
 \headcommand {\beamer@framepages {24}{24}}
-\headcommand {\beamer@subsectionentry {0}{3}{2}{25}{Tractability of PPP-Partitioning of Genotype Matrices}}\headcommand {\beamer@subsectionpages {22}{24}}
-\headcommand {\slideentry {3}{2}{1}{25/25}{Tractability of PPP-Partitioning of Genotype Matrices}{0}}
+\headcommand {\slideentry {4}{0}{2}{25/25}{}{0}}
 \headcommand {\beamer@framepages {25}{25}}
-\headcommand {\sectionentry {4}{Summary}{26}{Summary}{0}}
-\headcommand {\beamer@sectionpages {22}{25}}
-\headcommand {\beamer@subsectionpages {25}{25}}
-\headcommand {\slideentry {4}{0}{1}{26/26}{}{0}}
+\headcommand {\slideentry {4}{0}{3}{26/26}{}{0}}
 \headcommand {\beamer@framepages {26}{26}}
-\headcommand {\partentry {Appendix}{1}}
-\headcommand {\beamer@partpages {1}{26}}
-\headcommand {\beamer@sectionpages {26}{26}}
-\headcommand {\beamer@subsectionpages {26}{26}}
-\headcommand {\beamer@appendixpages {27}}
-\headcommand {\sectionentry {5}{Appendix}{27}{Appendix}{1}}
-\headcommand {\beamer@sectionpages {27}{26}}
-\headcommand {\beamer@subsectionpages {27}{26}}
-\headcommand {\slideentry {5}{0}{1}{27/28}{}{1}}
-\headcommand {\beamer@framepages {27}{28}}
-\headcommand {\slideentry {5}{0}{2}{29/31}{}{1}}
-\headcommand {\beamer@framepages {29}{31}}
-\headcommand {\beamer@partpages {27}{31}}
-\headcommand {\beamer@subsectionpages {27}{31}}
-\headcommand {\beamer@sectionpages {27}{31}}
-\headcommand {\beamer@documentpages {31}}
-\headcommand {\def \inserttotalframenumber {22}}
+\headcommand {\slideentry {4}{0}{4}{27/27}{}{0}}
+\headcommand {\beamer@framepages {27}{27}}
+\headcommand {\beamer@partpages {1}{27}}
+\headcommand {\beamer@subsectionpages {24}{27}}
+\headcommand {\beamer@sectionpages {24}{27}}
+\headcommand {\beamer@documentpages {27}}
+\headcommand {\def \inserttotalframenumber {27}}

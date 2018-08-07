@@ -1,31 +1,9 @@
-% Copyright 2007 by Till Tantau
-%
-% This file may be distributed and/or modified
-%
-% 1. under the LaTeX Project Public License and/or
-% 2. under the GNU Public License.
-%
-% See the file doc/licenses/LICENSE for more details.
-
-
-
 \documentclass{beamer}
-
-%
-% DO NOT USE THIS FILE AS A TEMPLATE FOR YOUR OWN TALKS¡!!
-%
-% Use a file in the directory solutions instead.
-% They are much better suited.
-%
-
-
-% Setup appearance:
 
 \usetheme{Darmstadt}
 \usefonttheme[onlylarge]{structurebold}
 \setbeamerfont*{frametitle}{size=\normalsize,series=\bfseries}
 \setbeamertemplate{navigation symbols}{}
-
 
 % Standard packages
 
@@ -34,60 +12,41 @@
 \usepackage{times}
 \usepackage[T1]{fontenc}
 
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{ifthen}
+\usepackage{minted}
+\usepackage{verbatim}
 
 % Setup TikZ
-
 \usepackage{tikz}
 \usetikzlibrary{arrows}
 \tikzstyle{block}=[draw opacity=0.7,line width=1.4cm]
 
 
 % Author, Title, etc.
-
-\title[Block Partitioning and Perfect Phylogenies] 
+\title[Pure Functional Epidemics] 
 {%
-  On the Complexity of SNP Block Partitioning Under the Perfect
-  Phylogeny Model%
+  Pure Functional Epidemics \\ An Agent-Based Approach%
 }
 
-\author[Gramm, Hartman, Nierhoff, Sharan, Tantau]
+\author[Thaler, Altenkirch, Siebers]
 {
-  Jens~Gramm\inst{1} \and
-  Tzvika~Hartman\inst{2} \and
-  Till~Nierhoff\inst{3} \and
-  Roded~Sharan\inst{4} \and
-  \textcolor{green!50!black}{Till~Tantau}\inst{5}
+  Jonathan~Thaler \and
+  Thorsten~Altenkirch \and
+  Peer-Olaf~Siebers
 }
 
 \institute[Tübingen and others]
 {
-  \inst{1}%
-  Universität Tübingen, Germany
-  \and
-  \vskip-2mm
-  \inst{2}%
-  Bar-Ilan University, Ramat-Gan, Israel
-  \and
-  \vskip-2mm
-  \inst{3}%
-  International Computer Science Institute, Berkeley, USA
-  \and
-  \vskip-2mm
-  \inst{4}%
-  Tel-Aviv University, Israel
-  \and
-  \vskip-2mm
-  \inst{5}%
-  Universität zu Lübeck, Germany
+  University of Nottingham, United Kingdom
 }
 
-\date[WABI 2006]
-{Workshop on Algorithms in Bioinformatics, 2006}
-
-
+\date[Implementation and Application of Functional Languages (IFL) 2018]
+{IFL 2018}
 
 % The main document
-
 \begin{document}
 
 \begin{frame}
@@ -98,647 +57,435 @@
   \tableofcontents
 \end{frame}
 
-
 \section{Introduction}
-
-\subsection{The Model and the Problem}
-
-\begin{frame}{What is haplotyping and why is it important?}
-  You hopefully know this after the previous three talks\dots
+\begin{frame}{Research Question(s)}
+\begin{itemize}
+  \item \textbf{How} can we implement Agent-Based Simulation (ABS) in (pure) functional programming?
+  \item \textbf{Why} would we do that?
+  \item \textbf{What} are the benefits and drawbacks?
+\end{itemize}
 \end{frame}
 
-\begin{frame}[t]{General formalization of haplotyping.}
-  \begin{block}{Inputs}
-    \begin{itemize}
-    \item A \alert{genotype matrix} $G$.
-    \item The \alert{rows} of the matrix are \alert{taxa / individuals}.
-    \item The \alert{columns} of the matrix are \alert{SNP sites /
-        characters}. 
-    \end{itemize}
+\begin{frame}{Agent-Based Simulation (ABS)} 
+  \begin{block}{Example}
+    \textit{\textbf{Simulate} the spread of an infectious disease in a city. \\ What are the \textbf{dynamics} (peak, duration of disease)?}
   \end{block}
-  \begin{block}{Outputs}
-    \begin{itemize}
-    \item A \alert{haplotype matrix} $H$.
-    \item Pairs of rows in $H$ \alert{explain} the rows of $G$.
-    \item The haplotypes in $H$ are \alert{biologically plausible}. 
-    \end{itemize}
-  \end{block}
-\end{frame}
-
-
-\begin{frame}[t]{Our formalization of haplotyping.}
-  \begin{block}{Inputs}
-    \begin{itemize}
-    \item A genotype matrix $G$.
-    \item The rows of the matrix are individuals / taxa.
-    \item The columns of the matrix are SNP sites / characters.
-    \item<alert@1->
-      The problem is directed: one haplotype is known.
-    \item<alert@1->
-      The input is biallelic: there are only two homozygous
-      states (0 and 1) and one heterozygous state (2).
-    \end{itemize}
-  \end{block}
-  \begin{block}{Outputs}
-    \begin{itemize}
-    \item A haplotype matrix $H$.
-    \item Pairs of rows in $H$ explain the rows of $G$.
-    \item<alert@1> The haplotypes in $H$ form a perfect phylogeny.
-    \end{itemize}
-  \end{block}
-\end{frame}
-
-
-\begin{frame}{We can do perfect phylogeny haplotyping efficiently, but
-    \dots}
+  
   \begin{enumerate}
-  \item \alert{Data may be missing.}
-    \begin{itemize}
-    \item This makes the problem NP-complete \dots
-    \item \dots even for very restricted cases.
-    \end{itemize}
-    \textcolor{green!50!black}{Solutions:}
-    \begin{itemize}
-    \item Additional assumption like the rich data hypothesis. 
-    \end{itemize}
-  \item \alert{No perfect phylogeny is possible.}
-    \begin{itemize}
-    \item This can be caused by chromosomal crossing-over effects.
-    \item This can be caused by incorrect data.
-    \item This can be caused by multiple mutations at the same sites.
-    \end{itemize}
-    \textcolor{green!50!black}{Solutions:}
-    \begin{itemize}
-    \item Look for phylogenetic networks.
-    \item Correct data.
-    \item<alert@1->
-       Find blocks where a perfect phylogeny is possible.
-    \end{itemize}
+    \item Start with population \, \, \, \, \, \, \, $\to$ Agents
+ 	\item Situated in City \, \, \, \, \, \, \, \, \, \, \, \,\, $\to$ Environment
+ 	\item Interacting with each other \, $\to$ local interactions
+ 	\item Creating dynamics \, \, \, \, \, \, \, \,\,\, $\to$ emergent system behaviour
+ 	\item Therefore ABS \, \, \, \, \, \, \, \, \, \, \, \,\,\, $\to$ bottom-up approach
   \end{enumerate}
 \end{frame}
 
-
-\subsection{The Integrated Approach}
-
-\begin{frame}{How blocks help in perfect phylogeny haplotyping.}
-  \begin{enumerate}
-  \item Partition the site set into overlapping contiguous blocks.
-  \item Compute a perfect phylogeny for each block and combine them.
-  \item Use dynamic programming for finding the partition.
-  \end{enumerate}
-
-  \begin{tikzpicture}
-    \useasboundingbox (0,-1) rectangle (10,2);
+\begin{frame}{SIR Model}
+  \includegraphics[width=0.7\textwidth]{./fig/SIR_transitions.png}
+  
+  \begin{itemize}
+    \item Population size $N = 1,000$
+ 	\item Contact rate $\beta = 0.2$
+ 	\item Infection probability $\gamma = 0.05$
+ 	\item Illness duration $\delta = 15$
+ 	\item 1 initially infected agent
+  \end{itemize}
     
-    \draw[line width=2mm,dash pattern=on 1mm off 1mm]
-      (0,1) -- (9.99,1) node[midway,above] {Genotype matrix}
-      (0,0.6666) -- (9.99,0.6666)
-      (0,0.3333) -- (9.99,0.3333)
-      (0,0) -- (9.99,0) node[midway,below] {\only<1>{no perfect phylogeny}};
-
-    \begin{scope}[xshift=-.5mm]
-      \only<2->
-      {
-        \draw[red,block]            (0,.5)   -- (3,.5)
-          node[midway,below] {perfect phylogeny};
-      }
-        
-      \only<3->
-      {
-        \draw[green!50!black,block] (2.5,.5)   -- (7,.5)
-          node[pos=0.6,below] {perfect phylogeny};
-      }
-
-      \only<4->
-      {
-        \draw[blue,block]           (6.5,.5) -- (10,.5)
-          node[pos=0.6,below] {perfect phylogeny};
-      }
-    \end{scope}
-  \end{tikzpicture}
-\end{frame}
-
-\begin{frame}{Objective of the integrated approach.}
-  \begin{enumerate}
-  \item Partition the site set into \alert{noncontiguous} blocks. 
-  \item Compute a perfect phylogeny for each block and combine them. 
-  \item<alert@1-> Compute partition while computing perfect
-    phylogenies. 
-  \end{enumerate}
-
-  \begin{tikzpicture}
-    \useasboundingbox (0,-1) rectangle (10,2);
-
-    \draw[line width=2mm,dash pattern=on 1mm off 1mm]
-      (0,1) -- (9.99,1) node[midway,above] {Genotype matrix}
-      (0,0.6666) -- (9.99,0.6666)
-      (0,0.3333) -- (9.99,0.3333)
-      (0,0) -- (9.99,0) node[midway,below] {\only<1>{no perfect phylogeny}};
-
-    \only<2->
-    {
-      \begin{scope}[xshift=-0.5mm]
-        \draw[red,block] (0,.5)   -- (3,.5) 
-          node[midway,below] {perfect phylogeny}
-                         (8,.5) -- (9,.5);
-
-        \draw[green!50!black,block]
-          (3,.5)   -- (6,.5)
-            node[pos=0.6,below] {perfect phylogeny}
-          (6.4,.5)   -- (8,.5)
-          (9,.5) -- (10,.5);
-
-        \draw[blue,block] (6,.5) -- (6.4,.5)
-          node[midway,below=5mm] {perfect phylogeny};
-      \end{scope}
-    }
-  \end{tikzpicture}
-\end{frame}
-
-
-\begin{frame}{The formal computational problem.}
-  We are interested in the computational complexity of \\
-  \alert{the function \alert{$\chi_{\operatorname{PP}}$}}:
-  \begin{itemize}
-  \item It gets genotype matrices as input.
-  \item It maps them to a number $k$.
-  \item This number is minimal such that the sites can be
-    covered by $k$ sets, each admitting a perfect phylogeny.
-    \\
-    (We call this a \alert{pp-partition}.)
-  \end{itemize}
-\end{frame}
-
-
-\section{Bad News: Hardness Results}
-
-\subsection{Hardness of PP-Partitioning of Haplotype Matrices}
-
-\begin{frame}{Finding pp-partitions of haplotype matrices.}
-  We start with a special case:
-  \begin{itemize}
-  \item The inputs $M$ are \alert{already haplotype matrices}.
-  \item The inputs $M$ \alert{do not allow a perfect phylogeny}.
-  \item What is $\chi_{\operatorname{PP}}(M)$?
-  \end{itemize}
-  \begin{example}
-    \begin{columns}
-      \column{.3\textwidth}
-      $M\colon$
-      \footnotesize
-      \begin{tabular}{cccc}
-        0 & 0 & 0 & 1 \\
-        0 & 1 & 0 & 0 \\
-        1 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 \\
-        1 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 1 \\
-        1 & 1 & 0 & 0 \\
-        0 & 0 & 1 & 0 \\
-        1 & 0 & 1 & 0
-      \end{tabular}%
-      \only<2>
-      {%
-        \begin{tikzpicture}
-          \useasboundingbox (2.9,0);
-
-          \draw [red, opacity=0.7,line width=1cm] (1.7 ,1.9) -- (1.7 ,-1.7);
-          \draw [blue,opacity=0.7,line width=5mm] (0.85,1.9) -- (0.85,-1.7)
-                                                  (2.55,1.9) -- (2.55,-1.7);
-        \end{tikzpicture}
-      }
-      \column{.6\textwidth}
-      \begin{overprint}
-        \onslide<1>
-        No perfect phylogeny is possible.
-        
-        \onslide<2>
-        \textcolor{blue!70!bg}{Perfect phylogeny}
-        
-        \textcolor{red!70!bg}{Perfect phylogeny}
-        
-        $\chi_{\operatorname{PP}}(M) = 2$.
-        
-      \end{overprint}
-    \end{columns}
-  \end{example}
-\end{frame}
-
-\begin{frame}{Bad news about pp-partitions of haplotype matrices.}
-  \begin{theorem}
-    Finding \alert{optimal pp-partition of haplotype matrices}\\
-    is equivalent to finding \alert{optimal graph colorings}.
-  \end{theorem}
-
-  \begin{proof}[Proof sketch for first direction]
-    \begin{enumerate}
-    \item Let $G$ be a graph.
-    \item Build a matrix with a column for each vertex of $G$.
-    \item For each edge of $G$ add four rows inducing\\the
-      submatrix $\left(
-        \begin{smallmatrix}
-          0 & 0 \\
-          0 & 1 \\
-          1 & 0 \\
-          1 & 1
-        \end{smallmatrix}\right)$.
-    \item The submatrix enforces that the columns lie in different
-      perfect phylogenies. \qedhere  
-    \end{enumerate}
-  \end{proof}
-\end{frame}
-
-\begin{frame}{Implications for pp-partitions of haplotype matrices.}
-  \begin{corollary}
-    If $\chi_{\operatorname{PP}}(M) = 2$ for a haplotype matrix $M$,
-    we can find an optimal pp-partition in polynomial time. 
-  \end{corollary}
-
-  \begin{corollary}
-    Computing $\chi_{\operatorname{PP}}$ for haplotype matrices is
-    \begin{itemize}
-    \item $\operatorname{NP}$-hard,
-    \item not fixed-parameter tractable, unless
-      $\operatorname{P}=\operatorname{NP}$, 
-    \item very hard to approximate.
-    \end{itemize}
-  \end{corollary}
-\end{frame}
-
-
-\subsection{Hardness of PP-Partitioning of Genotype Matrices}
-
-
-\begin{frame}{Finding pp-partitions of genotype matrices.}
-  Now comes the general case:
-  \begin{itemize}
-  \item The inputs $M$ are \alert{genotype matrices}.
-  \item The inputs $M$ \alert{do not allow a perfect phylogeny}.
-  \item What is $\chi_{\operatorname{PP}}(M)$?
-  \end{itemize}
-  \begin{example}
-    \begin{columns}
-      \column{.3\textwidth}
-      $M\colon$
-      \footnotesize
-      \begin{tabular}{cccc}
-        2 & 2 & 2 & 2 \\
-        1 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 1 \\
-        0 & 0 & 1 & 0 \\
-        0 & 2 & 2 & 0 \\
-        1 & 1 & 0 & 0 
-      \end{tabular}%
-      \only<2>
-      {%
-        \begin{tikzpicture}
-          \useasboundingbox (2.9,0);
-          
-          \draw [red, opacity=0.7,line width=1cm] (1.7 ,1.3) -- (1.7 ,-1.1);
-          \draw [blue,opacity=0.7,line width=5mm] (0.85,1.3) -- (0.85,-1.1)
-                                                  (2.55,1.3) -- (2.55,-1.1);
-        \end{tikzpicture}
-      }
-      \column{.6\textwidth}
-      \begin{overprint}
-        \onslide<1>
-        No perfect phylogeny is possible.
-        
-        \onslide<2>
-        \textcolor{blue!70!bg}{Perfect phylogeny}
-        
-        \textcolor{red!70!bg}{Perfect phylogeny}
-        
-        $\chi_{\operatorname{PP}}(M) = 2$.
-        
-      \end{overprint}
-    \end{columns}
-  \end{example}
-\end{frame}
-
-
-\begin{frame}{Bad news about pp-partitions of haplotype matrices.}
-  \begin{theorem}
-    Finding \alert{optimal pp-partition of genotype matrices}
-    is at least as hard as finding \alert{optimal colorings of
-      3-uniform hypergraphs}. 
-  \end{theorem}
-
-  \begin{proof}[Proof sketch]
-    \begin{enumerate}
-    \item Let $G$ be a 3-uniform hypergraph.
-    \item Build a matrix with a column for each vertex of $G$.
-    \item For each hyperedge of $G$ add four rows inducing\\ the submatrix
-      $\left(
-        \begin{smallmatrix}
-          2 & 2 & 2 \\
-          1 & 0 & 0 \\
-          0 & 1 & 0 \\
-          0 & 0 & 1
-        \end{smallmatrix}\right)
-      $.
-    \item The submatrix enforces that the three columns do not all lie
-      in the same perfect phylogeny. \qedhere
-    \end{enumerate}
-  \end{proof}
-\end{frame}
-
-\begin{frame}{Implications for pp-partitions of genotype matrices.}
-  \begin{corollary}
-    Even if we know $\chi_{\operatorname{PP}}(M) = 2$ for a genotype matrix $M$,\\
-    finding a pp-partition of any fixed size is still
-    \begin{itemize}
-    \item $\operatorname{NP}$-hard,
-    \item not fixed-parameter tractable, unless
-      $\operatorname{P}=\operatorname{NP}$, 
-    \item very hard to approximate.
-    \end{itemize}
-  \end{corollary}
-\end{frame}
-
-
-\section{Good News: Tractability Results}
-
-\subsection{Perfect Path Phylogenies}
-
-\begin{frame}{Automatic optimal pp-partitioning is hopeless, but\dots}
-  \begin{itemize}
-  \item The hardness results are \alert{worst-case} results for\\
-    \alert{highly artificial inputs}.
-  \item \alert{Real biological data} might have special properties
-    that make the problem \alert{tractable}.
-  \item One such property is that perfect phylogenies are often
-    perfect \alert{path} phylogenies:
-
-    In HapMap data, in 70\% of the blocks where a perfect phylogeny
-    is possible a perfect path phylogeny is also possible.
-  \end{itemize}  
-\end{frame}
-
-
-\begin{frame}{Example of a perfect path phylogeny.}
-  \begin{columns}[t]
-    \column{.3\textwidth}
-    \begin{exampleblock}{Genotype matrix}
-      $G\colon$
-      \begin{tabular}{ccc}
-        A & B & C \\\hline
-        2 & 2 & 2 \\
-        0 & 2 & 0 \\
-        2 & 0 & 0 \\
-        0 & 2 & 2 
-      \end{tabular}
-    \end{exampleblock}
-
-    \column{.3\textwidth}
-    \begin{exampleblock}{Haplotype matrix}
-      $H\colon$
-      \begin{tabular}{ccc}
-        A & B & C \\\hline
-        1 & 0 & 0 \\
-        0 & 1 & 1 \\
-        0 & 0 & 0 \\
-        0 & 1 & 0 \\
-        0 & 0 & 0 \\
-        1 & 0 & 0 \\
-        0 & 0 & 0 \\
-        0 & 1 & 1 
-      \end{tabular}
-    \end{exampleblock}
-
-    \column{.4\textwidth}
-    \begin{exampleblock}{Perfect path phylogeny}
-      \begin{center}
-        \begin{tikzpicture}[auto,thick]
-          \tikzstyle{node}=%
-          [%
-            minimum size=10pt,%
-            inner sep=0pt,%
-            outer sep=0pt,%
-            ball color=example text.fg,%
-            circle%
-          ]
-        
-          \node [node] {} [->]
-            child {node [node] {} edge from parent node[swap]{A}}
-            child {node [node] {}
-              child {node [node] {} edge from parent node{C}}
-              edge from parent node{B}
-            };
-        \end{tikzpicture}
-      \end{center}
-    \end{exampleblock}
-  \end{columns}
-\end{frame}
-
-
-\begin{frame}{The modified formal computational problem.}
-  We are interested in the computational complexity of \\
-  the function $\chi_{\alert{\operatorname{PPP}}}$:
-  \begin{itemize}
-  \item It gets genotype matrices as input.
-  \item It maps them to a number $k$.
-  \item This number is minimal such that the sites can be
-    covered by $k$ sets, each admitting a perfect \alert{path} phylogeny.
-    \\
-    (We call this a ppp-partition.)
-  \end{itemize}
-\end{frame}
-
-
-
-\subsection{Tractability of PPP-Partitioning of Genotype Matrices}
-
-\begin{frame}{Good news about ppp-partitions of genotype matrices.}
-  \begin{theorem}
-    \alert{Optimal ppp-partitions of genotype matrices} can be
-    computed in \alert{polynomial time}. 
-  \end{theorem}
-  \begin{block}{Algorithm}
-    \begin{enumerate}
-    \item Build the following partial order:
-      \begin{itemize}
-      \item Can one column be above the other in a phylogeny?
-      \item Can the columns be the two children of the root of a
-        perfect path phylogeny?
-      \end{itemize}
-    \item Cover the partial order with as few compatible chain pairs 
-      as possible. 
-
-      For this, a maximal matching in a special graph needs to be
-      computed.
-    \end{enumerate}
+  \begin{block}{System Dynamics}
+    Top-Down, formalised using Differential Equations, give rise to dynamics.
   \end{block}
-  \hyperlink{algorithm<1>}{\beamergotobutton{The algorithm in action}}
-  \hypertarget{return}{}
 \end{frame}
 
-\section*{Summary}
+\begin{frame}{SIR Model Dynamics}
+  \center
+  \includegraphics[width=0.7\textwidth]{./fig/SIR_SD_1000agents_150t_001dt.png}
+\end{frame}
 
-\begin{frame}
-  \frametitle<presentation>{Summary}
+\begin{frame}{How-To implement ABS?}
+  \begin{block}{Established, state-of-the-art approach in ABS}
+	Object-Oriented Programming in Python (on the rise!), Java,...
+  \end{block}
+  
+  \begin{block}{What we want is (pure) functional programming}
+	\begin{itemize}
+	  \item Reproducibility guaranteed at compile time
+	  \item Declarative, reasoning, parallelism, concurrency, property-based testing,...
+	\end{itemize}
+  \end{block}
+  
+  \begin{block}{How can we do it?}
+  	Functional Reactive Programming
+  \end{block}
+\end{frame}
 
+\begin{frame}{Functional Reactive Programming (FRP)}
   \begin{itemize}
-  \item
-    Finding optimal pp-partitions is \alert{intractable}. 
-  \item
-    It is even intractable to find a pp-partition when \alert{just two 
-      noncontiguous  blocks are known to suffice}.
-  \item
-    For perfect \alert{path} phylogenies, optimal partitions can be
-    computed \alert{in polynomial time}.
+    \item Implement continuous- \& discrete-time systems in functional programming
+ 	\item Central concept: Signal Function (SF), process over time, maps signal to signal
+ 	\item Events (deterministic \& stochastic)
+ 	\item Random-number streams
+ 	\item Running signal-functions in pure way
+ 	\item \textit{Arrowized} FRP using the \textit{Yampa} library
   \end{itemize}
 \end{frame}
 
+\section{Agent-Based SIR in Haskell}
+\begin{frame}[fragile]{First Steps}
+\begin{minted}[fontsize=\footnotesize, linenos]{haskell}
+data SIRState = Susceptible | Infected | Recovered
 
-\appendix
-
-\section*{Appendix}
-
-\begin{frame}[label=algorithm]{The algorithm in action.}{Computation of
-    the partial order.}
-  \begin{columns}[t]
-    \column{.4\textwidth}
-    \begin{exampleblock}{Genotype matrix}
-      $G\colon$
-      \begin{tabular}{ccccc}
-        A & B & C & D & E \\\hline
-        2 & 2 & 2 & 2 & 2 \\
-        0 & 1 & 2 & 1 & 0 \\
-        1 & 0 & 0 & 1 & 2 \\
-        0 & 2 & 2 & 0 & 0
-      \end{tabular}
-    \end{exampleblock}
-    \column{.6\textwidth}
-    \begin{exampleblock}{Partial order}
-      \begin{tikzpicture}[node distance=15mm]
-        \tikzstyle{every node}=
-        [%
-          fill=green!50!black!20,%
-          draw=green!50!black,%
-          minimum size=7mm,%
-          circle,%
-          thick%
-        ]
-
-        \node (A) {A};
-        \node (B) [right of=A] {B};
-        \node (C) [below of=B] {C};
-        \node (D) [above of=A] {D};
-        \node (E) [below of=A] {E};
-
-        \path [thick,shorten >=1pt,-stealth'] (A) edge (E)
-                         (B) edge (C)
-                         (D) edge (A)
-                             edge[bend right] (E);
-
-        \uncover<2>{
-        \path [-,blue,thick](A) edge (B)
-                                edge (C)  
-                            (B) edge (E)
-                            (C) edge (E);}
-      \end{tikzpicture}
-
-      Partial order: \tikz[baseline] \draw[thick,-stealth'] (0pt,.5ex)
-      -- (5mm,.5ex); 
-
-      \uncover<2>{\textcolor{blue}{Compatible as children of root:
-          \tikz[baseline] \draw[thick] (0pt,.5ex) -- (5mm,.5ex);}} 
-    \end{exampleblock}
-  \end{columns}  
+type SIRAgent = SF [SIRState] SIRState 
+  
+sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
+sirAgent g Susceptible = susceptibleAgent g
+sirAgent g Infected    = infectedAgent g
+sirAgent _ Recovered   = recoveredAgent
+  
+recoveredAgent :: SIRAgent
+recoveredAgent = arr (const Recovered)
+\end{minted}
 \end{frame}
 
-\begin{frame}{The algorithm in action.}{The matching in the special graph.}
-  \begin{columns}[t]
-    \column{.3\textwidth}
-    \begin{exampleblock}{Partial order}
-      \begin{tikzpicture}[node distance=15mm]
-        \tikzstyle{every node}=%
-        [%
-          fill=green!50!black!20,%
-          draw=green!50!black,%
-          minimum size=8mm,%
-          circle,%
-          thick%
-        ]
-
-        \node (A)              {$A$};
-        \node (B) [right of=A] {$B$};
-        \node (C) [below of=B] {$C$};
-        \node (D) [above of=A] {$D$};
-        \node (E) [below of=A] {$E$};
-
-        \path [thick,shorten >=1pt,-stealth'] (A) edge (E)
-                         (B) edge (C)
-                         (D) edge (A)
-                             edge[bend right] (E);
-
-        \path [-,blue,thick](A) edge (B)
-                                edge (C)  
-                            (B) edge (E)
-                            (C) edge (E);
-
-        \only<3->
-        {
-          \path[very thick,shorten >=1pt,-stealth',red] (D) edge (A) (B) edge (C);
-          \path [-,red,very thick](E) edge (B);
-        }
-      \end{tikzpicture}
-    \end{exampleblock}
-    \column{.7\textwidth}
-    \begin{exampleblock}{Matching graph}
-      \begin{tikzpicture}[node distance=15mm]
-        \tikzstyle{every node}=%
-        [%
-          fill=green!50!black!20,%
-          draw=green!50!black,%
-          minimum size=8mm,%
-          circle,%
-          thick,%
-          inner sep=0pt%
-        ]
-
-        \node (A)              {$A$};
-        \node (B) [right of=A] {$B$};
-        \node (C) [below of=B] {$C$};
-        \node (D) [above of=A] {$D$};
-        \node (E) [below of=A] {$E$};
-
-        \begin{scope}[xshift=4.75cm]
-          \node (A')               {$A'$};
-          \node (B') [right of=A'] {$B'$};
-          \node (C') [below of=B'] {$C'$};
-          \node (D') [above of=A'] {$D'$};
-          \node (E') [below of=A'] {$E'$};
-        \end{scope}
-        
-        \path [thick]    (A) edge (E')
-                         (B) edge (C')
-                         (D) edge (A')
-                             edge (E');
-
-        \path [blue,thick](A') edge (B')
-                               edge (C')  
-                          (B') edge (E')
-                          (C') edge (E');
-
-        \only<2->
-        {
-          \path[very thick,red] (D) edge (A')
-                           (B) edge (C')
-                           (B') edge (E');
-        }
-      \end{tikzpicture}
-    \end{exampleblock}
-  \end{columns}
-
-  \medskip
-  \uncover<2->{A \alert{maximal matching} in the matching graph
-    \uncover<3>{induces\\ \alert{perfect path phylogenies}.}}
-
-  \hfill\hyperlink{return}{\beamerreturnbutton{Return}}
+\begin{frame}[fragile]{Susceptible Agent}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+susceptibleAgent :: RandomGen g => g -> SIRAgent
+susceptibleAgent g = switch (susceptible g) (const (infectedAgent g))
+  where
+    susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())
+    susceptible g = proc as -> do
+      makeContact <- occasionally g (1 / contactRate) () -< ()
+      if isEvent makeContact
+        then (do
+          -- draw random element from the list
+          a <- drawRandomElemSF g -< as
+          case a of
+            Infected -> do
+              -- returns True with given probability
+              i <- randomBoolSF g infectivity -< ()
+              if i
+                then returnA -< (Infected, Event ())
+                else returnA -< (Susceptible, NoEvent)
+             _       -> returnA -< (Susceptible, NoEvent))
+        else returnA -< (Susceptible, NoEvent)
+\end{minted}
 \end{frame}
 
+\begin{frame}[fragile]{Infected Agent}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+infectedAgent :: RandomGen g => g -> SIRAgent
+infectedAgent g = switch infected (const recoveredAgent)
+  where
+    infected :: SF [SIRState] (SIRState, Event ())
+    infected = proc _ -> do
+      recEvt <- occasionally g illnessDuration () -< ()
+      let a = event Infected (const Recovered) recEvt
+      returnA -< (a, recEvt)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Running the Simulation}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+runSimulation :: RandomGen g => g -> Time -> DTime -> [SIRState] -> [[SIRState]]
+runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
+  where
+    steps     = floor (t / dt)
+    dts       = replicate steps (dt, Nothing)
+    n         = length as
+    (rngs, _) = rngSplits g n [] -- unique rngs for each agent
+    sfs       = zipWith sirAgent rngs as
+    
+stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
+stepSimulation sfs as =
+    dpSwitch
+      -- feeding the agent states to each SF
+      (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
+      -- the signal functions
+      sfs
+      -- switching event, ignored at t = 0         
+      (switchingEvt >>> notYet)
+      -- recursively switch back into stepSimulation         
+      stepSimulation                            
+  where
+    switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
+    switchingEvt = arr (\ (_, newAs) -> Event newAs)
+\end{minted}
+\end{frame}
+
+\begin{frame}{Dynamics $\Delta t = 0.1$}
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.42\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_1000agents_150t_01dt.png}
+			\caption{Agent-Based approach}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_SD_1000agents_150t_001dt.png}
+			\caption{System Dynamics}
+		\end{subfigure}
+	\end{tabular}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Sampling Issues}
+\begin{figure}
+\begin{center}
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/Undersampling.png}
+	\caption*{Undersampling}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/Supersampling.png}
+	\caption*{Supersampling}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Dynamics $\Delta t = 0.1$}
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.42\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_1000agents_150t_01dt.png}
+			\caption{Agent-Based approach}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_SD_1000agents_150t_001dt.png}
+			\caption{System Dynamics}
+		\end{subfigure}
+	\end{tabular}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Dynamics $\Delta t = 0.01$}
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.42\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_1000agents_150t_001dt.png}
+			\caption{Agent-Based approach}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_SD_1000agents_150t_001dt.png}
+			\caption{System Dynamics}
+		\end{subfigure}
+	\end{tabular}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Reflection}
+  \begin{itemize}
+	\item \textbf{Time} - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
+	\item \textbf{Agents} - implemented as an individual, behaviour depending on internal state.
+	\item \textbf{Feedback} - output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
+	\item \textbf{Environment} - fully-connected network (complete graph).
+	\item \textbf{Stochasticity} - inherently stochastic simulation.
+	\item \textbf{Deterministic} - repeated runs with same initial random-number generator result in same dynamics.
+  \end{itemize}
+\end{frame}
+
+\section{Adding Spatiality}
+\begin{frame}{Where is the benefit?}
+  \begin{block}{Same as System Dynamics}
+    Where is the Environment?
+  \end{block} 
+  
+  \begin{block}{Adding an Environment}
+    \begin{itemize}
+      \item Running SFs happens in \textit{'parallel'} => multiple copies of environment
+      \item State Monad elegant solution
+    \end{itemize}
+  \end{block} 
+  
+  \begin{block}{Problem}
+  	\textit{Yampa} not monadic
+  \end{block}
+  
+  \begin{block}{Solution}
+    Use Monadic Stream Functions (MSFs) \\
+  	Conceptually, Signal Functions with monadic context
+  \end{block}
+\end{frame}
+
+\begin{frame}{The environment: Moore neighbourhood}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{./fig/moore.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Re-defining Types}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+type Disc2dCoord = (Int, Int)
+type SIREnv      = Array Disc2dCoord SIRState
+
+type SIRMonad g = StateT SIREnv (Rand g)
+type SIRAgent g = SF (SIRMonad g) () ()
+
+neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState]
+
+moore :: [Disc2dCoord]
+moore = [ topLeftDelta,    topDelta,     topRightDelta,
+          leftDelta,                     rightDelta,
+          bottomLeftDelta, bottomDelta,  bottomRightDelta ]
+
+topLeftDelta :: Disc2dCoord
+topLeftDelta      = (-1, -1)
+
+topDelta :: Disc2dCoord
+topDelta          = ( 0, -1)
+...
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Susceptible Agent revisited}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
+susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
+  where
+    susceptible :: RandomGen g => SF (SIRMonad g) () ((), Event ())
+    susceptible = proc _ -> do
+      makeContact <- occasionallyM (1 / contactRate) () -< ()
+      if not (isEvent makeContact)
+        then returnA -< ((), NoEvent)
+        else (do
+          env <- arrM_ (lift get) -< ()
+          let ns = neighbours env coord agentGridSize moore
+          s <- drawRandomElemS -< ns
+          case s of
+            Infected -> do
+              infected <- arrM_ 
+                (lift $ lift $ randomBoolM infectivity) -< ()
+              if infected 
+                then (do
+                  arrM (put . changeCell coord Infected) -< env
+                  returnA -< ((), Event ()))
+                else returnA -< ((), NoEvent)
+            _        -> returnA -< ((), NoEvent))
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Running the Simulation revisited}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+runSimulation :: RandomGen g
+              => g -> Time -> DTime -> SIREnv -> [(Disc2dCoord, SIRState)] -> [SIREnv]
+runSimulation g t dt env as = evalRand esRand g
+  where
+    steps    = floor (t / dt)
+    dts      = replicate steps ()
+    -- initial SFs of all agents
+    sfs      = map (uncurry sirAgent) as   
+    -- running the simulation   
+    esReader = embed (stepSimulation sfs) dts 
+    esState  = runReaderT esReader dt 
+    esRand   = evalStateT esState env   
+    
+stepSimulation :: RandomGen g => [SIRAgent g] -> SF (SIRMonad g) () SIREnv
+stepSimulation sfs = MSF (\_ -> do
+  -- running all SFs with unit input
+  res <- mapM (`unMSF` ()) sfs
+  -- extracting continuations, ignore output
+  let sfs' = fmap snd res
+  -- getting environment of current step   
+  env <- get
+  -- recursive continuation    
+  let ct = stepSimulation sfs'  
+  return (env, ct))
+\end{minted}
+\end{frame}
+
+\begin{frame}{Dynamics with environment}
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.47\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_dynamics_30x30agents_300t_01dt.png}
+			\caption{Dynamics over $t = 300$}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_environment_30x30agents_t100_01dt.png}
+			\caption{Visualisation at $t = 100$}
+		\end{subfigure}
+	\end{tabular}
+\end{center}
+\end{figure}
+\end{frame}
+
+\section{Discussion}
+\begin{frame}{Performance}
+  \begin{block}{Experiment}
+    Spatial Agent-Based SIR, 51x51 Grid (2,601 agents), $t = 100$, $\Delta t = 0.1$, avg. 8 runs
+  \end{block}
+  
+  \begin{block}{Haskell}
+  	100.3 sec
+  \end{block}
+  
+  \begin{block}{RePast ($\Delta t = ?$)}
+  	10.8 sec
+  \end{block}
+  
+  \begin{block}{STM Haskell}
+  	8.6 sec on Amazon S2, 16 cores
+  \end{block}
+\end{frame}
+
+\begin{frame}{Conclusion}
+  \begin{itemize}
+    \item Purity guarantees reproducibility at compile time
+    \item Performance :(
+    \item Agent-Identity a bit lost
+    \item Agent-Interaction is main difficulty
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Future Work}
+  \begin{block}{Property-based testing for verification in ABS}
+    \begin{itemize}
+      \item Completely untouched (property-based testing exists in Java, Python)
+      \item Might offer huge benefits e.g. formalising hypotheses
+    \end{itemize}
+  \end{block}
+  
+  \begin{block}{Dependent Types in ABS (using Idris)}
+  	\begin{itemize}
+  	  %\item No research exists so far (to our best knowledge)
+  	  \item Safe environment access
+	  \item Safe state-transitions
+      %\item Safe timed transitions
+      \item Safe Agent-Interactions
+      \item Equilibrium of Model \& Totality of Implementation
+  	\end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+  Thank You!
+  \end{center}
+\end{frame}
 \end{document}
-
-

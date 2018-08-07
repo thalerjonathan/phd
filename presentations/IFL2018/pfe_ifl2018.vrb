@@ -1,0 +1,27 @@
+\frametitle{Running the Simulation revisited}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
+runSimulation :: RandomGen g
+              => g -> Time -> DTime -> SIREnv -> [(Disc2dCoord, SIRState)] -> [SIREnv]
+runSimulation g t dt env as = evalRand esRand g
+  where
+    steps    = floor (t / dt)
+    dts      = replicate steps ()
+    -- initial SFs of all agents
+    sfs      = map (uncurry sirAgent) as
+    -- running the simulation
+    esReader = embed (stepSimulation sfs) dts
+    esState  = runReaderT esReader dt
+    esRand   = evalStateT esState env
+
+stepSimulation :: RandomGen g => [SIRAgent g] -> SF (SIRMonad g) () SIREnv
+stepSimulation sfs = MSF (\_ -> do
+  -- running all SFs with unit input
+  res <- mapM (`unMSF` ()) sfs
+  -- extracting continuations, ignore output
+  let sfs' = fmap snd res
+  -- getting environment of current step
+  env <- get
+  -- recursive continuation
+  let ct = stepSimulation sfs'
+  return (env, ct))
+\end{minted}

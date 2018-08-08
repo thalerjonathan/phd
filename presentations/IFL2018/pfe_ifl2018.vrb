@@ -1,27 +1,25 @@
-\frametitle{Running the Simulation revisited}
+\frametitle{Susceptible Agent revisited}
 \begin{minted}[fontsize=\tiny, linenos]{haskell}
-runSimulation :: RandomGen g
-              => g -> Time -> DTime -> SIREnv -> [(Disc2dCoord, SIRState)] -> [SIREnv]
-runSimulation g t dt env as = evalRand esRand g
+susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
+susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
   where
-    steps    = floor (t / dt)
-    dts      = replicate steps ()
-    -- initial SFs of all agents
-    sfs      = map (uncurry sirAgent) as
-    -- running the simulation
-    esReader = embed (stepSimulation sfs) dts
-    esState  = runReaderT esReader dt
-    esRand   = evalStateT esState env
-
-stepSimulation :: RandomGen g => [SIRAgent g] -> SF (SIRMonad g) () SIREnv
-stepSimulation sfs = MSF (\_ -> do
-  -- running all SFs with unit input
-  res <- mapM (`unMSF` ()) sfs
-  -- extracting continuations, ignore output
-  let sfs' = fmap snd res
-  -- getting environment of current step
-  env <- get
-  -- recursive continuation
-  let ct = stepSimulation sfs'
-  return (env, ct))
+    susceptible :: RandomGen g => SF (SIRMonad g) () ((), Event ())
+    susceptible = proc _ -> do
+      makeContact <- occasionallyM (1 / contactRate) () -< ()
+      if not (isEvent makeContact)
+        then returnA -< ((), NoEvent)
+        else (do
+          env <- arrM_ (lift get) -< ()
+          let ns = neighbours env coord agentGridSize moore
+          s <- drawRandomElemS -< ns
+          case s of
+            Infected -> do
+              infected <- arrM_
+                (lift $ lift $ randomBoolM infectivity) -< ()
+              if infected
+                then (do
+                  arrM (put . changeCell coord Infected) -< env
+                  returnA -< ((), Event ()))
+                else returnA -< ((), NoEvent)
+            _        -> returnA -< ((), NoEvent))
 \end{minted}

@@ -61,7 +61,7 @@
 \begin{frame}{Research Question(s)}
 \begin{itemize}
   \item \textbf{How} can we implement Agent-Based Simulation (ABS) in (pure) functional programming?
-  \item \textbf{Why} would we do that?
+  %\item \textbf{Why} would we do that?
   \item \textbf{What} are the benefits and drawbacks?
 \end{itemize}
 \end{frame}
@@ -103,14 +103,11 @@
 
 \begin{frame}{How-To implement ABS?}
   \begin{block}{Established, state-of-the-art approach in ABS}
-	Object-Oriented Programming in Python (on the rise!), Java,...
+	Object-Oriented Programming in Python, Java,...
   \end{block}
   
-  \begin{block}{What we want is (pure) functional programming}
-	\begin{itemize}
-	  \item Reproducibility guaranteed at compile time
-	  \item Declarative, reasoning, parallelism, concurrency, property-based testing,...
-	\end{itemize}
+  \begin{block}{We want (pure) functional programming}
+	Purity, explicit about side-effects, declarative, reasoning, parallelism, concurrency, property-based testing,...
   \end{block}
   
   \begin{block}{How can we do it?}
@@ -121,10 +118,10 @@
 \begin{frame}{Functional Reactive Programming (FRP)}
   \begin{itemize}
     \item Implement continuous- \& discrete-time systems in functional programming
- 	\item Central concept: Signal Function (SF), process over time, maps signal to signal
+ 	\item Signal Function (SF) \\ $\Rightarrow$ process over time, maps signal to signal
  	\item Events (deterministic \& stochastic)
  	\item Random-number streams
- 	\item Running signal-functions in pure way
+ 	%\item Running signal-functions in pure way
  	\item \textit{Arrowized} FRP using the \textit{Yampa} library
   \end{itemize}
 \end{frame}
@@ -211,43 +208,43 @@ stepSimulation sfs as =
 \end{minted}
 \end{frame}
 
-\begin{frame}{Dynamics $\Delta t = 0.1$}
-\begin{figure}
-\begin{center}
-	\begin{tabular}{c c}
-		\begin{subfigure}[b]{0.42\textwidth}
-			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_1000agents_150t_01dt.png}
-			\caption{Agent-Based approach}
-		\end{subfigure}
-    	
-    	&
-  
-		\begin{subfigure}[b]{0.4\textwidth}
-			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_SD_1000agents_150t_001dt.png}
-			\caption{System Dynamics}
-		\end{subfigure}
-	\end{tabular}
-\end{center}
-\end{figure}
-\end{frame}
-
-\begin{frame}{Sampling Issues}
-\begin{figure}
-\begin{center}
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/Undersampling.png}
-	\caption*{Undersampling}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/Supersampling.png}
-	\caption*{Supersampling}
-\end{center}
-\end{figure}
-\end{frame}
+%\begin{frame}{Dynamics $\Delta t = 0.1$}
+%\begin{figure}
+%\begin{center}
+%	\begin{tabular}{c c}
+%		\begin{subfigure}[b]{0.42\textwidth}
+%			\centering
+%			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_1000agents_150t_01dt.png}
+%			\caption{Agent-Based approach}
+%		\end{subfigure}
+%    	
+%    	&
+%  
+%		\begin{subfigure}[b]{0.4\textwidth}
+%			\centering
+%			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_SD_1000agents_150t_001dt.png}
+%			\caption{System Dynamics}
+%		\end{subfigure}
+%	\end{tabular}
+%\end{center}
+%\end{figure}
+%\end{frame}
+%
+%\begin{frame}{Sampling Issues}
+%\begin{figure}
+%\begin{center}
+%	\includegraphics[width=0.6\textwidth, angle=0]{./fig/Undersampling.png}
+%	\caption*{Undersampling}
+%\end{center}
+%\end{figure}
+%
+%\begin{figure}
+%\begin{center}
+%	\includegraphics[width=0.6\textwidth, angle=0]{./fig/Supersampling.png}
+%	\caption*{Supersampling}
+%\end{center}
+%\end{figure}
+%\end{frame}
 
 \begin{frame}{Dynamics $\Delta t = 0.1$}
 \begin{figure}
@@ -295,24 +292,20 @@ stepSimulation sfs as =
 
 \begin{frame}{Reflection}
   \begin{itemize}
-	\item \textbf{Time} - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
-	\item \textbf{Agents} - implemented as an individual, behaviour depending on internal state.
-	\item \textbf{Feedback} - output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
-	\item \textbf{Environment} - fully-connected network (complete graph).
-	\item \textbf{Stochasticity} - inherently stochastic simulation.
-	\item \textbf{Deterministic} - repeated runs with same initial random-number generator result in same dynamics.
+	\item \textbf{Time} % - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
+	\item \textbf{Agents} %- implemented as an individual, behaviour depending on internal state.
+	\item \textbf{Feedback} %- output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
+	%\item \textbf{Environment} - fully-connected network (complete graph).
+	\item \textbf{Stochasticity}
+	\item \textbf{Deterministic} %- repeated runs with same initial random-number generator result in same dynamics.
   \end{itemize}
 \end{frame}
 
 \section{Adding Spatiality}
-\begin{frame}{Where is the benefit?}
-  \begin{block}{Same as System Dynamics}
-    Where is the Environment?
-  \end{block} 
-  
+\begin{frame}{Where is the Environment?}
   \begin{block}{Adding an Environment}
     \begin{itemize}
-      \item Running SFs happens in \textit{'parallel'} => multiple copies of environment
+      \item Running SFs \textit{'parallel'} \\ $\Rightarrow$ multiple copies of environment
       \item State Monad elegant solution
     \end{itemize}
   \end{block} 
@@ -322,8 +315,8 @@ stepSimulation sfs as =
   \end{block}
   
   \begin{block}{Solution}
-    Use Monadic Stream Functions (MSFs) \\
-  	Conceptually, Signal Functions with monadic context
+    Monadic Stream Functions (MSFs) \\
+  	$\Rightarrow$ Signal Functions with monadic context
   \end{block}
 \end{frame}
 
@@ -436,28 +429,28 @@ susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
 \end{frame}
 
 \section{Discussion}
-\begin{frame}{Performance}
-  \begin{block}{Experiment}
-    Spatial Agent-Based SIR, 51x51 Grid (2,601 agents), $t = 100$, $\Delta t = 0.1$, avg. 8 runs
-  \end{block}
-  
-  \begin{block}{Haskell}
-  	100.3 sec
-  \end{block}
-  
-  \begin{block}{RePast ($\Delta t = ?$)}
-  	10.8 sec
-  \end{block}
-  
-  \begin{block}{STM Haskell}
-  	8.6 sec on Amazon S2, 16 cores (other paper)
-  \end{block}
-\end{frame}
+%\begin{frame}{Performance}
+%  \begin{block}{Experiment}
+%    Spatial Agent-Based SIR, 51x51 Grid (2,601 agents), $t = 100$, $\Delta t = 0.1$, avg. 8 runs
+%  \end{block}
+%  
+%  \begin{block}{Haskell}
+%  	100.3 sec
+%  \end{block}
+%  
+%  \begin{block}{RePast ($\Delta t = ?$)}
+%  	10.8 sec
+%  \end{block}
+%  
+%  \begin{block}{STM Haskell}
+%  	8.6 sec on Amazon S2, 16 cores (other paper)
+%  \end{block}
+%\end{frame}
 
 \begin{frame}{Conclusion}
   \begin{itemize}
     \item Purity guarantees reproducibility at compile time
-    \item Performance :(
+    \item Performance
     \item Agent-Identity a bit lost
     \item Agent-Interaction is main difficulty
   \end{itemize}
@@ -465,19 +458,12 @@ susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
 
 \begin{frame}{Future Work}
   \begin{block}{Property-based testing for verification in ABS}
-    \begin{itemize}
-      \item Completely untouched (property-based testing exists in Java, Python)
-      \item Might offer huge benefits e.g. formalising hypotheses
-    \end{itemize}
+    Might offer huge benefits e.g. formalising hypotheses
   \end{block}
   
   \begin{block}{Dependent Types in ABS (using Idris)}
   	\begin{itemize}
-  	  %\item No research exists so far (to our best knowledge)
-  	  \item Safe environment access
-	  \item Safe state-transitions
-      %\item Safe timed transitions
-      \item Safe Agent-Interactions
+  	  \item Safe environment access, state-transitions, agent-interactions
       \item Equilibrium of Model \& Totality of Implementation
   	\end{itemize}
   \end{block}

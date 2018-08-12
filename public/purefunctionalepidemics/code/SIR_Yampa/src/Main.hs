@@ -2,58 +2,40 @@
 module Main where
 
 import System.IO
+import Text.Printf
 
 import Control.Monad.Random
 import FRP.Yampa
 
-import SIR
-
+data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 type SIRAgent = SF [SIRState] SIRState
 
-agentCount :: Int
-agentCount = 1000
+contactRate :: Double
+contactRate = 5.0
 
-infectedCount :: Int
-infectedCount = 1
+infectivity :: Double
+infectivity = 0.05
 
-rngSeed :: Int
-rngSeed = 42
-
-dt :: DTime
-dt = 0.01 -- 0.0025
-
-t :: Time
-t = 150
-
-sirTest :: SIRAgent
-sirTest = dSwitch  
-            susceptible
-            (const infected)
-  where
-    susceptible :: SF [SIRState] (SIRState, Event ())
-    susceptible = proc _ -> returnA -< (Infected, Event ())
-
-    infected :: SIRAgent
-    infected = switch 
-            infectedAux
-            (const recovered)
-      where
-        infectedAux :: SF [SIRState] (SIRState, Event ())
-        infectedAux = proc _ -> returnA -< (Recovered, Event ())
-
-    recovered :: SIRAgent
-    recovered = arr (const Recovered)
+illnessDuration :: Double
+illnessDuration = 15.0
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let g = mkStdGen rngSeed
-  let as = initAgents agentCount infectedCount
-  let ass = runSimulation g t dt as
+  let t    = 150
+      dt   = 0.01
+      seed = 42
+      g    = mkStdGen seed
+      
+      agentCount    = 1000
+      infectedCount = 1
+
+      as   = initAgents agentCount infectedCount
+      ass  = runSimulation g t dt as
 
   let dyns = aggregateAllStates ass
-  let fileName =  "STEP_2_YAMPA_DYNAMICS_" ++ show agentCount ++ "agents.m"
+  let fileName =  "SIR_YAMPA.m"
   writeAggregatesToFile fileName dyns
 
 runSimulation :: RandomGen g 
@@ -62,24 +44,23 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [SIRState] 
               -> [[SIRState]]
-runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
+runSimulation g0 t dt as = embed (stepSimulation sfs as) ((), dts)
   where
     steps = floor $ t / dt
-    dts = replicate steps (dt, Nothing)
-    n = length as
+    dts   = replicate steps (dt, Nothing)
 
-    (rngs, _) = rngSplits g n []
-    sfs = zipWith sirAgent rngs as
+    (rngs, _) = rngSplits g0 (length as) []
+    sfs       = zipWith sirAgent rngs as
     
     rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
     rngSplits g 0 acc = (acc, g)
-    rngSplits g n acc = rngSplits g'' (n-1) (g' : acc)
+    rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
       where
         (g', g'') = split g
 
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
 stepSimulation sfs as =
-    pSwitch
+    dpSwitch
       (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
       sfs
       -- if we switch immediately we end up in endless switching, so always wait for 'next'
@@ -96,18 +77,12 @@ sirAgent g Infected    = infectedAgent g
 sirAgent _ Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => g -> SIRAgent
-susceptibleAgent g = 
-    -- NOTE: we need to use a delayed (d)Switch here because
-    -- according to the SIR model only a single state-transition 
-    -- should occur during one step. If we are not using a delay
-    -- we could go from susceptible directly to recovered 
-    -- if infected immediately generates a receovery event -
-    -- which probability is not very high but still possible
-    -- NOTE: we tested it with delay and without, it has no influence
-    -- it seems that the probability is way too low for it to happen?
-    dSwitch 
-      (susceptible g) 
-      (const $ infectedAgent g)
+susceptibleAgent g0 = 
+    switch 
+      -- delay the switching by 1 step, otherwise could
+      -- make the transition from Susceptible to Recovered within time-step
+      (susceptible g0 >>> iPre (Susceptible, NoEvent))
+      (const $ infectedAgent g0)
   where
     susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())
     susceptible g = proc as -> do
@@ -131,7 +106,9 @@ susceptibleAgent g =
 infectedAgent :: RandomGen g => g -> SIRAgent
 infectedAgent g = 
     switch 
-      infected 
+      -- delay the switching by 1 step, otherwise could
+      -- make the transition from Susceptible to Recovered within time-step
+      (infected >>> iPre (Infected, NoEvent))
       (const recoveredAgent)
   where
     infected :: SF [SIRState] (SIRState, Event ())
@@ -161,3 +138,89 @@ initAgents n i = sus ++ inf
   where
     sus = replicate (n - i) Susceptible
     inf = replicate i Infected
+
+aggregateAllStates :: [[SIRState]] -> [(Double, Double, Double)]
+aggregateAllStates = map aggregateStates
+
+aggregateStates :: [SIRState] -> (Double, Double, Double)
+aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
+  where
+    susceptibleCount = fromIntegral $ length $ filter (Susceptible==) as
+    infectedCount = fromIntegral $ length $ filter (Infected==) as
+    recoveredCount = fromIntegral $ length $ filter (Recovered==) as
+
+writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
+writeAggregatesToFile fileName dynamics = do
+  fileHdl <- openFile fileName WriteMode
+  hPutStrLn fileHdl "dynamics = ["
+  mapM_ (hPutStrLn fileHdl . sirAggregateToString) dynamics
+  hPutStrLn fileHdl "];"
+
+  hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
+  hPutStrLn fileHdl "infected = dynamics (:, 2);"
+  hPutStrLn fileHdl "recovered = dynamics (:, 3);"
+  hPutStrLn fileHdl "totalPopulation = susceptible(1) + infected(1) + recovered(1);"
+
+  hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
+  hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
+  hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
+
+  hPutStrLn fileHdl "steps = length (susceptible);"
+  hPutStrLn fileHdl "indices = 0 : steps - 1;"
+
+  hPutStrLn fileHdl "figure"
+  hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
+  hPutStrLn fileHdl "hold on"
+  hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);"
+  hPutStrLn fileHdl "hold on"
+  hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);"
+
+  hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
+  
+  hPutStrLn fileHdl "xlabel ('Time');"
+  hPutStrLn fileHdl "ylabel ('Population Ratio');"
+  hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
+
+  hClose fileHdl
+
+sirAggregateToString :: (Double, Double, Double) -> String
+sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
+  printf "%f" susceptibleCount
+  ++ "," ++ printf "%f" infectedCount
+  ++ "," ++ printf "%f" recoveredCount
+  ++ ";"
+
+-- NOTE: this code demonstrates that an agent could 
+-- indeed make the transition from Susceptible to
+-- Recovered within a single time-step because
+-- switch applies the SF to switch into immediately.
+-- Using delayed switch (dSwitch) does NOT help, it
+-- only delays the OBSERVATION but does also apply
+-- the new SF immediately, thus the solution is 
+-- to use iPre which delays by 1 step by
+-- 'consuming' the immediate switching 
+{-
+sirTest :: SIRAgent
+sirTest = switch
+            susceptible --  >>> iPre (Susceptible, NoEvent))
+            (const infected)
+  where
+    susceptible :: SF [SIRState] (SIRState, Event ())
+    susceptible = proc _ -> returnA -< (Infected, Event ())
+
+    infected :: SIRAgent
+    infected = switch
+            (infectedAux >>> iPre (Infected, NoEvent))
+            (const recovered)
+      where
+        infectedAux :: SF [SIRState] (SIRState, Event ())
+        infectedAux = proc _ -> returnA -< (Recovered, Event ())
+
+    recovered :: SIRAgent
+    recovered = arr (const Recovered)
+
+main :: IO ()
+main = do
+  let ret = embed (sirTest) ([], [(0.1, Nothing), (0.1, Nothing)])
+  print ret
+-}

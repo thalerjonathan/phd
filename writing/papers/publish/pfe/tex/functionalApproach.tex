@@ -5,10 +5,12 @@ We presented a high-level agent-based approach to the SIR model in the previous 
 
 In \cite{thaler_art_2017} two fundamental problems of implementing an agent-based simulation from a programming-language agnostic point of view is discussed. The first problem is how agents can be pro-active and the second how interactions and communication between agents can happen. For agents to be pro-active, they must be able to perceive the passing of time, which means there must be a concept of an agent-process which executes over time. Interactions between agents can be reduced to the problem of how an agent can expose information about its internal state which can be perceived by other agents. Further the authors have shown the influence of different deterministic and non-deterministic elements in agent-based simulation on the dynamics and how the influence of non-determinism can completely break them down or result in different dynamics despite same initial conditions. This means that we want to rule out any potential source of non-determinism.
 
+Further, also according to \cite{thaler_art_2017}, it is of fundamental importance, that one matches the update-stragey with the semantics of the model: the order in which agents are updated and actions of agents are visible can make a very big difference and needs to match the model semantics. The authors of \cite{thaler_art_2017} identify four different update-strategies of which the \textit{parallel} update-strategy matches the semantics of the agent-based SIR model due to the underlying roots in the System Dynamics approach. In the parallel update-stragey, the agents all act \textit{conceptually} at the same time in lock-step, observe the same environment state during a step and run isolated from each other. Changes made by an agent to the environment are only visible in the next time-step, see Figure \ref{fig:parallel_strategy}.
+
 \begin{figure}
 	\centering
 	\includegraphics[width=.4\textwidth, angle=0]{./fig/diagrams/parallel_strategy.png}
-	\caption{Running the agents (conceptually) in parallel lock-step. All agents observe the same environment state during a step and run isolated from each other - changes made by an agent to the environment is only visible in the next one.}
+	\caption{Parallel updating of the agents.}
 	\label{fig:parallel_strategy}
 \end{figure}
 

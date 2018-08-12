@@ -1519,6 +1519,9 @@ plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);
 hold on
 plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);
 set(gca,'YTick',0:0.05:1.0);
+set(gca,'XTick',0:20:160);
 xlabel ('Time');
 ylabel ('Population Ratio');
 legend('Susceptible','Infected', 'Recovered');
+
+grid on;

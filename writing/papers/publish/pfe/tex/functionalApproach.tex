@@ -10,8 +10,24 @@ In this section we will derive a pure functional approach for an agent-based sim
 Of paramount importance is to keep our implementations pure which rules out the use of the IO Monad and thus any potential source of non-determinism under all circumstances because we would loose all compile time guarantees about reproducibility. Still we will make use of the Random and State Monad which indeed allow side-effects but the crucial point here is that we restrict side-effects only to these types in a controlled way without allowing general unrestricted effects
 \footnote{The code of all steps can be accessed freely through the following URL: \url{https://github.com/thalerjonathan/phd/tree/master/public/purefunctionalepidemics/code}}.
 
-% feedback from all reviewers, referees and other people suggested that this naive beginnings step is a detour
-%\input{./tex/naiveBeginning.tex}
+TODO: a general functional ABS interface: agentstate -> world > agentstate and a function world -> [agentstate] -> world
+
+TODO: sequential is wrong semantics because all agents act at the sa.e time, if we impose an ordering it could be the case that e.g. the infection spreads from top left corner to bottom right but not the other way round. for many ab models which run sequentially the established approach is thus to shuffle the agents in each step to avoid these kind of semantic problems. In FP we can enforce such an iteation strategy already in the types. the flaw reflects exactly my iterating paper message: the strategy needs to reflect the semantics of the model
+
+TODO: make clear that ABS often runs agents sequentially and shuffles them. there is no agreed "true" way as we have shown as itvresults in different semantics but in  functional programming the parallel approach is the best fit. and for SIR its the only correct one
+
+TODO: problem of switch, dSwitch won't help: the next SF is always applied immediately!, need a notYet
+
+TODO: next steps: when we have conflicts in Environment e.g. moving agents where only a single one can occupy a cell then we need some conflict resolving: FRP allows to re-run old versions of sf/msf as long as the underlying monad is robust to that which the random monad is
+
+TODO: emphasise the different semantics of sequential iteration and cite my iterating paper 
+
+TODO: re-do Performance runs in BOTH papers
+
+SPACE: reduce supersampling: dont provide yampa function
+SPACE: compress the step to msfs into adding Environment
+SPACE: shorten MSF example in Background
+SPACE: reduce code in paper as well in last step because hardly necessary anymore
 
 \input{./tex/addingFRP.tex}
 

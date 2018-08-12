@@ -24,7 +24,7 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let t    = 150
-      dt   = 0.01
+      dt   = 0.1
       seed = 42
       g    = mkStdGen seed
       
@@ -32,19 +32,20 @@ main = do
       infectedCount = 1
 
       as   = initAgents agentCount infectedCount
-      ass  = runSimulation g t dt as
+      
+      --ass  = runSimulationUntil g t dt as
+      --dyns = aggregateAllStates ass
 
-  let dyns = aggregateAllStates ass
-  let fileName =  "SIR_YAMPA.m"
-  writeAggregatesToFile fileName dyns
+  --writeAggregatesToFile "SIR_YAMPA.m" dyns
+  writeSimulationUntil g t dt as "SIR_YAMPA.m"
 
-runSimulation :: RandomGen g 
-              => g 
-              -> Time 
-              -> DTime 
-              -> [SIRState] 
-              -> [[SIRState]]
-runSimulation g0 t dt as = embed (stepSimulation sfs as) ((), dts)
+runSimulationUntil :: RandomGen g 
+                   => g 
+                   -> Time 
+                   -> DTime 
+                   -> [SIRState]
+                   -> [[SIRState]]
+runSimulationUntil g0 t dt as = embed (stepSimulation sfs as) ((), dts)
   where
     steps = floor $ t / dt
     dts   = replicate steps (dt, Nothing)
@@ -52,11 +53,49 @@ runSimulation g0 t dt as = embed (stepSimulation sfs as) ((), dts)
     (rngs, _) = rngSplits g0 (length as) []
     sfs       = zipWith sirAgent rngs as
     
-    rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
-    rngSplits g 0 acc = (acc, g)
-    rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
-      where
-        (g', g'') = split g
+writeSimulationUntil :: RandomGen g
+                     => g
+                     -> Time
+                     -> DTime
+                     -> [SIRState]
+                     -> String
+                     -> IO ()
+writeSimulationUntil g0 tMax dt as fileName = do
+    let (rngs, _) = rngSplits g0 (length as) []
+        sfs       = zipWith sirAgent rngs as
+
+    fileHdl <- openFile fileName WriteMode
+    hPutStrLn fileHdl "dynamics = ["
+
+    simHdl <- reactInit 
+                (return ()) 
+                (\_ _ outs -> do
+                  let aggr = aggregateStates outs
+                  hPutStrLn fileHdl (sirAggregateToString aggr)
+                  return True)
+                (stepSimulation sfs as)
+
+    writeSimulationUntilAux 0 simHdl
+    hPutStrLn fileHdl "];"
+
+    writeMatlabPlot fileHdl dt 
+
+    hClose fileHdl
+  where
+    writeSimulationUntilAux :: Time
+                            -> ReactHandle () [SIRState]
+                            -> IO ()
+    writeSimulationUntilAux t simHdl
+        | t >= tMax = return ()
+        | otherwise = do
+          _ <- react simHdl (dt, Nothing)
+          writeSimulationUntilAux (t + dt) simHdl
+
+rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
+rngSplits g 0 acc = (acc, g)
+rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
+  where
+    (g', g'') = split g
 
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
 stepSimulation sfs as =
@@ -149,13 +188,24 @@ aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
     infectedCount = fromIntegral $ length $ filter (Infected==) as
     recoveredCount = fromIntegral $ length $ filter (Recovered==) as
 
-writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
-writeAggregatesToFile fileName dynamics = do
+writeAggregatesToFile :: String 
+                      -> DTime
+                      -> [(Double, Double, Double)] 
+                      -> IO ()
+writeAggregatesToFile fileName dt dynamics = do
   fileHdl <- openFile fileName WriteMode
   hPutStrLn fileHdl "dynamics = ["
   mapM_ (hPutStrLn fileHdl . sirAggregateToString) dynamics
   hPutStrLn fileHdl "];"
 
+  writeMatlabPlot fileHdl dt
+
+  hClose fileHdl
+
+writeMatlabPlot :: Handle 
+                -> DTime
+                -> IO ()
+writeMatlabPlot fileHdl dt = do
   hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
   hPutStrLn fileHdl "infected = dynamics (:, 2);"
   hPutStrLn fileHdl "recovered = dynamics (:, 3);"
@@ -167,6 +217,7 @@ writeAggregatesToFile fileName dynamics = do
 
   hPutStrLn fileHdl "steps = length (susceptible);"
   hPutStrLn fileHdl "indices = 0 : steps - 1;"
+  hPutStrLn fileHdl $ "indices = indices ./ " ++ show (1 / dt) ++ ";"
 
   hPutStrLn fileHdl "figure"
   hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
@@ -180,8 +231,6 @@ writeAggregatesToFile fileName dynamics = do
   hPutStrLn fileHdl "xlabel ('Time');"
   hPutStrLn fileHdl "ylabel ('Population Ratio');"
   hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
-
-  hClose fileHdl
 
 sirAggregateToString :: (Double, Double, Double) -> String
 sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =

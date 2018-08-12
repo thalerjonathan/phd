@@ -54,8 +54,8 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let visualise = True
-      t         = 330
-      dt        = 0.1
+      t         = 195
+      dt        = 0.01
       seed      = 123 -- 123 -- 42 leads to recovery without any infection
       
       g         = mkStdGen seed
@@ -67,15 +67,16 @@ main = do
   if visualise
     then visualiseSimulation dt ctx
     else do
-      let ret = runSimulation t dt ctx
-      writeAggregatesToFile "SIR_DUNAI.m" ret 
+      --let ret = runSimulationUntil t dt ctx
+      --writeAggregatesToFile "SIR_DUNAI.m" ret 
+      writeSimulationUntil t dt ctx "SIR_DUNAI_dt001.m" 
 
-runSimulation :: RandomGen g
-              => Time
-              -> DTime
-              -> SimCtx g
-              -> [(Double, Double, Double)]
-runSimulation tMax dt ctx0 = runSimulationAux 0 ctx0 []
+runSimulationUntil :: RandomGen g
+                   => Time
+                   -> DTime
+                   -> SimCtx g
+                   -> [(Double, Double, Double)]
+runSimulationUntil tMax dt ctx0 = runSimulationAux 0 ctx0 []
   where
     runSimulationAux :: RandomGen g
                       => Time
@@ -93,13 +94,40 @@ runSimulation tMax dt ctx0 = runSimulationAux 0 ctx0 []
         ctx' = runStepCtx dt ctx
         acc' = aggr : acc
 
-        aggregateStates :: [SIRState] -> (Double, Double, Double)
-        aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
-          where
-            susceptibleCount = fromIntegral $ length $ filter (Susceptible==) as
-            infectedCount = fromIntegral $ length $ filter (Infected==) as
-            recoveredCount = fromIntegral $ length $ filter (Recovered==) as
+writeSimulationUntil :: RandomGen g
+                     => Time
+                     -> DTime
+                     -> SimCtx g
+                     -> String
+                     -> IO ()
+writeSimulationUntil tMax dt ctx0 fileName = do
+    fileHdl <- openFile fileName WriteMode
+    hPutStrLn fileHdl "dynamics = ["
+    writeSimulationUntilAux 0 ctx0 fileHdl
+    hPutStrLn fileHdl "];"
 
+    writeMatlabPlot fileHdl dt 
+
+    hClose fileHdl
+  where
+    writeSimulationUntilAux :: RandomGen g
+                            => Time
+                            -> SimCtx g
+                            -> Handle
+                            -> IO ()
+    writeSimulationUntilAux t ctx fileHdl 
+        | t >= tMax = return ()
+        | otherwise = do
+          let env  = simEnv ctx
+              aggr = aggregateStates $ elems env
+  
+              t'   = (t + dt)
+              ctx' = runStepCtx dt ctx
+
+          hPutStrLn fileHdl (sirAggregateToString aggr)
+
+          writeSimulationUntilAux t' ctx' fileHdl
+     
 visualiseSimulation :: RandomGen g
                     => DTime
                     -> SimCtx g
@@ -227,7 +255,7 @@ simulationStep sfsCoords env = MSF $ \_ -> do
 
   -- run all agents sequentially but keep the environment
   -- read-only: it is shared as input with all agents
-  -- but cannot be changed
+  -- and thus cannot be changed by the agents themselves
   ret <- mapM (`unMSF` env) sfs
 
   let as   = fmap fst ret
@@ -344,13 +372,24 @@ bottomDelta       = ( 0,  1)
 bottomRightDelta :: Disc2dCoord
 bottomRightDelta  = ( 1,  1)
 
-writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
-writeAggregatesToFile fileName dynamics = do
+writeAggregatesToFile :: String 
+                      -> DTime
+                      -> [(Double, Double, Double)] 
+                      -> IO ()
+writeAggregatesToFile fileName dt dynamics = do
   fileHdl <- openFile fileName WriteMode
   hPutStrLn fileHdl "dynamics = ["
   mapM_ (hPutStrLn fileHdl . sirAggregateToString) dynamics
   hPutStrLn fileHdl "];"
 
+  writeMatlabPlot fileHdl dt
+
+  hClose fileHdl
+
+writeMatlabPlot :: Handle 
+                -> DTime
+                -> IO ()
+writeMatlabPlot fileHdl dt = do
   hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
   hPutStrLn fileHdl "infected = dynamics (:, 2);"
   hPutStrLn fileHdl "recovered = dynamics (:, 3);"
@@ -362,6 +401,7 @@ writeAggregatesToFile fileName dynamics = do
 
   hPutStrLn fileHdl "steps = length (susceptible);"
   hPutStrLn fileHdl "indices = 0 : steps - 1;"
+  hPutStrLn fileHdl $ "indices = indices ./ " ++ show (1 / dt) ++ ";"
 
   hPutStrLn fileHdl "figure"
   hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
@@ -376,11 +416,16 @@ writeAggregatesToFile fileName dynamics = do
   hPutStrLn fileHdl "ylabel ('Population Ratio');"
   hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
 
-  hClose fileHdl
-
 sirAggregateToString :: (Double, Double, Double) -> String
 sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
   printf "%f" susceptibleCount
   ++ "," ++ printf "%f" infectedCount
   ++ "," ++ printf "%f" recoveredCount
   ++ ";"
+
+aggregateStates :: [SIRState] -> (Double, Double, Double)
+aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
+  where
+    susceptibleCount = fromIntegral $ length $ filter (Susceptible==) as
+    infectedCount = fromIntegral $ length $ filter (Infected==) as
+    recoveredCount = fromIntegral $ length $ filter (Recovered==) as

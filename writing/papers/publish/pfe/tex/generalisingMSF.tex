@@ -22,6 +22,9 @@ The question is now how to access this Random Monad functionality within the MSF
 
 \begin{HaskellCode}
 occasionallyM :: MonadRandom m => Time -> b -> SF m a (Event b)
+randomBoolM :: RandomGen g => Double -> Rand g Bool
+-- this can be used directly as a SF with the arrow notation
+drawRandomElemSF :: MonadRandom m => SF m [a] a
 \end{HaskellCode}
 
 \subsubsection{Discussion} 

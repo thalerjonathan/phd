@@ -1,5 +1,5 @@
 \subsection{Adding an environment}
-\label{sec:step5_environment}
+\label{sec:adding_env}
 In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamentally different approach to agent interaction but is as valid as the approach in the previous steps. 
 
 In ABS agents are often situated within a discrete 2D environment \cite{epstein_growing_1996} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants.
@@ -41,87 +41,36 @@ type SIREnv      = Array Disc2dCoord SIRState
 Next we redefine our monad stack and agent signal function. We use a StateT transformer on top of our Random Monad from the previous step with \textit{SIREnv} as type for the state. Our agent signal function now has unit input and output type, which indicates that the actions of the agents are only visible through side-effects in the monad stack they are running in.
 
 \begin{HaskellCode}
-type SIRMonad g = StateT SIREnv (Rand g)
-type SIRAgent g = SF (SIRMonad g) () ()
+type SIRAgent g = SF (Rand g) SIREnv SIRState
 \end{HaskellCode}
 
 The implementation of a susceptible agent is now a bit different. The agent directly queries the environment for its neighbours and randomly selects one of them. The remaining behaviour is similar:
-
-\begin{HaskellCode}
-susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
-susceptibleAgent coord
-    = switch susceptible (const (infectedAgent coord))
-  where
-    susceptible :: RandomGen g 
-      => SF (SIRMonad g) () ((), Event ())
-    susceptible = proc _ -> do
-      makeContact <- occasionallyM (1 / contactRate) () -< ()
-      if not (isEvent makeContact)
-        then returnA -< ((), NoEvent)
-        else (do
-          env <- arrM_ (lift get) -< ()
-          let ns = neighbours env coord agentGridSize moore
-          s <- drawRandomElemS -< ns
-          case s of
-            Infected -> do
-              infected <- arrM_ 
-                (lift $ lift $ randomBoolM infectivity) -< ()
-              if infected 
-                then (do
-                  arrM (put . changeCell coord Infected) -< env
-                  returnA -< ((), Event ()))
-                else returnA -< ((), NoEvent)
-            _        -> returnA -< ((), NoEvent))
-
-neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord 
-           -> [Disc2dCoord] -> [SIRState]
-           
-moore :: [Disc2dCoord]
-moore = [ topLeftDelta,    topDelta,     topRightDelta,
-          leftDelta,                     rightDelta,
-          bottomLeftDelta, bottomDelta,  bottomRightDelta ]
-
-topLeftDelta :: Disc2dCoord
-topLeftDelta      = (-1, -1)
-topDelta :: Disc2dCoord
-topDelta          = ( 0, -1)
-...
-\end{HaskellCode}
-Querying the neighbourhood is done using the \textit{neighbours} function. It takes the environment, the coordinate for which to query the neighbours for, the dimensions of the 2D grid and the neighbourhood information and returns the data of all neighbours it could find. Note that on the edge of the environment, it could be the case that fewer neighbours than provided in the neighbourhood information will be found due to clipping.
-
 The behaviour of an infected agent is similar to in the previous step, with the difference that upon recovery the infected agent updates its state in the environment from Infected to Recovered.
 
 For running the simulation with MSFs we use the function \textit{embed} which is not provided by BearRiver but by Dunai which has important implications. As already explained in the background Section \ref{sec:back_msf}, Dunai does not know about time in MSFs, which is what BearRiver builds on top of MSFs. Thus, when running our simulation using \textit{embed} we get the \textit{ReaderT} in addition to the other Monad Transformers, which we need to run using \textit{runReaderT}. Note that instead of returning agent states we simply return a list of environments, one for each step. The agent states can then be extracted from each environment.
 
-\begin{HaskellCode}
-runSimulation :: RandomGen g => g -> Time -> DTime 
-  -> SIREnv -> [(Disc2dCoord, SIRState)] -> [SIREnv]
-runSimulation g t dt env as = evalRand esRand g
-  where
-    steps    = floor (t / dt)
-    dts      = replicate steps ()
-    -- initial SFs of all agents
-    sfs      = map (uncurry sirAgent) as   
-    -- running the simulation   
-    esReader = embed (stepSimulation sfs) dts 
-    esState  = runReaderT esReader dt 
-    esRand   = evalStateT esState env     
-\end{HaskellCode}
-
 Due to the different approach of returning the SIREnv in every step, we implemented our own MSF:
+  -- run all agents sequentially but keep the environment
+  -- read-only: it is shared as input with all agents
+  -- and thus cannot be changed by the agents themselves
+  
 \begin{HaskellCode}
-stepSimulation :: RandomGen g 
-  => [SIRAgent g] -> SF (SIRMonad g) () SIREnv
-stepSimulation sfs = MSF (\_ -> do
-  -- running all SFs with unit input
-  res <- mapM (`unMSF` ()) sfs
-  -- extracting continuations, ignore output
-  let sfs' = fmap snd res
-  -- getting environment of current step   
-  env <- get
-  -- recursive continuation    
-  let ct = stepSimulation sfs'  
-  return (env, ct))
+simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)]
+               -> SIREnv -> SF (Rand g) () SIREnv
+simulationStep sfsCoords env = MSF (\_ -> do
+  let (sfs, coords) = unzip sfsCoords 
+  -- run agents sequentially but with shared, read-only environment
+  ret <- mapM (`unMSF` env) sfs
+  -- construct new environment from all agent outputs for next step
+  let (as, sfs') = unzip ret
+      env' = foldr (\ (a, coord) envAcc -> updateCell coord a envAcc) 
+               env (zip as coords)
+
+      sfsCoords' = zip sfs' coords
+      cont       = simulationStep sfsCoords' env'
+  return (env', cont))
+ 
+updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
 \end{HaskellCode}
 
 \subsubsection{Results}

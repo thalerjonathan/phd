@@ -251,21 +251,23 @@ simulationStep :: RandomGen g
                -> SIREnv
                -> SF (SIRMonad g) () SIREnv
 simulationStep sfsCoords env = MSF $ \_ -> do
-  let (sfs, coords) = unzip sfsCoords 
+    let (sfs, coords) = unzip sfsCoords 
 
-  -- run all agents sequentially but keep the environment
-  -- read-only: it is shared as input with all agents
-  -- and thus cannot be changed by the agents themselves
-  ret <- mapM (`unMSF` env) sfs
-
-  let as   = fmap fst ret
-      sfs' = fmap snd ret
-      env' = foldr (\(a, coord) envAcc -> updateCell coord a envAcc) env (zip as coords)
-
-      sfsCoords' = zip sfs' coords
-      ct         = simulationStep sfsCoords' env'
-
-  return (env', ct)
+    -- run all agents sequentially but keep the environment
+    -- read-only: it is shared as input with all agents
+    -- and thus cannot be changed by the agents themselves
+    -- run agents sequentially but with shared, read-only environment
+    ret <- mapM (`unMSF` env) sfs
+    -- construct new environment from all agent outputs for next step
+    let (as, sfs') = unzip ret
+        env' = foldr (\(coord, a) envAcc -> updateCell coord a envAcc) env (zip coords as)
+        
+        sfsCoords' = zip sfs' coords
+        cont       = simulationStep sfsCoords' env'
+    return (env', cont)
+  where
+    updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
+    updateCell c s e = e // [(c, s)]
 
 sirAgent :: RandomGen g => Disc2dCoord -> SIRState -> SIRAgent g
 sirAgent coord Susceptible = susceptibleAgent coord
@@ -328,9 +330,6 @@ drawRandomElemS = proc as -> do
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
-
-updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
-updateCell c s e = e // [(c, s)]
 
 neighbours :: SIREnv 
            -> Disc2dCoord 

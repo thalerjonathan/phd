@@ -1,5 +1,5 @@
 \subsection{Functional Reactive Programming}
-\label{sec:step2_frp}
+\label{sec:implement_frp}
 As described in the Section \ref{sec:back_frp}, Arrowized FRP \cite{hughes_generalising_2000} is a way to implement systems  with continuous and discrete time-semantics where the central concept is the Signal Function, which can be understood as a process over time, mapping an input- to an output-signal. Technically speaking, a signal function is a continuation which allows to capture state using closures and hides away the $\Delta t$, which means that it is never exposed explicitly to the programmer, meaning it cannot be messed with.
 
 The concept of processes over time is an ideal match for our agents and our system as a whole, thus we will implement them and the whole system as signal functions.
@@ -38,8 +38,12 @@ Thus a susceptible agent behaves as susceptible until it becomes infected. Upon 
 %\begin{samepage}
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
-susceptibleAgent g = 
-    switch (susceptible g) (const (infectedAgent g))
+susceptibleAgent g 
+    = switch 
+      -- delay switching by 1 step to prevent against transition
+      -- from Susceptible to Recovered within one time-step
+      (susceptible g >>> iPre (Susceptible, NoEvent)) 
+      (const (infectedAgent g))
   where
     susceptible :: RandomGen g 
       => g -> SF [SIRState] (SIRState, Event ())
@@ -74,7 +78,10 @@ An infected agent recovers \textit{on average} after $\delta$ time units. This i
 
 \begin{HaskellCode}
 infectedAgent :: RandomGen g => g -> SIRAgent
-infectedAgent g = switch infected (const recoveredAgent)
+infectedAgent g 
+    = switch 
+      (infected >>> iPre (Infected, NoEvent))
+      (const recoveredAgent)
   where
     infected :: SF [SIRState] (SIRState, Event ())
     infected = proc _ -> do
@@ -86,8 +93,8 @@ infectedAgent g = switch infected (const recoveredAgent)
 For running the simulation we use Yampas function \textit{embed}:
 
 \begin{HaskellCode}
-runSimulation :: RandomGen g 
-  => g -> Time -> DTime -> [SIRState] -> [[SIRState]]
+runSimulation :: RandomGen g => g -> Time -> DTime 
+              -> [SIRState] -> [[SIRState]]
 runSimulation g t dt as 
     = embed (stepSimulation sfs as) ((), dts)
   where

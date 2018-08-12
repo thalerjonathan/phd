@@ -28,7 +28,7 @@ We can directly map the SIR model to a discrete 2D environment by placing the ag
 \end{center}
 \end{figure}
 
-We also implemented this spatial approach in Java using the well known ABS library RePast \cite{north_complex_2013}, to have a comparison with a state of the art approach and came to the same results as shown in Figure \ref{fig:sir_env}. This supports that our pure functional approach can produce such results as well and compares positively to the state of the art in the ABS field.
+We also implemented this spatial approach in Java using the well known ABS library RePast \cite{north_complex_2013}, to have a comparison with a state of the art approach and came to the same results as shown in Figure \ref{fig:sir_dunai}. This supports that our pure functional approach can produce such results as well and compares positively to the state of the art in the ABS field.
 
 \subsubsection{Implementation}
 We start by defining our discrete 2D environment for which we use an indexed two dimensional array. In each cell the agents will store their current state, thus we use the \textit{SIRState} as type for our array data:
@@ -125,34 +125,34 @@ stepSimulation sfs = MSF (\_ -> do
 \end{HaskellCode}
 
 \subsubsection{Results}
-We implemented rendering of the environments using the gloss library which allows us to cycle arbitrarily through the steps and inspect the spreading of the disease over time visually as seen in Figure \ref{fig:sir_env}.
+We implemented rendering of the environments using the gloss library which allows us to cycle arbitrarily through the steps and inspect the spreading of the disease over time visually as seen in Figure \ref{fig:sir_dunai}.
 
 \begin{figure}
 \begin{center}
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.2\textwidth}
 			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_environment_30x30agents_t100_01dt.png}
-			\caption{$t = 100$}
-			\label{fig:sir_env_t100}
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Dunai/SIR_Dunai_dt001_environment.png}
+			\caption{Environment at $t = 50$}
+			\label{fig:sir_dunai_env}
 		\end{subfigure}
     	
     	&
   
 		\begin{subfigure}[b]{0.23\textwidth}
 			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_dynamics_30x30agents_300t_01dt.png}
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Dunai/SIR_Dunai_dt001.png}
 			\caption{Dynamics over time}
-			\label{fig:sir_dynamics_30x30agents_300t_01dt}
+			\label{fig:sir_dunai_env_dynamics}
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Simulating the agent-based SIR model on a 21x21 2D grid with Moore neighbourhood (Figure \ref{fig:moore_neighbourhood}), a single infected agent at the center and same SIR parameters as in Figure \ref{fig:sir_sd_dynamics}. Simulation run until $t = 200$ with fixed $\Delta t = 0.1$. Last infected agent recovers shortly after $t = 160$. The susceptible agents are rendered as blue hollow circles for better contrast.}
-	\label{fig:sir_env}
+	\caption{Simulating the agent-based SIR model on a 21x21 2D grid with Moore neighbourhood (Figure \ref{fig:moore_neighbourhood}), a single infected agent at the center and same SIR parameters as in Figure \ref{fig:sir_sd_dynamics}. Simulation run until $t = 200$ with fixed $\Delta t = 0.01$. Last infected agent recovers around $t = 194$. The susceptible agents are rendered as blue hollow circles for better contrast.}
+	\label{fig:sir_dunai}
 \end{center}
 \end{figure}
 
-Note that the dynamics of the spatial SIR simulation which are seen in Figure \ref{fig:sir_dynamics_30x30agents_300t_01dt} look quite different from the reference dynamics of Figure \ref{fig:sir_sd_dynamics}. This is due to a much more restricted neighbourhood which results in far fewer infected agents at a time and a lower number of recovered agents at the end of the epidemic, meaning that fewer agents got infected overall.
+Note that the dynamics of the spatial SIR simulation which are seen in Figure \ref{fig:sir_dunai_env_dynamics} look quite different from the reference dynamics of Figure \ref{fig:sir_sd_dynamics}. This is due to a much more restricted neighbourhood which results in far fewer infected agents at a time and a lower number of recovered agents at the end of the epidemic, meaning that fewer agents got infected overall.
 
 \subsubsection{Discussion}
 At first the environment approach might seem a bit overcomplicated and one might ask what we have gained by using an unrestricted neighbourhood where all agents can contact all others. The real advantage is that we can introduce arbitrary restrictions on the neighbourhood as shown with the Moore neighbourhood.

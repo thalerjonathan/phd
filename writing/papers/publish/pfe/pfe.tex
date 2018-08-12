@@ -43,16 +43,8 @@
 % Document starts
 \begin{document}
 
-% set to true to compile haskell code formated with minted package
-% requires pygmentize!
-\providecommand\haskellMinted{true}
-\ifthenelse{\equal{\haskellMinted}{true} }{
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
-}{
-\newenvironment{HaskellCode}
-{\begin{comment}} % seems not to work, don't know why the f***
-{\end{comment}}
-}
+
 
 % Title portion. Note the short title for running heads
 \title[Pure Functional Epidemics]{Pure Functional Epidemics}

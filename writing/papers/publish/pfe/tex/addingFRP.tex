@@ -4,8 +4,6 @@ As described in the Section \ref{sec:back_frp}, Arrowized FRP \cite{hughes_gener
 
 As already pointed out, agents need to perceive time, which means that the concept of processes over time is an ideal match for our agents and our system as a whole, thus we will implement them and the whole system as signal functions.
 
-%TODO: a general functional ABS interface: agentstate -> world > agentstate and a function world -> [agentstate] -> world
-
 \subsubsection{Implementation}
 We start by defining the SIR states as ADT and our agents as signal function (SF) which receives the SIR states of all agents as input and outputs the current SIR state of the agent:
 
@@ -203,13 +201,14 @@ By following the FRP approach we assume a continuous flow of time, which means t
 
 For tackling this issue we have two options. The first one is to use a smaller $\Delta t$ as can be seen \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The other option is to implement super-sampling and apply it to \textit{occasionally}, which would allow us to run the whole simulation with $\Delta t = 1.0$ and only sample the \textit{occasionally} function with a much higher frequency.
 
-An approach to super-sampling would be to introduce a new combinator to Yampa which allows us to super-sample other signal functions. 
-
-\begin{HaskellCode}
-superSampling :: Int -> SF a b -> SF a [b]
-\end{HaskellCode}
-
-It evaluates the \textit{SF} argument for \textit{n} times, each with $\Delta t = \frac{\Delta t}{n}$ and the same input argument \textit{a} for all \textit{n} evaluations. At time 0 no super-sampling is performed and just a single output of the \textit{SF} argument is calculated. A list of \textit{b} is returned with length of \textit{n} containing the result of the \textit{n} evaluations of the \textit{SF} argument. If 0 or less super samples are requested exactly one is calculated. We could then wrap the occasionally function which would then generate a list of events. We have investigated super-sampling more in-depth but have to omit this due to lack of space.
+% NOTE: ran out of space
+%An approach to super-sampling would be to introduce a new combinator to Yampa which allows us to super-sample other signal functions. 
+%
+%\begin{HaskellCode}
+%superSampling :: Int -> SF a b -> SF a [b]
+%\end{HaskellCode}
+%
+%It evaluates the \textit{SF} argument for \textit{n} times, each with $\Delta t = \frac{\Delta t}{n}$ and the same input argument \textit{a} for all \textit{n} evaluations. At time 0 no super-sampling is performed and just a single output of the \textit{SF} argument is calculated. A list of \textit{b} is returned with length of \textit{n} containing the result of the \textit{n} evaluations of the \textit{SF} argument. If 0 or less super samples are requested exactly one is calculated. We could then wrap the occasionally function which would then generate a list of events. We have investigated super-sampling more in-depth but have to omit this due to lack of space.
 
 \subsubsection{Discussion}
 We can conclude that our first step already introduced most of the fundamental concepts of ABS:
@@ -220,11 +219,11 @@ We can conclude that our first step already introduced most of the fundamental c
 	\item Environment - as environment we implicitly assume a fully-connected network (complete graph) where every agent 'knows' every other agent, including itself and thus can make contact with all of them.
 	\item Stochasticity - it is an inherently stochastic simulation, which is indicated by the random-number generator and the usage of \textit{occasionally}, \textit{randomBoolSF} and \textit{drawRandomElemSF}.
 	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs \textit{not} in the IO Monad. This guarantees that no external, uncontrollable sources of non-determinism can interfere with the simulation.
-	\item Parallel, lock-step semantics - TODO
+	\item Parallel, lock-step semantics - the simulation implements a \textit{parallel} update-strategy where in each step the agents are run isolated in parallel and don't see the actions of the others until the next step.
 \end{itemize}
 
 Using FRP in the instance of Yampa results in a clear, expressive and robust implementation. State is implicitly encoded, depending on which signal function is active. By using explicit time-semantics with \textit{occasionally} we can achieve extremely fine grained stochastics by sampling the system with small $\Delta t$: we are treating it as a truly continuous time-driven agent-based system.
 
 A very severe problem, hard to find with testing but detectable with in-depth validation analysis, is the fact that in the \textit{susceptible} agent the same random-number generator is used in \textit{occasionally}, \textit{drawRandomElemSF} and \textit{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level, and indeed we have tested the influence of the correlation in this example and it has an impact. We left this severe bug in for explanatory reasons, as it shows an example where functional programming actually encourages very subtle bugs if one is not careful. A possible but not very elegant solution would be to simply split the initial random-number generator in \textit{sirAgent} three times (using one of the splited generators for the next split) and pass three random-number generators to \textit{susceptible}. A much more elegant solution would be to use the Random Monad which is not possible because Yampa is not monadic.
 
-So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment and an elegant solution to the correlation of the random-number generators. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a way for an elegant solution to the random-number correlation.
+So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment and an elegant solution to the random number correlation. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a way for an elegant solution to the random-number correlation.

@@ -1,10 +1,8 @@
 \subsection{Adding an environment}
 \label{sec:adding_env}
-In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamentally different approach to agent interaction but is as valid as the approach in the previous steps. 
-
 In ABS agents are often situated within a discrete 2D environment \cite{epstein_growing_1996} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants.
 
-We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the environment. Also instead of feeding back the states of all agents as inputs, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read the states of all their neighbours which tells them if a neighbour is infected or not. For purposes of a more interesting approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
+We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the shared read-only environment, which will be passed to the agents as input. This allows agents to read the states of all their neighbours which tells them if a neighbour is infected or not. For purposes of a more interesting approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
 
 \begin{figure}
 \begin{center}
@@ -31,7 +29,7 @@ We can directly map the SIR model to a discrete 2D environment by placing the ag
 We also implemented this spatial approach in Java using the well known ABS library RePast \cite{north_complex_2013}, to have a comparison with a state of the art approach and came to the same results as shown in Figure \ref{fig:sir_dunai}. This supports that our pure functional approach can produce such results as well and compares positively to the state of the art in the ABS field.
 
 \subsubsection{Implementation}
-We start by defining our discrete 2D environment for which we use an indexed two dimensional array. In each cell the agents will store their current state, thus we use the \textit{SIRState} as type for our array data:
+We start by defining our discrete 2D environment for which we use an indexed two dimensional array. Each cell stores the agents state of the current time-step, thus we use the \textit{SIRState} as type for our array data:
 
 \begin{HaskellCode}
 type Disc2dCoord = (Int, Int)

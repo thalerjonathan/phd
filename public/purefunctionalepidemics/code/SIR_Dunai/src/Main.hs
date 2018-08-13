@@ -41,7 +41,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentGridSize :: (Int, Int)
-agentGridSize = (21, 21)
+agentGridSize = (51, 51)
 
 winSize :: (Int, Int)
 winSize = (800, 800)
@@ -53,14 +53,14 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let visualise = True
-      t         = 195
-      dt        = 0.01
+  let visualise = False
+      t         = 100
+      dt        = 0.1
       seed      = 123 -- 123 -- 42 leads to recovery without any infection
       
       g         = mkStdGen seed
       (as, env) = initAgentsEnv agentGridSize
-      sfs       = map (\(coord, a) -> ((sirAgent coord a), coord)) as
+      sfs       = map (\(coord, a) -> (sirAgent coord a, coord)) as
       sf        = simulationStep sfs env
       ctx       = mkSimCtx sf env g 0 0
 
@@ -90,7 +90,7 @@ runSimulationUntil tMax dt ctx0 = runSimulationAux 0 ctx0 []
         env  = simEnv ctx
         aggr = aggregateStates $ elems env
 
-        t'   = (t + dt)
+        t'   = t + dt
         ctx' = runStepCtx dt ctx
         acc' = aggr : acc
 
@@ -121,7 +121,7 @@ writeSimulationUntil tMax dt ctx0 fileName = do
           let env  = simEnv ctx
               aggr = aggregateStates $ elems env
   
-              t'   = (t + dt)
+              t'   = t + dt
               ctx' = runStepCtx dt ctx
 
           hPutStrLn fileHdl (sirAggregateToString aggr)
@@ -297,8 +297,7 @@ susceptibleAgent coord
             Infected -> do
               infected <- arrM_ (lift $ randomBoolM infectivity) -< ()
               if infected 
-                then (do
-                  returnA -< (Infected, Event ()))
+                then returnA -< (Infected, Event ())
                 else returnA -< (Susceptible, NoEvent)
             _       -> returnA -< (Susceptible, NoEvent))
 

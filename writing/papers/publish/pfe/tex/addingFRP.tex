@@ -2,7 +2,10 @@
 \label{sec:implement_frp}
 As described in the Section \ref{sec:back_frp}, Arrowized FRP \cite{hughes_generalising_2000} is a way to implement systems  with continuous and discrete time-semantics where the central concept is the Signal Function, which can be understood as a process over time, mapping an input- to an output-signal. Technically speaking, a signal function is a continuation which allows to capture state using closures and hides away the $\Delta t$, which means that it is never exposed explicitly to the programmer, meaning it cannot be messed with.
 
+TODO: as already pointed out, agents need to perceive time
 The concept of processes over time is an ideal match for our agents and our system as a whole, thus we will implement them and the whole system as signal functions.
+
+TODO: a general functional ABS interface: agentstate -> world > agentstate and a function world -> [agentstate] -> world
 
 \subsubsection{Implementation}
 We start by defining the SIR states as ADT and our agents as signal function (SF) which receives the SIR states of all agents as input and outputs the current SIR state of the agent:
@@ -35,7 +38,8 @@ Lets look how we can implement the behaviour of a susceptible agent. It makes co
 
 Thus a susceptible agent behaves as susceptible until it becomes infected. Upon infection an \textit{Event} is returned which results in switching into the \textit{infectedAgent} SF, which causes the agent to behave as an infected agent from that moment on. When an infection event occurs we change the behaviour of an agent using the Yampa combinator \textit{switch}, which is quite elegant and expressive as it makes the change of behaviour at the occurrence of an event explicit. Note that to make contact \textit{on average}, we use Yampas \textit{occasionally} function which requires us to carefully select the right $\Delta t$ for sampling the system as will be shown in results. 
 
-%\begin{samepage}
+TODO: problem of switch, dSwitch won't help: the next SF is always applied immediately!, need a notYet
+
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
 susceptibleAgent g 
@@ -63,7 +67,6 @@ susceptibleAgent g
              _       -> returnA -< (Susceptible, NoEvent))
         else returnA -< (Susceptible, NoEvent)
 \end{HaskellCode}
-%\end{samepage}
 
 To deal with randomness in an FRP way we implemented additional signal functions built on the \textit{noiseR} function provided by Yampa. This is an example for the stream character and statefulness of a signal function as it allows to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}. \textit{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
 

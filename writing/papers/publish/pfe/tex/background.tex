@@ -98,13 +98,10 @@ fallingMassMSF :: RandomGen g => Double -> Double -> FallingMassMSF g
 fallingMassMSF v0 p0 = proc _ -> do
   -- drawing random number for our gravity range
   r <- arrM_ (lift $ lift $ getRandomR (0, 9.81)) -< ()
-
   v <- arr (+v0) <<< integral -< (-r)
   p <- arr (+p0) <<< integral -< v
-
   -- count steps
   arrM_ (lift (modify (+1))) -< ()
-
   if p > 0
     then returnA -< p
     -- we have hit the floor
@@ -126,9 +123,7 @@ runMSF g s msf = do
       msfStateT  = runReaderT msfReaderT 0.1
       msfRand    = runStateT msfStateT s
       msfIO      = runRandT msfRand g
-
   (((p, msf'), s'), g') <- msfIO
-  
   when (p > 0) (runMSF g' s' msf')
 \end{HaskellCode}
 

@@ -64,6 +64,10 @@
   \end{itemize}
 \end{frame}
 
+TODO: sequential is wrong semantics because all agents act at the sa.e time, if we impose an ordering it could be the case that e.g. the infection spreads from top left corner to bottom right but not the other way round. for many ab models which run sequentially the established approach is thus to shuffle the agents in each step to avoid these kind of semantic problems. In FP we can enforce such an iteation strategy already in the types. the flaw reflects exactly my iterating paper message: the strategy needs to reflect the semantics of the model
+
+TODO: make clear that ABS often runs agents sequentially and shuffles them. there is no agreed "true" way as we have shown as itvresults in different semantics but in  functional programming the parallel approach is the best fit. and for SIR its the only correct one\\
+
 \section{Introduction}
 \begin{frame}{Research Question(s)}
 \begin{itemize}

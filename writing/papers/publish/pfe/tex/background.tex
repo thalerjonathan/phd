@@ -10,22 +10,21 @@ We informally assume the following about our agents \cite{siebers_introduction_2
 
 \begin{itemize}
 	\item They are uniquely addressable entities with some internal state over which they have full, exclusive control.
-	\item They are pro-active which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
+	\item They are pro-active, which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
 	\item They are situated in an environment and can interact with it.
 	\item They can interact with other agents situated in the same environment by means of messaging.
 \end{itemize} 
 
-Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. %Thus in the line of the established simulation methodologies (see Table \ref{tab:simulation_types}), ABS is the most powerful one as listed in :
-They exhibit the following properties:
+Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. They exhibit the following properties:
 
 \begin{itemize}
 	\item Linearity \& Non-Linearity - actions of agents can lead to non-linear behaviour of the system.
-	\item Time - agents act over time which is also the source of their pro-activity.
-	\item States - agents encapsulate some state which can be accessed and changed during the simulation.
-	\item Feedback-Loops - because agents act continuously and their actions influence each other and themselves in subsequent time-steps, feedback-loops are the norm in ABS. 
-	\item Heterogeneity - although agents can have same properties like height, sex,... the actual values can vary arbitrarily between agents.
-	\item Interactions - agents can be modelled after interactions with an environment or other agents. %, making this a unique feature of ABS, not possible in the other simulation models.
-	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2D, continuous 3D,...) or complex network environment. % making this also a unique feature of ABS, not possible in the other simulation models.
+	\item Time - agents act over time, which is also the source of their pro-activity.
+	\item States - agents encapsulate some state, which can be accessed and changed during the simulation.
+	\item Feedback-Loops - because agents act continuously and their actions influence each other and themselves in subsequent time-steps, feedback-loops are the common in ABS. 
+	\item Heterogeneity - agents can have properties (age, height, sex,...) where the actual values can vary arbitrarily between agents.
+	\item Interactions - agents can be modelled after interactions with an environment or other agents.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2D, continuous 3D,...) or complex network environment.
 \end{itemize}
 
 \subsection{Functional Reactive Programming}
@@ -33,7 +32,7 @@ They exhibit the following properties:
 
 Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 
-The central concept in Arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. 
+The central concept in Arrowized FRP is the Signal Function (SF), which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps, the system is sampled with. 
 
 \begin{flalign*}
 Signal \, \alpha \approx Time \rightarrow \alpha \\
@@ -43,25 +42,25 @@ SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta
 Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 
 \paragraph{Event}
-An event in FRP is an occurrence at a specific point in time which has no duration e.g. the recovery of an infected agent. Yampa represents events through the \textit{Event} type which is programmatically equivalent to the \textit{Maybe} type. 
+An event in FRP is an occurrence at a specific point in time, which has no duration e.g. the recovery of an infected agent. Yampa represents events through the \textit{Event} type, which is programmatically equivalent to the \textit{Maybe} type. 
 
 \paragraph{Dynamic behaviour}
-To change the behaviour of a signal function at an occurrence of an event during run-time, the combinator \textit{switch :: SF a (b, Event c) $\rightarrow$ (c $\rightarrow$ SF a b) $\rightarrow$ SF a b} is provided. It takes a signal function which is run until it generates an event. When this event occurs, the function in the second argument is evaluated, which receives the data of the event and has to return the new signal function which will then replace the previous one.
+To change the behaviour of a signal function at an occurrence of an event during run-time, (amongst others) the combinator \textit{switch :: SF a (b, Event c) $\rightarrow$ (c $\rightarrow$ SF a b) $\rightarrow$ SF a b} is provided. It takes a signal function, which is run until it generates an event. When this event occurs, the function in the second argument is evaluated, which receives the data of the event and has to return the new signal function, which will then replace the previous one. Note that the semantics of \textit{switch} are that the signal function, into which is switched, is also executed at the time of switching.
 
 \paragraph{Randomness}
-In ABS, often one needs to generate stochastic events which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g $\Rightarrow$ g $\rightarrow$ Time $\rightarrow$ b $\rightarrow$ SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will lose events.
+In ABS, often there is the need to generate stochastic events, which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g $\Rightarrow$ g $\rightarrow$ Time $\rightarrow$ b $\rightarrow$ SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will lose events.
 
-Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) $\Rightarrow$ g $\rightarrow$ SF a b} which generates a stream of noise by returning a random number in the default range for the type \textit{b}.
+Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) $\Rightarrow$ g $\rightarrow$ SF a b}, which generates a stream of noise by returning a random number in the default range for the type \textit{b}.
 
 \paragraph{Running signal functions}
-To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b $\rightarrow$ (a, [(DTime, Maybe a)]) $\rightarrow$ [b]} which allows to run an SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
+To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b $\rightarrow$ (a, [(DTime, Maybe a)]) $\rightarrow$ [b]}, which allows to run an SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
 
 \subsection{Arrowized programming}
-Yampa's signal functions are arrows, requiring us to program with arrows. Arrows are a generalisation of monads which, in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}.
+Yampa's signal functions are arrows, requiring us to program with arrows. Arrows are a generalisation of monads, which in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}.
 
 In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows.
 
-There exists a number of arrow combinators which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's do-notation for arrows \cite{paterson_new_2001} which makes code more readable as it allows us to program with points.
+There exists a number of arrow combinators, which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's do-notation for arrows \cite{paterson_new_2001}, which makes code more readable as it allows us to program with points.
 
 To show how arrowized programming works, we implement a simple signal function, which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
 
@@ -73,20 +72,19 @@ fallingMass p0 v0 = proc _ -> do
   returnA -< p
 \end{HaskellCode}
 
-To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
+To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa, which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators, which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
 
 \subsection{Monadic Stream Functions}
 \label{sec:back_msf}
 
 Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function, which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016, perez_extensible_2017}:
 \begin{HaskellCode}
-newtype MSF m a b =
-  MSF { unMSF :: MSF m a b -> a -> m (b, MSF m a b) }
+newtype MSF m a b = MSF {unMSF :: MSF m a b -> a -> m (b, MSF m a b)}
 \end{HaskellCode}
 
-MSFs are also arrows, which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m $\Rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ MSF m a b} and \textit{arrM\_ :: Monad m $\Rightarrow$ m b $\rightarrow$ MSF m a b}. A part of the library Dunai is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which enables one to run arbitrary monadic computations in a signal function. BearRiver simply adds a monadic parameter \textit{m} to each SF which indicates the monadic context this signal function runs in.
+MSFs are also arrows, which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m $\Rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ MSF m a b} and \textit{arrM\_ :: Monad m $\Rightarrow$ m b $\rightarrow$ MSF m a b}. A part of the library Dunai is BearRiver, a wrapper, which re-implements Yampa on top of Dunai, which enables one to run arbitrary monadic computations in a signal function. BearRiver simply adds a monadic parameter \textit{m} to each SF, which indicates the monadic context this signal function runs in.
 
-To show how arrowized programming with MSFs works we extend the falling mass example from above to incorporate monads. In this example we assume that in each step we want to accelerate our velocity \textit{v} not by the gravity constant anymore but by a random number in the range of 0 to 9.81. Further we want to count the number of steps it takes us to hit the floor, that is when position \textit{p} is less than 0. Also when hitting the floor we want to print a debug message to the console with the velocity by which the mass has hit the floor and how many steps it took.
+To show how arrowized programming with MSFs works, we extend the falling mass example from above to incorporate monads. In this example we assume that in each step we want to accelerate our velocity \textit{v} not by the gravity constant anymore but by a random number in the range of 0 to 9.81. Further we want to count the number of steps it takes us to hit the floor, that is when position \textit{p} is less than 0. Also when hitting the floor we want to print a debug message to the console with the velocity by which the mass has hit the floor and how many steps it took.
 
 We define a corresponding monad stack with \textit{IO} as the innermost Monad, followed by a \textit{RandT} transformer for drawing random-numbers and finally a \textit{StateT} transformer to count the number of steps we compute. We can access the monadic functions using \textit{arrM} in case we need to pass an argument and \textit{\_arrM} in case no argument to the monadic function is needed:
 
@@ -127,4 +125,4 @@ runMSF g s msf = do
   when (p > 0) (runMSF g' s' msf')
 \end{HaskellCode}
 
-Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double} which carries the $\Delta t$. This is the reason why we need one extra lift for accessing \textit{StateT} and \textit{RandT}. Thus \textit{unMSF} returns a computation in the \textit{ReaderT Double} Monad which we need to peel away using \textit{runReaderT}. This then results in a \textit{StateT Int} computation which we evaluate by using \textit{runStateT} and the current number of steps as state. This then results in another monadic computation of \textit{RandT} Monad which we evaluate using \textit{runRandT}. This finally returns an \textit{IO} computation which we simply evaluate to arrive at the final result.
+Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double}, which carries the $\Delta t$. This is the reason why we need one extra lift for accessing \textit{StateT} and \textit{RandT}. Thus \textit{unMSF} returns a computation in the \textit{ReaderT Double} Monad, which we need to peel away using \textit{runReaderT}. This then results in a \textit{StateT Int} computation, which we evaluate by using \textit{runStateT} and the current number of steps as state. This then results in another monadic computation of \textit{RandT} Monad, which we evaluate using \textit{runRandT}. This finally returns an \textit{IO} computation, which we simply evaluate to arrive at the final result.

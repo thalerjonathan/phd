@@ -1,25 +1,26 @@
-\frametitle{Susceptible Agent revisited}
+\frametitle{Re-defining Some Types}
 \begin{minted}[fontsize=\tiny, linenos]{haskell}
-susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
-susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
-  where
-    susceptible :: RandomGen g => SF (SIRMonad g) () ((), Event ())
-    susceptible = proc _ -> do
-      makeContact <- occasionallyM (1 / contactRate) () -< ()
-      if not (isEvent makeContact)
-        then returnA -< ((), NoEvent)
-        else (do
-          env <- arrM_ (lift get) -< ()
-          let ns = neighbours env coord agentGridSize moore
-          s <- drawRandomElemS -< ns
-          case s of
-            Infected -> do
-              infected <- arrM_
-                (lift $ lift $ randomBoolM infectivity) -< ()
-              if infected
-                then (do
-                  arrM (put . changeCell coord Infected) -< env
-                  returnA -< ((), Event ()))
-                else returnA -< ((), NoEvent)
-            _        -> returnA -< ((), NoEvent))
+type Disc2dCoord = (Int, Int)
+type SIREnv      = Array Disc2dCoord SIRState
+
+type SIRAgent g = SF (Rand g) SIREnv SIRState
+
+neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState]
+
+simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)]
+               -> SIREnv -> SF (Rand g) () SIREnv
+simulationStep sfsCoords env = MSF (\_ -> do
+  let (sfs, coords) = unzip sfsCoords
+  -- run agents sequentially but with shared, read-only environment
+  ret <- mapM (`unMSF` env) sfs
+  -- construct new environment from all agent outputs for next step
+  let (as, sfs') = unzip ret
+      env' = foldr (\ (a, coord) envAcc -> updateCell coord a envAcc)
+               env (zip as coords)
+
+      sfsCoords' = zip sfs' coords
+      cont       = simulationStep sfsCoords' env'
+  return (env', cont))
+
+updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
 \end{minted}

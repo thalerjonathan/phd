@@ -5,17 +5,13 @@ As described in the Section \ref{sec:back_frp}, Arrowized FRP \cite{hughes_gener
 As already pointed out, agents need to perceive time, which means that the concept of processes over time is an ideal match for our agents and our system as a whole, thus we will implement them and the whole system as signal functions.
 
 \subsubsection{Implementation}
-We start by defining the SIR states as ADT and our agents as signal function (SF) which receives the SIR states of all agents as input and outputs the current SIR state of the agent:
+We start by defining the SIR states as ADT and our agents as signal functions (SF) which receive the SIR states of all agents form the previous step as input and outputs the current SIR state of the agent. This definition, and the fact that Yampa is not monadic, guarantees already at compile, that the agents are isolated from each other, enforcing the \textit{parallel} lock-step semantics of the model.
 
 \begin{HaskellCode}
 data SIRState = Susceptible | Infected | Recovered
 
 type SIRAgent = SF [SIRState] SIRState 
-\end{HaskellCode}
 
-Now we can define the behaviour of an agent to be the following:
-
-\begin{HaskellCode}
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g
 sirAgent g Infected    = infectedAgent g
@@ -31,11 +27,11 @@ recoveredAgent :: SIRAgent
 recoveredAgent = arr (const Recovered)
 \end{HaskellCode}
 
-Lets look how we can implement the behaviour of a susceptible agent. It makes contact \textit{on average} with $\beta$ other random agents. For every \textit{infected} agent it gets into contact with, it becomes infected with a probability of $\gamma$. If an infection happens, it makes the transition to the \textit{Infected} state. To make contact, it gets fed the states of all agents in the system from the previous time-step, so it can draw random contacts - this is one, very naive way of implementing the interactions between agents.
+Next, we implement the behaviour of a susceptible agent. It makes contact \textit{on average} with $\beta$ other random agents. For every \textit{infected} agent it gets into contact with, it becomes infected with a probability of $\gamma$. If an infection happens, it makes the transition to the \textit{Infected} state. To make contact, it gets fed the states of all agents in the system from the previous time-step, so it can draw random contacts - this is one, very naive way of implementing the interactions between agents.
 
 Thus a susceptible agent behaves as susceptible until it becomes infected. Upon infection an \textit{Event} is returned which results in switching into the \textit{infectedAgent} SF, which causes the agent to behave as an infected agent from that moment on. When an infection event occurs we change the behaviour of an agent using the Yampa combinator \textit{switch}, which is quite elegant and expressive as it makes the change of behaviour at the occurrence of an event explicit. Note that to make contact \textit{on average}, we use Yampas \textit{occasionally} function which requires us to carefully select the right $\Delta t$ for sampling the system as will be shown in results. 
 
-Note the use of \textit{iPre :: a $\rightarrow$ SF a a} which delays the input signal by one sample, taking an initial value for the output at time zero. The reason for it is, that we need to delay the transition from susceptible to infected by one step due to the semantics of the \textit{switch} combinator: whenever the switching event occurs, the signal function into which is switched will be run at the time of the event. This means that a susceptible agent could make a transition to recovered within one time-step, which we want to prevent because the semantics, should be that only one state-transition can happen per time-step.
+Note the use of \textit{iPre :: a $\rightarrow$ SF a a}, which delays the input signal by one sample, taking an initial value for the output at time zero. The reason for it is, that we need to delay the transition from susceptible to infected by one step due to the semantics of the \textit{switch} combinator: whenever the switching event occurs, the signal function into which is switched will be run at the time of the event occurrence. This means that a susceptible agent could make a transition to recovered within one time-step, which we want to prevent because the semantics, should be that only one state-transition can happen per time-step.
 
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
@@ -65,7 +61,7 @@ susceptibleAgent g
         else returnA -< (Susceptible, NoEvent)
 \end{HaskellCode}
 
-To deal with randomness in an FRP way we implemented additional signal functions built on the \textit{noiseR} function provided by Yampa. This is an example for the stream character and statefulness of a signal function as it allows to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}. \textit{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
+To deal with randomness in an FRP way, we implemented additional signal functions built on the \textit{noiseR} function provided by Yampa. This is an example for the stream character and statefulness of a signal function as it allows to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}. \textit{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
 
 \begin{HaskellCode}
 randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
@@ -106,7 +102,7 @@ runSimulation g t dt as
     sfs       = zipWith sirAgent rngs as
 \end{HaskellCode}
 
-What we need to implement next is a closed feedback-loop - the heart of every agent-based simulation. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns this step's new agent states. Note the use of \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$. If we don't delay the switching at $t = 0$ until the next step, we would enter an infinite switching loop - \textit{notYet} simply delays the first switching until the next time-step.
+What we need to implement next is a closed feedback-loop - the heart of every agent-based simulation. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns this step's new agent states. Note the use of \textit{notYet}, which is required because in Yampa switching occurs immediately at $t = 0$. If we don't delay the switching at $t = 0$ until the next step, we would enter an infinite switching loop - \textit{notYet} simply delays the first switching until the next time-step.
 
 \begin{HaskellCode}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
@@ -172,7 +168,7 @@ The dynamics generated by this step can be seen in Figure \ref{fig:sir_abs_dynam
 \end{center}
 \end{figure}
 
-By following the FRP approach we assume a continuous flow of time, which means that we need to select a \textit{correct} $\Delta t$ otherwise we would end up with wrong dynamics. The selection of a correct $\Delta t$ depends in our case on \textit{occasionally} in the \textit{susceptible} behaviour, which randomly generates an event on average with \textit{contact rate} following the exponential distribution. To arrive at the correct dynamics, this requires us to sample \textit{occasionally}, and thus the whole system, with small enough $\Delta t$ which matches the frequency of events generated by \textit{contact rate}. If we choose a too large $\Delta t$, we loose events, which will result in wrong dynamics as can be seen in Figure \ref{fig:sir_abs_approximating_01dt_1000agents}. This issue is known as under-sampling and is described in Figure \ref{fig:sampling_issue}.
+By following the FRP approach we assume a continuous flow of time, which means that we need to select a \textit{correct} $\Delta t$, otherwise we would end up with wrong dynamics. The selection of a correct $\Delta t$ depends in our case on \textit{occasionally} in the \textit{susceptible} behaviour, which randomly generates an event on average with \textit{contact rate} following the exponential distribution. To arrive at the correct dynamics, this requires us to sample \textit{occasionally}, and thus the whole system, with small enough $\Delta t$ which matches the frequency of events generated by \textit{contact rate}. If we choose a too large $\Delta t$, we loose events, which will result in wrong dynamics as can be seen in Figure \ref{fig:sir_abs_approximating_01dt_1000agents}. This issue is known as under-sampling and is described in Figure \ref{fig:sampling_issue}.
 
 \begin{figure}
 \begin{center}
@@ -226,4 +222,4 @@ Using FRP in the instance of Yampa results in a clear, expressive and robust imp
 
 A very severe problem, hard to find with testing but detectable with in-depth validation analysis, is the fact that in the \textit{susceptible} agent the same random-number generator is used in \textit{occasionally}, \textit{drawRandomElemSF} and \textit{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level, and indeed we have tested the influence of the correlation in this example and it has an impact. We left this severe bug in for explanatory reasons, as it shows an example where functional programming actually encourages very subtle bugs if one is not careful. A possible but not very elegant solution would be to simply split the initial random-number generator in \textit{sirAgent} three times (using one of the splited generators for the next split) and pass three random-number generators to \textit{susceptible}. A much more elegant solution would be to use the Random Monad which is not possible because Yampa is not monadic.
 
-So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment and an elegant solution to the random number correlation. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a way for an elegant solution to the random-number correlation.
+So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment and an elegant solution to the random number correlation. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a way for an elegant solution to the random number correlation.

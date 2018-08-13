@@ -3,11 +3,11 @@
 A part of the library Dunai is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which should allow us to easily replace Yampa with MSFs. This will enable us to run arbitrary monadic computations in a signal function, solving our problem of correlated random numbers through the use of the Random Monad.
 
 \subsubsection{Identity Monad}
-We start by making the transition to BearRiver by simply replacing Yampas signal function by BearRivers' which is the same but takes an additional type parameter \textit{m}, indicating the monadic context. If we replace this type-parameter with the Identity Monad, we should be able to keep the code exactly the same, because BearRiver re-implements all necessary functions we are using from Yampa. We simply re-define our agent signal function, introducing the monad stack our SIR implementation runs in:
+We start by making the transition to BearRiver by simply replacing Yampas signal function by BearRivers', which is the same but takes an additional type parameter \textit{m}, indicating the monadic context. If we replace this type-parameter with the Identity Monad, we should be able to keep the code exactly the same, because BearRiver re-implements all necessary functions we are using from Yampa. We simply re-define the agent signal function, introducing the monad stack our SIR implementation runs in:
 
 \begin{HaskellCode}
-type SIRMonad    = Identity
-type SIRAgent    = SF SIRMonad [SIRState] SIRState
+type SIRMonad = Identity
+type SIRAgent = SF SIRMonad [SIRState] SIRState
 \end{HaskellCode}
 
 \subsubsection{Random Monad}

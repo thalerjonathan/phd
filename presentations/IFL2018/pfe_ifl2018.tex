@@ -39,7 +39,7 @@
   Peer-Olaf~Siebers
 }
 
-\institute[Tübingen and others]
+\institute[University of Nottingham, United Kingdom]
 {
   University of Nottingham, United Kingdom
 }
@@ -50,22 +50,14 @@
 % The main document
 \begin{document}
 
-% 2. parallel, lock-step update-strateg
-% 3. introduce FRP conceptually and Arrowized programming using diagrams
-%	-> Concept of a Signal function (signal ~ Time -> a)
-%   -> combinators
-% 4. Yampa FRP non monadic matches SD with high enough sampling: show susceptible agent
-% 5. MSF to solve problem of correlated random numbers: only show types
-
 \begin{frame}
   \titlepage
 \end{frame}
 
 \section{Introduction}
-\begin{frame}{Research Question(s)}
+\begin{frame}{Research Questions}
 \begin{itemize}
-  \item \textbf{How} can we implement Agent-Based Simulation (ABS) in (pure) functional programming?
-  %\item \textbf{Why} would we do that?
+  \item \textbf{How} can we implement Agent-Based Simulation in (pure) functional programming e.g. Haskell?
   \item \textbf{What} are the benefits and drawbacks?
 \end{itemize}
 \end{frame}
@@ -105,7 +97,7 @@
   \includegraphics[width=0.7\textwidth]{./fig/SIR_SD_001dt.png}
 \end{frame}
 
-\begin{frame}{How-To implement ABS?}
+\begin{frame}{How to implement ABS?}
   \begin{block}{Established, state-of-the-art approach in ABS}
 	Object-Oriented Programming in Python, Java,...
   \end{block}
@@ -121,39 +113,108 @@
 
 \begin{frame}{Functional Reactive Programming (FRP)}
   \begin{itemize}
-    \item Continuous- \& discrete-time systems in functional programming
- 	\item Signal Function (SF) \\ $\Rightarrow$ process over time, maps signal to signal
- 	\item Events (deterministic \& stochastic)
+    \item Continuous- \& discrete-time systems in FP
+ 	\item Signal Function 
+ 	\item Events
  	\item Random-number streams
  	%\item Running signal-functions in pure way
  	\item \textit{Arrowized} FRP using the \textit{Yampa} library
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Signal Function}
-  TODO: Signal Function conceptually explained
-  TODO: add diagrams and explain FRP and arrowized notation on high level
-\end{frame}
-
-\begin{frame}{FRP Combinators}
-  TODO: switch
-  TODO: occasionally
-  TODO: after
-  TODO: noiseR
-\end{frame}
-
-\begin{frame}{Update Semantics}
-  TODO
+\begin{frame}{Signal Function (SF)}
+  \begin{block}{Process over time}
+  \begin{flalign*}
+	SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta \\
+	Signal \, \alpha \approx Time \rightarrow \alpha 
+  \end{flalign*}
+  \end{block}
   
-  TODO: sequential is wrong semantics because all agents act at the sa.e time, if we impose an ordering it could be the case that e.g. the infection spreads from top left corner to bottom right but not the other way round. for many ab models which run sequentially the established approach is thus to shuffle the agents in each step to avoid these kind of semantic problems. In FP we can enforce such an iteation strategy already in the types. the flaw reflects exactly my iterating paper message: the strategy needs to reflect the semantics of the model
-
-TODO: make clear that ABS often runs agents sequentially and shuffles them. there is no agreed "true" way as we have shown as itvresults in different semantics but in  functional programming the parallel approach is the best fit. and for SIR its the only correct one
-
-  \center
-  \includegraphics[width=0.7\textwidth]{./fig/parallel_strategy.png}
+  \begin{block}{Agents as Signal Functions}
+  \begin{itemize}
+  	\item Clean interface (input / output)
+  	\item Pro-activity by perceiving time
+  \end{itemize}
+  \end{block}
 \end{frame}
+
+\begin{frame}[fragile]{FRP combinators}
+\begin{block}{Dynamic change of behaviour}
+\begin{minted}[fontsize=\tiny]{haskell}
+switch :: SF inp (out, Event e) -> (e -> SF inp out) -> SF inp out
+\end{minted}
+\end{block}
+
+\begin{block}{Stochastic event source}
+\begin{minted}[fontsize=\tiny]{haskell}
+occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)
+\end{minted}
+\end{block}
+
+\begin{block}{Deterministic event source}
+\begin{minted}[fontsize=\tiny]{haskell}
+after :: Time -> b -> SF a (Event b)
+\end{minted}
+\end{block}
+
+\begin{block}{Random number stream}
+\begin{minted}[fontsize=\tiny]{haskell}
+noiseR :: (RandomGen g, Random b) => (b, b) -> g -> SF a b
+\end{minted}
+\end{block}
+
+\begin{block}{Infinitesimal delay (1 step)}
+\begin{minted}[fontsize=\tiny]{haskell}
+iPre :: a -> SF a a
+\end{minted}
+\end{block}
+\end{frame}
+
+%\begin{frame}[fragile]{FRP combinators}
+%\begin{block}{Dynamic change of behaviour}
+%\begin{minted}[fontsize=\tiny]{haskell}
+%switch :: SF in (out, Event t) -> (t -> SF in out) -> SF in out
+%\end{minted}
+%\end{block}
+%
+%\center
+%  \includegraphics[width=0.7\textwidth]{./fig/yampa_switch.png}
+%\end{frame}
+
+%\begin{frame}[fragile]{Switch}
+%  \center
+%  \includegraphics[width=0.7\textwidth]{./fig/yampa_switch.png}
+%
+%\begin{minted}[fontsize=\tiny]{haskell}
+%switch :: SF in (out, Event t) -> (t -> SF in out) -> SF in out
+%\end{minted}
+%\end{frame}
 
 \section{Agent-Based SIR in Haskell}
+\begin{frame}{Update Semantics}
+  %TODO: sequential is wrong semantics because all agents act at the sa.e time, if we impose an ordering it could be the case that e.g. the infection spreads from top left corner to bottom right but not the other way round. for many ab models which run sequentially the established approach is thus to shuffle the agents in each step to avoid these kind of semantic problems. In FP we can enforce such an iteation strategy already in the types. the flaw reflects exactly my iterating paper message: the strategy needs to reflect the semantics of the model
+
+%TODO: make clear that ABS often runs agents sequentially and shuffles them. there is no agreed "true" way as we have shown as itvresults in different semantics but in  functional programming the parallel approach is the best fit. and for SIR its the only correct one
+
+\hspace*{1cm}\includegraphics[width=0.7\textwidth]{./fig/parallel_strategy.png}\hspace*{-1cm}
+\end{frame}
+
+\begin{frame}{Arrowized Programming}
+\begin{block}{Monads}
+\texttt{\textbf{do} \\
+\hspace{\parindent} \, out1 $\leftarrow$ \textit{comp1} \\
+\hspace{\parindent} \, out2 $\leftarrow$ \textit{comp2 out1} \\
+\hspace{\parindent} \, return out2}
+\end{block}
+	
+\begin{block}{Arrows}
+\texttt{\textbf{proc} input \textbf{do} \\
+\hspace{\parindent} \, out1 $\leftarrow$ \textit{comp1} $\prec$ input \\
+\hspace{\parindent} \, out2 $\leftarrow$ \textit{comp2} $\prec$ out1 \\
+\hspace{\parindent} \, returnA $\prec$ out2}
+\end{block}
+\end{frame}
+
 \begin{frame}[fragile]{Some Types...}
 \begin{minted}[fontsize=\footnotesize, linenos]{haskell}
 data SIRState = Susceptible | Infected | Recovered
@@ -180,19 +241,21 @@ susceptibleAgent g
       (susceptible g >>> iPre (Susceptible, NoEvent)) 
       (const (infectedAgent g))
   where
-    susceptible :: RandomGen g 
-      => g -> SF [SIRState] (SIRState, Event ())
+    susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())
     susceptible g = proc as -> do
+      -- generate an event on average with given rate
       makeContact <- occasionally g (1 / contactRate) () -< ()
       if isEvent makeContact
         then (do
-          -- draw random element from the list
+          -- draw random contact
           a <- drawRandomElemSF g -< as
           case a of
+            -- contact with infected => get infected with prob.
             Infected -> do
               -- returns True with given probability
               i <- randomBoolSF g infectivity -< ()
               if i
+                -- got infected => infection event => transition to infected
                 then returnA -< (Infected, Event ())
                 else returnA -< (Susceptible, NoEvent)
              _       -> returnA -< (Susceptible, NoEvent))
@@ -204,9 +267,9 @@ susceptibleAgent g
 \begin{figure}
 \begin{center}
 	\begin{tabular}{c c}
-		\begin{subfigure}[b]{0.42\textwidth}
+		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Yampa_dt01.png}
+			\includegraphics[width=0.95\textwidth, angle=0]{./fig/SIR_Yampa_dt01.png}
 			\caption{Agent-Based approach}
 		\end{subfigure}
     	
@@ -226,9 +289,9 @@ susceptibleAgent g
 \begin{figure}
 \begin{center}
 	\begin{tabular}{c c}
-		\begin{subfigure}[b]{0.42\textwidth}
+		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Yampa_dt001.png}
+			\includegraphics[width=0.95\textwidth, angle=0]{./fig/SIR_Yampa_dt001.png}
 			\caption{Agent-Based approach}
 		\end{subfigure}
     	
@@ -245,17 +308,23 @@ susceptibleAgent g
 \end{frame}
 
 \begin{frame}{Reflection}
+  \begin{block}{So far...}
   \begin{itemize}
-	\item \textbf{Time} % - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
-	\item \textbf{Agents} %- implemented as an individual, behaviour depending on internal state.
-	\item \textbf{Feedback} %- output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
+    \item Agents with stochastic behaviour %- implemented as an individual, behaviour depending on internal state.
+	\item Time \& Feedback % - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
+	%\item Feedback %- output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
 	%\item \textbf{Environment} - fully-connected network (complete graph).
-	\item \textbf{Stochasticity}
-	\item \textbf{Deterministic} %- repeated runs with same initial random-number generator result in same dynamics.
-	\item \textbf{Parallel, lock-step semantics}
-	\item Problem: Correlated Random Numbers !!
-	\item Missing: Spatiality
+	\item Deterministic dynamics %- repeated runs with same initial random-number generator result in same dynamics.
+	\item Parallel, lock-step semantics
   \end{itemize}
+  \end{block}
+    
+  \begin{block}{Whats next?}
+    \begin{itemize}
+  	  \item Problem - correlated random numbers
+	  \item Spatiality - structured environment
+	\end{itemize}
+  \end{block}
 \end{frame}
 
 \section{Solving Random Number Correlation}
@@ -269,75 +338,85 @@ susceptibleAgent g
   \end{block}
   
   \begin{block}{Solution}
-    Monadic Stream Functions (MSFs) \\
-  	$\Rightarrow$ Signal Functions with monadic context
+    Monadic Stream Functions 
   \end{block}
 \end{frame}
 
-\begin{frame}{Monadic Stream Functions}
-  TODO
+\begin{frame}[fragile]{Monadic Stream Functions (MSFs)}
+\begin{block}{Concept}
+\begin{itemize}
+  \item Signal Functions + monadic context 
+  \item \textit{Dunai} - Perez et al 
+  \item \textit{BearRiver} - \textit{Yampa} built on top of \textit{Dunai}
+\end{itemize}
+\end{block}
+
+\begin{block}{Definition}
+\begin{minted}[fontsize=\tiny]{haskell}
+newtype MSF m a b = MSF {unMSF :: MSF m a b -> a -> m (b, MSF m a b)}
+
+arrM :: Monad m -> (a -> m b) -> MSF m a b
+arrM_ :: Monad m -> m b -> MSF m a b
+\end{minted}
+\end{block}
+    
+\begin{block}{Monadic Stochastic Event Source}
+\begin{minted}[fontsize=\tiny]{haskell}
+occasionallyM :: MonadRandom m => Time -> b -> SF m a (Event b)
+\end{minted}
+\end{block}
+
+\begin{block}{Monadic Agent Signal Function}
+\begin{minted}[fontsize=\tiny]{haskell}
+type SIRAgent g = SF (Rand g) [SIRState] SIRState 
+\end{minted}
+\end{block}
 \end{frame}
 
 \section{Adding Spatiality}
-\begin{frame}{Where is the Environment?}
-  TODO
-  
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{./fig/moore.png}
-  \end{center}
-\end{frame}
+\begin{frame}[fragile]{Defining Spatiality}
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.2\textwidth]{./fig/moore.png}
+\caption*{Moore Neighbourhood}
+\end{center}
+\end{figure}
 
-\begin{frame}[fragile]{Re-defining Some Types}
-\begin{minted}[fontsize=\tiny, linenos]{haskell}
+\begin{block}{Some types...}
+\begin{minted}[fontsize=\tiny]{haskell}
 type Disc2dCoord = (Int, Int)
 type SIREnv      = Array Disc2dCoord SIRState
 
-type SIRAgent g = SF (Rand g) SIREnv SIRState
-
-neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState]
-
-simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)]
-               -> SIREnv -> SF (Rand g) () SIREnv
-simulationStep sfsCoords env = MSF (\_ -> do
-  let (sfs, coords) = unzip sfsCoords 
-  -- run agents sequentially but with shared, read-only environment
-  ret <- mapM (`unMSF` env) sfs
-  -- construct new environment from all agent outputs for next step
-  let (as, sfs') = unzip ret
-      env' = foldr (\ (a, coord) envAcc -> updateCell coord a envAcc) 
-               env (zip as coords)
-
-      sfsCoords' = zip sfs' coords
-      cont       = simulationStep sfsCoords' env'
-  return (env', cont))
- 
-updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
+type SIRAgent g  = SF (Rand g) SIREnv SIRState
 \end{minted}
+\end{block}
 \end{frame}
 
-\begin{frame}{Dynamics with environment}
+\begin{frame}{Spatial Dynamics}
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=0.95\textwidth, angle=0]{./fig/SIR_Dunai_dt001.png}
+			\caption{Agent-Based}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_SD_001dt.png}
+			\caption{System Dynamics}
+		\end{subfigure}
+	\end{tabular}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Spatial Visualisation}
 %\movie[width=10cm,height=5.5cm]{Dynamics 21x21 2D Environment}{./video/SIR_DUNAI_dt001.mp4}
 \includemovie[rate=2]{11cm}{6.5cm}{./video/SIR_DUNAI_dt001.mp4}
-
-%\begin{figure}
-%\begin{center}
-%	\begin{tabular}{c c}
-%		\begin{subfigure}[b]{0.47\textwidth}
-%			\centering
-%			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Dunai_dt001.png}
-%			\caption{Dynamics over $t = 200$}
-%		\end{subfigure}
-%    	
-%    	&
-%  
-%		\begin{subfigure}[b]{0.4\textwidth}
-%			\centering
-%			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Dunai_dt001_environment.png}
-%			\caption{Visualisation at $t = 50$}
-%		\end{subfigure}
-%	\end{tabular}
-%\end{center}
-%\end{figure}
 \end{frame}
 
 \section{Discussion}
@@ -368,19 +447,6 @@ updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
     \item Agent-Interaction is main difficulty
   \end{itemize}
 \end{frame}
-
-%\begin{frame}{Future Work}
-%  \begin{block}{Property-based testing for verification in ABS}
-%    Might offer huge benefits e.g. formalising hypotheses
-%  \end{block}
-%  
-%  \begin{block}{Dependent Types in ABS (using Idris)}
-%  	\begin{itemize}
-%  	  \item Safe environment access, state-transitions, agent-interactions
-%      \item Equilibrium of Model \& Totality of Implementation
-%  	\end{itemize}
-%  \end{block}
-%\end{frame}
 
 \begin{frame}{}
   \begin{center}

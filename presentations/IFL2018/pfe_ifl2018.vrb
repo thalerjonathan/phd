@@ -1,26 +1,16 @@
-\frametitle{Re-defining Some Types}
-\begin{minted}[fontsize=\tiny, linenos]{haskell}
+\frametitle{Defining Spatiality}
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.2\textwidth]{./fig/moore.png}
+\caption*{Moore Neighbourhood}
+\end{center}
+\end{figure}
+
+\begin{block}{Some types...}
+\begin{minted}[fontsize=\tiny]{haskell}
 type Disc2dCoord = (Int, Int)
 type SIREnv      = Array Disc2dCoord SIRState
 
-type SIRAgent g = SF (Rand g) SIREnv SIRState
-
-neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState]
-
-simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)]
-               -> SIREnv -> SF (Rand g) () SIREnv
-simulationStep sfsCoords env = MSF (\_ -> do
-  let (sfs, coords) = unzip sfsCoords
-  -- run agents sequentially but with shared, read-only environment
-  ret <- mapM (`unMSF` env) sfs
-  -- construct new environment from all agent outputs for next step
-  let (as, sfs') = unzip ret
-      env' = foldr (\ (a, coord) envAcc -> updateCell coord a envAcc)
-               env (zip as coords)
-
-      sfsCoords' = zip sfs' coords
-      cont       = simulationStep sfsCoords' env'
-  return (env', cont))
-
-updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
+type SIRAgent g  = SF (Rand g) SIREnv SIRState
 \end{minted}
+\end{block}

@@ -57,8 +57,6 @@
 \email{jonathan.thaler@nottingham.ac.uk}
 \author{Peer-Olaf Siebers}
 \email{peer-olaf.siebers@nottingham.ac.uk}
-\author{Thorsten Altenkirch}
-\email{thorsten.altenkirch@nottingham.ac.uk}
 \affiliation{%
   \institution{University of Nottingham}
   \streetaddress{7301 Wollaton Rd}
@@ -76,6 +74,15 @@
 % very clear
 
 \begin{abstract}
+TODO: strictness might improve Performance
+TODO: strictness does improve Performance for Pure implementation
+TODO: remove peer as author unless he has contributed
+TODO: make clear that abs is almost always pure without persistent side-effects, therefore easy to apply stm
+TODO: add Art Iterating Paper to ABS and STM section: its the concurrency strategy
+TODO: sir is an exploratory model
+TODO: Sugarscape is an explanatory model
+TODO: add links to implementations
+
 With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations. Unfortunately the established programming languages in the field, Python, Java and C++, are not very well suited to tackle the complexities of parallel programming. In this paper we propose the use of Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell, which in combination allow to overcome the problems and complexities of parallel implementations in imperative approaches.
 
 We present two case studies where we compare the performance of lock-based and STM implementations in two different well known Agent-Based Models where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further by utilizing the pure functional language Haskell we gain additional benefits like immutable data and lack of side-effects guaranteed at compile-time, something of fundamental importance and benefit in parallel programming.

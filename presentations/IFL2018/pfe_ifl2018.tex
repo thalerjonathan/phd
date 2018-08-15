@@ -151,11 +151,11 @@ occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)
 \end{minted}
 \end{block}
 
-\begin{block}{Deterministic event source}
-\begin{minted}[fontsize=\tiny]{haskell}
-after :: Time -> b -> SF a (Event b)
-\end{minted}
-\end{block}
+%\begin{block}{Deterministic event source}
+%\begin{minted}[fontsize=\tiny]{haskell}
+%after :: Time -> b -> SF a (Event b)
+%\end{minted}
+%\end{block}
 
 \begin{block}{Random number stream}
 \begin{minted}[fontsize=\tiny]{haskell}
@@ -191,14 +191,6 @@ iPre :: a -> SF a a
 %\end{frame}
 
 \section{Agent-Based SIR in Haskell}
-\begin{frame}{Update Semantics}
-  %TODO: sequential is wrong semantics because all agents act at the sa.e time, if we impose an ordering it could be the case that e.g. the infection spreads from top left corner to bottom right but not the other way round. for many ab models which run sequentially the established approach is thus to shuffle the agents in each step to avoid these kind of semantic problems. In FP we can enforce such an iteation strategy already in the types. the flaw reflects exactly my iterating paper message: the strategy needs to reflect the semantics of the model
-
-%TODO: make clear that ABS often runs agents sequentially and shuffles them. there is no agreed "true" way as we have shown as itvresults in different semantics but in  functional programming the parallel approach is the best fit. and for SIR its the only correct one
-
-\hspace*{1cm}\includegraphics[width=0.7\textwidth]{./fig/parallel_strategy.png}\hspace*{-1cm}
-\end{frame}
-
 \begin{frame}{Arrowized Programming}
 \begin{block}{Monads}
 \texttt{\textbf{do} \\
@@ -213,6 +205,10 @@ iPre :: a -> SF a a
 \hspace{\parindent} \, out2 $\leftarrow$ \textit{comp2} $\prec$ out1 \\
 \hspace{\parindent} \, returnA $\prec$ out2}
 \end{block}
+\end{frame}
+
+\begin{frame}{Update Semantics}
+\hspace*{1cm}\includegraphics[width=0.7\textwidth]{./fig/parallel_strategy.png}\hspace*{-1cm}
 \end{frame}
 
 \begin{frame}[fragile]{Some Types...}
@@ -307,25 +303,25 @@ susceptibleAgent g
 \end{figure}
 \end{frame}
 
-\begin{frame}{Reflection}
-  \begin{block}{So far...}
-  \begin{itemize}
-    \item Agents with stochastic behaviour %- implemented as an individual, behaviour depending on internal state.
-	\item Time \& Feedback % - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
-	%\item Feedback %- output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
-	%\item \textbf{Environment} - fully-connected network (complete graph).
-	\item Deterministic dynamics %- repeated runs with same initial random-number generator result in same dynamics.
-	\item Parallel, lock-step semantics
-  \end{itemize}
-  \end{block}
-    
-  \begin{block}{Whats next?}
-    \begin{itemize}
-  	  \item Problem - correlated random numbers
-	  \item Spatiality - structured environment
-	\end{itemize}
-  \end{block}
-\end{frame}
+%\begin{frame}{Reflection}
+%  \begin{block}{So far...}
+%  \begin{itemize}
+%    \item Agents with stochastic behaviour %- implemented as an individual, behaviour depending on internal state.
+%	\item Time \& Feedback % - simulation over virtual time, modelled explicitly, divided into \textit{fixed} $\Delta t$, at each step all agents executed.
+%	%\item Feedback %- output state of agent in time-step $t$ is input for next time-step $t + \Delta t$.
+%	%\item \textbf{Environment} - fully-connected network (complete graph).
+%	\item Deterministic dynamics %- repeated runs with same initial random-number generator result in same dynamics.
+%	\item Parallel, lock-step semantics
+%  \end{itemize}
+%  \end{block}
+%    
+%  \begin{block}{Whats next?}
+%    \begin{itemize}
+%  	  \item Problem - correlated random numbers
+%	  \item Spatiality - structured environment
+%	\end{itemize}
+%  \end{block}
+%\end{frame}
 
 \section{Solving Random Number Correlation}
 \begin{frame}{Solving Random Number Correlation}
@@ -419,7 +415,7 @@ type SIRAgent g  = SF (Rand g) SIREnv SIRState
 \includemovie[rate=2]{11cm}{6.5cm}{./video/SIR_DUNAI_dt001.mp4}
 \end{frame}
 
-\section{Discussion}
+\section{Conclusion}
 %\begin{frame}{Performance}
 %  \begin{block}{Experiment}
 %    Spatial Agent-Based SIR, 51x51 Grid (2,601 agents), $t = 100$, $\Delta t = 0.1$, avg. 8 runs
@@ -440,11 +436,11 @@ type SIRAgent g  = SF (Rand g) SIREnv SIRState
 
 \begin{frame}{Conclusion}
   \begin{itemize}
-    \item Purity guarantees reproducibility at compile time
-    \item Enforce and guarantee update semantics at compile time
+    \item Purity guarantees reproducibility 
+    \item Enforce and guarantee update semantics 
     \item Performance :(
-    \item Agent-Identity a bit lost
-    \item Agent-Interaction is main difficulty
+%    \item Agent-Identity a bit lost
+%    \item Agent-Interaction is main difficulty
   \end{itemize}
 \end{frame}
 

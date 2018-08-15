@@ -7,7 +7,7 @@
 \end{figure}
 
 \begin{block}{Some types...}
-\begin{minted}[fontsize=\tiny]{haskell}
+\begin{minted}[fontsize=\footnotesize]{haskell}
 type Disc2dCoord = (Int, Int)
 type SIREnv      = Array Disc2dCoord SIRState
 

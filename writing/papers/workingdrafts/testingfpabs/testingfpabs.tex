@@ -46,7 +46,7 @@
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 % Title portion. Note the short title for running heads
-\title[Testing functional agent-based simulations]{Testing functional agent-based simulations}
+\title[Property-Based Testing of Agent-Based Simulations]{Property-Based Testing of Agent-Based Simulations}
 \subtitle{A functional approach}
 
 \author{Jonathan Thaler}
@@ -62,7 +62,10 @@
   \country{United Kingdom}}
 
 \begin{abstract}
-TODO: this would be ideal to submit to a conference where i can also discuss functional programming
+This paper presents a new approach to test the implementation of an agent-based simulation, called property-based testing which allows to test specifications much more directly than unit tests. Although being more expressive than unit tests, property-based testing is seen as a complementary and does not make unit-testing obsolete. We present two different models as case-studies in which we will show how to apply property-based testing to exploratory and explanatory agent-based models and what its limits are.
+We conduct our implementations in the pure functional programming language Haskell, which is the origin of property-pased testing. We show that simply by switching to such a language one gets rid of a large class of run-time bugs and is able to make stronger guarantees of correctness already at compile time without writing tests for some parts. Further, it makes isolated unit-tests quite easier.
+
+TODO: this would be ideal to submit to an ABS conference so i can also discuss functional programming
 
 TODO: write introduction
 TODO: implement case study 1: property-testing of SIR

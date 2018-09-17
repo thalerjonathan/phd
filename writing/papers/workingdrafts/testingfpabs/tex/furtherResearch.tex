@@ -1,2 +1,17 @@
 \section{Further Research}
 TODO
+
+
+Generally speaking, a dependent type is a type whose definition depends on a value e.g. when we have a pair of natural numbers where the second one is greater than the first, we speak of a dependent type. With this power, they allow to push compile-time guarantees to a new level where we can express nearly arbitrary complex guarantees at compile-time because we can \textit{compute types at compile-time}. This means that types are first-class citizen of the language and go as far as being formal proofs of the correctness of an implementation, allowing to narrow the gap between specification and implementation substantially.
+
+We hypothesise that the use of dependent types allows us to push the judgement of the correctness of a simulation to new, unprecedented level, not possible with the established object-oriented approaches so far. This has the direct consequence that the development process is very different and can reduce the amount of testing (both unit-testing and manual testing) substantially. Because one is implementing a simulation which is (as much as possible) correct-by-construction, the correctness (of parts) can be guaranteed statically.
+
+ %"Will gladly sacrifice 10\% of our performance for 10\% higher productivity"
+
+Summarizing, we expect the following benefits from adding dependent types to ABS:
+
+\begin{enumerate}
+	\item Narrowing the gap between the model specification and its implementation reduces the potential for conceptual errors in model-to-code translation.
+	\item Less number of tests required due to guarantees being expressed already at compile time.
+	\item Higher confidence in correctness due to formal guarantees in code.
+\end{enumerate}

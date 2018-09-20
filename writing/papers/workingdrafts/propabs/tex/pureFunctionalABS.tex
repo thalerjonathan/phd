@@ -1,6 +1,5 @@
 \section{Pure Functional ABS}
-TODO: introduce the general concepts of pure functional ABS and what the benefits and drawbacks are in the context of debugging and correctness. 
-TODO: List of Common Bugs and Programming Practices to avoid them \cite{vipindeep_list_2005}
+TODO: introduce the general concepts of pure functional ABS and what the benefits and drawbacks are in the context of debugging and correctness, using my IFL paper
 
 We argue that due to its fundamental different nature, the functional programming paradigm can overcome some fundamental problems of the established object-oriented approach to ABS. Note that we don't claim that it will solve all the problems and that the Gintis failure wouldn't have happened but we argue that it makes making mistakes much harder, resulting in simulations which are more likely to be correct.
 
@@ -78,3 +77,7 @@ Agents \textit{might} behave as signals in FRP which means that their behaviour 
 
 \subsubsection{White-Box Verification}
 White-Box verification is necessary when we need to reason about properties like \textit{forever}, \textit{never}, which cannot be guaranteed from black-box tests. Additional help can be coverage tests with which we can show that all code paths have been covered in our tests.
+
+TODO: List of Common Bugs and Programming Practices to avoid them \cite{vipindeep_list_2005}
+
+We have discussed in this section \textit{how} to approach an ABS implementation from a pure functional perspective using Haskell where we have also briefly touched on \textit{why} one should do so and what the benefits and drawbacks are. In the next two sections we will expand on the \textit{why} by presenting two case-studies which show the benefits of using Haskell in regards of testing and increasing the confidence in the correctness of the implementation.

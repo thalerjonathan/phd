@@ -1,0 +1,70 @@
+\documentclass[oneside]{book}
+
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+
+\usepackage[toc,page]{appendix}
+\usepackage{minted}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+
+\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\includegraphics[width=0.60\textwidth]{./logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	{\scshape\Large PhD Thesis\par}
+	\vspace{1.5cm}
+	{\huge\bfseries Foundations Of Pure Functional \\ Agent-Based Simulation \par}
+	\vspace{2cm}
+	{\Large Jonathan Thaler (4276122) \\ \itshape jonathan.thaler@nottingham.ac.uk \par}
+	\vfill
+	supervised by\par
+	Dr. Peer-Olaf \textsc{Siebers} \\
+	Dr. Thorsten \textsc{Altenkirch}
+
+	\vfill
+
+	{\large \today\par}
+\end{titlepage}
+
+\cleardoublepage
+
+\section*{Abstract}
+TODO
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{./tex/introduction.tex}
+
+%\input{./tex/stm.tex}
+
+%\input{./tex/v_and_v.tex}
+
+%\input{./tex/dependentTypes.tex}
+
+%\input{./tex/generalising.tex}
+
+%\input{./tex/aimsObjectives.tex}
+
+%\input{./tex/workToDate.tex}
+
+\input{./tex/conclusions.tex}
+
+
+\renewcommand\bibname{References}
+
+\bibliographystyle{acm}
+\bibliography{../references/phdReferences}
+
+%\input{./tex/appendix.tex}
+
+\end{document}

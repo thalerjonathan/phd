@@ -1,0 +1,31 @@
+\chapter{Methodology}
+This chapter introduces the methodology, used in the following chapters:
+
+1. time-driven vs. event-driven ABS
+2. time-driven: start with update-strategies
+3. present pure functional approach
+4. how can we implement the 4 update-strategies in our approach
+5. additional research: interaction between agents
+6. additional research: event-driven ABS
+
+\begin{itemize}
+	\item Defining and introducing Agent-Based Simulation (ABS) (History, ABS vs. MAS, examples, event- vs. time-driven).
+	\item Introduce established implementation approaches to ABS (Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ, Programming: Java, Python, Correctness: ad-hoc, manual testing, test-driven development)
+	\item Introduction Verification \& Validation (V \& V in the context of ABS).
+	\item Introduction to functional Programming in Haskell (functions, types, recursion, algebraic data-types, higher-order functions, continuations, Define and explain side-effects and purity: monads, different types of effects, explain IO and that it is of fundamental importance to avoid it in our research).
+	\item Introduction to dependent types (Example, Equality as Type, Philosophical Foundations: Constructive mathematics)
+\end{itemize}
+50\%
+
+TODO: need carefully establish why Haskell:
+\begin{itemize}
+	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm of which we explain the most important below.
+	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
+	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
+	\item It is as closest to pure functional programming, as in the lambda-calculus, as we want to get. Other languages are often a mix of paradigms and soften some criteria / are not strictly functional and have different purposes. Also Haskell is very strong rooted in Academia and lots of knowledge is available, especially at Nottingham, 
+		Lisp / Scheme was considered because it was the very first functional programming language but deemed to be not modern enough with lack of sufficient libraries. Also it would have given the 
+		Erlang was considered in prototyping and allows to map the messaging concept of ABS nicely to a concurrent language but was ultimately rejected due to its main focus on concurrency and not being purely functional.
+		Scala was considered as well and has been used in the research on the Art Of Iterating paper but is not purely functional and can be also impure.
+\end{itemize}
+
+TODO: need to present the established approach to ABS: object-oriented, java/python, unit-tests, test-driven, RePast, AnyLogic, NetLogo

@@ -64,25 +64,60 @@ In this first approach we compare the performance of all implementations on vary
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-                   & Cores & Steps & Retries  \\ \hline \hline 
-    	Sequential & 1     & 39.4  & N/A      \\ \hline \hline   
-
-    	Lock-Based & 1     & 43.0  & N/A       \\ \hline
-    	Lock-Based & 2     & 51.8  & N/A       \\ \hline
-    	Lock-Based & 3     & 57.4  & N/A       \\ \hline
-    	Lock-Based & 4     & 58.1  & N/A       \\ \hline \hline   
-   		
-   		STM TVar   & 1     & \textbf{47.3}  & 0.0       \\ \hline
-   		STM TVar   & 2     & 53.5  & 1.1       \\ \hline
-   		STM TVar   & 3     & 57.1  & 2.2 	   \\ \hline
-   		STM TVar   & 4     & 53.0  & 3.2	   \\ \hline \hline   
-   		
-   		STM TArray & 1     & 45.4  & 0.0 	   \\ \hline
-   		STM TArray & 2     & \textbf{65.3}  & 0.02      \\ \hline
-   		STM TArray & 3     & \textbf{75.7}  & 0.04      \\ \hline
-   		STM TArray & 4     & \textbf{84.4}  & 0.05	   \\ \hline \hline   
-   	\end{tabular}
+%  	\begin{tabular}{ c || c | c | c }
+%                   & Cores & Steps & Retries  \\ \hline \hline 
+%    	Sequential & 1     & 39.4  & N/A      \\ \hline \hline   
+%
+%    	Lock-Based & 1     & 43.0  & N/A       \\ \hline
+%    	Lock-Based & 2     & 51.8  & N/A       \\ \hline
+%    	Lock-Based & 3     & 57.4  & N/A       \\ \hline
+%    	Lock-Based & 4     & 58.1  & N/A       \\ \hline \hline   
+%   		
+%   		STM TVar   & 1     & \textbf{47.3}  & 0.0       \\ \hline
+%   		STM TVar   & 2     & 53.5  & 1.1       \\ \hline
+%   		STM TVar   & 3     & 57.1  & 2.2 	   \\ \hline
+%   		STM TVar   & 4     & 53.0  & 3.2	   \\ \hline \hline   
+%   		
+%   		STM TArray & 1     & 45.4  & 0.0 	   \\ \hline
+%   		STM TArray & 2     & \textbf{65.3}  & 0.02      \\ \hline
+%   		STM TArray & 3     & \textbf{75.7}  & 0.04      \\ \hline
+%   		STM TArray & 4     & \textbf{84.4}  & 0.05	   \\ \hline \hline   
+%   	\end{tabular}
+  	
+	\begin{tabular}{cc|c|c}
+		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
+		\multicolumn{1}{ |c| }{Cores} & Steps & Retries      \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{1}{*}{Sequential} } &
+		\multicolumn{1}{ |c| }{1} & 39.4 & N/A     \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based} } &
+		\multicolumn{1}{ |c| }{1} & 43.0 & N/A       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{2} & 51.8 & N/A   \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{3} & 57.4 & N/A   \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{4} & 58.1 & N/A   \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TVar}} } &
+		\multicolumn{1}{ |c| }{1} & \textbf{47.3} & 0.0       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{2} & 53.5 & 1.1    \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{3} & 57.1 & 2.2    \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{4} & 53.0 & 3.2   \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TArray}} } &
+		\multicolumn{1}{ |c| }{1} & 45.4 & 0.0       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{2} & \textbf{65.3} & 0.02   \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{3} & \textbf{75.7} & 0.04    \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{4} & \textbf{84.4} & 0.05   \\ \hline \hline 
+	\end{tabular}  	
   	
   	\caption{Steps per second and retries on 50x50 grid with 500 initial agents on varying cores.}
 	\label{tab:varying_cores}
@@ -142,14 +177,29 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-                   & Cores & Carrying Capacity & Rebirthing  \\ \hline \hline 
-    	Lock-Based & 16    & 53.9              & 4.4         \\ \hline
-    	Lock-Based & 32    & 44.2              & 3.6         \\ \hline \hline 
-   		
-   		STM TArray & 16    & \textbf{116.8} (0.23)      & \textbf{39.5} (0.08) \\ \hline
-   		STM TArray & 32    & 109.8 (0.41)      & 31.3 (0.18) \\ \hline \hline 
-   	\end{tabular}
+%  	\begin{tabular}{ c || c | c | c }
+%                   & Cores & Carrying Capacity & Rebirthing  \\ \hline \hline 
+%    	Lock-Based & 16    & 53.9              & 4.4         \\ \hline
+%    	Lock-Based & 32    & 44.2              & 3.6         \\ \hline \hline 
+%   		
+%   		STM TArray & 16    & \textbf{116.8} (0.23)      & \textbf{39.5} (0.08) \\ \hline
+%   		STM TArray & 32    & 109.8 (0.41)      & 31.3 (0.18) \\ \hline \hline 
+%   	\end{tabular}
+  	
+	\begin{tabular}{cc|c|c}
+		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
+		\multicolumn{1}{ |c| }{Cores} & Carrying Capacity    & Rebirthing       \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{2}{*}{Lock-Based} } &
+		\multicolumn{1}{ |c| }{16} & 53.9              & 4.4       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{32} & 44.2              & 3.6      \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{2}{*}{STM TArray} } &
+		\multicolumn{1}{ |c| }{16} & \textbf{116.8} (0.23)      & \textbf{39.5} (0.08)       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{32} & 109.8 (0.41)      & 31.3 (0.18)      \\ \hline \hline 
+	\end{tabular}  	
   	
   	\caption{Steps per second on varying cores on Amazon S2 Services.}
 	\label{tab:sug_varying_cores_amazon}

@@ -196,6 +196,6 @@ Reflecting of the performance data leads to the following insights:
 	\item Running in STM and sharing state using a transactional variable is much more time- and memory-efficient than running in a read/write shared state context but potentially sacrifices determinism: repeated runs might not lead to same dynamics despite same initial conditions.
 	\item Running STM on multiple cores concurrently \textit{does} lead to a significant performance improvement for that case-study.
 	\item \textit{STM} outperforms the \textit{Lock-Based} implementation substantially and scales much better to multiple cores.
-	\item \textit{STM} on single (1) core is still about twice as slow than an object-oriented Java \textit{RePast} implementation on a single (1) core.
+	\item \textit{STM} on single (1) core is still about half as fast as an object-oriented Java \textit{RePast} implementation on a single (1) core.
 	\item \textit{STM} on multiple cores dramatically outperforms the single (1) core object-oriented Java \textit{RePast} implementation on a single (1) core on instances with large agent numbers and scales much better to increasing number of agents.
 \end{enumerate}

@@ -53,37 +53,17 @@ The model specification requires to shuffle agents before every step (Footnote 1
 
 Note that in the concurrent implementations we could have two options for running the environment: either running it asynchronously as a concurrent agent at the same time with the population agents or synchronously after all agents have run. We must be careful though as running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. It could happen in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications.
 
-We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation over 60 seconds.
+We follow \cite{lysenko_framework_2008} and measure the average number of steps per second of the simulation over 60 seconds.
 
 For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report the average. In the experiments we varied the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using the \textit{stack} tool with the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores.
 
-Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is crucial in ABS, it is not what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step piped into a file, thus omitting slow output to the console \footnote{Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in ridiculous high number of steps per second but which obviously don't really reflect the true computations done.}.
+Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is often important in ABS, it is not what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step piped into a file, thus omitting slow output to the console \footnote{Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in high number of steps per second but which obviously don't really reflect the true computations done.}.
 
 \subsection{Constant Agent Size}
 In this first approach we compare the performance of all implementations on varying numbers of cores. The results are reported in Table \ref{tab:varying_cores} and can be seen in Figure \ref{fig:varying_cores}. 
 
 \begin{table}
 	\centering
-%  	\begin{tabular}{ c || c | c | c }
-%                   & Cores & Steps & Retries  \\ \hline \hline 
-%    	Sequential & 1     & 39.4  & N/A      \\ \hline \hline   
-%
-%    	Lock-Based & 1     & 43.0  & N/A       \\ \hline
-%    	Lock-Based & 2     & 51.8  & N/A       \\ \hline
-%    	Lock-Based & 3     & 57.4  & N/A       \\ \hline
-%    	Lock-Based & 4     & 58.1  & N/A       \\ \hline \hline   
-%   		
-%   		STM TVar   & 1     & \textbf{47.3}  & 0.0       \\ \hline
-%   		STM TVar   & 2     & 53.5  & 1.1       \\ \hline
-%   		STM TVar   & 3     & 57.1  & 2.2 	   \\ \hline
-%   		STM TVar   & 4     & 53.0  & 3.2	   \\ \hline \hline   
-%   		
-%   		STM TArray & 1     & 45.4  & 0.0 	   \\ \hline
-%   		STM TArray & 2     & \textbf{65.3}  & 0.02      \\ \hline
-%   		STM TArray & 3     & \textbf{75.7}  & 0.04      \\ \hline
-%   		STM TArray & 4     & \textbf{84.4}  & 0.05	   \\ \hline \hline   
-%   	\end{tabular}
-  	
 	\begin{tabular}{cc|c|c}
 		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
 		\multicolumn{1}{ |c| }{Cores} & Steps & Retries      \\ \hline \hline 
@@ -215,7 +195,7 @@ As expected, the \textit{Lock-Based} approach doesn't scale up to many cores bec
 %Rebirthing 32 core ~ 0.18 retry-ratio
 
 \subsection{Comparison with other approaches}
-The paper \cite{lysenko_framework_2008} reports a performance of 17 steps in RePast, 18 steps in MASON (both non-parallel) and 2,000 steps per second on a GPU on a 128x128 grid. Although our \textit{Sequential} implementation which runs non-parallel as well outperforms the RePast and MASON implementations one must be very well aware that these results were generated in 2008, on 10 year older hardware - the performance might have caught up by now and even outperform our functional \textit{Sequential} approach. 
+The paper \cite{lysenko_framework_2008} reports a performance of 17 steps in RePast, 18 steps in MASON (both non-parallel) and 2,000 steps per second on a GPU on a 128x128 grid. Although our \textit{Sequential} implementation, which runs non-parallel as well, outperforms the RePast and MASON implementations of \cite{lysenko_framework_2008}, one must be very well aware that these results were generated in 2008, on current hardware of that time - the performance might have caught up by now and even outperform our functional \textit{Sequential} approach.
 
 Indeed, when we run the SugarScape example of RePast with the same model parameters as ours on the same machine (see Table \ref{tab:machine_specs}) we arrive at roughly 450 steps per second - a factor of about 3.8 faster than even our STM \textit{TArray} implementation on 16 cores. This might seem quite shocking, even more so because RePast also performs visual output, rendering the SugarScape in every step. When scaling up the agents to 2,500 the RePast version arrives around roughly 95 steps per second which is still faster by a factor of 3 than our 4 core \textit{TArray} implementation. We attribute this substantial performance difference to  the inherent deeper complexity of the model where it seems that imperative implementations seem to have an advantage. Still our research is just a first step and might result in future work, increasing performance.
 

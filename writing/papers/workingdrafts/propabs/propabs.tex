@@ -47,7 +47,7 @@
 
 % Title portion. Note the short title for running heads
 \title[Hands Off My Property!]{Hands Off My Property!}
-\subtitle{Debugging And Property-Based Testing Of \\ Pure Functional Agent-Based Simulations}
+\subtitle{The Potential Of Property-Based Testing In Agent-Based Simulation}
 
 \author{Jonathan Thaler}
 \orcid{https://orcid.org/0000-0001-8736-0479}
@@ -60,15 +60,9 @@
   \country{United Kingdom}}
 
 \begin{abstract}
-This paper presents a new approach to test the implementation of agent-based simulations, called property-based testing which allows to test specifications much more directly than unit tests. Although being more expressive than unit tests, property-based testing is seen as a complementary and does not make unit-testing obsolete. We present two different models as case-studies in which we will show how to apply property-based testing to exploratory and explanatory agent-based models and what its limits are.
-We conduct our implementations in the pure functional programming language Haskell, which is the origin of property-pased testing. We show that simply by switching to such a language one gets rid of a large class of run-time bugs and is able to make stronger guarantees of correctness already at compile time without writing tests for some parts. Further, it makes isolated unit-tests quite easier.
+This paper presents a new and complementary approach to unit-testing the implementation of agent-based simulations, called property-based testing which allows to test specifications of the implementation directly in code which is then tested using \textit{automated} test-data generation. We present two different models as case-studies in which we will show how to apply property-based testing to exploratory and explanatory agent-based models and what its limits are.
 
-TODO: this would be ideal to submit to an ABS conference so i can also discuss functional programming
-
-TODO: write related research
-TODO: implement case study 1: property-testing of SIR
-TODO: implement case study 2: property-testing of Sugarscape
-TODO: write conclusion \& further research
+We conduct our implementations in the pure functional programming language Haskell, which is the origin of property-based testing. Also we show that simply by switching to such a language one gets rid of a large class of run-time bugs and is able to make stronger guarantees of correctness already at compile time without writing tests for some parts. Further, it makes isolated unit-tests quite easier.
 \end{abstract}
 
 %
@@ -116,6 +110,8 @@ TODO: write conclusion \& further research
 \maketitle
 
 \input{./tex/introduction.tex}
+
+\input{./tex/related.tex}
 
 \input{./tex/fp.tex}
 

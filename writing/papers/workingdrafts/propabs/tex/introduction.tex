@@ -24,7 +24,7 @@ Thus we can say that test-driven development in general and unit-testing togethe
 
 % relation to parameter variation
 TODO: find out what property-based testing makes different from parameter variation - is there any difference?
-\cite{figueredo_comparing_2014}
+The work of \cite{figueredo_comparing_2014} compares System Dynamics approaches to Cancer Cell simulations to ABS. They investigate the statistical differences between a deterministic ODE (ordinary differential equation), a stochastic Gillespie Algorithm and a stochastic ABS approach. The authors reported that the larger the population size is the closer the 3 approaches matches, especially ABS matches the System Dynamics approaches more closely. Still they found that ABS is capable of capturing "rare" patterns which is due to the memory and stochastic variability on the individual level. 
 
 % the gap 
 In this paper we discuss a complementary method of testing the implementation of an ABS, called \textit{property-based} testing, which allows to directly express model-specifications in code and test them through \textit{automated} test-data generation. We see it as an addition to TDD where it works in combination with unit-testing to verify and validate a simulation to increase the confidence in its correctness.

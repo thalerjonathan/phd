@@ -1,13 +1,14 @@
 {-# LANGUAGE Arrows #-}
 module SIRYampaTests 
   ( sirYampaTests
+  , tTest
   ) where
 
 import Data.List
 import Data.Maybe
 import Data.Void
 import FRP.Yampa
---import Debug.Trace
+import Debug.Trace
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
@@ -306,7 +307,6 @@ prop_SIRSim :: RandomGen g
             -> [SIRState]
             -> Bool
 prop_SIRSim g0 as 
-{-
     = trace ("as: " ++ show as ++ 
              "\n, infectionRateSim = " ++ show infectionRateSim ++ 
              "\n, recoveryRateSim = " ++ show recoveryRateSim ++ 
@@ -316,15 +316,9 @@ prop_SIRSim g0 as
              "\n, infTarget " ++ show infTarget ++ 
              "\n, recTarget " ++ show recTarget ++
 
-             "\n, susAvg " ++ show susAvg ++ 
-             "\n, infAvg " ++ show infAvg ++ 
-             "\n, recAvg " ++ show recAvg ++
-             
-             "\n, susPropEps " ++ show susPropEps ++ 
-             "\n, infPropEps " ++ show infPropEps ++ 
-             "\n, recPropEps " ++ show recPropEps) as /= as
-             -}
-    = susPropEps && infPropEps && recPropEps
+             "\n, susTTest " ++ show susTTest ++ 
+             "\n, infTTest " ++ show infTTest ++ 
+             "\n, recTTest " ++ show recTTest) susTTest && infTTest && recTTest
   where
     t  = 1.0
     dt = 0.01
@@ -342,21 +336,20 @@ prop_SIRSim g0 as
     infTarget = inf0 + (infectionRateSim - recoveryRateSim)
     recTarget = rec0 + recoveryRateSim
     
+    -- note that the number of repls is important for the t-test below
+    -- for now it is set to > 1000, if going below one needs to adopt the
+    -- values in the t-test
     repls   = 10000
     (gs, _) = rngSplits g0 repls []
 
     sir = foldr (\g' acc -> prop_SIRSimAux g' : acc) ([] :: [(Double, Double, Double)]) gs
     (sus', inf', rec') = unzip3 sir
 
-    susAvg = sum sus' / fromIntegral repls
-    infAvg = sum inf' / fromIntegral repls
-    recAvg = sum rec' / fromIntegral repls
+    alpha = 0.05
 
-    eps = 0.1
-
-    susPropEps = abs (susTarget - susAvg) < eps
-    infPropEps = abs (infTarget - infAvg) < eps
-    recPropEps = abs (recTarget - recAvg) < eps
+    susTTest = tTest sus' susTarget alpha
+    infTTest = tTest inf' infTarget alpha
+    recTTest = tTest rec' recTarget alpha
 
     prop_SIRSimAux :: RandomGen g 
                    => g
@@ -369,46 +362,30 @@ prop_SIRSim g0 as
         inf  = fromIntegral $ length $ filter (==Infected) as'
         recs = fromIntegral $ length $ filter (==Recovered) as'
 
--- TODO: do confidence intervals make sense here?
--- also how do we construct them?
-{-
-calcConf :: Double
-         -> [(Double, Double, Double)]
-         -> [(Double, Double, Double)]
-         -> (Double, Double, Double)
-calcConf alpha sdDyns absDyns = (tDistSample, tDistSample, tDistSample)
+-- a one-sided t-test with a given expected median and some confidence interval alpha
+-- taken from http://www.statisticssolutions.com/manova-analysis-one-sample-t-test/
+tTest :: [Double] 
+      -> Double
+      -> Double
+      -> Bool
+tTest ys m0 alpha 
+    | sigma == 0 = True 
+    | otherwise =  trace ("\n n = " ++ show n ++ 
+                      "\n mu = " ++ show mu ++ 
+                      "\n sigma = " ++ show sigma ++ 
+                      "\n t = " ++ show t 
+                      --"\n p = " ++ show p
+                      ) (1 - p <= alpha)
   where
-    (sdSus, sdInf, sdRec)    = unzip3 sdDyns
-    (absSus, absInf, absRec) = unzip3 absDyns
+    n     = length ys
+    mu    = SIRYampaTests.mean ys
+    sigma = SIRYampaTests.std ys
 
-    -- assuming all are same length
-    n = fromIntegral $ length sdSus
+    t = (mu - m0) / (sigma / sqrt (fromIntegral n))
 
-    sdSusMean = ABSFeedbackTests.mean sdSus
-    sdSusStd = ABSFeedbackTests.std sdSus
-
-    absSusMean = ABSFeedbackTests.mean absSus
-    absSusStd = ABSFeedbackTests.std absSus
-
-    degFree = n
-    tDist = StudT.studentT degFree
-    -- TODO: does not return the required value
-    tDistSample = Stat.density tDist ((1 - alpha) / 2)
--}
-
--- NOTE: this code was taken from https://hackage.haskell.org/package/dsp-0.2.3/docs/src/Numeric-Statistics-TTest.html#ttest
-ttest :: [Double] -- ^ X1
-      -> [Double] -- ^ X2
-      -> Double   -- ^ t
-ttest x1 x2 = t
-    where t = (mu1 - mu2) / s_d
-	  mu1 = Prelude.sum x1 / n1
-	  mu2 = Prelude.sum x2 / n2
-	  v1  = Prelude.sum (map (\x -> (x - mu1)^(2::Int)) x1)
-	  v2  = Prelude.sum (map (\x -> (x - mu2)^(2::Int)) x2)
-	  n1  = fromIntegral $ length $ x1
-	  n2  = fromIntegral $ length $ x2
-	  s_d = sqrt (((v1 + v2) / (n1+n2-2)) * (1/n1 + 1/n2))
+    degFree = fromIntegral $ n - 1
+    tDist   = StudT.studentT degFree
+    p       = 2 * Stat.cumulative tDist (abs t)
 
 mean :: [Double] -> Double
 mean xs = sum xs / fromIntegral (length xs)
@@ -416,5 +393,5 @@ mean xs = sum xs / fromIntegral (length xs)
 std :: [Double] -> Double
 std xs = sqrt $ sum (map (\x -> (x - x') ** 2) xs) / n
   where
-    x' = ABSFeedbackTests.mean xs 
+    x' = SIRYampaTests.mean xs 
     n = fromIntegral (length xs) - 1

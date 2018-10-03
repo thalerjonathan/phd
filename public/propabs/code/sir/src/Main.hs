@@ -6,10 +6,16 @@ import Test.Tasty
 
 import SIRYampaTests
 
--- to generate html from coverage use hpc:
--- hpc markup --hpcdir=/home/io.nathan/phd/coding/reports/verificationABS/Testing/.stack-work/dist/x86_64-linux-tinfo6/Cabal-2.0.1.0/hpc SIRABS.tix
+seed :: Int
+seed = 42
 
 main :: IO ()
 main = do
-  g <- getStdGen
+  -- fix RNG right from the beginning, to be 
+  let g = mkStdGen seed
+  setStdGen g
+
+  --let t = tTest [1..10] 5 0.05
+  --print t 
+
   defaultMain $ sirYampaTests g

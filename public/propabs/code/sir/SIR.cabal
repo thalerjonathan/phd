@@ -84,3 +84,4 @@ executable sir-prop-testing
                        -fno-warn-orphans
                        -fno-warn-unused-top-binds
                        -fno-warn-unused-local-binds
+                       -fno-warn-unused-imports

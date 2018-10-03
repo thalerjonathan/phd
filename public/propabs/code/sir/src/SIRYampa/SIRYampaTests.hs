@@ -7,9 +7,13 @@ import Data.List
 import Data.Maybe
 import Data.Void
 import FRP.Yampa
+--import Debug.Trace
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
+
+import Statistics.Distribution          as Stat
+import Statistics.Distribution.StudentT as StudT
 
 import SIRYampa
 
@@ -32,9 +36,10 @@ sirYampaTests :: RandomGen g
 sirYampaTests g 
   = testGroup 
       "SIR Yampa Tests" 
-      [ test_agents_init
-      , test_agent_behaviour_quickgroup g
+      [ -- test_agents_init
+      -- , test_agent_behaviour_quickgroup g
       --, test_agent_signal_quickgroup g
+      test_sir_sim g
       ]
 
 test_agents_init :: TestTree
@@ -57,6 +62,15 @@ test_agent_signal_quickgroup g
   = testGroup "agent signal behaviour"
       [ QC.testProperty "susceptible signal behaviour" (testCaseSusceptibleSignal g)
       , QC.testProperty "infected signal behaviour" (testCaseInfectedSignal g)]
+
+test_sir_sim :: RandomGen g
+             => g 
+             -> TestTree
+test_sir_sim g
+  = testGroup "SIR sim behaviour" 
+      -- TODO: generalise 
+      -- always assume at least one agent
+      [ QC.testProperty "SIR sim behaviour" (forAll (listOf1 arbitrary) $ prop_SIRSim g) ]
 
 prop_initAgents :: NonNegative Int -> NonNegative Int -> Bool
 prop_initAgents (NonNegative susceptibleCount) (NonNegative infectedCount)
@@ -287,3 +301,120 @@ _testCaseRecovered :: Void
 _testCaseRecovered = undefined
 
 -- TODO: integration tests: susceptible, infected and recovered all together / the whole simulation
+prop_SIRSim :: RandomGen g 
+            => g
+            -> [SIRState]
+            -> Bool
+prop_SIRSim g0 as 
+{-
+    = trace ("as: " ++ show as ++ 
+             "\n, infectionRateSim = " ++ show infectionRateSim ++ 
+             "\n, recoveryRateSim = " ++ show recoveryRateSim ++ 
+             -- "\n, sir " ++ show sir ++
+
+             "\n, susTarget " ++ show susTarget ++ 
+             "\n, infTarget " ++ show infTarget ++ 
+             "\n, recTarget " ++ show recTarget ++
+
+             "\n, susAvg " ++ show susAvg ++ 
+             "\n, infAvg " ++ show infAvg ++ 
+             "\n, recAvg " ++ show recAvg ++
+             
+             "\n, susPropEps " ++ show susPropEps ++ 
+             "\n, infPropEps " ++ show infPropEps ++ 
+             "\n, recPropEps " ++ show recPropEps) as /= as
+             -}
+    = susPropEps && infPropEps && recPropEps
+  where
+    t  = 1.0
+    dt = 0.01
+
+    n = length as
+
+    sus0 = (fromIntegral $ length $ filter (==Susceptible) as) :: Double
+    inf0 = (fromIntegral $ length $ filter (==Infected) as) :: Double
+    rec0 = (fromIntegral $ length $ filter (==Recovered) as) :: Double
+
+    infectionRateSim = (inf0 * paramContactRate * sus0 * paramInfectivity) / fromIntegral n
+    recoveryRateSim  = inf0 / paramIllnessDuration
+
+    susTarget = sus0 - infectionRateSim
+    infTarget = inf0 + (infectionRateSim - recoveryRateSim)
+    recTarget = rec0 + recoveryRateSim
+    
+    repls   = 10000
+    (gs, _) = rngSplits g0 repls []
+
+    sir = foldr (\g' acc -> prop_SIRSimAux g' : acc) ([] :: [(Double, Double, Double)]) gs
+    (sus', inf', rec') = unzip3 sir
+
+    susAvg = sum sus' / fromIntegral repls
+    infAvg = sum inf' / fromIntegral repls
+    recAvg = sum rec' / fromIntegral repls
+
+    eps = 0.1
+
+    susPropEps = abs (susTarget - susAvg) < eps
+    infPropEps = abs (infTarget - infAvg) < eps
+    recPropEps = abs (recTarget - recAvg) < eps
+
+    prop_SIRSimAux :: RandomGen g 
+                   => g
+                   -> (Double, Double, Double)
+    prop_SIRSimAux g = (sus, inf, recs)
+      where
+        as' = last $ runSimulationUntil g t dt as paramContactRate paramInfectivity paramIllnessDuration
+
+        sus  = fromIntegral $ length $ filter (==Susceptible) as'
+        inf  = fromIntegral $ length $ filter (==Infected) as'
+        recs = fromIntegral $ length $ filter (==Recovered) as'
+
+-- TODO: do confidence intervals make sense here?
+-- also how do we construct them?
+{-
+calcConf :: Double
+         -> [(Double, Double, Double)]
+         -> [(Double, Double, Double)]
+         -> (Double, Double, Double)
+calcConf alpha sdDyns absDyns = (tDistSample, tDistSample, tDistSample)
+  where
+    (sdSus, sdInf, sdRec)    = unzip3 sdDyns
+    (absSus, absInf, absRec) = unzip3 absDyns
+
+    -- assuming all are same length
+    n = fromIntegral $ length sdSus
+
+    sdSusMean = ABSFeedbackTests.mean sdSus
+    sdSusStd = ABSFeedbackTests.std sdSus
+
+    absSusMean = ABSFeedbackTests.mean absSus
+    absSusStd = ABSFeedbackTests.std absSus
+
+    degFree = n
+    tDist = StudT.studentT degFree
+    -- TODO: does not return the required value
+    tDistSample = Stat.density tDist ((1 - alpha) / 2)
+-}
+
+-- NOTE: this code was taken from https://hackage.haskell.org/package/dsp-0.2.3/docs/src/Numeric-Statistics-TTest.html#ttest
+ttest :: [Double] -- ^ X1
+      -> [Double] -- ^ X2
+      -> Double   -- ^ t
+ttest x1 x2 = t
+    where t = (mu1 - mu2) / s_d
+	  mu1 = Prelude.sum x1 / n1
+	  mu2 = Prelude.sum x2 / n2
+	  v1  = Prelude.sum (map (\x -> (x - mu1)^(2::Int)) x1)
+	  v2  = Prelude.sum (map (\x -> (x - mu2)^(2::Int)) x2)
+	  n1  = fromIntegral $ length $ x1
+	  n2  = fromIntegral $ length $ x2
+	  s_d = sqrt (((v1 + v2) / (n1+n2-2)) * (1/n1 + 1/n2))
+
+mean :: [Double] -> Double
+mean xs = sum xs / fromIntegral (length xs)
+
+std :: [Double] -> Double
+std xs = sqrt $ sum (map (\x -> (x - x') ** 2) xs) / n
+  where
+    x' = ABSFeedbackTests.mean xs 
+    n = fromIntegral (length xs) - 1

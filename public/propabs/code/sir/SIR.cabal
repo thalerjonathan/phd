@@ -52,7 +52,8 @@ executable sir-prop-testing
   -- Modules included in this executable, other than Main.
   other-modules:        SIRYampa
                       , SIRYampaTests
-
+                      , Utils
+                      
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
   
@@ -82,3 +83,4 @@ executable sir-prop-testing
                        -fwarn-tabs
                        -fno-warn-orphans
                        -fno-warn-unused-top-binds
+                       -fno-warn-unused-local-binds

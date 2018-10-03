@@ -2,6 +2,8 @@
 module SIRYampa 
   ( runSIRYampa
   , defaultSIRYampaCtx
+  , runSimulationUntil
+  , rngSplits
 
   , SIRState (..)
   , SIRYampaSimCtx (..)
@@ -12,10 +14,15 @@ module SIRYampa
   , recoveredAgent
 
   , initAgents
+
+  , randomBoolSF
+  , randomBoolSF_
   ) where
 
 import Control.Monad.Random
 import FRP.Yampa
+
+import Utils
 
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 type SIRAgent = SF [SIRState] SIRState
@@ -60,7 +67,7 @@ runSIRYampa simCtx
     t  = syCtxTimeLimit simCtx
     dt = syCtxTimeDelta simCtx
     g  = syCtxRng simCtx
-      
+
     agentCount = syCtxAgentCount simCtx
     infected   = syCtxInfected simCtx
 
@@ -70,10 +77,10 @@ runSIRYampa simCtx
 
     as = initAgents agentCount infected
 
-runSimulationUntil :: RandomGen g 
-                   => g 
-                   -> Time 
-                   -> DTime 
+runSimulationUntil :: RandomGen g
+                   => g
+                   -> Time
+                   -> DTime
                    -> [SIRState]
                    -> Double
                    -> Double
@@ -87,12 +94,6 @@ runSimulationUntil g0 t dt as cr inf dur
 
     (rngs, _) = rngSplits g0 (length as) []
     sfs       = zipWith (sirAgent cr inf dur) rngs as
-
-rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
-rngSplits g 0 acc = (acc, g)
-rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
-  where
-    (g', g'') = split g
 
 stepSimulation :: [SIRAgent] 
                -> [SIRState] 
@@ -145,7 +146,7 @@ susceptibleAgent contactRate infectivity illnessDuration g0 =
           a <- drawRandomElemSFSafe g -< as
           case a of
             Just Infected -> do
-              i <- randomBoolSF g infectivity -< ()
+              i <- randomBoolSF g -< infectivity
               if i
                 then returnA -< (Infected, Event ())
                 else returnA -< (Susceptible, NoEvent)
@@ -173,8 +174,13 @@ infectedAgent illnessDuration g =
 recoveredAgent :: SIRAgent
 recoveredAgent = arr (const Recovered)
 
-randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
-randomBoolSF g p = proc _ -> do
+randomBoolSF_ :: RandomGen g => g -> Double -> SF () Bool
+randomBoolSF_ g p = proc _ -> do
+  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+  returnA -< (r <= p)
+
+randomBoolSF :: RandomGen g => g -> SF Double Bool
+randomBoolSF g = proc p -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   returnA -< (r <= p)
 

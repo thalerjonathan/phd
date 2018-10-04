@@ -13,10 +13,8 @@ import Debug.Trace
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import Statistics.Distribution          as Stat
-import Statistics.Distribution.StudentT as StudT
-
 import SIRYampa
+import StatsUtils
 
 instance Arbitrary SIRState where
   -- arbitrary :: Gen SIRState
@@ -306,8 +304,8 @@ prop_SIRSim :: RandomGen g
             => g
             -> [SIRState]
             -> Bool
-prop_SIRSim g0 as 
-    = trace ("as: " ++ show as ++ 
+prop_SIRSim g0 as {-
+    = trace ("\n  as: " ++ show as ++ 
              "\n, infectionRateSim = " ++ show infectionRateSim ++ 
              "\n, recoveryRateSim = " ++ show recoveryRateSim ++ 
              -- "\n, sir " ++ show sir ++
@@ -316,9 +314,19 @@ prop_SIRSim g0 as
              "\n, infTarget " ++ show infTarget ++ 
              "\n, recTarget " ++ show recTarget ++
 
+             "\n, susAvg " ++ show susAvg ++ 
+             "\n, infAvg " ++ show infAvg ++ 
+             "\n, recAvg " ++ show recAvg ++
+
              "\n, susTTest " ++ show susTTest ++ 
              "\n, infTTest " ++ show infTTest ++ 
-             "\n, recTTest " ++ show recTTest) susTTest && infTTest && recTTest
+             "\n, recTTest " ++ show recTTest ++
+             
+             "\n, susProp " ++ show susProp ++ 
+             "\n, infProp " ++ show infProp ++ 
+             "\n, recProp " ++ show recProp) susProp && infProp && recProp
+             -}
+    = trace ("\nas: " ++ show as) susProp && infProp && recProp
   where
     t  = 1.0
     dt = 0.01
@@ -336,21 +344,28 @@ prop_SIRSim g0 as
     infTarget = inf0 + (infectionRateSim - recoveryRateSim)
     recTarget = rec0 + recoveryRateSim
     
-    -- note that the number of repls is important for the t-test below
-    -- for now it is set to > 1000, if going below one needs to adopt the
-    -- values in the t-test
     repls   = 10000
     (gs, _) = rngSplits g0 repls []
 
     sir = foldr (\g' acc -> prop_SIRSimAux g' : acc) ([] :: [(Double, Double, Double)]) gs
     (sus', inf', rec') = unzip3 sir
 
-    alpha = 0.05
+    alpha = 0.5
 
-    susTTest = tTest sus' susTarget alpha
-    infTTest = tTest inf' infTarget alpha
-    recTTest = tTest rec' recTarget alpha
+    susTTest = tTest "sus" sus' susTarget alpha
+    infTTest = tTest "inf" inf' infTarget alpha
+    recTTest = tTest "rec" rec' recTarget alpha
 
+    eps = 0.25
+
+    susAvg = mean sus'
+    infAvg = mean inf'
+    recAvg = mean rec'
+  
+    susProp = fromMaybe (avgTest sus' susTarget eps) susTTest
+    infProp = fromMaybe (avgTest inf' infTarget eps) infTTest
+    recProp = fromMaybe (avgTest rec' recTarget eps) recTTest
+    
     prop_SIRSimAux :: RandomGen g 
                    => g
                    -> (Double, Double, Double)
@@ -361,37 +376,3 @@ prop_SIRSim g0 as
         sus  = fromIntegral $ length $ filter (==Susceptible) as'
         inf  = fromIntegral $ length $ filter (==Infected) as'
         recs = fromIntegral $ length $ filter (==Recovered) as'
-
--- a one-sided t-test with a given expected median and some confidence interval alpha
--- taken from http://www.statisticssolutions.com/manova-analysis-one-sample-t-test/
-tTest :: [Double] 
-      -> Double
-      -> Double
-      -> Bool
-tTest ys m0 alpha 
-    | sigma == 0 = True 
-    | otherwise =  trace ("\n n = " ++ show n ++ 
-                      "\n mu = " ++ show mu ++ 
-                      "\n sigma = " ++ show sigma ++ 
-                      "\n t = " ++ show t 
-                      --"\n p = " ++ show p
-                      ) (1 - p <= alpha)
-  where
-    n     = length ys
-    mu    = SIRYampaTests.mean ys
-    sigma = SIRYampaTests.std ys
-
-    t = (mu - m0) / (sigma / sqrt (fromIntegral n))
-
-    degFree = fromIntegral $ n - 1
-    tDist   = StudT.studentT degFree
-    p       = 2 * Stat.cumulative tDist (abs t)
-
-mean :: [Double] -> Double
-mean xs = sum xs / fromIntegral (length xs)
-
-std :: [Double] -> Double
-std xs = sqrt $ sum (map (\x -> (x - x') ** 2) xs) / n
-  where
-    x' = SIRYampaTests.mean xs 
-    n = fromIntegral (length xs) - 1

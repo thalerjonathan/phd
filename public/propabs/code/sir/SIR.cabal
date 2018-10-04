@@ -52,6 +52,7 @@ executable sir-prop-testing
   -- Modules included in this executable, other than Main.
   other-modules:        SIRYampa
                       , SIRYampaTests
+                      , StatsUtils
                       , Utils
                       
   -- LANGUAGE extensions used by modules in this package.

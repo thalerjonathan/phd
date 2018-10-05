@@ -21,8 +21,8 @@ In this case study we compare the performance of the following implementations u
 
 \begin{enumerate}
 	\item Sequential - This is the original implementation as discussed in \cite{thaler_pure_2019} where the discrete 2D grid is shared amongst all agents as read-only data and the agents are executed sequentially within the main thread without any concurrency.
-	\item STM - This is the same implementation like the \textit{Sequential} but instead of sharing the discrete 2D grid in a read/write state context, agents run in the STM context and have access to the discrete 2D grid through a transactional variable \textit{TVar}. This means that the reads and writes of the discrete 2D grid are exactly the same but always go through the \textit{TVar}.
-	\item Lock-Based - This is exactly the same implementation like the \textit{STM} one, but instead of running in the STM context, the agents now run in IO context. They share the discrete 2D grid using a global reference and have access to a lock to synchronise access to it.
+	\item STM - This is the same implementation as the \textit{Sequential} but instead of sharing the discrete 2D grid in a read/write state context, agents run in the STM context and have access to the discrete 2D grid through a transactional variable \textit{TVar}. This means that the reads and writes of the discrete 2D grid are exactly the same but always go through the \textit{TVar}.
+	\item Lock-Based - This is exactly the same implementation as the \textit{STM} one, but instead of running in the STM context, the agents now run in IO context. They share the discrete 2D grid using a global reference and have access to a lock to synchronise access to it.
 	\item RePast - To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we implemented a Java version of the SIR model using RePast \cite{north_complex_2013} with the State-Chart feature. This implementation cannot run on multiple cores concurrently but gives a good estimate of the single core performance of imperative approaches. Although there exists a RePast High Performance Computing library for implementing large-scale distributed simulations in C++ - we leave this for further research as an implementation and comparison is out of scope of this paper.
 \end{enumerate}
 
@@ -78,20 +78,23 @@ In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and 
 		\multicolumn{1}{ |c| }{1} & \textbf{10.8}      \\ \hline \hline 
 	\end{tabular}
   	
-  	\caption{Experiments on constant 51x51 (2,601 agents) grid with varying number of cores.}
+  	\caption{Experiments on 51x51 (2,601 agents) grid with varying number of cores.}
 	\label{tab:constgrid_varyingcores}
 \end{table}
 
-Comparing the performance and scaling to multiple cores of the \textit{STM} and \textit{Lock-Based} implementations shows that the \textit{STM} implementation significantly outperforms the \textit{Lock-Based} one and scales better to multiple cores. The \textit{Lock-Based} implementation performs best with 3 cores and shows slightly worse performance on 4 cores as can be seen in Figure \ref{fig:core_duration_stm_io}. This is no surprise because the more cores are running at the same time, the more contention for the lock, thus the more likely synchronisation happening, resulting in higher potential for reduced performance. This is not an issue in \textit{STM} because no locks are taken in advance. 
+Comparing the performance and scaling to multiple cores of the \textit{STM} and \textit{Lock-Based} implementations shows that the \textit{STM} implementation significantly outperforms the \textit{Lock-Based} one and scales better to multiple cores. The \textit{Lock-Based} implementation performs best with 3 cores and shows slightly worse performance on 4 cores as can be s een in Figure \ref{fig:core_duration_stm_io}. This is no surprise because the more cores are running at the same time, the more contention for the lock, thus the more likely synchronisation happening, resulting in higher potential for reduced performance. This is not an issue in \textit{STM} because no locks are taken in advance. 
 
 Comparing the reference \textit{Sequential} implementation shows that it is the slowest by far - even the single core \textit{STM} and \textit{Lock-Based} implementations outperform it by far. Also our profiling results reported about 30\% increased memory footprint for the \textit{Sequential} implementation. This shows that the read/write state context is a rather slow and memory intense approach sharing data but guarantees purity and excludes any non-deterministic side-effects which is not the case in STM and IO contexts.
 
-What comes a bit as a surprise is, that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do). We attribute this to the conceptually slower approach of functional programming. We might could have optimised parts of the code but leave this for further research.
+What comes a bit as a surprise is, that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do).
+
+TODO: Functional programming is not necessarily slower but some concepts can be. We build on the concepts developed in \cite{thaler_pure_2019} to implement our ABS which makes heavy use of Functional Reactive Programming, which can be substantially slower than imperative approaches. Also laziness is a problem which could make things quite slow.
+I need to do more reading / literature on performance of haskell and its problems, because it seems that haskell can be extremely fast if one does the right thing and gets laziness / strictness right.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sir/core_duration_stm_io.png}
-	\caption{Comparison of performance and scaling on multiple cores of STM vs. Lock-Based. Note that the Lock-Based implementation performs worse on 4 than on 3 cores.}
+	\caption{Comparison of performance and scaling on multiple cores of STM vs. Lock-Based. Note that the Lock-Based implementation performs worse on 4 than on 3 cores due to lock-contention.}
 	\label{fig:core_duration_stm_io}
 \end{figure}
 
@@ -113,7 +116,7 @@ In this experiment we varied the grid size and used constantly 4 cores. Because 
 	\label{tab:varyinggrid_constcores}
 \end{table}
 
-It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Based} implementation by a substantial factor. Surprisingly, the \textit{Lock-Based} implementation on 4 core scales just slightly better with increasing agents number than on 3 cores, something we wouldn't have anticipated based on the results seen in Table \ref{tab:constgrid_varyingcores}. Also  while on a 51x51 grid the single (1) core Java \textit{RePast} version outperforms the 4 core Haskell \textit{STM} version by a factor of 2. The figure is inverted on a 251x251 grid where the 4 core Haskell \textit{STM} version outperforms the single core Java \textit{Repast} version by a factor of 6. This might not be entirely surprising because we compare single (1) core against multi-core performance - still the scaling is indeed impressive and we would never have anticipated an increase of factor 6.
+It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Based} implementation by a substantial factor. Surprisingly, the \textit{Lock-Based} implementation on 4 core scales just slightly better with increasing agents number than on 3 cores, something we wouldn't have anticipated based on the results seen in Table \ref{tab:constgrid_varyingcores}. Also  while on a 51x51 grid the single (1) core Java \textit{RePast} version outperforms the 4 core Haskell \textit{STM} version by a factor of 2. The figure is inverted on a 251x251 grid where the 4 core Haskell \textit{STM} version outperforms the single core Java \textit{Repast} version by a factor of 6. This might not be entirely surprising because we compare single (1) core against multi-core performance - still the scaling is indeed impressive and we would never have anticipated an increase of factor 6. %The RePast implementation shows an exponential increase of computation time whereas the other implementations scale linearly which we attribute to the use of multi-cores.
 
 \begin{figure}
 \begin{center}
@@ -179,7 +182,8 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 
-As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in an even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. In both STM cases we measured have a retry-ratio of 0 which means it seems that at this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism. 
+As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in an even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. In both STM cases we measured a retry-ratio of 0 which means it seems that at this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism. 
+TODO: this doesn't still add up, shouldnt get slower because of more cores, the agent numbers are the same, maybe because of overhead because transactions are very small?
 
 %TODO: why? need to check retries  
 %TODO: the INCREASE in time can only happen due to more retries 

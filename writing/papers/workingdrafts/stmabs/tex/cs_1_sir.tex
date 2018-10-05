@@ -88,8 +88,9 @@ Comparing the reference \textit{Sequential} implementation shows that it is the 
 
 What comes a bit as a surprise is, that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do).
 
-TODO: Functional programming is not necessarily slower but some concepts can be. We build on the concepts developed in \cite{thaler_pure_2019} to implement our ABS which makes heavy use of Functional Reactive Programming, which can be substantially slower than imperative approaches. Also laziness is a problem which could make things quite slow.
+TODO: Benchmarks comparing Haskell to Java seems that Haskell slightly outperforms Java in some benchmarks where it is significantly outperformed by Java on most of the cases. C and C++ outperforms Haskell in all cases. https://benchmarksgame-team.pages.debian.net/benchmarksgame/faster/haskell.html. This is a strong indication that Haskell is in general not as fast as Java, C and C++. There exists lots of advanced techniques where Haskell can approach a performance like C but this comes always at the cost of more complex features, some of them not part of the language standard, more complex code and ultimately requires lots of experience. We build on the concepts developed in \cite{thaler_pure_2019} to implement our ABS which makes heavy use of Functional Reactive Programming, which can be substantially slower than imperative approaches. Also laziness is a problem which could make things quite slow.
 I need to do more reading / literature on performance of haskell and its problems, because it seems that haskell can be extremely fast if one does the right thing and gets laziness / strictness right.
+
 
 \begin{figure}
 	\centering
@@ -182,11 +183,9 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 
-As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in an even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. In both STM cases we measured a retry-ratio of 0 which means it seems that at this point we are running into Amdahls law and become dominated by the sequential part of the program which is the main lock-step mechanism. 
-TODO: this doesn't still add up, shouldnt get slower because of more cores, the agent numbers are the same, maybe because of overhead because transactions are very small?
+As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in an even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. In both STM cases we measured a retry-ratio of 0, thus we think that with 32 cores we become limited by the overhead of STM transactions \cite{perfumo_limits_2008} because the workload of an STM action in our SIR implementation is quite small.
 
-%TODO: why? need to check retries  
-%TODO: the INCREASE in time can only happen due to more retries 
+% NOTE: 0 retries in both cases means that the STM transactions themselves are becoming the bottleneck. this makes sens because the STM trasnactions in our SIR implementation are very small (especially recovered and infected agent) and could therefore really cause substantial overhead as pointed out by \cite{perfumo_limits_2008}
 %16 cores 251x251: 0.0 retry-ratio
 %32 cores 251x251: 0.0 retry ratio
 %

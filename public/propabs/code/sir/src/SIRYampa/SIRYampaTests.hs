@@ -13,6 +13,7 @@ import Debug.Trace
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
+import SIRSD
 import SIRYampa
 import StatsUtils
 
@@ -337,6 +338,10 @@ prop_SIRSim g0 as {-
     inf0 = (fromIntegral $ length $ filter (==Infected) as) :: Double
     rec0 = (fromIntegral $ length $ filter (==Recovered) as) :: Double
 
+    --use a different approach as well: run SD for 1.0 time-unit to create same number of samples and compare if they are from the same distribution
+    -- but in the end ABS will always show the variance in the behaviour than the average
+    sdDyn = runSD sus0 inf0 rec0 paramContactRate paramInfectivity paramIllnessDuration t dt
+
     infectionRateSim = (inf0 * paramContactRate * sus0 * paramInfectivity) / fromIntegral n
     recoveryRateSim  = inf0 / paramIllnessDuration
 
@@ -366,6 +371,11 @@ prop_SIRSim g0 as {-
     infProp = fromMaybe (avgTest inf' infTarget eps) infTTest
     recProp = fromMaybe (avgTest rec' recTarget eps) recTTest
     
+    -- TODO: use Wilcoxon and Mann-Whiteny tests https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test, https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+    -- to ceck if sdDyn and ABS are from same distribution, but need to return the number of agents over the whole run not just the last one
+
+    -- TODO: export to file which plots SD against 10.000 ABS runs in Matlab/Octave
+
     prop_SIRSimAux :: RandomGen g 
                    => g
                    -> (Double, Double, Double)
@@ -376,3 +386,4 @@ prop_SIRSim g0 as {-
         sus  = fromIntegral $ length $ filter (==Susceptible) as'
         inf  = fromIntegral $ length $ filter (==Infected) as'
         recs = fromIntegral $ length $ filter (==Recovered) as'
+

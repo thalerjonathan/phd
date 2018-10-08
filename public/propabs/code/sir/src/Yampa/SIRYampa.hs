@@ -1,19 +1,12 @@
 {-# LANGUAGE Arrows #-}
 module SIRYampa 
   ( runSIRYampa
-  , defaultSIRYampaCtx
-  , runSimulationUntil
-  , rngSplits
+  , runSIRYampaUntil
 
   -- expose agents behaviour functions as well 
   , susceptibleAgent
   , infectedAgent
   , recoveredAgent
-
-  , initAgents
-
-  , randomBoolSF
-  , randomBoolSF_
   ) where
 
 import Control.Monad.Random
@@ -28,31 +21,32 @@ runSIRYampa :: RandomGen g
             => SIRSimCtx g
             -> [(Double, Double, Double)]
 runSIRYampa simCtx
-    = runSimulationUntil g t dt as cr inf dur
+    = runSIRYampaUntil g t dt as cr inf dur
   where
     t  = syCtxTimeLimit simCtx
     dt = syCtxTimeDelta simCtx
     g  = syCtxRng simCtx
 
-    agentCount = syCtxAgentCount simCtx
-    infected   = syCtxInfected simCtx
+    s = syCtxSusceptible simCtx
+    i = syCtxInfected simCtx
+    r = syCtxRecovered simCtx
 
     cr  = syCtxContactRate simCtx
     inf = syCtxInfectivity simCtx
     dur = syCtxIllnessDur simCtx
 
-    as = initAgents agentCount infected
+    as = initAgents s i r
 
-runSimulationUntil :: RandomGen g
-                   => g
-                   -> Time
-                   -> DTime
-                   -> [SIRState]
-                   -> Double
-                   -> Double
-                   -> Double
-                   -> [(Double, Double, Double)]
-runSimulationUntil g0 t dt as cr inf dur 
+runSIRYampaUntil :: RandomGen g
+                 => g
+                 -> Time
+                 -> DTime
+                 -> [SIRState]
+                 -> Double
+                 -> Double
+                 -> Double
+                 -> [(Double, Double, Double)]
+runSIRYampaUntil g0 t dt as cr inf dur 
     = map sirAggregate ass 
   where
     steps = floor $ t / dt
@@ -99,7 +93,8 @@ susceptibleAgent contactRate infectivity illnessDuration g0 =
     switch 
       -- delay the switching by 1 step, otherwise could
       -- make the transition from Susceptible to Recovered within time-step
-      (susceptible g0 >>> iPre (Susceptible, NoEvent))
+      --(susceptible g0 >>> iPre (Susceptible, NoEvent))
+      (susceptible g0)
       (const $ infectedAgent illnessDuration g0)
   where
     susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())

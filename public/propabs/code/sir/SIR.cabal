@@ -45,19 +45,18 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-executable sir-prop-testing
+executable sir-prop-testing-dunai
   -- .hs or .lhs file containing the Main module.
-  main-is:              Main.hs
+  main-is:              SIRDunaiTestsMain.hs
   
   -- Modules included in this executable, other than Main.
   other-modules:        SIR
-                      , SIRDunai
-                      , SIRSD
-                      , SIRYampa
-                      , SIRYampaTests
                       , StatsUtils
                       , Utils
-                      
+                      , SIRDunai
+                      , SIRDunaiTests
+                      , SIRSDDunai
+
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
   
@@ -65,7 +64,6 @@ executable sir-prop-testing
   build-depends:        base
                       , bearriver
                       , dunai
-                      --, Yampa == 0.11
                       , MonadRandom
                       , containers
                       , mtl 
@@ -78,7 +76,53 @@ executable sir-prop-testing
                       
   -- Directories containing source files.
   hs-source-dirs:       src
+                      , src/Dunai
                       
+  -- Base language which the package is written in.
+  default-language:    Haskell2010
+  
+  ghc-options:         -O2
+                       -Wall 
+                       -Werror 
+                       -fwarn-tabs
+                       -fno-warn-orphans
+                       -fno-warn-unused-top-binds
+                       -fno-warn-unused-local-binds
+                       -fno-warn-unused-imports
+
+executable sir-prop-testing-yampa
+  -- .hs or .lhs file containing the Main module.
+  main-is:              SIRYampaTestsMain.hs
+  
+  -- Modules included in this executable, other than Main.
+  other-modules:        SIR                  
+                      , StatsUtils
+                      , Utils
+                      
+                      , SIRSDYampa
+                      , SIRYampa
+                      , SIRYampaTests
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:    
+  
+  -- Other library packages from which modules are imported.
+  build-depends:        base
+                      , Yampa == 0.11.1
+                      , MonadRandom
+                      , containers
+                      , mtl 
+                      , random
+                      , tasty
+                      , tasty-hunit
+                      , tasty-smallcheck
+                      , tasty-quickcheck
+                      , statistics
+                      
+  -- Directories containing source files.
+  hs-source-dirs:       src
+                      , src/Yampa
+
   -- Base language which the package is written in.
   default-language:    Haskell2010
   

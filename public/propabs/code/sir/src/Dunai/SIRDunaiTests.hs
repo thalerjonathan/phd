@@ -1,8 +1,9 @@
-module SIRTests 
-  ( sirYampaTests
-  , prop_SIRSim
+module SIRDunaiTests 
+  ( sirDunaiPropTests
+  , prop_dunai_sir
   ) where
 
+import Control.Monad.Random
 import Data.List
 import Data.Maybe
 import Data.Void
@@ -12,9 +13,11 @@ import Debug.Trace
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import SIRSD
-import SIRYampa
+import SIR
+import SIRSDDunai
+import SIRDunai
 import StatsUtils
+import Utils
 
 instance Arbitrary SIRState where
   -- arbitrary :: Gen SIRState
@@ -29,42 +32,19 @@ paramInfectivity = 0.05
 paramIllnessDuration :: Double
 paramIllnessDuration = 15.0
 
-sirPropTests :: RandomGen g
-             => g 
-             -> TestTree
-sirPropTests g 
+sirDunaiPropTests :: RandomGen g
+                  => g 
+                  -> TestTree
+sirDunaiPropTests g 
   = testGroup 
-      "SIR Simulation Tests" 
-      [ -- test_agents_init
-      test_sir_sim g
-      ]
+      "SIR Dunai Simulation Tests" 
+      [ QC.testProperty "SIR sim behaviour" (forAll (listOf1 arbitrary) $ prop_dunai_sir g) ]
 
-test_sir_sim :: RandomGen g
-             => g 
-             -> TestTree
-test_sir_sim g
-  = testGroup "SIR sim behaviour" 
-      -- TODO: generalise 
-      -- always assume at least one agent
-      [ QC.testProperty "SIR sim behaviour" (forAll (listOf1 arbitrary) $ prop_SIRSim g) ]
-
-prop_initAgents :: NonNegative Int -> NonNegative Int -> Bool
-prop_initAgents (NonNegative susceptibleCount) (NonNegative infectedCount)
-    = length as == susceptibleCount + infectedCount &&
-      sc        == susceptibleCount &&
-      ic        == infectedCount &&
-      notElem Recovered as
-  where 
-    as = initAgents susceptibleCount infectedCount 
-
-    sc = length $ filter (==Susceptible) as
-    ic = length $ filter (==Infected) as
-
-prop_SIRSim :: RandomGen g 
-            => g
-            -> [SIRState]
-            -> Bool
-prop_SIRSim g0 as 
+prop_dunai_sir :: RandomGen g 
+               => g
+               -> [SIRState]
+               -> Bool
+prop_dunai_sir g0 as 
     = trace ("\n  as: " ++ show as ++ 
 
              "\n, sus0 " ++ show sus0 ++ 
@@ -105,7 +85,7 @@ prop_SIRSim g0 as
 
     -- run SD for 1.0 time-unit to create same number of samples and compare if they are from the same distribution
     -- but in the end ABS will always show the variance in the behaviour than the average
-    sdDyn = runSD sus0 inf0 rec0 paramContactRate paramInfectivity paramIllnessDuration t dt
+    sdDyn = runDunaiSD sus0 inf0 rec0 paramContactRate paramInfectivity paramIllnessDuration t dt
 
     -- TODO: use Wilcoxon and Mann-Whiteny tests https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test, https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
     -- to ceck if sdDyn and ABS are from same distribution, but need to return the number of agents over the whole run not just the last one
@@ -119,7 +99,7 @@ prop_SIRSim g0 as
              "\n, recAvg " ++ show recAvg ++
 
              --"\n, sus' " ++ show sus' ++ 
-             "\n, inf' " ++ show inf' ++ 
+             --"\n, inf' " ++ show inf' ++ 
              --"\n, rec' " ++ show rec' ++
 
              "\n, susTTest " ++ show susTTest ++ 
@@ -137,9 +117,10 @@ prop_SIRSim g0 as
         -- TODO: seems to be too strict
         alpha = 0.1
 
-        susTTest = tTest "sus" sus' susTarget alpha
-        infTTest = tTest "inf" inf' infTarget alpha
-        recTTest = tTest "rec" rec' recTarget alpha
+        -- NOTE: t-test returns False when it is successful => invert it
+        susTTest = Just not <*> tTest "sus" sus' susTarget alpha
+        infTTest = Just not <*> tTest "inf" inf' infTarget alpha
+        recTTest = Just not <*> tTest "rec" rec' recTarget alpha
 
         -- in case there is no variance (all samples same) we simply compare
         -- the averages within a given epsilon of a 90% interval
@@ -156,4 +137,4 @@ prop_SIRSim g0 as
     runSIR :: RandomGen g 
            => g
            -> [(Double, Double, Double)]
-    runSIR g = runSimulationUntil g t dt as paramContactRate paramInfectivity paramIllnessDuration
+    runSIR g = runSIRDunaiUntil g t dt as paramContactRate paramInfectivity paramIllnessDuration

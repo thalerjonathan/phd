@@ -41,7 +41,7 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: #[]
-- Yampa-0.11
+- Yampa-0.11.1
 - dunai-0.4.0.0
 - bearriver-0.10.4.3
 

@@ -23,6 +23,9 @@ avgTest ys mu0 eps
 
 -- a one-sided t-test with a given expected median and some confidence interval alpha
 -- taken from http://www.statisticssolutions.com/manova-analysis-one-sample-t-test/
+-- http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.stat.inference/TTest.java.html
+-- the t-test returns False in case that the null-hypothesis cant be rejected, which means that the difference
+-- between expected mean and sample mean is statistically NOT significant (thus False)
 tTest :: String
       -> [Double]
       -> Double
@@ -31,7 +34,7 @@ tTest :: String
 tTest name ys m0 alpha 
     = case mayP of
         Nothing -> trace (name ++ ": cant perform t-test, t-value undefined because 0 variance!") Nothing
-        Just p  -> trace (name ++ ": p = " ++ show p) Just $ p < alpha 
+        Just p  -> trace (name ++ ": p = " ++ show p) Just $ p < (2 * alpha) -- its a 1-sided t-test => 2 * alpha
   where
     mayP = pValue $ tValue ys m0
 
@@ -41,7 +44,7 @@ tTest name ys m0 alpha
       where
         degFree = fromIntegral $ length ys - 1
         tDist   = StudT.studentT degFree
-        p       = (1 - Stat.cumulative tDist (abs t)) * 2.0
+        p       = 2 * Stat.cumulative tDist (-(abs t))
 
 -- note that t-value is undefined in case of a variance of 0: all samples are the same
 tValue :: [Double]

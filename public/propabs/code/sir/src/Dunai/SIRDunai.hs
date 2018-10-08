@@ -1,5 +1,8 @@
 {-# LANGUAGE Arrows     #-}
-module SIRDunai where
+module SIRDunai 
+  ( runSIRDunai
+  , runSIRDunaiUntil
+  ) where
 
 import           Control.Monad.Random
 import           Control.Monad.Reader
@@ -23,14 +26,15 @@ runSIRDunai simCtx
     dt = syCtxTimeDelta simCtx
     g  = syCtxRng simCtx
 
-    agentCount = syCtxAgentCount simCtx
-    infected   = syCtxInfected simCtx
+    s = syCtxSusceptible simCtx
+    i = syCtxInfected simCtx
+    r = syCtxRecovered simCtx
 
     cr  = syCtxContactRate simCtx
     inf = syCtxInfectivity simCtx
     dur = syCtxIllnessDur simCtx
 
-    as = initAgents agentCount infected
+    as = initAgents s i r
 
 runSIRDunaiUntil :: RandomGen g
                  => g
@@ -42,7 +46,7 @@ runSIRDunaiUntil :: RandomGen g
                  -> Double
                  -> [(Double, Double, Double)]
 runSIRDunaiUntil g0 tMax dt as0 cr inf dur
-    = runSIRDunaiUntilAux 0 g0 (simulationStep asSfs as0) [] 
+    = reverse $ runSIRDunaiUntilAux 0 g0 (simulationStep asSfs as0) [] 
   where
     asSfs = map (sirAgent cr inf dur) as0
 
@@ -59,7 +63,7 @@ runSIRDunaiUntil g0 tMax dt as0 cr inf dur
         sfReader        = unMSF sf ()
         sfRand          = runReaderT sfReader dt
         ((as, sf'), g') = runRand sfRand g
-        aggr = sirAggregate as
+        aggr            = sirAggregate as
         
         t'   = t + dt
         acc' = aggr : acc
@@ -69,17 +73,17 @@ simulationStep :: RandomGen g
                -> [SIRState]
                -> SF (SIRMonad g) () [SIRState]
 simulationStep sfs as = MSF $ \_ -> do
-    --let (sfs, coords) = unzip sfsCoords 
+  --let (sfs, coords) = unzip sfsCoords 
 
-    -- run all agents sequentially but keep the environment
-    -- read-only: it is shared as input with all agents
-    -- and thus cannot be changed by the agents themselves
-    -- run agents sequentially but with shared, read-only environment
-    ret <- mapM (`unMSF` as) sfs
-    -- construct new environment from all agent outputs for next step
-    let (as', sfs') = unzip ret
-        cont = simulationStep sfs' as'
-    return (as', cont)
+  -- run all agents sequentially but keep the environment
+  -- read-only: it is shared as input with all agents
+  -- and thus cannot be changed by the agents themselves
+  -- run agents sequentially but with shared, read-only environment
+  ret <- mapM (`unMSF` as) sfs
+  -- construct new environment from all agent outputs for next step
+  let (as', sfs') = unzip ret
+      cont = simulationStep sfs' as'
+  return (as', cont)
 
 sirAgent :: RandomGen g 
          => Double
@@ -100,7 +104,8 @@ susceptibleAgent cr inf dur
     = switch 
       -- delay the switching by 1 step, otherwise could
       -- make the transition from Susceptible to Recovered within time-step
-      (susceptible >>> iPre (Susceptible, NoEvent))
+      --(susceptible >>> iPre (Susceptible, NoEvent))
+      susceptible
       (const $ infectedAgent dur)
   where
     susceptible :: RandomGen g 
@@ -127,7 +132,8 @@ infectedAgent dur
     = switch
       -- delay the switching by 1 step, otherwise could
       -- make the transition from Susceptible to Recovered within time-step
-      (infected >>> iPre (Infected, NoEvent))
+      --(infected >>> iPre (Infected, NoEvent))
+      infected
       (const recoveredAgent)
   where
     infected :: RandomGen g => SF (SIRMonad g) [SIRState] (SIRState, Event ())

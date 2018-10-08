@@ -1,0 +1,11 @@
+concisely summarize why your paper is a valuable addition to the modeling and simulation field, particularly referring to modeling and simulation methods (see charter of TOMACS);
+
+briefly relate your study to previously published work;
+
+specify the type of article you are submitting (see Types of Submissions);
+
+suggest appropriate TOMACS Associated Editor(s) to handle your manuscript (or, in the case of Special Issues, simply indicate the name of the special issue);
+
+list at least two recommended reviewers (with whom you have not co-authored a paper within the last three years), including potentially opposed reviewers.
+
+include, in the case of Special Issues, all information requested by the guest editors as an appendix in the cover letter.

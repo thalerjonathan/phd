@@ -1,4 +1,6 @@
-\documentclass[format=acmsmall, review=true, screen=true]{acmart}		% ICFP
+\documentclass[format=acmsmall, review=true, screen=true]{acmart}
+
+\usepackage{booktabs} % For formal tables
 
 \usepackage{float}
 \usepackage{graphicx}
@@ -9,74 +11,52 @@
 \usepackage{multirow}
 
 % Metadata Information
-%% use defaults for review submission.
-%\acmConference[HS18]{Haskell Symposium}{2018}{09}
-%\acmYear{2018}
-%\copyrightyear{2018}
-\acmConference[IFL'18]{International Symposium on Implementation and Application of Functional Languages}{August 2019}{Lowell, MA, USA}
-\acmYear{2019}
-\copyrightyear{2019}
-%\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\acmJournal{TOMACS}
+\acmVolume{28}
+\acmNumber{4}
+\acmArticle{0}
+\acmYear{2018}
+\acmMonth{10}
+\copyrightyear{2018}
+%\acmArticleSeq{9}
 
 % Copyright
-%% use 'none' for review submission.
-\setcopyright{none}
-%\setcopyright{acmcopyright}	% = copyright transfer to ACM
-%\setcopyright{acmlicensed} 		% = retaining copyright but granting ACM exclusive publication rights
-%\setcopyright{rightsretained}  % = open access on payment of a fee
+%\setcopyright{none}
+%\setcopyright{acmcopyright}
+\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
 %\setcopyright{usgov}
 %\setcopyright{usgovmixed}
 %\setcopyright{cagov}
 %\setcopyright{cagovmixed}
 
-% TODO : get the data
 % DOI
-% \acmDOI{0000001.0000001}
+\acmDOI{0000001.0000001}
 
-% TODO: fill in
 % Paper history
-\received{May 2018}
-%\received[revised]{March 2018}
-%\received[accepted]{March 2018}
+\received{October 2018}
 
 % Document starts
 \begin{document}
 
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
-% OTHER TITLES:
-% Agents Unlocked
-
-% Title portion. Note the short title for running heads
 \title[A Tale Of Lock-Free Agents]{A Tale Of Lock-Free Agents}
 \subtitle{The potential of Software Transactional Memory in parallel Agent-Based Simulation}
-
-%Lock-Free Concurrent Agent-Based Simulation
 
 \author{Jonathan Thaler}
 \orcid{https://orcid.org/0000-0001-8736-0479}
 \email{jonathan.thaler@nottingham.ac.uk}
-%\author{Peer-Olaf Siebers}
-%\email{peer-olaf.siebers@nottingham.ac.uk}
-\affiliation{%
+\author{Peer-Olaf Siebers}
+\email{peer-olaf.siebers@nottingham.ac.uk}
+\affiliation{
   \institution{University of Nottingham}
   \streetaddress{7301 Wollaton Rd}
   \city{Nottingham}
   \postcode{NG8 1BB}
   \country{United Kingdom}}
 
-%TODO: select journals
-%- ACM Transactions on Modeling and Computer Simulation (TOMACS): https://tomacs.acm.org/
-%- ?
-
-%TODO: do 8 runs for all SIR experiments, some are lacking: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
-% => not necessary anymore, because i got rid of the STD because it only clutted up space and made the tables confusing but didnt really
-% add anyhting because so low. Also the SIR experiments which lack STD don't really need many replications because their numbers are 
-% very clear
-
 \begin{abstract}
-%TODO: remove peer as author unless he has contributed
-
 With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations. Unfortunately the established programming languages in the field, Python, Java and C++, are not very well suited to tackle the complexities of parallel programming. In this paper we propose the use of Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell, which in combination, allow us to overcome the problems and complexities of parallel implementations in imperative approaches.
 
 We present two case studies where we compare the performance of lock-based and STM implementations in two different well known Agent-Based Models where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further by utilizing the pure functional language Haskell we gain additional benefits like immutable data and lack of side-effects guaranteed at compile-time, something of fundamental importance and benefit in parallel programming.
@@ -87,42 +67,31 @@ We present two case studies where we compare the performance of lock-based and S
 % http://dl.acm.org/ccs.cfm
 % Please copy and paste the code instead of the example below.
 %
-% TODO needs to be generated
-%\begin{CCSXML}
-%<ccs2012>
-% <concept>
-%  <concept_id>10010520.10010553.10010562</concept_id>
-%  <concept_desc>Computer systems organization~Embedded systems</concept_desc>
-%  <concept_significance>500</concept_significance>
-% </concept>
-% <concept>
-%  <concept_id>10010520.10010575.10010755</concept_id>
-%  <concept_desc>Computer systems organization~Redundancy</concept_desc>
-%  <concept_significance>300</concept_significance>
-% </concept>
-% <concept>
-%  <concept_id>10010520.10010553.10010554</concept_id>
-%  <concept_desc>Computer systems organization~Robotics</concept_desc>
-%  <concept_significance>100</concept_significance>
-% </concept>
-% <concept>
-%  <concept_id>10003033.10003083.10003095</concept_id>
-%  <concept_desc>Networks~Network reliability</concept_desc>
-%  <concept_significance>100</concept_significance>
-% </concept>
-%</ccs2012>
-%\end{CCSXML}
-%
-%\ccsdesc[500]{Computer systems organization~Embedded systems}
-%\ccsdesc[300]{Computer systems organization~Redundancy}
-%\ccsdesc{Computer systems organization~Robotics}
-%\ccsdesc[100]{Networks~Network reliability}
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10010147.10010341.10010349.10010355</concept_id>
+<concept_desc>Computing methodologies~Agent / discrete models</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010341.10010349.10010362</concept_id>
+<concept_desc>Computing methodologies~Massively parallel and high-performance simulations</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010341.10010366.10010368</concept_id>
+<concept_desc>Computing methodologies~Simulation languages</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
 
-%
-% End generated code
-%
+\ccsdesc[500]{Computing methodologies~Agent / discrete models}
+\ccsdesc[500]{Computing methodologies~Massively parallel and high-performance simulations}
+\ccsdesc[300]{Computing methodologies~Simulation languages}
 
-\keywords{Agent-Based Simulation, Parallel Programming, Parallelism, Concurrency, Software Transactional Memory, Functional Programming, Haskell}
+\keywords{Agent-Based Simulation, Software Transactional Memory, Parallel Programming, Concurrency, Functional Programming, Haskell}
 
 \maketitle
 
@@ -148,10 +117,6 @@ The authors would like to thank J. Hey and M. Handley for constructive feedback,
 
 % Bibliography
 \bibliographystyle{ACM-Reference-Format}
-%% Citation style
-%% Note: author/year citations are required for papers published as an
-%% issue of PACMPL.
-%%\citestyle{acmauthoryear}   %% For author/year citations
 \bibliography{../../../references/phdReferences.bib}
 
 \end{document}

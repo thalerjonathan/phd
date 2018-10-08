@@ -1,7 +1,6 @@
 {-# LANGUAGE Arrows #-}
 module SIRYampaTests 
   ( sirYampaTests
-  , tTest
   ) where
 
 import Data.List
@@ -36,10 +35,8 @@ sirYampaTests :: RandomGen g
 sirYampaTests g 
   = testGroup 
       "SIR Yampa Tests" 
-      [ -- test_agents_init
-      -- , test_agent_behaviour_quickgroup g
-      --, test_agent_signal_quickgroup g
-      test_sir_sim g
+      [ test_agent_behaviour_quickgroup g
+      , test_agent_signal_quickgroup g
       ]
 
 test_agents_init :: TestTree
@@ -52,8 +49,8 @@ test_agent_behaviour_quickgroup :: RandomGen g
                                 -> TestTree
 test_agent_behaviour_quickgroup g
   = testGroup "agent behaviour"
-      [ --QC.testProperty "susceptible behaviour" (testCaseSusceptible g)
-       QC.testProperty "infected behaviour" (testCaseInfected g) ]
+      [ QC.testProperty "susceptible behaviour" (testCaseSusceptible g)
+        QC.testProperty "infected behaviour" (testCaseInfected g) ]
 
 test_agent_signal_quickgroup :: RandomGen g
                              => g 
@@ -62,27 +59,6 @@ test_agent_signal_quickgroup g
   = testGroup "agent signal behaviour"
       [ QC.testProperty "susceptible signal behaviour" (testCaseSusceptibleSignal g)
       , QC.testProperty "infected signal behaviour" (testCaseInfectedSignal g)]
-
-test_sir_sim :: RandomGen g
-             => g 
-             -> TestTree
-test_sir_sim g
-  = testGroup "SIR sim behaviour" 
-      -- TODO: generalise 
-      -- always assume at least one agent
-      [ QC.testProperty "SIR sim behaviour" (forAll (listOf1 arbitrary) $ prop_SIRSim g) ]
-
-prop_initAgents :: NonNegative Int -> NonNegative Int -> Bool
-prop_initAgents (NonNegative susceptibleCount) (NonNegative infectedCount)
-    = length as == susceptibleCount + infectedCount &&
-      sc        == susceptibleCount &&
-      ic        == infectedCount &&
-      notElem Recovered as
-  where 
-    as = initAgents susceptibleCount infectedCount 
-
-    sc = length $ filter (==Susceptible) as
-    ic = length $ filter (==Infected) as
 
 -- | Testing whether a susceptible agent
 -- behaves as a signal: does the susceptible agent
@@ -299,91 +275,3 @@ testInfectedSF g otherAgents = proc _ -> do
 --   test does not make sense.
 _testCaseRecovered :: Void
 _testCaseRecovered = undefined
-
--- TODO: integration tests: susceptible, infected and recovered all together / the whole simulation
-prop_SIRSim :: RandomGen g 
-            => g
-            -> [SIRState]
-            -> Bool
-prop_SIRSim g0 as {-
-    = trace ("\n  as: " ++ show as ++ 
-             "\n, infectionRateSim = " ++ show infectionRateSim ++ 
-             "\n, recoveryRateSim = " ++ show recoveryRateSim ++ 
-             -- "\n, sir " ++ show sir ++
-
-             "\n, susTarget " ++ show susTarget ++ 
-             "\n, infTarget " ++ show infTarget ++ 
-             "\n, recTarget " ++ show recTarget ++
-
-             "\n, susAvg " ++ show susAvg ++ 
-             "\n, infAvg " ++ show infAvg ++ 
-             "\n, recAvg " ++ show recAvg ++
-
-             "\n, susTTest " ++ show susTTest ++ 
-             "\n, infTTest " ++ show infTTest ++ 
-             "\n, recTTest " ++ show recTTest ++
-             
-             "\n, susProp " ++ show susProp ++ 
-             "\n, infProp " ++ show infProp ++ 
-             "\n, recProp " ++ show recProp) susProp && infProp && recProp
-             -}
-    = trace ("\nas: " ++ show as) susProp && infProp && recProp
-  where
-    t  = 1.0
-    dt = 0.01
-
-    n = length as
-
-    sus0 = (fromIntegral $ length $ filter (==Susceptible) as) :: Double
-    inf0 = (fromIntegral $ length $ filter (==Infected) as) :: Double
-    rec0 = (fromIntegral $ length $ filter (==Recovered) as) :: Double
-
-    --use a different approach as well: run SD for 1.0 time-unit to create same number of samples and compare if they are from the same distribution
-    -- but in the end ABS will always show the variance in the behaviour than the average
-    sdDyn = runSD sus0 inf0 rec0 paramContactRate paramInfectivity paramIllnessDuration t dt
-
-    infectionRateSim = (inf0 * paramContactRate * sus0 * paramInfectivity) / fromIntegral n
-    recoveryRateSim  = inf0 / paramIllnessDuration
-
-    susTarget = sus0 - infectionRateSim
-    infTarget = inf0 + (infectionRateSim - recoveryRateSim)
-    recTarget = rec0 + recoveryRateSim
-    
-    repls   = 10000
-    (gs, _) = rngSplits g0 repls []
-
-    sir = foldr (\g' acc -> prop_SIRSimAux g' : acc) ([] :: [(Double, Double, Double)]) gs
-    (sus', inf', rec') = unzip3 sir
-
-    alpha = 0.5
-
-    susTTest = tTest "sus" sus' susTarget alpha
-    infTTest = tTest "inf" inf' infTarget alpha
-    recTTest = tTest "rec" rec' recTarget alpha
-
-    eps = 0.25
-
-    susAvg = mean sus'
-    infAvg = mean inf'
-    recAvg = mean rec'
-  
-    susProp = fromMaybe (avgTest sus' susTarget eps) susTTest
-    infProp = fromMaybe (avgTest inf' infTarget eps) infTTest
-    recProp = fromMaybe (avgTest rec' recTarget eps) recTTest
-    
-    -- TODO: use Wilcoxon and Mann-Whiteny tests https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test, https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
-    -- to ceck if sdDyn and ABS are from same distribution, but need to return the number of agents over the whole run not just the last one
-
-    -- TODO: export to file which plots SD against 10.000 ABS runs in Matlab/Octave
-
-    prop_SIRSimAux :: RandomGen g 
-                   => g
-                   -> (Double, Double, Double)
-    prop_SIRSimAux g = (sus, inf, recs)
-      where
-        as' = last $ runSimulationUntil g t dt as paramContactRate paramInfectivity paramIllnessDuration
-
-        sus  = fromIntegral $ length $ filter (==Susceptible) as'
-        inf  = fromIntegral $ length $ filter (==Infected) as'
-        recs = fromIntegral $ length $ filter (==Recovered) as'
-

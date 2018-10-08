@@ -28,20 +28,20 @@ tTest :: String
       -> Double
       -> Double
       -> Maybe Bool
-tTest _name ys m0 _alpha 
+tTest name ys m0 alpha 
     = case mayP of
-        Nothing -> {-trace (name ++ ": cant perform t-test, t-value undefined because 0 variance!") -} Nothing
-        Just _p  -> {- trace (name ++ ": p = " ++ show p) -} Nothing -- Just $ p < alpha 
+        Nothing -> trace (name ++ ": cant perform t-test, t-value undefined because 0 variance!") Nothing
+        Just p  -> trace (name ++ ": p = " ++ show p) Just $ p < alpha 
   where
     mayP = pValue $ tValue ys m0
 
     pValue :: Maybe Double -> Maybe Double
     pValue Nothing  = Nothing
-    pValue (Just t) = Just p
+    pValue (Just t) = trace (name ++ ": t = " ++ show t) Just p
       where
         degFree = fromIntegral $ length ys - 1
         tDist   = StudT.studentT degFree
-        p       = (1 - Stat.cumulative tDist (abs t)) * 2.0 -- is -t really correct?
+        p       = (1 - Stat.cumulative tDist (abs t)) * 2.0
 
 -- note that t-value is undefined in case of a variance of 0: all samples are the same
 tValue :: [Double]

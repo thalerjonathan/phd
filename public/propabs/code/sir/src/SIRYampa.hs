@@ -5,9 +5,6 @@ module SIRYampa
   , runSimulationUntil
   , rngSplits
 
-  , SIRState (..)
-  , SIRYampaSimCtx (..)
-
   -- expose agents behaviour functions as well 
   , susceptibleAgent
   , infectedAgent
@@ -22,45 +19,14 @@ module SIRYampa
 import Control.Monad.Random
 import FRP.Yampa
 
+import SIR
 import Utils
 
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 type SIRAgent = SF [SIRState] SIRState
 
-data SIRYampaSimCtx g = SIRYampaSimCtx
-  { syCtxTimeLimit   :: !Double
-  , syCtxTimeDelta   :: !Double
-
-  , syCtxRng         :: g
-
-  , syCtxAgentCount  :: !Int
-  , syCtxInfected    :: !Int
-
-  , syCtxContactRate :: !Double
-  , syCtxInfectivity :: !Double
-  , syCtxIllnessDur  :: !Double
-  }
-
-defaultSIRYampaCtx :: RandomGen g 
-                   => g
-                   -> SIRYampaSimCtx g 
-defaultSIRYampaCtx g = SIRYampaSimCtx {
-    syCtxTimeLimit   = 10
-  , syCtxTimeDelta   = 0.1
-
-  , syCtxRng         = g
-
-  , syCtxAgentCount  = 10
-  , syCtxInfected    = 1
-
-  , syCtxContactRate = 5
-  , syCtxInfectivity = 0.05
-  , syCtxIllnessDur  = 15
-  }
-
 runSIRYampa :: RandomGen g 
-            => SIRYampaSimCtx g
-            -> [[SIRState]]
+            => SIRSimCtx g
+            -> [(Double, Double, Double)]
 runSIRYampa simCtx
     = runSimulationUntil g t dt as cr inf dur
   where
@@ -85,15 +51,17 @@ runSimulationUntil :: RandomGen g
                    -> Double
                    -> Double
                    -> Double
-                   -> [[SIRState]]
+                   -> [(Double, Double, Double)]
 runSimulationUntil g0 t dt as cr inf dur 
-    = embed (stepSimulation sfs as) ((), dts)
+    = map sirAggregate ass 
   where
     steps = floor $ t / dt
     dts   = replicate steps (dt, Nothing)
 
     (rngs, _) = rngSplits g0 (length as) []
     sfs       = zipWith (sirAgent cr inf dur) rngs as
+
+    ass       = embed (stepSimulation sfs as) ((), dts)
 
 stepSimulation :: [SIRAgent] 
                -> [SIRState] 
@@ -202,9 +170,3 @@ drawRandomElemSFSafe g = proc as -> do
       let idx = fromIntegral len * r
       let a =  as !! floor idx
       returnA -< Just a
-
-initAgents :: Int -> Int -> [SIRState]
-initAgents s i = sus ++ inf
-  where
-    sus = replicate s Susceptible
-    inf = replicate i Infected

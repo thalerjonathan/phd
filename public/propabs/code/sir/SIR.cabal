@@ -50,7 +50,10 @@ executable sir-prop-testing
   main-is:              Main.hs
   
   -- Modules included in this executable, other than Main.
-  other-modules:        SIRYampa
+  other-modules:        SIR
+                      , SIRDunai
+                      , SIRSD
+                      , SIRYampa
                       , SIRYampaTests
                       , StatsUtils
                       , Utils
@@ -60,7 +63,9 @@ executable sir-prop-testing
   
   -- Other library packages from which modules are imported.
   build-depends:        base
-                      , Yampa == 0.11
+                      , bearriver
+                      , dunai
+                      --, Yampa == 0.11
                       , MonadRandom
                       , containers
                       , mtl 
@@ -73,7 +78,6 @@ executable sir-prop-testing
                       
   -- Directories containing source files.
   hs-source-dirs:       src
-                      , src/SIRYampa
                       
   -- Base language which the package is written in.
   default-language:    Haskell2010

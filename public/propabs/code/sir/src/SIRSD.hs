@@ -3,7 +3,7 @@ module SIRSD
   ( runSD
   ) where
 
-import FRP.Yampa
+import FRP.Yampa as Yampa
 
 runSD :: Double
       -> Double
@@ -13,8 +13,8 @@ runSD :: Double
       -> Double
       -> Double
 
-      -> Time
-      -> DTime
+      -> Yampa.Time
+      -> Yampa.DTime
       -> [(Double, Double, Double)]
 runSD initSus 
       initInf 
@@ -25,24 +25,24 @@ runSD initSus
       illnessDuration
 
       t dt 
-    = embed sir ((), steps)
+    = Yampa.embed sir ((), steps)
   where
     n     = initSus + initInf + initRec
     steps = replicate (floor $ t / dt) (dt, Nothing)
 
-    sir :: SF () (Double, Double, Double)
-    sir = loopPre (initSus, initInf, initRec) sir'
+    sir :: Yampa.SF () (Double, Double, Double)
+    sir = Yampa.loopPre (initSus, initInf, initRec) sir'
       where
-        sir' :: SF 
+        sir' :: Yampa.SF 
                 ((), (Double, Double, Double))
                 ((Double, Double, Double), (Double, Double, Double))
         sir' = proc (_, (s, i, _r)) -> do
           let infectionRate  = (i * contactRate * s * infectivity) / n
           let recoveryRate  = i / illnessDuration
 
-          s' <- (initSus+) ^<< integral -< (-infectionRate)
-          i' <- (initInf+) ^<< integral -< (infectionRate - recoveryRate)
-          r' <- (initRec+) ^<< integral -< recoveryRate
+          s' <- (initSus+) ^<< Yampa.integral -< (-infectionRate)
+          i' <- (initInf+) ^<< Yampa.integral -< (infectionRate - recoveryRate)
+          r' <- (initRec+) ^<< Yampa.integral -< recoveryRate
 
           returnA -< dupe (s', i', r')
 

@@ -4,6 +4,7 @@ import System.Random
 
 import Test.Tasty
 
+import SIRYampa
 import SIRYampaTests
 import StatsUtils
 
@@ -18,9 +19,11 @@ main = do
 
   --print $ std [10,2,38,23,38,23,21]
 
-  --let t = tTest "test" [1..10] 5 0.05
-  --print t 
+  --print $ tTest "test" [1..10] 6 0.05
+
   --let t = tTest [1, 1, 1, 1] 5 0.05
   --print t 
+
+  print $ prop_SIRSim g [Infected] --[Infected,Recovered,Recovered]
 
   defaultMain $ sirYampaTests g

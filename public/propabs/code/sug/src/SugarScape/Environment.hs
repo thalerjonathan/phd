@@ -3,7 +3,6 @@ module SugarScape.Environment
   ( cellUnoccupied
   , cellOccupied
   
-  , regrow
   , sugEnvironment
   ) where
 
@@ -45,12 +44,10 @@ regrowSugar rate
     regrowSugarToMax :: StateT SugEnvironment (Rand g) ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
 
-regrow :: RandomGen g 
-       => StateT SugEnvironment (Rand g) ()
-regrow = regrowSugar sugarGrowbackUnits
-
+-- TODO: get rid of Rand g
 sugEnvironment :: RandomGen g 
-               => SugAgent g
-sugEnvironment = proc _ -> do
-  arrM_ (lift $ lift  regrow) -< ()
+               => Double
+               -> SugAgent g
+sugEnvironment rate = proc _ -> do
+  arrM_ (lift $ lift $ regrowSugar rate) -< ()
   returnA -< agentOut

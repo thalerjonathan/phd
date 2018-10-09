@@ -36,7 +36,7 @@ createSugarScape agentCount dims@(_dx, _dy) rebirthFlag = do
               WrapBoth
               cells'
 
-  let eb = sugEnvironment
+  let eb = sugEnvironment sugarGrowbackUnits
 
   return ((0, eb) : as, e)
 

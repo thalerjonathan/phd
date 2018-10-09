@@ -18,6 +18,7 @@ module SugarScape.Discrete
   , dimensionsDisc2d
   , dimensionsDisc2dM
 
+  , allCells
   , allCellsWithCoords
   , updateCells
   , updateCellsM
@@ -82,11 +83,10 @@ data EnvironmentWrapping
   | WrapBoth deriving (Show, Read)
 
 data Discrete2d c = Discrete2d 
-  {
-      envDisc2dDims           :: Discrete2dDimension
-    , envDisc2dNeighbourhood  :: Discrete2dNeighbourhood
-    , envDisc2dWrapping       :: EnvironmentWrapping
-    , envDisc2dCells          :: Array Discrete2dCoord c
+  { envDisc2dDims           :: Discrete2dDimension
+  , envDisc2dNeighbourhood  :: Discrete2dNeighbourhood
+  , envDisc2dWrapping       :: EnvironmentWrapping
+  , envDisc2dCells          :: Array Discrete2dCoord c
   } deriving (Show, Read)
 
 createDiscrete2d :: Discrete2dDimension
@@ -110,6 +110,9 @@ dimensionsDisc2d = envDisc2dDims
 dimensionsDisc2dM :: Monad m
                   => StateT (Discrete2d c) m Discrete2dDimension
 dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
+
+allCells :: Discrete2d c -> [c]
+allCells e = elems $ envDisc2dCells e
 
 allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
 allCellsWithCoords e = assocs $ envDisc2dCells e

@@ -3,9 +3,14 @@ module Main where
 import System.Random
 
 import Test.Tasty
+--import Test.Tasty.QuickCheck as QC
+
+--import SugarScape.Discrete 
+--import SugarScape.Model
 
 import Environment
-import Simulation
+
+-- clear & stack test --test-arguments="--quickcheck-tests=100 --quickcheck-replay="
 
 seed :: Int
 seed = 42
@@ -16,6 +21,11 @@ main = do
   let g = mkStdGen seed
   setStdGen g
 
-  let sugarScapeTests = testGroup "SugarScape Tests" [ envTests, simTests ]
-  
+{-
+  putStrLn ""
+  x <- generate arbitrary :: IO (Discrete2d SugEnvCell)
+  print x
+-}
+
+  let sugarScapeTests = testGroup "SugarScape Tests" [ envTests g ]
   defaultMain sugarScapeTests

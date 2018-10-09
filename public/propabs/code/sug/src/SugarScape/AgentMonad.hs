@@ -15,7 +15,8 @@ module SugarScape.AgentMonad
   , nextAgentId
 
   , mkAbsState
-
+  , defaultAbsState
+  
   , agentOut
   , agentOutObservable
   , isObservable
@@ -60,6 +61,9 @@ nextAgentId = do
   aid <- gets absNextId
   modify (\s -> s { absNextId = aid + 1 })
   return aid
+
+defaultAbsState :: ABSState
+defaultAbsState = mkAbsState 0 
 
 mkAbsState :: AgentId -> ABSState
 mkAbsState initId = ABSState 

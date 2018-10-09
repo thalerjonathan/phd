@@ -1,4 +1,4 @@
-module GlossRunner
+module SugarScape.GlossRunner
   ( runGloss
   ) where
 
@@ -9,8 +9,8 @@ import qualified  Graphics.Gloss as GLO
 import            Graphics.Gloss.Interface.IO.Animate
 import            Graphics.Gloss.Interface.IO.Simulate
 
-import            Renderer
-import            Simulation
+import            SugarScape.Renderer
+import            SugarScape.Simulation
 
 runGloss :: RandomGen g
          => SimulationState g

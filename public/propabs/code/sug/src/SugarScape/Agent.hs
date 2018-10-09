@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module Agent 
+module SugarScape.Agent 
   ( sugAgent
   ) where
 
@@ -7,13 +7,13 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 import FRP.BearRiver
 
-import AgentMonad
-import Common
-import Environment
-import Discrete
-import Model
-import Random
-import Utils
+import SugarScape.AgentMonad
+import SugarScape.Common
+import SugarScape.Environment
+import SugarScape.Discrete
+import SugarScape.Model
+import SugarScape.Random
+import SugarScape.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
@@ -78,7 +78,7 @@ birthNewAgent rebirthFlag = do
     findUnoccpiedRandomPosition :: RandomGen g
                                 => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
     findUnoccpiedRandomPosition = do
-      e <- lift $ lift get
+      e          <- lift $ lift get
       (c, coord) <- lift $ lift $ lift $ randomCell e
       ifThenElse
         (cellOccupied c) 
@@ -139,7 +139,7 @@ agentMove aid = do
 agentLookout :: RandomGen g
              => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvCell)]
 agentLookout = do
-  vis <- gets sugAgVision
+  vis   <- gets sugAgVision
   coord <- gets sugAgCoord
   lift $ lift $ neighboursInNeumannDistanceM coord vis False
 

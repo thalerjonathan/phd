@@ -1,18 +1,17 @@
-module Init 
-  (
-    createSugarScape
+module SugarScape.Init 
+  ( createSugarScape
   ) where
 
 import Control.Monad.Random
 
 import Data.List
 
-import Agent
-import AgentMonad
-import Common
-import Discrete
-import Environment
-import Model
+import SugarScape.Agent
+import SugarScape.AgentMonad
+import SugarScape.Common
+import SugarScape.Discrete
+import SugarScape.Environment
+import SugarScape.Model
 
 createSugarScape :: RandomGen g
                  => Int 

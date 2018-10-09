@@ -1,6 +1,5 @@
-module Common 
-  (
-    sugObservableFromState
+module SugarScape.Common 
+  ( sugObservableFromState
   
   , BestCellMeasureFunc
   , selectBestCells
@@ -18,9 +17,9 @@ import Control.Monad.Random
 import Data.Maybe
 import Data.List
 
-import AgentMonad
-import Discrete
-import Model
+import SugarScape.AgentMonad
+import SugarScape.Discrete
+import SugarScape.Model
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
@@ -50,7 +49,9 @@ selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
     shortestdistanceManhattan = distanceManhattanDisc2d refCoord (fst $ head shortestdistanceManhattanBestCells)
     bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d refCoord) . fst) shortestdistanceManhattanBestCells
 
-unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord -> SugEnvironment -> [(Discrete2dCoord, SugEnvCell)]
+unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord 
+                                    -> SugEnvironment
+                                    -> [(Discrete2dCoord, SugEnvCell)]
 unoccupiedNeighbourhoodOfNeighbours coord e 
     = filter (isNothing . sugEnvOccupier . snd) nncsUnique
   where
@@ -78,16 +79,16 @@ randomAgent (agentId, coord) beh sup = do
   -- NOTE: need to split here otherwise agents would end up with the same random-values when not already splitting in the calling function
   _rng <- getSplit
 
-  randSugarMetab <- getRandomR sugarMetabolismRange
-  randVision <- getRandomR  visionRange
+  randSugarMetab     <- getRandomR sugarMetabolismRange
+  randVision         <- getRandomR  visionRange
   randSugarEndowment <- getRandomR sugarEndowmentRange
   
   let s = SugAgentState {
-    sugAgCoord            = coord
-  , sugAgSugarMetab       = randSugarMetab
-  , sugAgVision           = randVision
-  , sugAgSugarLevel       = randSugarEndowment
-  , sugAgSugarInit        = randSugarEndowment
+    sugAgCoord      = coord
+  , sugAgSugarMetab = randSugarMetab
+  , sugAgVision     = randVision
+  , sugAgSugarLevel = randSugarEndowment
+  , sugAgSugarInit  = randSugarEndowment
   }
 
   let s'   = sup s

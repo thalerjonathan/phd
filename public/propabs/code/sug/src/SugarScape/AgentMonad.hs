@@ -1,9 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-
-module AgentMonad
-  (
-    AgentId
+module SugarScape.AgentMonad
+  ( AgentId
 
   , ABSState (..)
   

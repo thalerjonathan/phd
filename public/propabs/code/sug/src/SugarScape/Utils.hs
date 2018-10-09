@@ -1,4 +1,4 @@
-module Utils 
+module SugarScape.Utils 
   ( ifThenElse
   , ifThenElseM
   ) where

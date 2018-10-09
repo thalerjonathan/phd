@@ -1,4 +1,4 @@
-module Model 
+module SugarScape.Model 
   ( SugAgentState (..)
   , SugAgentObservable (..)
 
@@ -27,8 +27,8 @@ module Model
 import Control.Monad.Random
 import Control.Monad.State.Strict
 
-import AgentMonad
-import Discrete
+import SugarScape.AgentMonad
+import SugarScape.Discrete
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

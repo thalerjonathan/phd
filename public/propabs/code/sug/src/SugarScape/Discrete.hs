@@ -1,6 +1,5 @@
-module Discrete 
-  (
-    Discrete2dDimension
+module SugarScape.Discrete 
+  ( Discrete2dDimension
   , Discrete2dCoord
   , Discrete2dNeighbourhood
   , Discrete2dCell

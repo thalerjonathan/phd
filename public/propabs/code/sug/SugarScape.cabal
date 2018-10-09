@@ -48,20 +48,20 @@ cabal-version:       >=1.10
 executable sugarscape
   -- .hs or .lhs file containing the Main module.
   main-is:             Main.hs
-  
+
   -- Modules included in this executable, other than Main.
-  other-modules:  Agent
-                , AgentMonad
-                , Common
-                , Discrete
-                , Environment
-                , GlossRunner
-                , Init
-                , Model
-                , Random
-                , Renderer
-                , Simulation
-                , Utils
+  other-modules:  SugarScape.Agent
+                , SugarScape.AgentMonad
+                , SugarScape.Common
+                , SugarScape.Discrete
+                , SugarScape.Environment
+                , SugarScape.GlossRunner
+                , SugarScape.Init
+                , SugarScape.Model
+                , SugarScape.Random
+                , SugarScape.Renderer
+                , SugarScape.Simulation
+                , SugarScape.Utils
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
@@ -84,7 +84,8 @@ executable sugarscape
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src
-  
+                      , src/SugarScape
+
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
@@ -98,13 +99,33 @@ Test-Suite sugarscape-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
-  hs-source-dirs:       .
-                      , src/tests/
-                      , src/
 
-  main-is: Test.hs
+  other-modules:        Agent
+                      , Environment
+                      , Simulation
+
+                      , SugarScape.Agent
+                      , SugarScape.AgentMonad
+                      , SugarScape.Common
+                      , SugarScape.Discrete
+                      , SugarScape.Environment
+                      , SugarScape.Init
+                      , SugarScape.Model
+                      , SugarScape.Random
+                      , SugarScape.Simulation
+                      , SugarScape.Utils
+
+  hs-source-dirs:       src/
+                      , src/test
+
+  main-is:              Test.hs
 
   build-depends:        base
+                      , array
+                      , bearriver
+                      , containers
+                      , mtl
+                      , MonadRandom
                       , random
                       , tasty
                       , tasty-hunit

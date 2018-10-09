@@ -1,7 +1,6 @@
 {-# LANGUAGE Arrows #-}
-module Environment 
-  (
-    cellUnoccupied
+module SugarScape.Environment 
+  ( cellUnoccupied
   , cellOccupied
   
   , regrow
@@ -14,9 +13,9 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 import FRP.BearRiver
 
-import AgentMonad
-import Discrete
-import Model
+import SugarScape.AgentMonad
+import SugarScape.Discrete
+import SugarScape.Model
 
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR

@@ -1,4 +1,4 @@
-module Random
+module SugarScape.Random
   ( randomBoolM
   , randomExpM
   , randomElemM

@@ -1,6 +1,7 @@
-module Simulation
+module SugarScape.Simulation
   ( SimulationState (..)
   , SimStepOut
+  , AgentObservable
 
   , simulationStep
   , simStepSF
@@ -11,27 +12,29 @@ module Simulation
   , sugarScapeTimeDelta
   ) where
 
-import            Data.Maybe
-import            System.Random
+import Data.Maybe
+import System.Random
 
-import            Control.Monad.Random
-import            Control.Monad.Reader
-import            Control.Monad.State.Strict
-import            FRP.BearRiver
+import Control.Monad.Random
+import Control.Monad.Reader
+import Control.Monad.State.Strict
+import FRP.BearRiver
 
-import            AgentMonad
-import            Model
-import            Random
-import            Renderer
+import SugarScape.AgentMonad
+import SugarScape.Model
+import SugarScape.Random
 
-type SimStepOut = (Time, SugEnvironment, [AgentObservable SugAgentObservable])
+type AgentObservable o = (AgentId, o)
+type SimStepOut        = (Time, SugEnvironment, [AgentObservable SugAgentObservable])
 
+-- NOTE: strictness on those fields, otherwise space-leak 
+-- (memory consumption increases throughout run-time and execution gets slower and slower)
 data SimulationState g = SimulationState 
   { simSf       :: SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
-  , simAbsState :: ABSState 
-  , simEnv      :: SugEnvironment
-  , simRng      :: g
-  , simSteps    :: Int
+  , simAbsState :: !ABSState 
+  , simEnv      :: !SugEnvironment
+  , simRng      :: !g
+  , simSteps    :: !Int
   }
 
 -- sugarscape is stepped with a time-delta of 1.0

@@ -1,23 +1,23 @@
 module Main where
 
-import            System.IO
-import            System.Random
+import System.IO
+import System.Random
 
-import            Control.Monad.Random
+import Control.Monad.Random
 
-import            AgentMonad
-import            GlossRunner
-import            Init
-import            Simulation
+import SugarScape.AgentMonad
+import SugarScape.GlossRunner
+import SugarScape.Init
+import SugarScape.Simulation
 
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let glossOut    = False
-      rebirthFlag = False -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
+  let glossOut    = True
+      rebirthFlag = True -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
       rngSeed     = 42
-      agentCount  = 500
+      agentCount  = 1000
       envSize     = (50, 50)
 
       -- initial RNG

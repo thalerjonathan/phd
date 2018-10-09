@@ -1,6 +1,5 @@
 module Random
-  (
-    randomBoolM
+  ( randomBoolM
   , randomExpM
   , randomElemM
   , randomShuffleM

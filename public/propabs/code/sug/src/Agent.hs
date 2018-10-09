@@ -1,7 +1,6 @@
 {-# LANGUAGE Arrows #-}
 module Agent 
-  (
-    sugAgent
+  ( sugAgent
   ) where
 
 import Control.Monad.Random

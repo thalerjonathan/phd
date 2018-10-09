@@ -1,6 +1,5 @@
 module Model 
-  (
-    SugAgentState (..)
+  ( SugAgentState (..)
   , SugAgentObservable (..)
 
   , SugEnvCellOccupier (..)

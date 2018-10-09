@@ -1,6 +1,5 @@
 module Utils 
-  (
-    ifThenElse
+  ( ifThenElse
   , ifThenElseM
   ) where
 

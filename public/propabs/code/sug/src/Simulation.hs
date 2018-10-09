@@ -1,13 +1,14 @@
 module Simulation
-  (
-    SimulationState (..)
+  ( SimulationState (..)
   , SimStepOut
 
   , simulationStep
   , simStepSF
 
   , mkSimState
-  , checkTime
+  , simulateUntil
+
+  , sugarScapeTimeDelta
   ) where
 
 import            Data.Maybe
@@ -16,7 +17,6 @@ import            System.Random
 import            Control.Monad.Random
 import            Control.Monad.Reader
 import            Control.Monad.State.Strict
-import            Data.Time.Clock
 import            FRP.BearRiver
 
 import            AgentMonad
@@ -31,34 +31,48 @@ data SimulationState g = SimulationState
   , simAbsState :: ABSState 
   , simEnv      :: SugEnvironment
   , simRng      :: g
-  , simStart    :: UTCTime
   , simSteps    :: Int
   }
 
-simulationStep :: RandomGen g
-               => DTime
-               -> SimulationState g
-               -> IO (SimulationState g, SimStepOut)
-simulationStep dt ss = do
-  let sf       = simSf ss
-      absState = simAbsState ss
-      env      = simEnv ss
-      g        = simRng ss
-      start    = simStart ss
-      steps    = simSteps ss
+-- sugarscape is stepped with a time-delta of 1.0
+sugarScapeTimeDelta :: DTime
+sugarScapeTimeDelta = 1.0
 
-  let sfReader   = unMSF sf ()
-      sfAbsState = runReaderT sfReader dt
-      sfEnvState = runStateT sfAbsState absState
-      sfRand     = runStateT sfEnvState env
-      ((((out, sf'), absState'), env'), g') = runRand sfRand g
+simulateUntil :: RandomGen g
+              => Time
+              -> SimulationState g
+              -> [SimStepOut]
+simulateUntil tMax ss0 = simulateUntilAux ss0 []
+  where
+    simulateUntilAux :: SimulationState g
+                     -> [SimStepOut]
+                     -> [SimStepOut]
+    simulateUntilAux ss acc
+        | t < tMax  = simulateUntilAux ss' acc'
+        | otherwise = reverse acc'
+      where
+        (ss', so@(t, _, _)) = simulationStep ss'
+        acc' = so : acc
 
-  let t          = absTime absState 
-      absState'' = absState' { absTime = t + dt }
+simulationStep :: SimulationState g
+               -> (SimulationState g, SimStepOut)
+simulationStep ss = (ss', (t, env', out))
+  where
+    sf       = simSf ss
+    absState = simAbsState ss
+    env      = simEnv ss
+    g        = simRng ss
+    steps    = simSteps ss
 
-  let ss'        = mkSimState sf' absState'' env' g' start (steps + 1)
+    sfReader   = unMSF sf ()
+    sfAbsState = runReaderT sfReader sugarScapeTimeDelta
+    sfEnvState = runStateT sfAbsState absState
+    sfRand     = runStateT sfEnvState env
+    ((((out, sf'), absState'), env'), g') = runRand sfRand g
 
-  return (ss', (t, env', out))
+    t          = absTime absState 
+    absState'' = absState' { absTime = t + sugarScapeTimeDelta }
+    ss'        = mkSimState sf' absState'' env' g' (steps + 1)
 
 simStepSF :: RandomGen g
           => [AgentId]
@@ -89,40 +103,16 @@ simStepSF ais0 sfs0 shuffleRng = MSF $ \_ -> do
 
   return (obs, ct)
 
-mkSimState :: RandomGen g
-           => SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
+mkSimState :: SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
            -> ABSState
            -> SugEnvironment
            -> g
-           -> UTCTime
            -> Int
            -> SimulationState g
-mkSimState sf absState env g start steps = SimulationState 
+mkSimState sf absState env g steps = SimulationState 
   { simSf       = sf
   , simAbsState = absState 
   , simEnv      = env
   , simRng      = g
-  , simStart    = start
   , simSteps    = steps
   }
-
-checkTime :: RandomGen g
-          => Double
-          -> SimulationState g
-          -> String
-          -> IO Bool
-checkTime durSecs ss fileName = do
-  nowT <- getCurrentTime
-
-  let start = simStart ss
-  let dtStart = realToFrac $ diffUTCTime nowT start
-
-  if dtStart > durSecs
-    then (do 
-      let steps      = simSteps ss
-          stepsRatio = (fromIntegral steps / durSecs) :: Double
-
-      appendFile fileName $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio ++ "\n"
-      -- putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
-      return True)
-    else return False

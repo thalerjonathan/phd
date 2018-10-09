@@ -1,6 +1,5 @@
 module Renderer 
-  (
-    AgentObservable
+  ( AgentObservable
 
   , renderSugarScapeFrame
   ) where

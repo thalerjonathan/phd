@@ -1,11 +1,30 @@
-concisely summarize why your paper is a valuable addition to the modeling and simulation field, particularly referring to modeling and simulation methods (see charter of TOMACS);
+- concisely summarize why your paper is a valuable addition to the modeling and simulation field, particularly referring to modeling and simulation methods (see charter of TOMACS);
+https://tomacs.acm.org/editorial_charter.cfm
 
-briefly relate your study to previously published work;
+Model Execution: the paper focuses primarily on parallel/concurrent model execution by proposing STM over lock-based approaches to implement ABS
+Modeling Methodology: modeling languages as we are using functional programming to implement our case-studies, also STM primitives provide an abstraction over agent-communication which is thus part of modeling methodology
+Interplay between other areas of computer science and simulation: we ran our experiments on Amazon EC2 services thus we touch on cloud computing and big data
 
-specify the type of article you are submitting (see Types of Submissions);
+Our paper experimentally investigates the benefit of using Software Transactional Memory (STM) over lock-based approaches to implement concurrent Agent-Based Simulations (ABS). Our contribution is that to the best of our knowledge we are the first to systematically investigate the use of STM in ABS and compare is performance with sequential, lock-based and imperative implementations both on local and Amazon Cloud Service machinery.
 
-suggest appropriate TOMACS Associated Editor(s) to handle your manuscript (or, in the case of Special Issues, simply indicate the name of the special issue);
+- briefly relate your study to previously published work;
+The work \cite{lysenko_framework_2008} discusses a framework which allows to map Agent-Based Simulations to Graphics Processing Units (GPU). Amongst others they use the SugarScape model \cite{epstein_growing_1996} and scale it up to millions of agents on very large environment grids. They reported an impressive speed-up of a factor of 9,000. Although their work is conceptually very different we can draw inspiration from their work in terms of performance measurement and comparison of the SugarScape model.
 
-list at least two recommended reviewers (with whom you have not co-authored a paper within the last three years), including potentially opposed reviewers.
+- specify the type of article you are submitting (see Types of Submissions);
+https://tomacs.acm.org/authors.cfm (Types of submissions)
+Application driven research: revealing limitations of current methods and propelling thus new methodological developments in modeling and simulation.
 
-include, in the case of Special Issues, all information requested by the guest editors as an appendix in the cover letter.
+- suggest appropriate TOMACS Associated Editor(s) to handle your manuscript (or, in the case of Special Issues, simply indicate the name of the special issue);
+https://tomacs.acm.org/editorial.cfm
+Wenton Cai (http://www.ntu.edu.sg/home/aswtcai/): Parallel & Distributed Simulation, Multi-agent Systems, and Grid & Cluster Computing simulation expertise
+Xiaolin Hu (https://grid.cs.gsu.edu/~cscxlh/):  modeling and simulation, complex systems science, agent and multi-agent system, and advanced computing in parallel and cloud environments.
+Jason Liu (http://people.cis.fiu.edu/liux/): modeling and simulation, parallel discrete-event simulation, performance modeling and simulation of computer systems and computer networks
+Claudia Szabo (https://www.adelaide.edu.au/directory/claudia.szabo#): model driven engineering, distributed and cloud computing, verification and validation of distributed systems, and exploring issues in real, deployed, complex systems.
+Georgios K. Theodoropoulos (http://www.gtheodoropoulos.com/research.html): Modelling and Distributed Simulation; Distributed Virtual Environments; Adaptive Complex and Multi-agent systems; Dynamic Data Driven Application and info-symbiotic simulation systems; Parallel and distributed architectures; large scale distributed infrastructures, including Clouds, Peer-to-Peer systems and the Internet of Things; and Big Data Prescriptive Analytics for complex socio-technical systems.
+
+- list at least two recommended reviewers (with whom you have not co-authored a paper within the last three years), including potentially opposed reviewers.
+Jonathan Ozik 
+Nicholson Collier 
+
+- include, in the case of Special Issues, all information requested by the guest editors as an appendix in the cover letter.
+NOT NECESSARY, NO SPECIAL ISSUE

@@ -51,7 +51,7 @@ simulateUntil tMax ss0 = simulateUntilAux ss0 []
         | t < tMax  = simulateUntilAux ss' acc'
         | otherwise = reverse acc'
       where
-        (ss', so@(t, _, _)) = simulationStep ss'
+        (ss', so@(t, _, _)) = simulationStep ss
         acc' = so : acc
 
 simulationStep :: SimulationState g

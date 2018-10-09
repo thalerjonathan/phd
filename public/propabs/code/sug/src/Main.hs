@@ -10,16 +10,11 @@ import            GlossRunner
 import            Init
 import            Simulation
 
-durationSecs :: Double
-durationSecs = 60
-
--- NOTE run with clear & stack exec -- SugarScapePure +RTS -s
-
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let glossOut    = True
+  let glossOut    = False
       rebirthFlag = False -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
       rngSeed     = 42
       agentCount  = 500

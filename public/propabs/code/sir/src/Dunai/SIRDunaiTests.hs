@@ -113,14 +113,12 @@ prop_dunai_sir g0 as
         finalAggr          = map last ass
         (sus', inf', rec') = unzip3 finalAggr
 
-        -- using a 95% confidence interval for 1-sided t-test
-        -- TODO: seems to be too strict
-        alpha = 0.1
+        -- using a 95% confidence interval for two-sided t-test 
+        alpha = 0.05
 
-        -- NOTE: t-test returns False when it is successful => invert it
-        susTTest = Just not <*> tTest "sus" sus' susTarget alpha
-        infTTest = Just not <*> tTest "inf" inf' infTarget alpha
-        recTTest = Just not <*> tTest "rec" rec' recTarget alpha
+        susTTest = tTest "sus" sus' susTarget alpha
+        infTTest = tTest "inf" inf' infTarget alpha
+        recTTest = tTest "rec" rec' recTarget alpha
 
         -- in case there is no variance (all samples same) we simply compare
         -- the averages within a given epsilon of a 90% interval

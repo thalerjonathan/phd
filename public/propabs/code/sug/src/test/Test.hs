@@ -8,7 +8,9 @@ import Test.Tasty
 --import SugarScape.Discrete 
 --import SugarScape.Model
 
+import Agent
 import Environment
+import Simulation
 
 -- clear & stack test --test-arguments="--quickcheck-tests=100 --quickcheck-replay="
 
@@ -27,5 +29,11 @@ main = do
   print x
 -}
 
-  let sugarScapeTests = testGroup "SugarScape Tests" [ envTests g ]
+  let sugarScapeTests = testGroup "SugarScape Tests" 
+                              [ 
+                                simTests g
+                              , agentTests g 
+                              , envTests g 
+                              ]
+
   defaultMain sugarScapeTests

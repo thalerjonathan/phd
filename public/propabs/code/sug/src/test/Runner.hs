@@ -1,4 +1,4 @@
-module Utils
+module Runner
   ( runAgentSFSteps
   , runAgentSF
   ) where

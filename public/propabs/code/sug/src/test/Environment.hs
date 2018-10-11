@@ -13,9 +13,7 @@ import SugarScape.Discrete
 import SugarScape.Environment
 import SugarScape.Model
 
-import Utils
-
-import Debug.Trace
+import Runner
 
 instance Arbitrary SugEnvCell where
   -- arbitrary :: Gen SugEnvCell
@@ -30,7 +28,7 @@ instance Arbitrary SugEnvCell where
     }
 
 instance Arbitrary (Discrete2d SugEnvCell) where
-  -- arbitrary :: Gen SugEnvCell
+  -- arbitrary :: Gen (Discrete2d SugEnvCell)
   arbitrary = do
     --dimX <- choose (1, 100)
     --dimY <- choose (1, 100)
@@ -73,7 +71,7 @@ prop_env_regrow_rate g (Positive rate) env0
     cs0 = allCells env0
     cs'       = allCells env'
 
-    diffWithinRate = all (\(c0, c') -> sugarLevelDiffEps c' c0 rate 0.01) (zip cs0 cs')
+    diffWithinRate = all (\(c0, c') -> sugarLevelDiff c' c0 rate) (zip cs0 cs')
 
 prop_env_regrow_rate_full :: RandomGen g 
                           => g
@@ -104,13 +102,12 @@ prop_env_regrow_full g env0
 
     cs = allCells env'
 
-sugarLevelDiffEps :: SugEnvCell
-                  -> SugEnvCell
-                  -> Double
-                  -> Double
-                  -> Bool
-sugarLevelDiffEps c0 c1 ref eps
-    = trace ("\n diff = " ++ show diff ++ " diffRef = " ++ show diffRef ++ " ref = " ++ show ref) diffRef >= 0
+sugarLevelDiff :: SugEnvCell
+               -> SugEnvCell
+               -> Double
+               -> Bool
+sugarLevelDiff c0 c1 ref
+    = diffRef < ref 
   where
     diff    = sugEnvSugarLevel c0 - sugEnvSugarLevel c1
     diffRef = ref - diff

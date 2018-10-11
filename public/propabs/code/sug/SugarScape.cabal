@@ -103,7 +103,8 @@ Test-Suite sugarscape-test
   other-modules:        Agent
                       , Environment
                       , Simulation
-                      , Utils
+                      , StatsUtils
+                      , Runner
                       
                       , SugarScape.Agent
                       , SugarScape.AgentMonad
@@ -140,3 +141,4 @@ Test-Suite sugarscape-test
                       -fno-warn-unused-matches
                       -fno-warn-orphans
                       -fno-warn-unused-top-binds
+                      -fno-warn-unused-imports

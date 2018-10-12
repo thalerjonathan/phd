@@ -88,7 +88,6 @@ randomAgent (agentId, coord) beh sup = do
   , sugAgSugarMetab = randSugarMetab
   , sugAgVision     = randVision
   , sugAgSugarLevel = randSugarEndowment
-  , sugAgSugarInit  = randSugarEndowment
   }
 
   let s'   = sup s

@@ -80,14 +80,14 @@ data EnvironmentWrapping
   = ClipToMax 
   | WrapHorizontal 
   | WrapVertical 
-  | WrapBoth deriving (Show, Read)
+  | WrapBoth deriving (Show, Read, Eq)
 
 data Discrete2d c = Discrete2d 
   { envDisc2dDims           :: Discrete2dDimension
   , envDisc2dNeighbourhood  :: Discrete2dNeighbourhood
   , envDisc2dWrapping       :: EnvironmentWrapping
   , envDisc2dCells          :: Array Discrete2dCoord c
-  } deriving (Show, Read)
+  } deriving (Show, Read, Eq)
 
 createDiscrete2d :: Discrete2dDimension
                  -> Discrete2dNeighbourhood

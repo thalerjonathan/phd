@@ -1,6 +1,9 @@
 {-# LANGUAGE Arrows #-}
 module SugarScape.Agent 
   ( sugAgent
+  , agentMetabolism
+  , agentDies
+  , starvedToDeath
   ) where
 
 import Control.Monad.Random
@@ -99,12 +102,12 @@ agentMetabolism = do
       starvedToDeath
       agentDies
       (return agentOut)
-  where
-    agentDies :: RandomGen g
-              => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-    agentDies = do
-      unoccupyPosition
-      return $ kill agentOut
+
+agentDies :: RandomGen g
+          => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+agentDies = do
+  unoccupyPosition
+  return $ kill agentOut
       
 starvedToDeath :: RandomGen g
                => StateT SugAgentState (SugAgentMonadT g) Bool

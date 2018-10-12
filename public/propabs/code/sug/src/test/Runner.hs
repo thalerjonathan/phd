@@ -1,6 +1,9 @@
 module Runner
   ( runAgentSFSteps
   , runAgentSF
+
+  , runAgentMonad
+  , runAgentMonad_
   ) where
 
 import Control.Monad.Random
@@ -52,3 +55,30 @@ runAgentSF sf absState env g
     sfRand     = runStateT sfEnvState env
     ((((out, sf'), absState'), env'), g') = runRand sfRand g
 
+-- runs a computation of the agent monad and discharges all context except return value of computation
+-- StateT SugAgentState ((StateT ABSState m) (StateT SugEnvironment (Rand g))) ret
+runAgentMonad_ :: RandomGen g
+               => StateT SugAgentState (SugAgentMonadT g) ret
+               -> SugAgentState
+               -> ABSState
+               -> SugEnvironment
+               -> g
+               -> ret
+runAgentMonad_ f as0 absState0 env0 g0 = ret
+  where
+    (ret, _, _, _, _) = runAgentMonad f as0 absState0 env0 g0
+
+runAgentMonad :: RandomGen g
+              => StateT SugAgentState (SugAgentMonadT g) ret
+              -> SugAgentState
+              -> ABSState
+              -> SugEnvironment
+              -> g
+              -> (ret, SugAgentState, ABSState, SugEnvironment, g)
+runAgentMonad f as0 absState0 env0 g0 
+    = (ret, as', absState', env', g')
+  where
+    fAbsState = runStateT f as0
+    fEnvState = runStateT fAbsState absState0
+    fRand     = runStateT fEnvState env0
+    ((((ret, as'), absState'), env'), g') = runRand fRand g0

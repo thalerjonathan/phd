@@ -38,24 +38,23 @@ data SugAgentState = SugAgentState
   , sugAgSugarMetab       :: Double              -- this amount of sugar will be consumed by the agent in each time-step
   , sugAgVision           :: Int                 -- the vision of the agent: strongly depends on the type of the environment: Int because its 2d discrete
   , sugAgSugarLevel       :: Double              -- the current sugar holdings of the agent, if 0 then the agent starves to death
-  , sugAgSugarInit        :: Double              -- agent is fertile only when its sugarlevel is GE than its initial endowment
-    } deriving (Show)
+    } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
   { sugObsCoord    :: Discrete2dCoord
   , sugObsVision   :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 data SugEnvCellOccupier = SugEnvCellOccupier 
   { sugEnvOccId     :: AgentId
   , sugEnvOccWealth :: Double
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 data SugEnvCell = SugEnvCell 
   { sugEnvSugarCapacity :: Double
   , sugEnvSugarLevel    :: Double
   , sugEnvOccupier      :: Maybe SugEnvCellOccupier
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvCell
 

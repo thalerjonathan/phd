@@ -37,7 +37,7 @@ type AgentId = Int
 data ABSState = ABSState
   { absNextId :: AgentId
   , absTime   :: Time
-  }
+  } deriving (Show, Eq)
 
 type AgentT m  = (StateT ABSState m)
 type Agent m o = SF (AgentT m) AgentIn (AgentOut m o)

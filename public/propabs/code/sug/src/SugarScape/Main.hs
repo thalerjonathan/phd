@@ -15,15 +15,14 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let glossOut    = True
-      rebirthFlag = True -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
+      rebirthFlag = False -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
       rngSeed     = 42
-      agentCount  = 1000
-      envSize     = (50, 50)
-
+      agentCount  = 400
+      
       -- initial RNG
       (g0, shuffleRng) = split $ mkStdGen rngSeed
       -- initial agents and environment
-      ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize rebirthFlag) g0
+      ((initAs, initEnv), g) = runRand (createSugarScape agentCount rebirthFlag) g0
       -- initial simulation state
       (initAis, initSfs) = unzip initAs
 

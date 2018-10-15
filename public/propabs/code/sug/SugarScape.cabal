@@ -80,7 +80,7 @@ executable sugarscape
                       , random
                       , mtl
                       , gloss
-                      
+
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src
@@ -129,10 +129,12 @@ Test-Suite sugarscape-test
                       , mtl
                       , MonadRandom
                       , random
+                      , statistics
                       , tasty
                       , tasty-hunit
                       , tasty-smallcheck
                       , tasty-quickcheck
+                      , vector
 
   ghc-options:        -O3 
                       -Wall 

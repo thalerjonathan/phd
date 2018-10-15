@@ -40,7 +40,6 @@ simTests g = testGroup "Simulation Tests" [ QC.testProperty "Carrying Capacity" 
 -- what we are doing is replicating sugarscape
 -- https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
 
-
 -- TODO: ok this is testing a property of the simulation but is NOT using QuickCheck to generate
 -- the random data
 -- TODO: also make assumptions about the absolute number of agents at which it stabelises
@@ -50,11 +49,11 @@ prop_carrying_cap :: RandomGen g
 prop_carrying_cap = testPopulationSizeVariance runs
   where
     runs        = 100
+    steps       = 400
+    stableAfter = 100
     maxVariance = 4
-    stableAfter = 50
 
     agentCount  = 400
-    envSize     = (50, 50)
 
     -- TODO: dont we need to perform a https://en.wikipedia.org/wiki/Chi-squared_test ?
     testPopulationSizeVariance :: RandomGen g 
@@ -63,21 +62,22 @@ prop_carrying_cap = testPopulationSizeVariance runs
                                -> Bool
     testPopulationSizeVariance 0 _ = True
     testPopulationSizeVariance n g 
-        = trace ("popSizeVariance = " ++ show popSizeVariance ++ " popSizeMean = " ++ show popSizeMean) 
+        = trace ("popSizeVariance = " ++ show popSizeVariance ++ " popSizeMean = " ++ show popSizeMean ++ " popSizeMedian = " ++ show popSizeMedian) 
             popSizeVariance <= maxVariance && 
             testPopulationSizeVariance (n - 1) g''
       where
         -- initial RNG
         (g', shuffleRng) = split g
         -- initial agents and environment
-        ((initAs, initEnv), g'') = runRand (createSugarScape agentCount envSize False) g'
+        ((initAs, initEnv), g'') = runRand (createSugarScape agentCount False) g'
         -- initial simulation state
         (initAis, initSfs) = unzip initAs
 
         initSimState = mkSimState (simStepSF initAis initSfs shuffleRng) (mkAbsState $ maximum initAis) initEnv g' 0
-        sos          = simulateUntil 100 initSimState
+        sos          = simulateUntil steps initSimState
 
-        sos' = drop stableAfter sos
-        popSizes = map (\(_, _, aos) -> fromIntegral $ length aos) sos'
+        sos'            = drop stableAfter sos
+        popSizes        = map (\(_, _, aos) -> fromIntegral $ length aos) sos'
         popSizeVariance = std popSizes
-        popSizeMean = mean popSizes
+        popSizeMean     = mean popSizes
+        popSizeMedian   = median popSizes

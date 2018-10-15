@@ -108,7 +108,7 @@ agentDies :: RandomGen g
 agentDies = do
   unoccupyPosition
   return $ kill agentOut
-      
+
 starvedToDeath :: RandomGen g
                => StateT SugAgentState (SugAgentMonadT g) Bool
 starvedToDeath = do

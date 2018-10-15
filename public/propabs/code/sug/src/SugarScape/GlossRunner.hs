@@ -17,7 +17,7 @@ runGloss :: RandomGen g
          -> SimStepOut
          -> IO ()
 runGloss initSimState initOut = do
-  let freq     = 0
+  let freq     = 1
       winSize  = (800, 800)
       winTitle = "SugarScape"
       

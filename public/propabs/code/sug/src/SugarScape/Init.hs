@@ -13,25 +13,28 @@ import SugarScape.Discrete
 import SugarScape.Environment
 import SugarScape.Model
 
+-- the sugarscape is 50x50 in our implementation
+sugarscapeDimensions :: (Int, Int)
+sugarscapeDimensions = (50, 50)
+
 createSugarScape :: RandomGen g
                  => Int 
-                 -> Discrete2dDimension 
                  -> Bool
                  -> Rand g ([(AgentId, SugAgent g)], SugEnvironment)
-createSugarScape agentCount dims@(_dx, _dy) rebirthFlag = do
-  randCoords <- randomCoords (0,0) dims agentCount
+createSugarScape agentCount rebirthFlag = do
+  randCoords <- randomCoords (0,0) sugarscapeDimensions agentCount
 
   let ais = [1..agentCount]
   ras <- mapM (\(aid, coord) -> randomAgent (aid, coord) (sugAgent rebirthFlag) id) (zip ais randCoords)
   let as = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
   let occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
 
-  initRandomCells <- createCells dims occupations
+  initRandomCells <- createCells sugarscapeDimensions occupations
 
   let cells' = addSugar initRandomCells
   
   let e = createDiscrete2d
-              dims
+              sugarscapeDimensions
               neumann
               WrapBoth
               cells'

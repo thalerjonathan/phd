@@ -68,8 +68,29 @@ type SugAgentOut g  = AgentOut (SugAgentMonad g) SugAgentObservable
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
+-- SUGARSCAPE PARAMETERS
+{-
+data SugarScapeParams = SugarScapeParams 
+  { spSugarGrowBackRate  :: Double
+  , spSugarEndowmentRange :: (Double, Double)
+  , spSugarMetabolismRange :: (Double, Double)
+  , spVisionRange :: (Int, Int)
+  }
+
+mkSugarScapeParamsChapterII :: SugarScapeParams
+mkSugarScapeParamsChapterII = SugarScapeParams {
+    spSugarGrowBackRate    = 1.0
+  , spSugarEndowmentRange  = (5.0, 25.0) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
+  , spSugarMetabolismRange = (1.0, 4.0)  -- NOTE: specified where? 1 - 4
+  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+  } 
+-}
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
+
 -- NOTE: < 0 is treated as grow back to max
 sugarGrowbackUnits :: Double
 sugarGrowbackUnits = 1.0
@@ -83,8 +104,9 @@ sugarEndowmentRange = sugarEndowmentRangeStandard
 sugarEndowmentRangeStandard :: (Double, Double)
 sugarEndowmentRangeStandard = (5.0, 25.0)
 
+-- NOTE: specified where? 1 - 4
 sugarMetabolismRange :: (Double, Double)
-sugarMetabolismRange = (1.0, 5.0)
+sugarMetabolismRange = (1.0, 4.0)
 
 visionRange :: (Int, Int)
 visionRange = visionRangeStandard

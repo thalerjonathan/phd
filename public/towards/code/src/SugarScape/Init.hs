@@ -17,6 +17,9 @@ import SugarScape.Model
 sugarscapeDimensions :: (Int, Int)
 sugarscapeDimensions = (50, 50)
 
+-- taken from Iain Weaver Sugarscape implementation
+-- https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
+-- http://ccl.northwestern.edu/netlogo/models/community/
 sugarEnvSpec :: [String]
 sugarEnvSpec =
   [ "111111111111111111111111111112222222222111111111111"

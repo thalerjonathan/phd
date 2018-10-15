@@ -1,0 +1,177 @@
+%**************************************************************************
+%* SpringSim 2019 Author Kit
+%*
+%* Word Processing System: TeXnicCenter and MiKTeX
+%*
+%**************************************************************************
+\documentclass{scspaperproc}
+
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{mathptmx}
+
+%
+%****************************************************************************
+% AUTHOR: You may want to use some of these packages. (Optional)
+%\usepackage{amsmath}
+%\usepackage{amsfonts}
+%\usepackage{amssymb}
+%\usepackage{amsbsy}
+%\usepackage{amsthm}
+%****************************************************************************
+
+
+%
+%****************************************************************************
+% AUTHOR: If you do not wish to use hyperlinks, then just comment
+% out the hyperref usepackage commands below.
+
+%% This version of the command is used if you use pdflatex. In this case you
+%% cannot use ps or eps files for graphics, but pdf, jpeg, png etc are fine.
+
+\usepackage[pdftex,colorlinks=true,urlcolor=blue,citecolor=black,anchorcolor=black,linkcolor=black]{hyperref}
+
+%% The next versions of the hyperref command are used if you adopt the
+%% outdated latex-dvips-ps2pdf route in generating your pdf file. In
+%% this case you can use ps or eps files for graphics, but not pdf, jpeg, png etc.
+%% However, the final pdf file should embed all fonts required which means that you have to use file
+%% formats which can embed fonts. Please note that the final PDF file will not be generated on your computer!
+%% If you are using WinEdt or PCTeX, then use the following. If you are using
+%% Y&Y TeX then replace "dvips" with "dvipsone"
+
+%% \usepackage[dvips,colorlinks=true,urlcolor=blue,citecolor=black,%
+%% anchorcolor=black,linkcolor=black]{hyperref}
+
+%% The use of the long citation format (e.g. "Brown and Edwards (1993)" rather than "[5]") and at the same
+%% time using the hyperref package can lead to hard to trace bugs in case the citation is broken accross the
+%% line (usually this will mark the entire paragraph as a hyperlink (clickable) which is easily noticeable and fixed
+%% if using colorlinks, but not if the color is black -- as it is now). Worse yet, if a citation spans page boundary,
+%% LaTeX compilation can fail, with an obscure error message. Since this depends a lot on the flow of the text
+%% and wording, these bugs come and go and can be extremely hard for a beginner to trace. The error
+%% message can look like this:
+%%
+%%    ! pdfTeX error (ext4): \pdfendlink ended up in different nesting level than \pdfstartlink.
+%%    \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+%%    \fi \fi 
+%%    l.174 
+%%    ! ==> Fatal error occurred, no output PDF file produced!
+%%
+%% and can be universally fixed by putting an \mbox{} around the citation in question (in this case, at line 174)
+%% and maybe adapting the wording a little bit to improve the paragraph typesetting, which is perhaps not
+%% immediately obvious.
+%****************************************************************************
+
+%
+%****************************************************************************
+%*
+%* AUTHOR: YOUR CALL!  Document-specific macros can come here.
+%*
+%****************************************************************************
+
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{minted}
+\usepackage{verbatim}
+
+%#########################################################
+%*
+%*  The Document.
+%*
+\begin{document}
+
+%***************************************************************************
+% AUTHOR: AUTHOR NAMES GO HERE
+% FORMAT AUTHORS NAMES Like: Author1, Author2 and Author3 (last names)
+%
+%		You need to change the author listing below!
+%               Please list ALL authors using last name only, separate by a comma except
+%               for the last author, separate with "and"
+%
+\SCSpagesetup{Thaler, Siebers and Altenkirch}
+
+% AUTHOR: Uncomment ONE of these correct conference names.
+%\def\SCSconferenceacro{SpringSim}
+\def\SCSconferenceacro{SummerSim}
+%\def\SCSconferenceacro{AutumnSim}
+%\def\SCSconferenceacro{PowerPlantSim}
+
+% AUTHOR: Set the correct year of the conference.
+\def\SCSpublicationyear{2019}
+
+% AUTHOR: Set the correct month and dates; the dates are separated by a single minus sign
+% with no spaces and no leading zeros, the month is a full name (e.g. April) with the first letter
+% capitalized. For example, "April 8-13".
+\def\SCSconferencedates{July 22-July 24}
+
+% AUTHOR: Set the correct venue in the form "City, State, Country", for example "Los Angeles, CA, USA".
+\def\SCSconferencevenue{Berlin, Germany}
+
+% AUTHOR: Uncomment ONE of the track/symposium names where you are going to submit. Please, do NOT change.
+% In case your symposium is not on this list, please DO contact your symposium chair.
+\def\SCSsymposiumacro{ANSS} % Annual Simulation Symposium
+%\def\SCSsymposiumacro{CNS} % Communications and Networking Simulation Symposium
+%\def\SCSsymposiumacro{HPC} % High Performance Computing Symposium
+%\def\SCSsymposiumacro{TMS/DEVS} % Symposium on Theory of Modeling and Simulation
+%\def\SCSsymposiumacro{ADS} % Agent-Directed Simulation
+%\def\SCSsymposiumacro{MSCIAAS} % Modeling and Simulation of Complexity in Intelligent, Adaptive and Autonomous Systems
+%\def\SCSsymposiumacro{MSM} % Modeling and Simulation in Medicine
+%\def\SCSsymposiumacro{Mod4Sim} % Model-driven Approaches for Simulation Engineering Symposium
+%\def\SCSsymposiumacro{Tutorial} % Tutorial Track
+%\def\SCSsymposiumacro{WIP} % WIP Track
+%\def\SCSsymposiumacro{Poster/Colloquium} % Poster Session and Student Colloquium
+%\def\SCSsymposiumacro{MobileApp} % Student M\&S Mobile App Competition
+%\def\SCSsymposiumacro{SPECTS} % Symposium on Performance Evaluation of Computer and Telecommunication Systems
+%\def\SCSsymposiumacro{SCSC} % Summer Computer Simulation Conference
+%\def\SCSsymposiumacro{ICBGM} % International Conference on Bond-Graph Modeling
+%\def\SCSsymposiumacro{Fossil} % Fossil Power Track
+%\def\SCSsymposiumacro{Nuclear} % Nuclear Agent Power Track
+
+% AUTHOR: Enter the title, all letters in upper case
+
+\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
+
+% Title portion. Note the short title for running heads
+\title{The Agents New Cloths \\ \small{Towards Pure Functional Programming in ABS}}
+%\subtitle{Towards Pure Functional Programming in ABS}
+
+% AUTHOR: Enter the authors of the article, see end of the example document for further examples
+\author{
+\\%To level with the author block on the right.
+Jonathan Thaler \\ 
+Peer Olaf Siebers \\ [12pt] 
+School Of Computer Science \\
+University of Nottingham \\
+7301 Wollaton Rd \\
+Nottingham, United Kingdom \\
+\{jonathan.thaler,peer-olaf.siebers\}@nottingham.ac.uk\\
+}
+
+\maketitle
+
+\section*{Abstract}
+%NOTE we target Summer Simulation Conference: http://scs.org/summersim/ with the sub-track on Agent-based Modeling and Simulation (ABMS) 
+
+TODO
+
+\textbf{Keywords:} Agent-Based Simulation, Functional Programming, Haskell, Concurrency, Parallelism, Property-Based Testing, Validation \& Verification.
+
+\maketitle
+
+\input{./tex/introduction.tex}
+
+\input{./tex/casestudy.tex}
+
+\section*{Acknowledgments}
+The authors would like to thank
+
+% Please don't change the bibliographystyle style
+\bibliographystyle{scsproc}
+% AUTHOR: Include your bib file here
+\bibliography{../../../references/phdReferences.bib}
+
+% what a waste of space
+%\section*{Author Biographies}
+%\textbf{\uppercase{JONATHAN THALER}} is a PhD. student.
+%\textbf{\uppercase{PEER-OLAF SIEBERS}} is Jonathans Supervisor.
+
+\end{document}

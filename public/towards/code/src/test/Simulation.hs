@@ -9,6 +9,7 @@ import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Agent
 import SugarScape.AgentMonad
+import SugarScape.Environment
 import SugarScape.Init
 import SugarScape.Model
 import SugarScape.Simulation
@@ -53,7 +54,7 @@ prop_carrying_cap = testPopulationSizeVariance runs
     stableAfter = 100
     maxVariance = 4
 
-    agentCount  = 400
+    sugParams   = mkParamsCarryingCapacity
 
     -- TODO: dont we need to perform a https://en.wikipedia.org/wiki/Chi-squared_test ?
     testPopulationSizeVariance :: RandomGen g 
@@ -69,11 +70,11 @@ prop_carrying_cap = testPopulationSizeVariance runs
         -- initial RNG
         (g', shuffleRng) = split g
         -- initial agents and environment
-        ((initAs, initEnv), g'') = runRand (createSugarScape agentCount False) g'
+        ((initAs, initEnv), g'') = runRand (createSugarScape sugParams) g'
         -- initial simulation state
         (initAis, initSfs) = unzip initAs
 
-        initSimState = mkSimState (simStepSF initAis initSfs shuffleRng) (mkAbsState $ maximum initAis) initEnv g' 0
+        initSimState = mkSimState (simStepSF initAis initSfs (sugEnvironment sugParams) shuffleRng) (mkAbsState $ maximum initAis) initEnv g' 0
         sos          = simulateUntil steps initSimState
 
         sos'            = drop stableAfter sos

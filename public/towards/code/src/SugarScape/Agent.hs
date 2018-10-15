@@ -20,13 +20,13 @@ import SugarScape.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
-         => Bool
+         => SugarScapeParams
          -> AgentId
          -> SugAgentState
          -> SugAgent g
-sugAgent rebirthFlag aid s0 = feedback s0 (proc (ain, s) -> do
+sugAgent params aid s0 = feedback s0 (proc (ain, s) -> do
   age      <- time -< ()
-  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII rebirthFlag aid ain age) s) -< (age, ain, s)
+  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII params aid ain age) s) -< (age, ain, s)
   returnA -< (ao, s'))
 
 updateAgentState :: RandomGen g
@@ -43,18 +43,19 @@ observable
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 chapterII :: RandomGen g 
-          => Bool
+          => SugarScapeParams
           -> AgentId
           -> SugAgentIn
           -> Time
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII rebirthFlag aid _ain age = do
+chapterII params aid _ain age = do
+  let rebirthFlag = False
   ao <- agentMetabolism
   ifThenElse
     (isDead ao)
     (if rebirthFlag
       then do
-        (_, newA) <- birthNewAgent rebirthFlag
+        (_, newA) <- birthNewAgent params
         return $ newAgent newA ao
       else return ao)
     (do
@@ -63,18 +64,18 @@ chapterII rebirthFlag aid _ain age = do
       return $ ao <°> ao')
 
 birthNewAgent :: RandomGen g
-              => Bool
+              => SugarScapeParams
               -> StateT SugAgentState (SugAgentMonadT g) (AgentId, SugAgentDef g)
-birthNewAgent rebirthFlag = do
-      newAid              <- lift nextAgentId
-      (newCoord, newCell) <- findUnoccpiedRandomPosition
-      (newA, newAState)   <- lift $ lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+birthNewAgent params = do
+    newAid              <- lift nextAgentId
+    (newCoord, newCell) <- findUnoccpiedRandomPosition
+    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (sugAgent params) id
 
-      -- need to occupy the cell to prevent other agents occupying it
-      let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
-      lift $ lift $ changeCellAtM newCoord newCell' 
+    -- need to occupy the cell to prevent other agents occupying it
+    let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
+    lift $ lift $ changeCellAtM newCoord newCell' 
 
-      return (newAid, newA)
+    return (newAid, newA)
   where
     -- the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position

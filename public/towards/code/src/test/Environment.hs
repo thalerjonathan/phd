@@ -18,7 +18,7 @@ import Runner
 instance Arbitrary SugEnvCell where
   -- arbitrary :: Gen SugEnvCell
   arbitrary = do
-    cap <- choose sugarCapacityRange
+    cap <- choose (0, 4)
     lvl <- choose (0, cap)
 
     return SugEnvCell {
@@ -66,12 +66,11 @@ prop_env_regrow_rate g (Positive rate) env0
       all levelLTESugarMax cs' &&
       diffWithinRate
   where
-    (_, env', _, _, _) = runAgentSF (sugEnvironment rate) defaultAbsState env0 g
-
-    cs0 = allCells env0
-    cs'       = allCells env'
-
-    diffWithinRate = all (\(c0, c') -> sugarLevelDiff c' c0 rate) (zip cs0 cs')
+    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = rate }
+    (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
+    cs0                = allCells env0
+    cs'                = allCells env'
+    diffWithinRate     = all (\(c0, c') -> sugarLevelDiff c' c0 rate) (zip cs0 cs')
 
 prop_env_regrow_rate_full :: RandomGen g 
                           => g
@@ -81,11 +80,11 @@ prop_env_regrow_rate_full :: RandomGen g
 prop_env_regrow_rate_full g (Positive rate) env0 
     = all posSugarLevel cs' && all fullSugarLevel cs'
   where
-    maxCap = snd sugarCapacityRange
-    steps  = ceiling $ maxCap / rate
-    (outs, _, _, _) = runAgentSFSteps steps (sugEnvironment rate) defaultAbsState env0 g
-    (_, env') = last outs
-    cs' = allCells env'
+    sugParams       = mkSugarScapeParams { spSugarGrowBackRate = rate }
+    steps           = ceiling $ maxSugarCapacityCell / rate
+    (outs, _, _, _) = runAgentSFSteps steps (sugEnvironment sugParams) defaultAbsState env0 g
+    (_, env')       = last outs
+    cs'             = allCells env'
 
 -- test growback after 1 step
 -- test that after 1 step the difference between level and capacity in all cells is 0
@@ -97,10 +96,9 @@ prop_env_regrow_full g env0
     = all fullSugarLevel cs && all posSugarLevel cs 
   where
     -- with a regrow-rate < 0 the sugar regrows to max within 1 step
-    fullRegrowRate = -1
-    (_, env', _, _, _) = runAgentSF (sugEnvironment fullRegrowRate) defaultAbsState env0 g
-
-    cs = allCells env'
+    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = -1 }
+    (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
+    cs                 = allCells env'
 
 sugarLevelDiff :: SugEnvCell
                -> SugEnvCell

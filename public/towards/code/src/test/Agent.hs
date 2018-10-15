@@ -20,9 +20,9 @@ import Runner
 instance Arbitrary SugAgentState where
   -- arbitrary :: Gen SugAgentState
   arbitrary = do
-    randSugarMetab     <- choose sugarMetabolismRange
-    randVision         <- choose visionRange
-    randSugarEndowment <- choose sugarEndowmentRange
+    randSugarMetab     <- choose (1, 4)
+    randVision         <- choose (1, 6)
+    randSugarEndowment <- choose (5.0, 25.0)
 
     return SugAgentState {
       sugAgCoord      = (0, 0)

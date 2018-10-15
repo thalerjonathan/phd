@@ -71,17 +71,18 @@ cellOccupier aid s = SugEnvCellOccupier
   }
 
 randomAgent :: RandomGen g  
-            => (AgentId, Discrete2dCoord)
+            => SugarScapeParams
+            -> (AgentId, Discrete2dCoord)
             -> (AgentId -> SugAgentState -> SugAgent g)
             -> (SugAgentState -> SugAgentState)
             -> Rand g (SugAgentDef g, SugAgentState)
-randomAgent (agentId, coord) beh sup = do
+randomAgent params (agentId, coord) beh sup = do
   -- NOTE: need to split here otherwise agents would end up with the same random-values when not already splitting in the calling function
   _rng <- getSplit
 
-  randSugarMetab     <- getRandomR sugarMetabolismRange
-  randVision         <- getRandomR  visionRange
-  randSugarEndowment <- getRandomR sugarEndowmentRange
+  randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
+  randVision         <- getRandomR $ spVisionRange params
+  randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
   
   let s = SugAgentState {
     sugAgCoord      = coord

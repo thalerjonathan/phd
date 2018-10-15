@@ -15,13 +15,13 @@ module SugarScape.Model
   , SugAgentIn
   , SugAgentOut
 
-  , sugarGrowbackUnits
-  , sugarCapacityRange
-  , sugarEndowmentRange
-  , sugarEndowmentRangeStandard
-  , sugarMetabolismRange
-  , visionRange
-  , visionRangeStandard
+  , SugarScapeParams (..)
+  , mkSugarScapeParams
+  , mkParamsAnimationII_1
+  , mkParamsAnimationII_2
+  , mkParamsCarryingCapacity
+
+  , maxSugarCapacityCell
   ) where
 
 import Control.Monad.Random
@@ -69,28 +69,60 @@ type SugAgentOut g  = AgentOut (SugAgentMonad g) SugAgentObservable
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SUGARSCAPE PARAMETERS
-{-
+------------------------------------------------------------------------------------------------------------------------
+maxSugarCapacityCell :: Double
+maxSugarCapacityCell = 4.0
+
 data SugarScapeParams = SugarScapeParams 
-  { spSugarGrowBackRate  :: Double
-  , spSugarEndowmentRange :: (Double, Double)
+  { sgAgentCount           :: Int
+  , spSugarGrowBackRate    :: Double            -- negative value means G_inf: regrow to max in next step
+  , spSugarEndowmentRange  :: (Double, Double)
   , spSugarMetabolismRange :: (Double, Double)
-  , spVisionRange :: (Int, Int)
+  , spVisionRange          :: (Int, Int)
   }
 
-mkSugarScapeParamsChapterII :: SugarScapeParams
-mkSugarScapeParamsChapterII = SugarScapeParams {
-    spSugarGrowBackRate    = 1.0
-  , spSugarEndowmentRange  = (5.0, 25.0) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
-  , spSugarMetabolismRange = (1.0, 4.0)  -- NOTE: specified where? 1 - 4
-  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
-  } 
--}
-------------------------------------------------------------------------------------------------------------------------
+mkSugarScapeParams :: SugarScapeParams
+mkSugarScapeParams = SugarScapeParams {
+    sgAgentCount           = 0
+  , spSugarGrowBackRate    = 0
+  , spSugarEndowmentRange  = (0.0, 0.0)
+  , spSugarMetabolismRange = (0.0, 0.0)
+  , spVisionRange          = (0, 0) 
+  }
 
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
+mkParamsAnimationII_1 :: SugarScapeParams
+mkParamsAnimationII_1 = mkSugarScapeParams {
+    sgAgentCount           = 400         -- page 28
+  , spSugarGrowBackRate    = -1.0        -- regrow to max immediately
+  , spSugarEndowmentRange  = (5.0, 25.0) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
+  , spSugarMetabolismRange = (1.0, 4.0)  -- NOTE: specified where? 1 - 4
+  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+  }
 
+mkParamsAnimationII_2 :: SugarScapeParams
+mkParamsAnimationII_2 = mkSugarScapeParams {
+    sgAgentCount           = 400         -- page 28
+  , spSugarGrowBackRate    = 1.0         -- regrow by 1 unit per step
+  , spSugarEndowmentRange  = (5.0, 25.0) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
+  , spSugarMetabolismRange = (1.0, 4.0)  -- NOTE: specified where? 1 - 4
+  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+  }
+
+mkParamsCarryingCapacity :: SugarScapeParams
+mkParamsCarryingCapacity = mkSugarScapeParams {
+    sgAgentCount           = 400         -- 400 agents only
+  , spSugarGrowBackRate    = 1.0         -- regrow by 1 unit per step
+  , spSugarEndowmentRange  = (5.0, 25.0) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
+  , spSugarMetabolismRange = (1.0, 4.0)  -- NOTE: specified where? 1 - 4
+  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+  }
+
+------------------------------------------------------------------------------------------------------------------------
+
+{-
 -- NOTE: < 0 is treated as grow back to max
 sugarGrowbackUnits :: Double
 sugarGrowbackUnits = 1.0
@@ -113,3 +145,4 @@ visionRange = visionRangeStandard
 -- NOTE: set to 1-6 on page 24
 visionRangeStandard :: (Int, Int)
 visionRangeStandard = (1, 6)
+-}

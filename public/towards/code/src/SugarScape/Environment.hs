@@ -44,10 +44,10 @@ regrowSugar rate
     regrowSugarToMax :: StateT SugEnvironment (Rand g) ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
 
--- TODO: get rid of Rand g
+-- TODO: can we get rid of Rand g ?
 sugEnvironment :: RandomGen g 
-               => Double
+               => SugarScapeParams
                -> SugAgent g
-sugEnvironment rate = proc _ -> do
-  arrM_ (lift $ lift $ regrowSugar rate) -< ()
+sugEnvironment params = proc _ -> do
+  arrM_ (lift $ lift $ regrowSugar $ spSugarGrowBackRate params) -< ()
   returnA -< agentOut

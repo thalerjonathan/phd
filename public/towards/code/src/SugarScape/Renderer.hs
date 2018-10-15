@@ -47,7 +47,7 @@ renderEnvCell r@(rw, rh) w _t (coord, cell)
     (x, y) = transformToWindow r w coord
 
     sugarLevel = sugEnvSugarLevel cell
-    sugarRatio = sugarLevel / snd sugarCapacityRange
+    sugarRatio = sugarLevel / maxSugarCapacityCell
 
     sugarRadius = rw * realToFrac sugarRatio
     sugarLevelCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugarRadius

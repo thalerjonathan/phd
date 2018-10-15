@@ -80,29 +80,32 @@ simulationStep ss = (ss', (t, env', out))
 simStepSF :: RandomGen g
           => [AgentId]
           -> [SugAgent g]
+          -> SugAgent g
           -> g
           -> SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
-simStepSF ais0 sfs0 shuffleRng = MSF $ \_ -> do
+simStepSF ais0 sfs0 envSf0 shuffleRng = MSF $ \_ -> do
   let (sfsAis, shuffleRng') = fisherYatesShuffle shuffleRng (zip sfs0 ais0)
       (sfs, ais)            = unzip sfsAis
 
-  res <- mapM (`unMSF` AgentIn) sfs
+  ret         <- mapM (`unMSF` AgentIn) sfs
+  -- NOTE: run environment separately after all agents
+  (_, envSf') <- unMSF envSf0 AgentIn 
 
-  let adefs = concatMap (\(ao, _) -> aoCreate ao) res
+  let adefs = concatMap (\(ao, _) -> aoCreate ao) ret
       newSfs = map adBeh adefs
       newAis = map adId adefs
 
       obs = foldr (\((ao, _), aid) acc -> 
         if isObservable ao 
           then (aid, fromJust $ aoObservable ao) : acc  
-          else acc) [] (zip res ais)
+          else acc) [] (zip ret ais)
 
       (sfs', ais') = foldr (\((ao, sf), aid) acc@(accSf, accAid) -> 
         if isDead ao 
           then acc 
-          else (sf : accSf, aid : accAid)) ([], []) (zip res ais)
+          else (sf : accSf, aid : accAid)) ([], []) (zip ret ais)
 
-      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') shuffleRng'
+      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') envSf' shuffleRng'
 
   return (obs, ct)
 

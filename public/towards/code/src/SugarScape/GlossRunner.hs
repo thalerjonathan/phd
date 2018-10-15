@@ -15,22 +15,22 @@ import            SugarScape.Simulation
 runGloss :: RandomGen g
          => SimulationState g
          -> SimStepOut
+         -> Int
          -> IO ()
-runGloss initSimState initOut = do
-  let freq     = 1
-      winSize  = (800, 800)
+runGloss initSimState initOut stepsPerSec = do
+  let winSize  = (800, 800)
       winTitle = "SugarScape"
       
   -- intiialize IORef which holds last simulation state
   ssRef <- newIORef initSimState
 
-  if freq > 0
+  if stepsPerSec > 0
     then
       -- run stimulation, driven by Gloss
       simulateIO 
         (displayGlossWindow winTitle winSize) -- window title and size
         white                     -- background
-        freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
+        stepsPerSec               -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
         (modelToPicture winSize)  -- model-to-picture function
         (renderStep ssRef)    -- 

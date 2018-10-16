@@ -3,6 +3,11 @@ module SugarScape.Simulation
   , SimStepOut
   , AgentObservable
 
+  , initSimulation
+  , initSimulationOpt
+  , initSimulationRng
+  , initSimulationSeed
+
   , simulationStep
   , simStepSF
 
@@ -21,7 +26,9 @@ import Control.Monad.State.Strict
 import FRP.BearRiver
 
 import SugarScape.AgentMonad
+import SugarScape.Environment
 import SugarScape.Model
+import SugarScape.Init
 import SugarScape.Random
 
 type AgentObservable o = (AgentId, o)
@@ -40,6 +47,42 @@ data SimulationState g = SimulationState
 -- sugarscape is stepped with a time-delta of 1.0
 sugarScapeTimeDelta :: DTime
 sugarScapeTimeDelta = 1.0
+
+initSimulation :: SugarScapeParams
+               -> IO (SimulationState StdGen, SugEnvironment)
+initSimulation params = do
+  g0 <- newStdGen
+  return $ initSimulationRng g0 params
+
+initSimulationOpt :: Maybe Int
+                  -> SugarScapeParams
+                  -> IO (SimulationState StdGen, SugEnvironment)
+initSimulationOpt Nothing     params = initSimulation params
+initSimulationOpt (Just seed) params = return $ initSimulationSeed seed params
+
+initSimulationSeed :: Int
+                   -> SugarScapeParams
+                   -> (SimulationState StdGen, SugEnvironment)
+initSimulationSeed seed = initSimulationRng g0
+  where
+    g0 = mkStdGen seed
+
+initSimulationRng :: RandomGen g
+                   => g
+                   -> SugarScapeParams
+                   -> (SimulationState g, SugEnvironment)
+initSimulationRng g0 params = (initSimState, initEnv)
+  where
+    -- split
+    (gSim, shuffleRng)         = split g0
+    -- initial agents and environment data
+    ((initAs, initEnv), gSim') = runRand (createSugarScape params) gSim
+    -- initial simulation state
+    (initAis, initSfs)     = unzip initAs
+    -- initial simulation state
+    initSimState           = mkSimState 
+                              (simStepSF initAis initSfs (sugEnvironment params) shuffleRng) 
+                              (mkAbsState $ maximum initAis) initEnv gSim' 0
 
 simulateUntil :: RandomGen g
               => Time

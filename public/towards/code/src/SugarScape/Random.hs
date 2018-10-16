@@ -4,7 +4,10 @@ module SugarScape.Random
   , randomElemM
   , randomShuffleM
   , fisherYatesShuffle
+  , fisherYatesShuffleM
   , avoidM
+
+  , rngSplits
   ) where
 
 import            System.Random
@@ -56,3 +59,30 @@ fisherYatesShuffle gen0 l = toElems $ foldl fisherYatesStep (initial (head l) ge
     fisherYatesStep (m, gen) (i, x) = ((Map.insert j x . Map.insert i (m Map.! j)) m, gen')
       where
         (j, gen') = randomR (0, i) gen
+
+fisherYatesShuffleM :: RandomGen g 
+                    => [a] 
+                    -> Rand g [a]
+fisherYatesShuffleM [] = return []
+fisherYatesShuffleM l = do
+    lMap <- foldM fisherYatesStep (Map.singleton 0 (head l)) (numerate (tail l))
+    return $ Map.elems lMap
+  where
+    numerate = zip [1..]
+
+    fisherYatesStep :: RandomGen g 
+                    => Map.Map Int a 
+                    -> (Int, a) 
+                    -> Rand g (Map.Map Int a)
+    fisherYatesStep m (i, x) = do
+        j <- getRandomR (0, i)
+        return ((Map.insert j x . Map.insert i (m Map.! j)) m)
+
+rngSplits :: RandomGen g => g -> Int -> ([g], g)
+rngSplits g0 n0 = rngSplitsAux g0 n0 []
+  where
+    rngSplitsAux :: RandomGen g => g -> Int -> [g] -> ([g], g)
+    rngSplitsAux g 0 acc = (acc, g)
+    rngSplitsAux g n acc = rngSplitsAux g'' (n - 1) (g' : acc)
+      where
+        (g', g'') = split g

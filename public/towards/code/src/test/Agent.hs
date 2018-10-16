@@ -22,7 +22,7 @@ instance Arbitrary SugAgentState where
   arbitrary = do
     randSugarMetab     <- choose (1, 4)
     randVision         <- choose (1, 6)
-    randSugarEndowment <- choose (5.0, 25.0)
+    randSugarEndowment <- choose (5, 25)
 
     return SugAgentState {
       sugAgCoord      = (0, 0)
@@ -41,7 +41,7 @@ agentTests g = testGroup "Agent Tests"
 prop_agent_starved :: RandomGen g 
                    => g
                    -> SugAgentState
-                   -> Double
+                   -> Int
                    -> Bool
 prop_agent_starved g0 asInit sugLvl 
     = starved == (sugLvl <= 0) &&

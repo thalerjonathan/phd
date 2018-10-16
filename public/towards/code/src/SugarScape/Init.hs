@@ -12,10 +12,11 @@ import SugarScape.AgentMonad
 import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
+import SugarScape.Random
 
--- the sugarscape is 50x50 in our implementation
-sugarscapeDimensions :: (Int, Int)
-sugarscapeDimensions = (50, 50)
+-- the sugarscape is 51x51 in our implementation
+sugarscapeDimensions :: Discrete2dCoord
+sugarscapeDimensions = (51, 51)
 
 -- taken from Iain Weaver Sugarscape implementation
 -- https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
@@ -87,19 +88,43 @@ createSugarScape params = do
 
   let as          = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
+      sugSpecs    = parseSugarSpec sugarEnvSpec
+      sugCoords   = sugarSpecToCoords sugSpecs sugarscapeDimensions
+      cells       = createCells sugCoords occupations
+      env         = createDiscrete2d
+                      sugarscapeDimensions
+                      neumann
+                      WrapBoth
+                      cells
 
-      _sugSpecs   = parseSugarSpec sugarEnvSpec
+  return (as, env)
 
-  initRandomCells <- createCells sugarscapeDimensions occupations
+sugarSpecToCoords :: [[Int]]
+                  -> Discrete2dCoord
+                  -> [(Discrete2dCoord, Int)]
+sugarSpecToCoords specs (dimX, dimY) 
+    | length specs /= dimY = error ("sugar row count does not match y-dimensions: " ++ show (length specs) ++ " not " ++ show dimY)
+    | otherwise            = sugarSpecLines specs 0 []
+  where
+    sugarSpecLines :: [[Int]]
+                   -> Int
+                   -> [(Discrete2dCoord, Int)]
+                   -> [(Discrete2dCoord, Int)]
+    sugarSpecLines [] _ acc       = acc
+    sugarSpecLines (l : ls) y acc 
+        | length l /= dimX = error ("sugar spec line size does not match x-dimensions: " ++ show (length l) ++ " not " ++ show dimX)
+        | otherwise        = sugarSpecLines ls (y + 1) acc'
+      where
+        acc' = sugarSpecLineToCoords l 0 acc
 
-  let cells' = addSugar initRandomCells
-      e      = createDiscrete2d
-                sugarscapeDimensions
-                neumann
-                WrapBoth
-                cells'
-
-  return (as, e)
+        sugarSpecLineToCoords :: [Int]
+                              -> Int
+                              -> [(Discrete2dCoord, Int)]
+                              -> [(Discrete2dCoord, Int)]
+        sugarSpecLineToCoords [] _ accLine       = accLine
+        sugarSpecLineToCoords (s : ss) x accLine = sugarSpecLineToCoords ss (x + 1) accLine'
+          where
+            accLine' = ((x, y), s) : accLine
 
 parseSugarSpec :: [String]
                -> [[Int]]
@@ -112,59 +137,49 @@ parseSugarSpec = map parseSugarSpecLine
         parseSugarSpecAux :: String 
                           -> [Int]
                           -> [Int]
-        parseSugarSpecAux [] acc = acc
+        parseSugarSpecAux [] acc = reverse acc
         parseSugarSpecAux (c : cs) acc 
           | isNumber c = parseSugarSpecAux cs (digitToInt c : acc)
           | otherwise  = error "bad character in sugar specification"
 
-addSugar :: [(Discrete2dCoord, SugEnvCell)] 
-         -> [(Discrete2dCoord, SugEnvCell)]
-addSugar cells = cellsWithSugarLevel4
-  where
-    cellsWithSugarLevel1 = initSugar cells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
-    cellsWithSugarLevel2 = initSugar cellsWithSugarLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
-    cellsWithSugarLevel3 = initSugar cellsWithSugarLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
-    cellsWithSugarLevel4 = initSugar cellsWithSugarLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
-
-initSugar :: [(Discrete2dCoord, SugEnvCell)]
-          -> ((Discrete2dCoord, SugEnvCell) -> Double)
-          -> [(Discrete2dCoord, SugEnvCell)]
-initSugar cs sugarFunc = map initSugarAux cs
-  where
-    initSugarAux :: (Discrete2dCoord, SugEnvCell)
-                 -> (Discrete2dCoord, SugEnvCell)
-    initSugarAux cp@(coord, cell) = (coord, cell')
-      where
-        sugar = sugarFunc cp
-        cell' = cell { sugEnvSugarLevel = sugar
-                     , sugEnvSugarCapacity = sugar }
-
-createCells :: RandomGen g
-            => Discrete2dDimension
+createCells :: [(Discrete2dCoord, Int)]
             -> [(Discrete2dCoord, (AgentId, SugAgentState))]
-            -> Rand g [(Discrete2dCoord, SugEnvCell)]
-createCells (maxX, maxY) occupations 
-    = mapM (initRandomCell occupations) coords
+            -> [(Discrete2dCoord, SugEnvCell)]
+createCells cellSpecs occupations 
+  = map (initRandomCell occupations) cellSpecs
+ 
+initRandomCell :: [(Discrete2dCoord, (AgentId, SugAgentState))] 
+               -> (Discrete2dCoord, Int) 
+               -> (Discrete2dCoord, SugEnvCell)
+initRandomCell os (coord, sugar) = (coord, c)
   where
-    coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
+    mayOccupier = Data.List.find ((==coord) . fst) os
+    occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
 
-initRandomCell :: RandomGen g
-               => [(Discrete2dCoord, (AgentId, SugAgentState))] 
-               -> Discrete2dCoord 
-               -> Rand g (Discrete2dCoord, SugEnvCell)
-initRandomCell os coord = do
-  let mayOccupier = Data.List.find ((==coord) . fst) os
-      occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
+    c = SugEnvCell {
+      sugEnvSugarCapacity = sugar
+    , sugEnvSugarLevel    = sugar
+    , sugEnvOccupier      = occ
+    }
 
-  let c = SugEnvCell {
-    sugEnvSugarCapacity = 0
-  , sugEnvSugarLevel    = 0
-  , sugEnvOccupier      = occ
-  }
+randomCoords :: RandomGen g
+             => Discrete2dDimension 
+             -> Discrete2dDimension 
+             -> Int 
+             -> Rand g [Discrete2dCoord]
+randomCoords (minX, minY) (maxX, maxY) n
+    | n > maxCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
+    | otherwise        = do
+      let coords = [ (x, y) | x <- [minX..maxX-1], y <- [minY..maxY-1] ]
+      shuffCoords <- fisherYatesShuffleM coords
+      return $ take n shuffCoords
+  where
+    maxCoords = (maxX - minX) * (maxY - minY)
 
-  return (coord, c)
-
+{-
 -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
+-- TODO: refine, problem is when number to draw = max elements, could take long
+--      instead: generate all coords, shuffle them and take n elements 
 randomCoords :: RandomGen g
              => Discrete2dDimension 
              -> Discrete2dDimension 
@@ -190,6 +205,29 @@ randomCoords (minX, minY) (maxX, maxY) n0
         then drawRandomCoordsAux n acc
         else drawRandomCoordsAux (n-1) (c : acc)
 
+
+addSugar :: [(Discrete2dCoord, SugEnvCell)] 
+         -> [(Discrete2dCoord, SugEnvCell)]
+addSugar cells = cellsWithSugarLevel4
+  where
+    cellsWithSugarLevel1 = initSugar cells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
+    cellsWithSugarLevel2 = initSugar cellsWithSugarLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
+    cellsWithSugarLevel3 = initSugar cellsWithSugarLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
+    cellsWithSugarLevel4 = initSugar cellsWithSugarLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
+
+initSugar :: [(Discrete2dCoord, SugEnvCell)]
+          -> ((Discrete2dCoord, SugEnvCell) -> Double)
+          -> [(Discrete2dCoord, SugEnvCell)]
+initSugar cs sugarFunc = map initSugarAux cs
+  where
+    initSugarAux :: (Discrete2dCoord, SugEnvCell)
+                 -> (Discrete2dCoord, SugEnvCell)
+    initSugarAux cp@(coord, cell) = (coord, cell')
+      where
+        sugar = sugarFunc cp
+        cell' = cell { sugEnvSugarLevel = sugar
+                     , sugEnvSugarCapacity = sugar }
+
 circlesSugar :: Double 
              -> [(Discrete2dCoord, Double)] 
              -> (Discrete2dCoord, SugEnvCell) 
@@ -199,3 +237,4 @@ circlesSugar sugarLevel circles (coord, cell)
     | otherwise    = sugEnvSugarLevel cell -- NOTE: keep the level of before
   where
     withinRadius = any (\(p, r) -> distanceEuclideanDisc2d p coord <= r) circles
+    -}

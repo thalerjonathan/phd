@@ -23,8 +23,7 @@ runAgentSFSteps :: RandomGen g
                 -> SugEnvironment
                 -> g
                 -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
-runAgentSFSteps steps sf0 absState0 env0 g0
-    = runAgentSFStepsAux steps [] sf0 absState0 env0 g0
+runAgentSFSteps steps = runAgentSFStepsAux steps []
   where 
     runAgentSFStepsAux :: RandomGen g
                        => Int

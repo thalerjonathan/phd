@@ -189,5 +189,5 @@ agentHarvestCell cellCoord = do
 
   updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
-  let cellHarvested = cell { sugEnvSugarLevel = 0.0 }
+  let cellHarvested = cell { sugEnvSugarLevel = 0 }
   lift $ lift $ changeCellAtM cellCoord cellHarvested

@@ -46,7 +46,7 @@ tTest :: String
 tTest name samples mu0 alpha 
     = case mayP of
         Nothing -> trace (name List.++ ": cant perform t-test, t-value undefined because 0 variance!") Nothing
-        Just p  -> trace (name List.++ ": p = " List.++ show p) Just $ p < alpha
+        Just p  -> trace (name List.++ ": p = " List.++ show p) Just $ p > alpha
   where
     mayP = pValue tValue
 

@@ -20,7 +20,6 @@ import Data.List
 import SugarScape.AgentMonad
 import SugarScape.Discrete
 import SugarScape.Model
-
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
@@ -30,7 +29,7 @@ sugObservableFromState s = SugAgentObservable
   , sugObsVision   = sugAgVision s
   }
 
-type BestCellMeasureFunc = (SugEnvCell -> Double) 
+type BestCellMeasureFunc = (SugEnvCell -> Int) 
 
 bestCellFunc :: BestCellMeasureFunc
 bestCellFunc = bestMeasureSugarLevel

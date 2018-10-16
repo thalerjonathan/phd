@@ -58,7 +58,7 @@ envTests g = testGroup "Environment Tests"
 -- test that after max level / rate steps the difference between level and capacity in all cells is 0
 prop_env_regrow_rate :: RandomGen g 
                      => g
-                     -> Positive Double
+                     -> Positive Int
                      -> Discrete2d SugEnvCell
                      -> Bool
 prop_env_regrow_rate g (Positive rate) env0 
@@ -74,14 +74,14 @@ prop_env_regrow_rate g (Positive rate) env0
 
 prop_env_regrow_rate_full :: RandomGen g 
                           => g
-                          -> Positive Double
+                          -> Positive Int
                           -> Discrete2d SugEnvCell
                           -> Bool
 prop_env_regrow_rate_full g (Positive rate) env0 
     = all posSugarLevel cs' && all fullSugarLevel cs'
   where
     sugParams       = mkSugarScapeParams { spSugarGrowBackRate = rate }
-    steps           = ceiling $ maxSugarCapacityCell / rate
+    steps           = ceiling ((fromIntegral maxSugarCapacityCell / fromIntegral rate) :: Double)
     (outs, _, _, _) = runAgentSFSteps steps (sugEnvironment sugParams) defaultAbsState env0 g
     (_, env')       = last outs
     cs'             = allCells env'
@@ -102,13 +102,11 @@ prop_env_regrow_full g env0
 
 sugarLevelDiff :: SugEnvCell
                -> SugEnvCell
-               -> Double
+               -> Int
                -> Bool
-sugarLevelDiff c0 c1 ref
-    = diffRef < ref 
+sugarLevelDiff c0 c1 ref = diff < ref 
   where
-    diff    = sugEnvSugarLevel c0 - sugEnvSugarLevel c1
-    diffRef = ref - diff
+    diff = sugEnvSugarLevel c0 - sugEnvSugarLevel c1
 
 fullSugarLevel :: SugEnvCell -> Bool
 fullSugarLevel c = sugEnvSugarLevel c == sugEnvSugarCapacity c

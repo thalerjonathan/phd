@@ -10,3 +10,14 @@ why sugarscape
 \cite{weaver_replicating_nodate}
 
 page 28, footnote 16: we can guarantee that in haskell at compile time
+
+\subsection{Terracing}
+Our implementation reproduce the terracing phenomenon as described on page TODO in Animation and as can be seen in the NetLogo implementation as well. We didn't implement a property-test but one way of doing it would be to measure the closeness of agents to the ridge: counting the number of same-level sugarscells around them and if there is at least one lower then they are at the edge. if a majority e.g. 90\% is at the edge then we accept terracing. also, in the terracing animation the agents actually never move which is because sugar immediately grows back thus there is no need for an agent to actually move after it has moved to the nearest largest cite in can see => after 10 steps everything is stable
+
+\subsection{Carrying Capacity}
+Our simulation reached a steady state (variance < 4 after 100 steps) with a mean around ~182. Epstein reported a carrying capacity of 224 (page 30) and the NetLogo implementations carrying capacity varied between 195 and 210 which both are thus significantly higher than ours. Something was definitely wrong - the carrying capacity has to be around 200 (we trust in this case the NetLogo implementation and deem 224 an outlier).
+
+After inspection of the netlogo model we realised that we implicitly assumed that the metabolism range is \textit{continuously} uniformly randomized between 1 and 4 but this seemed not what the original authors intended: in the netlogo model there were a few agents surviving on sugarlevel 1 which was never the case in ours as the probability of drawing a metabolism of exactly 1 is 0 when drawing from a continuous range. We thus changed the types of our variables to discrete Int and draw discrete. Note that this actually makes sense as massive floating-point number calculations were quite expensive in the mid 90s (e.g. computer games ran still on CPU only and exploited various  clever tricks to avoid the need of floating point calculations whenever possible) when SugarScape was implemented which might have been a reason for the authors to assume it implicitly.
+
+This solved the problem: we implemented a property-test which tests that the carrying capacity of 100 simulation runs lies within a 95\% confidence interval of a 204 mean. TODO: variance test
+These values are quite reasonable to assume, when looking at NetLogo - again we deem the reported Carrying Capacity of 224 in the Book to be an outlier / part of other details we don't know.

@@ -17,6 +17,7 @@ module SugarScape.Model
 
   , SugarScapeParams (..)
   , mkSugarScapeParams
+  , mkParamsTerracing
   , mkParamsAnimationII_1
   , mkParamsAnimationII_2
   , mkParamsCarryingCapacity
@@ -93,7 +94,7 @@ mkSugarScapeParams = SugarScapeParams {
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
-mkParamsAnimationII_1 :: SugarScapeParams
+mkParamsAnimationII_1 :: SugarScapeParams 
 mkParamsAnimationII_1 = mkSugarScapeParams {
     sgAgentCount           = 400         -- page 28
   , spSugarGrowBackRate    = -1        -- regrow to max immediately
@@ -101,6 +102,9 @@ mkParamsAnimationII_1 = mkSugarScapeParams {
   , spSugarMetabolismRange = (1, 4)  -- NOTE: specified where? 1 - 4
   , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
   }
+
+mkParamsTerracing :: SugarScapeParams 
+mkParamsTerracing = mkParamsAnimationII_1
 
 mkParamsAnimationII_2 :: SugarScapeParams
 mkParamsAnimationII_2 = mkSugarScapeParams {

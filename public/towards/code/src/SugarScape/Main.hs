@@ -11,7 +11,7 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let -- sugarscape parameters
-      sugParams   = mkParamsCarryingCapacity -- mkParamsAnimationII_1
+      sugParams   = mkParamsAnimationII_1 -- mkParamsCarryingCapacity mkParamsAnimationII_1
       -- rendering output yes/no
       glossOut    = True
       -- steps per second if rendering output

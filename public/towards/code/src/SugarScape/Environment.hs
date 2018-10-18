@@ -26,7 +26,7 @@ cellUnoccupied :: SugEnvCell -> Bool
 cellUnoccupied = not . cellOccupied
 
 regrowSugar :: RandomGen g
-            => Int 
+            => Double 
             -> StateT SugEnvironment (Rand g) ()
 regrowSugar rate
     | rate < 0  = regrowSugarToMax

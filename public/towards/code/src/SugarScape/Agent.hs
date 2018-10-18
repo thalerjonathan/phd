@@ -133,7 +133,7 @@ agentMetabolism = do
   sugarMetab <- gets sugAgSugarMetab
   sugarLevel <- gets sugAgSugarLevel
 
-  let sugarLevel' = max 0 (sugarLevel - sugarMetab)
+  let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
 
   updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
 

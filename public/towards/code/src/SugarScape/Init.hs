@@ -81,9 +81,14 @@ createSugarScape :: RandomGen g
                  -> Rand g ([(AgentId, SugAgent g)], SugEnvironment)
 createSugarScape params = do
   let agentCount = sgAgentCount params
+      agentDistr = sgAgentDistribution params
       ais        = [1..agentCount]
 
-  randCoords <- randomCoords (0,0) sugarscapeDimensions agentCount
+  let coordDims  = case agentDistr of
+                    Scatter      -> sugarscapeDimensions
+                    (Corner dim) -> dim
+
+  randCoords <- randomCoords (0,0) coordDims agentCount
   ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) (sugAgent params) id) (zip ais randCoords)
 
   let as          = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
@@ -157,8 +162,8 @@ initRandomCell os (coord, sugar) = (coord, c)
     occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
 
     c = SugEnvCell {
-      sugEnvSugarCapacity = sugar
-    , sugEnvSugarLevel    = sugar
+      sugEnvSugarCapacity = fromIntegral sugar
+    , sugEnvSugarLevel    = fromIntegral sugar
     , sugEnvOccupier      = occ
     }
 

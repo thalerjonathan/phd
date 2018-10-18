@@ -32,7 +32,7 @@ sugObservableFromState s = SugAgentObservable
   , sugObsSugMetab = sugAgSugarMetab s
   }
 
-type BestCellMeasureFunc = (SugEnvCell -> Int) 
+type BestCellMeasureFunc = (SugEnvCell -> Double) 
 
 bestCellFunc :: BestCellMeasureFunc
 bestCellFunc = bestMeasureSugarLevel
@@ -69,7 +69,6 @@ bestMeasureSugarLevel = sugEnvSugarLevel
 cellOccupier :: AgentId -> SugAgentState -> SugEnvCellOccupier
 cellOccupier aid s = SugEnvCellOccupier 
   { sugEnvOccId     = aid
-  , sugEnvOccWealth = sugAgSugarLevel s
   }
 
 randomAgent :: RandomGen g  
@@ -91,7 +90,7 @@ randomAgent params (agentId, coord) beh sup = do
     sugAgCoord      = coord
   , sugAgSugarMetab = randSugarMetab
   , sugAgVision     = randVision
-  , sugAgSugarLevel = randSugarEndowment
+  , sugAgSugarLevel = fromIntegral randSugarEndowment
   , sugAgMaxAge     = randMaxAge
   , sugAgAge        = 0
   }

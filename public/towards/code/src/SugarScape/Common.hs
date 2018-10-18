@@ -27,6 +27,9 @@ sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState s = SugAgentObservable
   { sugObsCoord    = sugAgCoord s 
   , sugObsVision   = sugAgVision s
+  , sugObsAge      = sugAgAge s 
+  , sugObsSugLvl   = sugAgSugarLevel s
+  , sugObsSugMetab = sugAgSugarMetab s
   }
 
 type BestCellMeasureFunc = (SugEnvCell -> Int) 
@@ -82,12 +85,15 @@ randomAgent params (agentId, coord) beh sup = do
   randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
   randVision         <- getRandomR $ spVisionRange params
   randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
-  
+  randMaxAge         <- getRandomR $ spMaxAge params
+
   let s = SugAgentState {
     sugAgCoord      = coord
   , sugAgSugarMetab = randSugarMetab
   , sugAgVision     = randVision
   , sugAgSugarLevel = randSugarEndowment
+  , sugAgMaxAge     = randMaxAge
+  , sugAgAge        = 0
   }
 
   let s'   = sup s

@@ -2,18 +2,23 @@ module Main where
 
 import System.IO
 
+import FRP.BearRiver
+
+import SugarScape.ExportRunner
 import SugarScape.GlossRunner
 import SugarScape.Model
 import SugarScape.Simulation
+
+data Output = Pure Time | Export Time | Visual deriving Eq
 
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
   let -- sugarscape parameters
-      sugParams   = mkParamsAnimationII_1 -- mkParamsCarryingCapacity mkParamsAnimationII_1
+      sugParams   = mkParamsWealthDistr -- mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_1 mkParamsAnimationII_2 mkParamsAnimationII_3
       -- rendering output yes/no
-      glossOut    = True
+      out         = Export 400 -- Visual -- Export 400
       -- steps per second if rendering output
       stepsPerSec = 0
       -- RNG seed
@@ -21,6 +26,7 @@ main = do
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams
 
-  if glossOut
-    then runGloss initSimState (0, initEnv, []) stepsPerSec
-    else print $ simulateUntil 100 initSimState
+  case out of 
+    Pure   steps -> print $ simulateUntil steps initSimState
+    Export steps -> writeSimulationUntil "export/dynamics.m" steps initSimState
+    Visual -> runGloss initSimState (0, initEnv, []) stepsPerSec

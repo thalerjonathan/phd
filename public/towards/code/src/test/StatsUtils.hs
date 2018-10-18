@@ -7,6 +7,9 @@ module StatsUtils
   , StatsUtils.std
 
   , median
+  
+  , StatsUtils.skewness
+  , StatsUtils.kurtosis
   ) where
 
 import Data.List                        as List
@@ -62,14 +65,14 @@ tTest name samples mu0 alpha
     -- note that t-value is undefined in case of 0 variance, all samples are the same
     tValue :: Maybe Double
     tValue
-        | sigma == 0 = {- trace ("n = " ++ show n ++ 
-                              "\nmu = " ++ show mu ++ 
-                              "\nsigma = " ++ show sigma ++
-                              "\nundefined t value, sigma = 0!!!") -} Nothing
-        | otherwise  = {- trace ("n = " ++ show n ++ 
-                              "\nmu = " ++ show mu ++ 
-                              "\nsigma = " ++ show sigma ++ 
-                              "\nt = " ++ show t) -} Just t
+        | sigma == 0 = trace ("n = " List.++ show n List.++ 
+                              "\nmu = " List.++ show mu List.++ 
+                              "\nsigma = " List.++ show sigma List.++
+                              "\nundefined t value, sigma = 0!!!") Nothing
+        | otherwise  = trace ("n = " List.++ show n List.++ 
+                              "\nmu = " List.++ show mu List.++ 
+                              "\nsigma = " List.++ show sigma List.++ 
+                              "\nt = " List.++ show t) Just t
       where
         n     = List.length samples
         mu    = StatsUtils.mean samples
@@ -97,6 +100,12 @@ median xs
     c_1 = xsSorted !! (centerIdx - 1)
 
     xsSorted = List.sort xs
+
+skewness :: [Double] -> Double
+skewness xs = Sample.skewness (Vect.fromList xs :: Sample)
+
+kurtosis :: [Double] -> Double
+kurtosis xs = Sample.kurtosis (Vect.fromList xs :: Sample)
 
 {-
 histogram :: [Double] -> Int -> [(Double, Int)]

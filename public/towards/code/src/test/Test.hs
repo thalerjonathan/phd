@@ -21,9 +21,10 @@ seed = 42
 main :: IO ()
 main = do
   -- fix RNG right from the beginning, to be 
-  let g = mkStdGen seed
-  setStdGen g
-
+  --let g = mkStdGen seed
+  --setStdGen g
+  g <- newStdGen
+  
 {-
   let xs = [219.9468438538206
             , 202.1627906976744

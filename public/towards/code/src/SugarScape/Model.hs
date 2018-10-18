@@ -17,10 +17,14 @@ module SugarScape.Model
 
   , SugarScapeParams (..)
   , mkSugarScapeParams
-  , mkParamsTerracing
+
   , mkParamsAnimationII_1
   , mkParamsAnimationII_2
+  , mkParamsAnimationII_3
+
+  , mkParamsTerracing
   , mkParamsCarryingCapacity
+  , mkParamsWealthDistr
 
   , maxSugarCapacityCell
   ) where
@@ -39,11 +43,16 @@ data SugAgentState = SugAgentState
   , sugAgSugarMetab       :: Int              -- this amount of sugar will be consumed by the agent in each time-step
   , sugAgVision           :: Int                 -- the vision of the agent: strongly depends on the type of the environment: Int because its 2d discrete
   , sugAgSugarLevel       :: Int              -- the current sugar holdings of the agent, if 0 then the agent starves to death
-    } deriving (Show, Eq)
+  , sugAgAge              :: Int
+  , sugAgMaxAge           :: Int
+  } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
   { sugObsCoord    :: Discrete2dCoord
   , sugObsVision   :: Int
+  , sugObsAge      :: Int
+  , sugObsSugLvl   :: Int
+  , sugObsSugMetab :: Int
   } deriving (Show, Eq)
 
 data SugEnvCellOccupier = SugEnvCellOccupier 
@@ -80,6 +89,8 @@ data SugarScapeParams = SugarScapeParams
   , spSugarEndowmentRange  :: (Int, Int)
   , spSugarMetabolismRange :: (Int, Int)
   , spVisionRange          :: (Int, Int)
+  , spReplaceAgents        :: Bool           -- R_[a, b] rule on/off
+  , spMaxAge               :: (Int, Int)
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -88,7 +99,9 @@ mkSugarScapeParams = SugarScapeParams {
   , spSugarGrowBackRate    = 0
   , spSugarEndowmentRange  = (0, 0)
   , spSugarMetabolismRange = (0, 0)
-  , spVisionRange          = (0, 0) 
+  , spVisionRange          = (0, 0)
+  , spReplaceAgents        = False
+  , spMaxAge               = (0, 0)
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -96,11 +109,13 @@ mkSugarScapeParams = SugarScapeParams {
 ------------------------------------------------------------------------------------------------------------------------
 mkParamsAnimationII_1 :: SugarScapeParams 
 mkParamsAnimationII_1 = mkSugarScapeParams {
-    sgAgentCount           = 400         -- page 28
-  , spSugarGrowBackRate    = -1        -- regrow to max immediately
+    sgAgentCount           = 400     -- page 28
+  , spSugarGrowBackRate    = -1      -- regrow to max immediately
   , spSugarEndowmentRange  = (5, 25) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
   , spSugarMetabolismRange = (1, 4)  -- NOTE: specified where? 1 - 4
-  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+  , spVisionRange          = (1, 6)  -- NOTE: set to 1-6 on page 24
+  , spReplaceAgents        = False   -- no replacing of died agents
+  , spMaxAge               = (100000, 100000)  -- agents dont die of age in this case
   }
 
 mkParamsTerracing :: SugarScapeParams 
@@ -108,21 +123,31 @@ mkParamsTerracing = mkParamsAnimationII_1
 
 mkParamsAnimationII_2 :: SugarScapeParams
 mkParamsAnimationII_2 = mkSugarScapeParams {
-    sgAgentCount           = 400         -- page 28
-  , spSugarGrowBackRate    = 1         -- regrow by 1 unit per step
+    sgAgentCount           = 400     -- page 28
+  , spSugarGrowBackRate    = 1       -- regrow by 1 unit per step
   , spSugarEndowmentRange  = (5, 25) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
   , spSugarMetabolismRange = (1, 4)  -- NOTE: specified where? 1 - 4
-  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+  , spVisionRange          = (1, 6)  -- NOTE: set to 1-6 on page 24
+  , spReplaceAgents        = False   -- no replacing of died agents
+  , spMaxAge               = (100000, 100000)  -- agents dont die of age in this case
   }
 
 mkParamsCarryingCapacity :: SugarScapeParams
-mkParamsCarryingCapacity = mkSugarScapeParams {
-    sgAgentCount           = 400         -- 400 agents only
-  , spSugarGrowBackRate    = 1         -- regrow by 1 unit per step
-  , spSugarEndowmentRange  = (5, 25) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
-  , spSugarMetabolismRange = (1, 4)  -- NOTE: specified where? 1 - 4
-  , spVisionRange          = (1, 6)      -- NOTE: set to 1-6 on page 24
+mkParamsCarryingCapacity = mkParamsAnimationII_2
+
+mkParamsAnimationII_3 :: SugarScapeParams
+mkParamsAnimationII_3 = mkSugarScapeParams {
+    sgAgentCount           = 250        -- page 33
+  , spSugarGrowBackRate    = 1          -- page 33
+  , spSugarEndowmentRange  = (5, 25)    -- page 33
+  , spSugarMetabolismRange = (1, 4)     -- NOTE: specified where? 1 - 4
+  , spVisionRange          = (1, 6)     -- NOTE: set to 1-6 on page 24
+  , spReplaceAgents        = True       -- page 33
+  , spMaxAge               = (60, 100)  -- page 33
   }
+
+mkParamsWealthDistr :: SugarScapeParams
+mkParamsWealthDistr = mkParamsAnimationII_3
 
 ------------------------------------------------------------------------------------------------------------------------
 

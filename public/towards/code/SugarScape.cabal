@@ -55,6 +55,7 @@ executable sugarscape
                 , SugarScape.Common
                 , SugarScape.Discrete
                 , SugarScape.Environment
+                , SugarScape.ExportRunner
                 , SugarScape.GlossRunner
                 , SugarScape.Init
                 , SugarScape.Model

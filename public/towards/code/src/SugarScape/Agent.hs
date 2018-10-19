@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module SugarScape.Agent 
   ( sugAgent
+  , dieOfAge
   , agentMetabolism
   , agentDies
   , starvedToDeath

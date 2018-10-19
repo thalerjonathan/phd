@@ -175,35 +175,8 @@ mkParamsAnimationII_6 = mkSugarScapeParams {
   , spSugarGrowBackRate    = 0.5              -- 0.5 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
   , spSugarEndowmentRange  = (5, 25)
   , spSugarMetabolismRange = (1, 4)
-  , spVisionRange          = (1, 10)          -- increase vision to 10, see page 42, we claim that 10 is not enough but 15 makes the waves really prominent
+  , spVisionRange          = (1, 10)          -- increase vision to 10, see page 42, we suggest to to 15 to make the waves really prominent
   , spReplaceAgents        = False            -- agents in migration experiment are not replaced
   , spMaxAge               = liveForever      -- agents in Migration experiment do not die of age
   }
-
-
 ------------------------------------------------------------------------------------------------------------------------
-
-{-
--- NOTE: < 0 is treated as grow back to max
-sugarGrowbackUnits :: Double
-sugarGrowbackUnits = 1.0
-
-sugarCapacityRange :: (Double, Double)
-sugarCapacityRange = (0.0, 4.0)
-
-sugarEndowmentRange :: (Double, Double)
-sugarEndowmentRange = sugarEndowmentRangeStandard
--- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
-sugarEndowmentRangeStandard :: (Double, Double)
-sugarEndowmentRangeStandard = (5.0, 25.0)
-
--- NOTE: specified where? 1 - 4
-sugarMetabolismRange :: (Double, Double)
-sugarMetabolismRange = (1.0, 4.0)
-
-visionRange :: (Int, Int)
-visionRange = visionRangeStandard
--- NOTE: set to 1-6 on page 24
-visionRangeStandard :: (Int, Int)
-visionRangeStandard = (1, 6)
--}

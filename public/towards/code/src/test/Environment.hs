@@ -4,7 +4,6 @@ module Environment
   ) where
 
 import Control.Monad.Random
-
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
@@ -14,6 +13,9 @@ import SugarScape.Environment
 import SugarScape.Model
 
 import Runner
+
+import Debug.Trace
+
 
 instance Arbitrary SugEnvCell where
   -- arbitrary :: Gen SugEnvCell
@@ -55,33 +57,30 @@ envTests g = testGroup "Environment Tests"
             , QC.testProperty "Regrow By Max" $ prop_env_regrow_full g
             , QC.testProperty "Regrow To Full" $ prop_env_regrow_rate_full g  ]
 
--- test that after max level / rate steps the difference between level and capacity in all cells is 0
 prop_env_regrow_rate :: RandomGen g 
                      => g
-                     -> Positive Int
+                     -> Positive Double
                      -> Discrete2d SugEnvCell
                      -> Bool
 prop_env_regrow_rate g (Positive rate) env0 
     = all posSugarLevel cs'    &&
-      all levelLTESugarMax cs' &&
-      diffWithinRate
+      all levelLTESugarMax cs'
   where
     sugParams          = mkSugarScapeParams { spSugarGrowBackRate = rate }
     (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
-    cs0                = allCells env0
     cs'                = allCells env'
-    diffWithinRate     = all (\(c0, c') -> sugarLevelDiff c' c0 rate) (zip cs0 cs')
 
+-- test that after max level / rate steps the difference between level and capacity in all cells is 0
 prop_env_regrow_rate_full :: RandomGen g 
                           => g
-                          -> Positive Int
+                          -> Positive Double
                           -> Discrete2d SugEnvCell
                           -> Bool
 prop_env_regrow_rate_full g (Positive rate) env0 
     = all posSugarLevel cs' && all fullSugarLevel cs'
   where
     sugParams       = mkSugarScapeParams { spSugarGrowBackRate = rate }
-    steps           = ceiling ((fromIntegral maxSugarCapacityCell / fromIntegral rate) :: Double)
+    steps           = ceiling ((fromIntegral maxSugarCapacityCell / rate) :: Double)
     (outs, _, _, _) = runAgentSFSteps steps (sugEnvironment sugParams) defaultAbsState env0 g
     (_, env')       = last outs
     cs'             = allCells env'
@@ -99,14 +98,6 @@ prop_env_regrow_full g env0
     sugParams          = mkSugarScapeParams { spSugarGrowBackRate = -1 }
     (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
     cs                 = allCells env'
-
-sugarLevelDiff :: SugEnvCell
-               -> SugEnvCell
-               -> Int
-               -> Bool
-sugarLevelDiff c0 c1 ref = diff < ref 
-  where
-    diff = sugEnvSugarLevel c0 - sugEnvSugarLevel c1
 
 fullSugarLevel :: SugEnvCell -> Bool
 fullSugarLevel c = sugEnvSugarLevel c == sugEnvSugarCapacity c

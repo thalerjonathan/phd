@@ -169,7 +169,7 @@ prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less tha
         (simState, _)    = initSimulationRng g sugParams
         sos              = simulateUntil steps simState
         (_, _, finalAos) = last sos
-        agentWealths     = map (fromIntegral . sugObsSugLvl . snd) finalAos
+        agentWealths     = map (sugObsSugLvl . snd) finalAos
 
         skew = skewness agentWealths
         kurt = kurtosis agentWealths

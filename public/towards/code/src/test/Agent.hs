@@ -38,13 +38,16 @@ agentTests :: RandomGen g
            => g
            -> TestTree 
 agentTests g = testGroup "Agent Tests"
-            [ QC.testProperty "Starved To Death" $ prop_agent_starved g
+            [ QC.testProperty "Starved To Death" $ prop_agent_starved g,
+              QC.testProperty "Die Of Age" $ \a -> do
+                                                      age <- choose (60, 100)
+                                                      return $ prop_agent_dieOfAge g a age
             ] --, QC.testProperty "Metabolism" $ prop_agent_metabolism g]
 
 prop_agent_starved :: RandomGen g 
                    => g
                    -> SugAgentState
-                   -> Int
+                   -> Double
                    -> Bool
 prop_agent_starved g0 asInit sugLvl 
     = starved == (sugLvl <= 0) &&
@@ -60,6 +63,29 @@ prop_agent_starved g0 asInit sugLvl
     asUnchanged       = as0 == as'
     absStateUnchanged = absState0 == absState'
     envUnchanged      = env0 == env'
+
+prop_agent_dieOfAge :: RandomGen g 
+                    => g
+                    -> SugAgentState
+                    -> Int
+                    -> Bool
+prop_agent_dieOfAge g0 asInit age 
+    = died == (age >= asMaxAge) &&
+      asUnchanged &&
+      absStateUnchanged &&
+      envUnchanged
+  where
+    asMaxAge = sugAgMaxAge asInit
+
+    as0 = asInit { sugAgAge = age }
+    absState0 = defaultAbsState
+    env0      = emptyEnvironment
+
+    (died, as', absState', env', _) = runAgentMonad dieOfAge as0 absState0 env0 g0
+    asUnchanged       = as0 == as'
+    absStateUnchanged = absState0 == absState'
+    envUnchanged      = env0 == env'
+
 
 {-
 prop_agent_metabolism :: RandomGen g 

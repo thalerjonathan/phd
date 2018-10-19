@@ -90,9 +90,10 @@ main = do
 
   let sugarScapeTests = testGroup "SugarScape Tests" 
                               [ 
-                              --  envTests g
+                              agentTests g, 
+                              envTests g
                               --, agentTests g  
-                              simTests g
+                              --simTests g
                               ]
 
   defaultMain sugarScapeTests

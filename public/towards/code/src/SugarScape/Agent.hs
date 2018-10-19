@@ -51,9 +51,11 @@ chapterII :: RandomGen g
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 chapterII params aid _ain age = do
   agentAgeing age
-  agentMove aid
-  -- do the metabolism AFTER moving => has an impact on carrying capacity??
-  agentMetabolism
+  
+  harvestAmount <- agentMove aid
+  metabAmount   <- agentMetabolism
+
+  agentPolute params harvestAmount (fromIntegral metabAmount)
 
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
@@ -67,7 +69,7 @@ agentAgeing age = updateAgentState (\s' -> s' { sugAgAge = age })
 
 agentMove :: RandomGen g
           => AgentId
-          -> StateT SugAgentState (SugAgentMonadT g) ()
+          -> StateT SugAgentState (SugAgentMonadT g) Double
 agentMove aid = do
   cellsInSight <- agentLookout
   coord        <- gets sugAgCoord
@@ -86,8 +88,8 @@ agentMove aid = do
         let bf = bestCellFunc
         let bestCells = selectBestCells bf coord unoccupiedCells'
         (cellCoord, _) <- lift $ lift $ lift $ randomElemM bestCells
-        agentHarvestCell cellCoord 
-        agentMoveTo aid cellCoord)
+        agentMoveTo aid cellCoord
+        agentHarvestCell cellCoord)
 
 agentLookout :: RandomGen g
              => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvCell)]
@@ -108,27 +110,29 @@ agentMoveTo aid cellCoord = do
   s <- get
 
   cell <- lift $ lift $ cellAtM cellCoord
-  let co = cell { sugEnvOccupier = Just (cellOccupier aid s) }
+  let co = cell { sugEnvCellOccupier = Just (cellOccupier aid s) }
   lift $ lift $ changeCellAtM cellCoord co 
 
 agentHarvestCell :: RandomGen g
                  => Discrete2dCoord 
-                 -> StateT SugAgentState (SugAgentMonadT g) ()
+                 -> StateT SugAgentState (SugAgentMonadT g) Double
 agentHarvestCell cellCoord = do
   cell <- lift $ lift $ cellAtM cellCoord
 
   sugarLevelAgent <- gets sugAgSugarLevel
 
-  let sugarLevelCell     = sugEnvSugarLevel cell
+  let sugarLevelCell     = sugEnvCellSugarLevel cell
   let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
 
   updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
-  let cellHarvested = cell { sugEnvSugarLevel = 0 }
+  let cellHarvested = cell { sugEnvCellSugarLevel = 0 }
   lift $ lift $ changeCellAtM cellCoord cellHarvested
 
+  return sugarLevelCell
+
 agentMetabolism :: RandomGen g
-                => StateT SugAgentState (SugAgentMonadT g) ()
+                => StateT SugAgentState (SugAgentMonadT g) Int
 agentMetabolism = do
   sugarMetab <- gets sugAgSugarMetab
   sugarLevel <- gets sugAgSugarLevel
@@ -136,6 +140,26 @@ agentMetabolism = do
   let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
 
   updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
+
+  return sugarMetab
+
+agentPolute :: RandomGen g
+            => SugarScapeParams
+            -> Double
+            -> Double
+            -> StateT SugAgentState (SugAgentMonadT g) ()
+agentPolute params s m = agentPoluteAux $ spPolutionFormation params
+  where
+    agentPoluteAux :: RandomGen g
+                   => PolutionFormation 
+                   -> StateT SugAgentState (SugAgentMonadT g) ()
+    agentPoluteAux NoPolution = return ()
+    agentPoluteAux (Polute a b) = do
+      let polution = a * s + b * m
+
+      (coord, c) <- agentCellOnCoord
+      let c' = c { sugEnvCellPolutionLevel = sugEnvCellPolutionLevel c + polution }
+      lift $ lift $ changeCellAtM coord c'
 
 -- this is rule R implemented, see page 32/33 "when an agent dies it is replaced by an agent 
 -- of agent 0 having random genetic attributes, random position on the sugarscape..."
@@ -161,7 +185,7 @@ birthNewAgent params = do
     (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (sugAgent params) id
 
     -- need to occupy the cell to prevent other agents occupying it
-    let newCell' = newCell { sugEnvOccupier = Just (cellOccupier newAid newAState) }
+    let newCell' = newCell { sugEnvCellOccupier = Just (cellOccupier newAid newAState) }
     lift $ lift $ changeCellAtM newCoord newCell' 
 
     return (newAid, newA)
@@ -197,13 +221,13 @@ starvedToDeath = do
 unoccupyPosition :: RandomGen g
                  => StateT SugAgentState (SugAgentMonadT g) ()
 unoccupyPosition = do
-    (coord, cell) <- agentCellOnCoord
-    let cell' = cell { sugEnvOccupier = Nothing }
-    lift $ lift $ changeCellAtM coord cell'
-  where
-    agentCellOnCoord :: RandomGen g
-                    => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
-    agentCellOnCoord = do
-      coord <- gets sugAgCoord
-      cell  <- lift $ lift $ cellAtM coord
-      return (coord, cell)
+  (coord, cell) <- agentCellOnCoord
+  let cell' = cell { sugEnvCellOccupier = Nothing }
+  lift $ lift $ changeCellAtM coord cell'
+
+agentCellOnCoord :: RandomGen g
+                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
+agentCellOnCoord = do
+  coord <- gets sugAgCoord
+  cell  <- lift $ lift $ cellAtM coord
+  return (coord, cell)

@@ -58,7 +58,7 @@ unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord
                                     -> SugEnvironment
                                     -> [(Discrete2dCoord, SugEnvCell)]
 unoccupiedNeighbourhoodOfNeighbours coord e 
-    = filter (isNothing . sugEnvOccupier . snd) nncsUnique
+    = filter (isNothing . sugEnvCellOccupier . snd) nncsUnique
   where
     ncs = neighbours coord False e
     -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
@@ -67,15 +67,15 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
 bestMeasureSugarLevel :: BestCellMeasureFunc
-bestMeasureSugarLevel = sugEnvSugarLevel
+bestMeasureSugarLevel = sugEnvCellSugarLevel
 
 cellOccupier :: AgentId -> SugAgentState -> SugEnvCellOccupier
 cellOccupier aid s = SugEnvCellOccupier 
-  { sugEnvOccId     = aid
+  { sugEnvOccId = aid
   }
 
 cellOccupied :: SugEnvCell -> Bool
-cellOccupied cell = isJust $ sugEnvOccupier cell
+cellOccupied cell = isJust $ sugEnvCellOccupier cell
 
 cellUnoccupied :: SugEnvCell -> Bool
 cellUnoccupied = not . cellOccupied

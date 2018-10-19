@@ -50,7 +50,7 @@ modelToPicture :: (Int, Int)
 --modelToPicture _ _ 
 --  = return GLO.Blank
 modelToPicture winSize (t, env, as) 
-  = return $ renderSugarScapeFrame winSize t env as
+  = return $ renderSugarScapeFrame winSize t env as Polution
 
 renderStep :: RandomGen g
            => IORef (SimulationState g)

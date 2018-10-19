@@ -1,5 +1,6 @@
 module SugarScape.Renderer 
   ( AgentObservable
+  , CellVisualisation (..)
 
   , renderSugarScapeFrame
   ) where
@@ -12,6 +13,8 @@ import           SugarScape.Discrete
 import           SugarScape.Model
 import           SugarScape.Simulation
 
+data CellVisualisation = Sugar | Polution
+
 type SugEnvironmentRenderer = EnvRendererDisc2d SugEnvCell
 type SugarScapeAgentRenderer = AgentRendererDisc2d SugAgentObservable
 
@@ -19,9 +22,10 @@ renderSugarScapeFrame :: (Int, Int)
                       -> Time 
                       -> SugEnvironment
                       -> [AgentObservable SugAgentObservable]
+                      -> CellVisualisation
                       -> GLO.Picture
-renderSugarScapeFrame wSize@(wx, wy) t e ss
-    = GLO.Pictures (timeStepTxt : envPics ++ agentPics)
+renderSugarScapeFrame wSize@(wx, wy) t e ss cv
+    = GLO.Pictures (envPics ++ agentPics ++ [timeStepTxt])
   where
     (dx, dy) = dimensionsDisc2d e
     cellWidth = fromIntegral wx / fromIntegral dx
@@ -30,28 +34,35 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss
     cells = allCellsWithCoords e
 
     agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
-    envPics = map (renderEnvCell (cellWidth, cellHeight) wSize t) cells
+    envPics = map (renderEnvCell cv (cellWidth, cellHeight) wSize t) cells
 
-    timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
+    timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
 
     halfWSizeX = fromIntegral wx / 2.0 
     halfWSizeY = fromIntegral wy / 2.0 
 
-renderEnvCell :: SugEnvironmentRenderer
-renderEnvCell r@(rw, rh) w _t (coord, cell)
-    | sugarRatio <= 0.01 = GLO.blank
-    | otherwise          = sugarLevelCircle
+renderEnvCell :: CellVisualisation -> SugEnvironmentRenderer
+renderEnvCell Sugar r@(rw, rh) w _t (coord, cell) 
+    = sugarLevelCircle
   where
     sugarColor = GLO.makeColor 0.9 0.9 0.0 1.0
     
     (x, y) = transformToWindow r w coord
 
-    sugarLevel = sugEnvSugarLevel cell
+    sugarLevel = sugEnvCellSugarLevel cell
     sugarRatio = (sugarLevel / fromIntegral maxSugarCapacityCell) :: Double
 
     sugarRadius = rw * realToFrac sugarRatio
     sugarLevelCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugarRadius
-   
+
+renderEnvCell Polution r@(rw, rh) w _t (coord, cell) = polLvlSquare
+  where
+    (x, y)       = transformToWindow r w coord
+    polLvl       = sugEnvCellPolutionLevel cell
+    polRatio     = 1.0 - min 1.0 (realToFrac (polLvl / 30)) 
+    polColor     = if polLvl == 0 then GLO.white else GLO.makeColor 0 polRatio 0 1
+    polLvlSquare = GLO.color polColor $ GLO.translate x y $ GLO.rectangleSolid rw rh
+
 sugarscapeAgentRenderer :: SugarScapeAgentRenderer
 sugarscapeAgentRenderer r@(rw, rh) w _t (aid, s) 
     = GLO.Pictures [circle, txt]

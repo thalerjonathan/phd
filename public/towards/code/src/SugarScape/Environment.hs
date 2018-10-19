@@ -14,6 +14,33 @@ import SugarScape.Model
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
+envBehaviour :: RandomGen g
+             => SugarScapeParams 
+             -> Time
+             -> StateT SugEnvironment (Rand g) ()
+envBehaviour params t = do
+  regrowSugar (spSugarRegrow params) t
+  polutionDiffusion (spPolutionDiffusion params) t
+
+polutionDiffusion :: Maybe Int
+                  -> Time
+                  -> StateT SugEnvironment (Rand g) ()
+polutionDiffusion Nothing _  = return ()
+polutionDiffusion (Just d) t 
+    | not doDiffusion = return ()
+    | otherwise = do
+      cs <- allCellsWithCoordsM
+      fs <- mapM (\(coord, c) -> do
+        ncs <- neighbourCellsM coord True
+        let flux = sum (map sugEnvCellPolutionLevel ncs) / fromIntegral (length ncs)
+        return flux) cs
+
+      zipWithM_ (\(coord, c) flux -> do
+        let c' = c { sugEnvCellPolutionLevel = flux }
+        changeCellAtM coord c') cs fs
+  where
+    doDiffusion = 0 == mod (floor t) d
+
 regrowSugar :: RandomGen g
             => SugarRegrow 
             -> Time
@@ -24,7 +51,7 @@ regrowSugar (Season summerRate winterRate seasonDuration) t
   = regrowSugarBySeason t summerRate winterRate seasonDuration
 
 regrowSugarToMax :: StateT SugEnvironment (Rand g) ()
-regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
+regrowSugarToMax = updateCellsM (\c -> c { sugEnvCellSugarLevel = sugEnvCellSugarCapacity c})
 
 regrowSugarByRate :: RandomGen g
                   => Double
@@ -51,10 +78,10 @@ regrowSugarBySeason t summerRate winterRate seasonDuration
 
 regrowSugarInCellWithRate :: Double -> SugEnvCell -> SugEnvCell 
 regrowSugarInCellWithRate rate c 
-  = c { sugEnvSugarLevel = 
+  = c { sugEnvCellSugarLevel = 
           min
-              (sugEnvSugarCapacity c)
-              ((sugEnvSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
+              (sugEnvCellSugarCapacity c)
+              ((sugEnvCellSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
 -- TODO: can we get rid of Rand g ?
 sugEnvironment :: RandomGen g 
@@ -62,5 +89,5 @@ sugEnvironment :: RandomGen g
                -> SugAgent g
 sugEnvironment params = proc _ -> do
   t <- time -< ()
-  arrM (lift . lift . regrowSugar (spSugarRegrow params)) -< t
+  arrM (lift . lift . envBehaviour params) -< t
   returnA -< agentOut

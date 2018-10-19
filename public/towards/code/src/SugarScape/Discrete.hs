@@ -20,6 +20,7 @@ module SugarScape.Discrete
 
   , allCells
   , allCellsWithCoords
+  , allCellsWithCoordsM
   , updateCells
   , updateCellsM
   , updateCellsWithCoords
@@ -116,6 +117,10 @@ allCells e = elems $ envDisc2dCells e
 
 allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
 allCellsWithCoords e = assocs $ envDisc2dCells e
+
+allCellsWithCoordsM :: Monad m
+                    => StateT (Discrete2d c) m [Discrete2dCell c]
+allCellsWithCoordsM = state (\e -> (allCellsWithCoords e, e))
 
 updateCellsM :: Monad m
              => (c -> c) -> StateT (Discrete2d c) m ()
@@ -281,15 +286,19 @@ neighbours coord ic e = zip wrappedNs cells
     wrappedNs = wrapNeighbourhood l w ns
     cells = cellsAt wrappedNs e
 
-neighboursM :: Discrete2dCoord 
+neighboursM :: Monad m
+            => Discrete2dCoord 
             -> Bool 
-            -> State (Discrete2d c) [Discrete2dCell c]
+            -> StateT (Discrete2d c) m [Discrete2dCell c]
 neighboursM coord ic = state (\e -> (neighbours coord ic e, e))
 
 neighbourCells :: Discrete2dCoord -> Bool -> Discrete2d c -> [c]
 neighbourCells coord ic e = map snd (neighbours coord ic e)
 
-neighbourCellsM :: Discrete2dCoord -> Bool -> State (Discrete2d c) [c]
+neighbourCellsM :: Monad m
+                => Discrete2dCoord 
+                -> Bool 
+                -> StateT (Discrete2d c) m [c]
 neighbourCellsM coord ic = state (\e -> (neighbourCells coord ic e, e))
 -------------------------------------------------------------------------------
 

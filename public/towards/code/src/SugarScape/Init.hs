@@ -100,9 +100,10 @@ initRandomCell os (coord, sugar) = (coord, c)
     occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
 
     c = SugEnvCell {
-      sugEnvSugarCapacity = fromIntegral sugar
-    , sugEnvSugarLevel    = fromIntegral sugar
-    , sugEnvOccupier      = occ
+      sugEnvCellSugarCapacity = fromIntegral sugar
+    , sugEnvCellSugarLevel    = fromIntegral sugar
+    , sugEnvCellOccupier      = occ
+    , sugEnvCellPolutionLevel = 0
     }
 
 randomCoords :: RandomGen g

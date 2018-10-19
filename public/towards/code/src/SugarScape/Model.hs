@@ -20,6 +20,7 @@ module SugarScape.Model
   , SugarScapeParams (..)
   , AgentDistribution (..)
   , SugarRegrow (..)
+  , PolutionFormation (..)
 
   , mkSugarScapeParams
 
@@ -29,7 +30,8 @@ module SugarScape.Model
   , mkParamsAnimationII_4
   , mkParamsAnimationII_6
   , mkParamsAnimationII_7
-
+  , mkParamsAnimationII_8
+  
   , mkParamsTerracing
   , mkParamsCarryingCapacity
   , mkParamsWealthDistr
@@ -71,9 +73,10 @@ data SugEnvCellOccupier = SugEnvCellOccupier
   } deriving (Show, Eq)
 
 data SugEnvCell = SugEnvCell 
-  { sugEnvSugarCapacity :: Double
-  , sugEnvSugarLevel    :: Double
-  , sugEnvOccupier      :: Maybe SugEnvCellOccupier
+  { sugEnvCellSugarCapacity :: Double
+  , sugEnvCellSugarLevel    :: Double
+  , sugEnvCellPolutionLevel :: Double
+  , sugEnvCellOccupier      :: Maybe SugEnvCellOccupier
   } deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvCell
@@ -155,9 +158,15 @@ sugarEnvSpec =
   , "111111111111222222222211111111111111111111111111111"
   ]
 
-data AgentAgeSpan      = Forever | Range Int Int deriving (Show, Eq)
-data AgentDistribution = Scatter | Corner Discrete2dCoord
-data SugarRegrow       = Immediate | Rate Double | Season Double Double Int
+data AgentAgeSpan      = Forever 
+                       | Range Int Int deriving (Show, Eq)
+data AgentDistribution = Scatter 
+                       | Corner Discrete2dCoord deriving (Show, Eq)
+data SugarRegrow       = Immediate 
+                       | Rate Double 
+                       | Season Double Double Int deriving (Show, Eq)
+data PolutionFormation = NoPolution 
+                       | Polute Double Double deriving (Show, Eq)
 
 data SugarScapeParams = SugarScapeParams 
   { sgAgentCount           :: Int
@@ -168,6 +177,8 @@ data SugarScapeParams = SugarScapeParams
   , spVisionRange          :: (Int, Int)
   , spReplaceAgents        :: Bool           -- replacement rule R_[a, b] on/off
   , spAgeSpan              :: AgentAgeSpan
+  , spPolutionFormation    :: PolutionFormation
+  , spPolutionDiffusion    :: Maybe Int
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -180,6 +191,8 @@ mkSugarScapeParams = SugarScapeParams {
   , spVisionRange          = (0, 0)
   , spReplaceAgents        = False
   , spAgeSpan              = Forever
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -196,6 +209,8 @@ mkParamsAnimationII_1 = mkSugarScapeParams {
   , spVisionRange          = (1, 6)  -- NOTE: set to 1-6 on page 24
   , spReplaceAgents        = False   -- no replacing of died agents
   , spAgeSpan              = Forever  -- agents dont die of age in this case
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing  
   }
 -- terracing phenomenon as described on page 28
 mkParamsTerracing :: SugarScapeParams 
@@ -212,6 +227,8 @@ mkParamsAnimationII_2 = mkSugarScapeParams {
   , spVisionRange          = (1, 6)
   , spReplaceAgents        = False        -- no replacing of died agents
   , spAgeSpan              = Forever  -- agents dont die of age in this case
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing  
   }
 -- carrying capacity property as described on page 30
 mkParamsCarryingCapacity :: SugarScapeParams
@@ -228,6 +245,8 @@ mkParamsAnimationII_3 = mkSugarScapeParams {
   , spVisionRange          = (1, 6)
   , spReplaceAgents        = True       -- page 33
   , spAgeSpan              = Range 60 100  -- page 33
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing  
   }
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
@@ -247,6 +266,8 @@ mkParamsAnimationII_6 = mkSugarScapeParams {
   , spVisionRange          = (1, 10)          -- increase vision to 10, see page 42, we suggest to to 15 to make the waves really prominent
   , spReplaceAgents        = False            -- agents in migration experiment are not replaced
   , spAgeSpan              = Forever      -- agents in Migration experiment do not die of age
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing  
   }
 
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
@@ -260,5 +281,23 @@ mkParamsAnimationII_7 = mkSugarScapeParams {
   , spVisionRange          = (1, 6)       
   , spReplaceAgents        = False
   , spAgeSpan              = Forever
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing  
   }
+
+-- Seasonal Migration as described on page 45 to 50 in Animation I8
+mkParamsAnimationII_8 :: SugarScapeParams
+mkParamsAnimationII_8 = mkSugarScapeParams {
+    sgAgentCount           = 400              
+  , sgAgentDistribution    = Scatter
+  , spSugarRegrow          = Rate 1   
+  , spSugarEndowmentRange  = (5, 25)
+  , spSugarMetabolismRange = (1, 4)
+  , spVisionRange          = (1, 6)       
+  , spReplaceAgents        = False
+  , spAgeSpan              = Forever
+  , spPolutionFormation    = Polute 1 1
+  , spPolutionDiffusion    = Just 1
+  }
+
 ------------------------------------------------------------------------------------------------------------------------

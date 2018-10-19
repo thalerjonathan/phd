@@ -4,6 +4,7 @@ module Agent
 
 import Control.Monad.Random
 import Control.Monad.State.Strict
+import Data.Maybe
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
@@ -30,7 +31,7 @@ instance Arbitrary SugAgentState where
     , sugAgSugarMetab = randSugarMetab
     , sugAgVision     = randVision
     , sugAgSugarLevel = randSugarEndowment
-    , sugAgMaxAge     = randMaxAge
+    , sugAgMaxAge     = Just randMaxAge
     , sugAgAge        = 0
     }
 
@@ -75,7 +76,7 @@ prop_agent_dieOfAge g0 asInit age
       absStateUnchanged &&
       envUnchanged
   where
-    asMaxAge = sugAgMaxAge asInit
+    asMaxAge = fromJust $ sugAgMaxAge asInit
 
     as0 = asInit { sugAgAge = age }
     absState0 = defaultAbsState

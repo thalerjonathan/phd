@@ -66,7 +66,7 @@ prop_env_regrow_rate g (Positive rate) env0
     = all posSugarLevel cs'    &&
       all levelLTESugarMax cs'
   where
-    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = rate }
+    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = Rate rate }
     (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
     cs'                = allCells env'
 
@@ -79,7 +79,7 @@ prop_env_regrow_rate_full :: RandomGen g
 prop_env_regrow_rate_full g (Positive rate) env0 
     = all posSugarLevel cs' && all fullSugarLevel cs'
   where
-    sugParams       = mkSugarScapeParams { spSugarGrowBackRate = rate }
+    sugParams       = mkSugarScapeParams { spSugarGrowBackRate = Rate rate }
     steps           = ceiling ((fromIntegral maxSugarCapacityCell / rate) :: Double)
     (outs, _, _, _) = runAgentSFSteps steps (sugEnvironment sugParams) defaultAbsState env0 g
     (_, env')       = last outs
@@ -94,8 +94,7 @@ prop_env_regrow_full :: RandomGen g
 prop_env_regrow_full g env0 
     = all fullSugarLevel cs && all posSugarLevel cs 
   where
-    -- with a regrow-rate < 0 the sugar regrows to max within 1 step
-    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = -1 }
+    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = Immediate }
     (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
     cs                 = allCells env'
 

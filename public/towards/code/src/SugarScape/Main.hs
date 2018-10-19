@@ -16,9 +16,9 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let -- sugarscape parameters
-      sugParams   = mkParamsAnimationII_6 -- mkAnimationII_6 mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_1 mkParamsAnimationII_2 mkParamsAnimationII_3
+      sugParams   = mkParamsAnimationII_7 -- mkParamsAnimationII_7 mkAnimationII_6 mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_1 mkParamsAnimationII_2 mkParamsAnimationII_3
       -- rendering output yes/no
-      out         = Visual 1 -- Visual -- Export 400
+      out         = Visual 0 -- Visual -- Export 400
       -- RNG seed
       rngSeed     = Nothing -- Just 42
 

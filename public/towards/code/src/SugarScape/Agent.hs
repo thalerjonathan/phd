@@ -13,7 +13,6 @@ import FRP.BearRiver
 
 import SugarScape.AgentMonad
 import SugarScape.Common
-import SugarScape.Environment
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Random
@@ -182,9 +181,12 @@ birthNewAgent params = do
 dieOfAge :: RandomGen g
           => StateT SugAgentState (SugAgentMonadT g) Bool
 dieOfAge = do
-  age    <- gets sugAgAge
-  maxAge <- gets sugAgMaxAge
-  return $ age >= maxAge
+  ageSpan <- gets sugAgMaxAge
+  case ageSpan of 
+    Nothing -> return False
+    Just maxAge -> do
+      age <- gets sugAgAge
+      return $ age >= maxAge
 
 starvedToDeath :: RandomGen g
                => StateT SugAgentState (SugAgentMonadT g) Bool

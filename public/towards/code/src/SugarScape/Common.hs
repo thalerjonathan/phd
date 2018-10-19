@@ -9,6 +9,9 @@ module SugarScape.Common
   , unoccupiedNeighbourhoodOfNeighbours
 
   , cellOccupier
+  , cellUnoccupied
+  , cellOccupied
+
   , randomAgent
   ) where
 
@@ -71,6 +74,12 @@ cellOccupier aid s = SugEnvCellOccupier
   { sugEnvOccId     = aid
   }
 
+cellOccupied :: SugEnvCell -> Bool
+cellOccupied cell = isJust $ sugEnvOccupier cell
+
+cellUnoccupied :: SugEnvCell -> Bool
+cellUnoccupied = not . cellOccupied
+
 randomAgent :: RandomGen g  
             => SugarScapeParams
             -> (AgentId, Discrete2dCoord)
@@ -84,14 +93,14 @@ randomAgent params (agentId, coord) beh sup = do
   randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
   randVision         <- getRandomR $ spVisionRange params
   randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
-  randMaxAge         <- getRandomR $ spMaxAge params
+  ageSpan            <- randomAgentAge $ spAgeSpan params
 
   let s = SugAgentState {
     sugAgCoord      = coord
   , sugAgSugarMetab = randSugarMetab
   , sugAgVision     = randVision
   , sugAgSugarLevel = fromIntegral randSugarEndowment
-  , sugAgMaxAge     = randMaxAge
+  , sugAgMaxAge     = ageSpan
   , sugAgAge        = 0
   }
 
@@ -102,3 +111,11 @@ randomAgent params (agentId, coord) beh sup = do
   }
 
   return (adef, s')
+
+randomAgentAge :: RandomGen g
+               => AgentAgeSpan 
+               -> Rand g (Maybe Int)
+randomAgentAge Forever         = return Nothing
+randomAgentAge (Range from to) = do
+  randMaxAge <- getRandomR (from, to)
+  return $ Just randMaxAge

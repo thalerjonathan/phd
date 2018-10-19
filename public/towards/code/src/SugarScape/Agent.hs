@@ -52,7 +52,7 @@ chapterII :: RandomGen g
 chapterII params aid _ain age = do
   agentAgeing age
   
-  harvestAmount <- agentMove aid
+  harvestAmount <- agentMove params aid
   metabAmount   <- agentMetabolism
 
   agentPolute params harvestAmount (fromIntegral metabAmount)
@@ -68,26 +68,28 @@ agentAgeing :: RandomGen g
 agentAgeing age = updateAgentState (\s' -> s' { sugAgAge = age })
 
 agentMove :: RandomGen g
-          => AgentId
+          => SugarScapeParams
+          -> AgentId
           -> StateT SugAgentState (SugAgentMonadT g) Double
-agentMove aid = do
+agentMove params aid = do
   cellsInSight <- agentLookout
   coord        <- gets sugAgCoord
 
-  let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
+  let uoc = filter (cellUnoccupied . snd) cellsInSight
 
   ifThenElse 
-    (null unoccupiedCells)
+    (null uoc)
     (agentHarvestCell coord)
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
         selfCell <- lift $ lift $ cellAtM coord
-        let unoccupiedCells' = (coord, selfCell) : unoccupiedCells
+        
+        let uoc' = (coord, selfCell) : uoc
+            bf   = bestCellFunc params
+            bcs  = selectBestCells bf coord uoc'
 
-        let bf = bestCellFunc
-        let bestCells = selectBestCells bf coord unoccupiedCells'
-        (cellCoord, _) <- lift $ lift $ lift $ randomElemM bestCells
+        (cellCoord, _) <- lift $ lift $ lift $ randomElemM bcs
         agentMoveTo aid cellCoord
         agentHarvestCell cellCoord)
 

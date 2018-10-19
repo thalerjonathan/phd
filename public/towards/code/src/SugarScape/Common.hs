@@ -4,7 +4,6 @@ module SugarScape.Common
   , BestCellMeasureFunc
   , selectBestCells
   , bestCellFunc
-  , bestMeasureSugarLevel
 
   , unoccupiedNeighbourhoodOfNeighbours
 
@@ -37,8 +36,24 @@ sugObservableFromState s = SugAgentObservable
 
 type BestCellMeasureFunc = (SugEnvCell -> Double) 
 
-bestCellFunc :: BestCellMeasureFunc
-bestCellFunc = bestMeasureSugarLevel
+bestCellFunc :: SugarScapeParams -> BestCellMeasureFunc
+bestCellFunc params
+    | diffusionActive = bestSugarPolutionRatio
+    | otherwise       = bestSugarLevel 
+  where
+    diffusionActive = case spPolutionFormation params of
+                        NoPolution -> False
+                        _          -> True
+
+bestSugarLevel :: BestCellMeasureFunc
+bestSugarLevel = sugEnvCellSugarLevel
+
+bestSugarPolutionRatio :: BestCellMeasureFunc
+bestSugarPolutionRatio c 
+    = s / (1 + p)
+  where
+    s = sugEnvCellSugarLevel c
+    p = sugEnvCellPolutionLevel c
 
 selectBestCells :: BestCellMeasureFunc
                 -> Discrete2dCoord
@@ -66,8 +81,6 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
-bestMeasureSugarLevel :: BestCellMeasureFunc
-bestMeasureSugarLevel = sugEnvCellSugarLevel
 
 cellOccupier :: AgentId -> SugAgentState -> SugEnvCellOccupier
 cellOccupier aid s = SugEnvCellOccupier 

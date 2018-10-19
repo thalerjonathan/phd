@@ -288,7 +288,7 @@ mkParamsAnimationII_7 = mkSugarScapeParams {
 -- Seasonal Migration as described on page 45 to 50 in Animation I8
 mkParamsAnimationII_8 :: SugarScapeParams
 mkParamsAnimationII_8 = mkSugarScapeParams {
-    sgAgentCount           = 400              
+    sgAgentCount           = 400
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Rate 1   
   , spSugarEndowmentRange  = (5, 25)
@@ -299,5 +299,4 @@ mkParamsAnimationII_8 = mkSugarScapeParams {
   , spPolutionFormation    = Polute 1 1
   , spPolutionDiffusion    = Just 1
   }
-
 ------------------------------------------------------------------------------------------------------------------------

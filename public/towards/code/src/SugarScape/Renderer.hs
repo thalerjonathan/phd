@@ -5,18 +5,21 @@ module SugarScape.Renderer
   , renderSugarScapeFrame
   ) where
 
-import           FRP.BearRiver
-import qualified Graphics.Gloss as GLO
+import FRP.BearRiver
+import Graphics.Gloss as GLO
 
-import           SugarScape.AgentMonad
-import           SugarScape.Discrete
-import           SugarScape.Model
-import           SugarScape.Simulation
+import SugarScape.AgentMonad
+import SugarScape.Discrete
+import SugarScape.Model
+import SugarScape.Simulation
 
-data CellVisualisation = Sugar | Polution
+data CellVisualisation = Sugar | Polution deriving (Eq, Show)
 
 type SugEnvironmentRenderer = EnvRendererDisc2d SugEnvCell
 type SugarScapeAgentRenderer = AgentRendererDisc2d SugAgentObservable
+
+polBlackCap :: Double
+polBlackCap = 50
 
 renderSugarScapeFrame :: (Int, Int) 
                       -> Time 
@@ -42,37 +45,33 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss cv
     halfWSizeY = fromIntegral wy / 2.0 
 
 renderEnvCell :: CellVisualisation -> SugEnvironmentRenderer
-renderEnvCell Sugar r@(rw, rh) w _t (coord, cell) 
-    = sugarLevelCircle
+renderEnvCell Sugar r@(rw, rh) w _t (coord, cell) = sugLvlCircle
   where
-    sugarColor = GLO.makeColor 0.9 0.9 0.0 1.0
-    
-    (x, y) = transformToWindow r w coord
-
-    sugarLevel = sugEnvCellSugarLevel cell
-    sugarRatio = (sugarLevel / fromIntegral maxSugarCapacityCell) :: Double
-
-    sugarRadius = rw * realToFrac sugarRatio
-    sugarLevelCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugarRadius
+    sugarColor   = GLO.makeColor 0.9 0.9 0.0 1.0
+    (x, y)       = transformToWindow r w coord
+    sugLvl       = sugEnvCellSugarLevel cell
+    sugRatio     = (sugLvl / fromIntegral maxSugarCapacityCell) :: Double
+    sugRadius    = rw * realToFrac sugRatio
+    sugLvlCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugRadius
 
 renderEnvCell Polution r@(rw, rh) w _t (coord, cell) = polLvlSquare
   where
     (x, y)       = transformToWindow r w coord
     polLvl       = sugEnvCellPolutionLevel cell
-    polRatio     = 1.0 - min 1.0 (realToFrac (polLvl / 30)) 
+    polRatio     = 1.0 - min 1.0 (realToFrac (polLvl / polBlackCap)) 
     polColor     = if polLvl == 0 then GLO.white else GLO.makeColor 0 polRatio 0 1
     polLvlSquare = GLO.color polColor $ GLO.translate x y $ GLO.rectangleSolid rw rh
 
 sugarscapeAgentRenderer :: SugarScapeAgentRenderer
 sugarscapeAgentRenderer r@(rw, rh) w _t (aid, s) 
-    = GLO.Pictures [circle, txt]
+    = GLO.Pictures [circ, txt]
   where
     coord = sugObsCoord s
-    color = GLO.blue
+    col   = GLO.blue
 
     (x, y) = transformToWindow r w coord 
 
-    circle = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 rw
+    circ   = GLO.color col $ GLO.translate x y $ GLO.ThickCircle 0 rw
     txt    = GLO.color GLO.white $ GLO.translate (x - (rw * 0.4)) (y - (rh * 0.1)) $ GLO.scale 0.04 0.04 $ GLO.Text (show aid)
 
 -------------------------------------------------------------------------------

@@ -24,9 +24,10 @@ instance Arbitrary SugEnvCell where
     lvl <- choose (0, cap)
 
     return SugEnvCell {
-      sugEnvSugarCapacity = cap
-    , sugEnvSugarLevel    = lvl
-    , sugEnvOccupier      = Nothing
+      sugEnvCellSugarCapacity = cap
+    , sugEnvCellSugarLevel    = lvl
+    , sugEnvCellOccupier      = Nothing
+    , sugEnvCellPolutionLevel = 0
     }
 
 instance Arbitrary (Discrete2d SugEnvCell) where
@@ -66,7 +67,7 @@ prop_env_regrow_rate g (Positive rate) env0
     = all posSugarLevel cs'    &&
       all levelLTESugarMax cs'
   where
-    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = Rate rate }
+    sugParams          = mkSugarScapeParams { spSugarRegrow = Rate rate }
     (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
     cs'                = allCells env'
 
@@ -79,7 +80,7 @@ prop_env_regrow_rate_full :: RandomGen g
 prop_env_regrow_rate_full g (Positive rate) env0 
     = all posSugarLevel cs' && all fullSugarLevel cs'
   where
-    sugParams       = mkSugarScapeParams { spSugarGrowBackRate = Rate rate }
+    sugParams       = mkSugarScapeParams { spSugarRegrow = Rate rate }
     steps           = ceiling ((fromIntegral maxSugarCapacityCell / rate) :: Double)
     (outs, _, _, _) = runAgentSFSteps steps (sugEnvironment sugParams) defaultAbsState env0 g
     (_, env')       = last outs
@@ -94,15 +95,15 @@ prop_env_regrow_full :: RandomGen g
 prop_env_regrow_full g env0 
     = all fullSugarLevel cs && all posSugarLevel cs 
   where
-    sugParams          = mkSugarScapeParams { spSugarGrowBackRate = Immediate }
+    sugParams          = mkSugarScapeParams { spSugarRegrow = Immediate }
     (_, env', _, _, _) = runAgentSF (sugEnvironment sugParams) defaultAbsState env0 g
     cs                 = allCells env'
 
 fullSugarLevel :: SugEnvCell -> Bool
-fullSugarLevel c = sugEnvSugarLevel c == sugEnvSugarCapacity c
+fullSugarLevel c = sugEnvCellSugarLevel c == sugEnvCellSugarCapacity c
 
 posSugarLevel :: SugEnvCell -> Bool
-posSugarLevel c = sugEnvSugarLevel c > 0
+posSugarLevel c = sugEnvCellSugarLevel c > 0
 
 levelLTESugarMax :: SugEnvCell -> Bool
-levelLTESugarMax c = sugEnvSugarLevel c <= sugEnvSugarCapacity c
+levelLTESugarMax c = sugEnvCellSugarLevel c <= sugEnvCellSugarCapacity c

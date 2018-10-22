@@ -1,4 +1,5 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows           #-}
+{-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent 
   ( sugAgent
   , dieOfAge
@@ -30,16 +31,6 @@ sugAgent params aid s0 = feedback s0 (proc (ain, s) -> do
   (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII params aid ain age) s) -< (age, ain, s)
   returnA -< (ao, s'))
 
-updateAgentState :: RandomGen g
-                 => (SugAgentState -> SugAgentState)
-                 -> StateT SugAgentState (SugAgentMonadT g) ()
-updateAgentState = modify
-
-observable :: RandomGen g
-           => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-observable 
-  = get >>= \s -> return $ agentOutObservable $ sugObservableFromState s 
-
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
@@ -62,18 +53,13 @@ chapterII params aid _ain age = do
     (agentDies params)
     observable
 
-agentAgeing :: RandomGen g
-            => Int
-            -> StateT SugAgentState (SugAgentMonadT g) ()
-agentAgeing age = updateAgentState (\s' -> s' { sugAgAge = age })
-
 agentMove :: RandomGen g
           => SugarScapeParams
           -> AgentId
           -> StateT SugAgentState (SugAgentMonadT g) Double
 agentMove params aid = do
   cellsInSight <- agentLookout
-  coord        <- gets sugAgCoord
+  coord        <- agentProperty sugAgCoord
 
   let uoc = filter (cellUnoccupied . snd) cellsInSight
 
@@ -96,8 +82,8 @@ agentMove params aid = do
 agentLookout :: RandomGen g
              => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvCell)]
 agentLookout = do
-  vis   <- gets sugAgVision
-  coord <- gets sugAgCoord
+  vis   <- agentProperty sugAgVision
+  coord <- agentProperty sugAgCoord
   lift $ lift $ neighboursInNeumannDistanceM coord vis False
 
 agentMoveTo :: RandomGen g
@@ -121,7 +107,7 @@ agentHarvestCell :: RandomGen g
 agentHarvestCell cellCoord = do
   cell <- lift $ lift $ cellAtM cellCoord
 
-  sugarLevelAgent <- gets sugAgSugarLevel
+  sugarLevelAgent <- agentProperty sugAgSugarLevel
 
   let sugarLevelCell     = sugEnvCellSugarLevel cell
   let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
@@ -133,11 +119,11 @@ agentHarvestCell cellCoord = do
 
   return sugarLevelCell
 
-agentMetabolism :: RandomGen g
-                => StateT SugAgentState (SugAgentMonadT g) Int
+agentMetabolism :: MonadState SugAgentState m
+                => m Int
 agentMetabolism = do
-  sugarMetab <- gets sugAgSugarMetab
-  sugarLevel <- gets sugAgSugarLevel
+  sugarMetab <- agentProperty sugAgSugarMetab
+  sugarLevel <- agentProperty sugAgSugarLevel
 
   let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
 
@@ -198,26 +184,31 @@ birthNewAgent params = do
                                 => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
     findUnoccpiedRandomPosition = do
       e          <- lift $ lift get
-      (c, coord) <- lift $ lift $ lift $ randomCell e
+      (c, coord) <- lift $ lift $ lift $ randomCell e -- TODO: replace by randomCellM
       ifThenElse
         (cellOccupied c) 
         findUnoccpiedRandomPosition
         (return (coord, c))
 
-dieOfAge :: RandomGen g
-          => StateT SugAgentState (SugAgentMonadT g) Bool
+agentAgeing :: MonadState SugAgentState m
+            => Int
+            -> m ()
+agentAgeing age = updateAgentState (\s' -> s' { sugAgAge = age })
+
+dieOfAge :: MonadState SugAgentState m
+          => m Bool
 dieOfAge = do
-  ageSpan <- gets sugAgMaxAge
+  ageSpan <- agentProperty sugAgMaxAge
   case ageSpan of 
     Nothing -> return False
     Just maxAge -> do
-      age <- gets sugAgAge
+      age <- agentProperty sugAgAge
       return $ age >= maxAge
 
-starvedToDeath :: RandomGen g
-               => StateT SugAgentState (SugAgentMonadT g) Bool
+starvedToDeath :: MonadState SugAgentState m
+               => m Bool
 starvedToDeath = do
-  sugar <- gets sugAgSugarLevel
+  sugar <- agentProperty sugAgSugarLevel
   return $ sugar <= 0
 
 unoccupyPosition :: RandomGen g
@@ -230,6 +221,21 @@ unoccupyPosition = do
 agentCellOnCoord :: RandomGen g
                 => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
 agentCellOnCoord = do
-  coord <- gets sugAgCoord
+  coord <- agentProperty sugAgCoord
   cell  <- lift $ lift $ cellAtM coord
   return (coord, cell)
+
+updateAgentState :: MonadState SugAgentState m
+                 => (SugAgentState -> SugAgentState)
+                 -> m ()
+updateAgentState = modify
+
+agentProperty :: MonadState SugAgentState m
+              => (SugAgentState -> p)
+              -> m p
+agentProperty = gets
+
+observable :: (MonadState SugAgentState m, RandomGen g)
+           => m (SugAgentOut g)
+observable 
+  = get >>= \s -> return $ agentOutObservable $ sugObservableFromState s 

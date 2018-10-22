@@ -1,4 +1,5 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows           #-}
+{-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Environment 
   ( sugEnvironment
   ) where
@@ -22,9 +23,10 @@ envBehaviour params t = do
   regrowSugar (spSugarRegrow params) t
   polutionDiffusion (spPolutionDiffusion params) t
 
-polutionDiffusion :: Maybe Int
+polutionDiffusion :: MonadState SugEnvironment m
+                  => Maybe Int
                   -> Time
-                  -> StateT SugEnvironment (Rand g) ()
+                  -> m ()
 polutionDiffusion Nothing _  = return ()
 polutionDiffusion (Just d) t 
     | not doDiffusion = return ()
@@ -41,29 +43,29 @@ polutionDiffusion (Just d) t
   where
     doDiffusion = 0 == mod (floor t) d
 
-regrowSugar :: RandomGen g
+regrowSugar :: MonadState SugEnvironment m
             => SugarRegrow 
             -> Time
-            -> StateT SugEnvironment (Rand g) ()
+            -> m ()
 regrowSugar Immediate   _ = regrowSugarToMax
 regrowSugar (Rate rate) _ = regrowSugarByRate rate
 regrowSugar (Season summerRate winterRate seasonDuration) t
-  = regrowSugarBySeason t summerRate winterRate seasonDuration
+                          = regrowSugarBySeason t summerRate winterRate seasonDuration
 
-regrowSugarToMax :: StateT SugEnvironment (Rand g) ()
+regrowSugarToMax :: MonadState SugEnvironment m => m ()
 regrowSugarToMax = updateCellsM (\c -> c { sugEnvCellSugarLevel = sugEnvCellSugarCapacity c})
 
-regrowSugarByRate :: RandomGen g
+regrowSugarByRate :: MonadState SugEnvironment m
                   => Double
-                  -> StateT SugEnvironment (Rand g) ()
+                  -> m ()
 regrowSugarByRate rate = updateCellsM $ regrowSugarInCellWithRate rate
 
-regrowSugarBySeason :: RandomGen g
+regrowSugarBySeason :: MonadState SugEnvironment m
                     => Time
                     -> Double
                     -> Double
                     -> Int
-                    -> StateT SugEnvironment (Rand g) ()
+                    -> m ()
 regrowSugarBySeason t summerRate winterRate seasonDuration 
     = updateCellsWithCoordsM (\((_, y), c) -> 
         if y <= half
@@ -76,14 +78,15 @@ regrowSugarBySeason t summerRate winterRate seasonDuration
     topate     = if isSummer then summerRate     else 1 / winterRate
     bottomRate = if isSummer then 1 / winterRate else summerRate
 
-regrowSugarInCellWithRate :: Double -> SugEnvCell -> SugEnvCell 
+regrowSugarInCellWithRate :: Double 
+                          -> SugEnvCell 
+                          -> SugEnvCell 
 regrowSugarInCellWithRate rate c 
   = c { sugEnvCellSugarLevel = 
           min
               (sugEnvCellSugarCapacity c)
               ((sugEnvCellSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
--- TODO: can we get rid of Rand g ?
 sugEnvironment :: RandomGen g 
                => SugarScapeParams
                -> SugAgent g

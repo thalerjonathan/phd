@@ -200,7 +200,7 @@ mkSugarScapeParams = SugarScapeParams {
 ------------------------------------------------------------------------------------------------------------------------
 -- Social Evolution with immediate regrow, page 27
 mkParamsAnimationII_1 :: SugarScapeParams 
-mkParamsAnimationII_1 = mkSugarScapeParams {
+mkParamsAnimationII_1 = SugarScapeParams {
     sgAgentCount           = 400     -- page 28
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Immediate -- regrow to max immediately
@@ -218,7 +218,7 @@ mkParamsTerracing = mkParamsAnimationII_1
 
 -- Social Evolution with regrow rate of 1, page 29
 mkParamsAnimationII_2 :: SugarScapeParams
-mkParamsAnimationII_2 = mkSugarScapeParams {
+mkParamsAnimationII_2 = SugarScapeParams {
     sgAgentCount           = 400     -- page 28
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Rate 1       -- regrow by 1 unit per step
@@ -236,7 +236,7 @@ mkParamsCarryingCapacity = mkParamsAnimationII_2
 
 -- Wealth Distribution page 34
 mkParamsAnimationII_3 :: SugarScapeParams
-mkParamsAnimationII_3 = mkSugarScapeParams {
+mkParamsAnimationII_3 = SugarScapeParams {
     sgAgentCount           = 250        -- page 33
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Rate 1          -- page 33
@@ -257,7 +257,7 @@ mkParamsWealthDistr = mkParamsAnimationII_3 -- same as G_1, M, R_60,100 => same 
 
 -- Migration as described on page 42 and 43 in Animation II-6
 mkParamsAnimationII_6 :: SugarScapeParams
-mkParamsAnimationII_6 = mkSugarScapeParams {
+mkParamsAnimationII_6 = SugarScapeParams {
     sgAgentCount           = 300              -- 300 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
   , sgAgentDistribution    = Corner (20, 20)
   , spSugarRegrow          = Rate 0.5              -- 0.5 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
@@ -272,7 +272,7 @@ mkParamsAnimationII_6 = mkSugarScapeParams {
 
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
 mkParamsAnimationII_7 :: SugarScapeParams
-mkParamsAnimationII_7 = mkSugarScapeParams {
+mkParamsAnimationII_7 = SugarScapeParams {
     sgAgentCount           = 400              
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Season 1 8 50             
@@ -287,7 +287,7 @@ mkParamsAnimationII_7 = mkSugarScapeParams {
 
 -- Polution as described on page 45 to 50 in Animation II-8
 mkParamsAnimationII_8 :: SugarScapeParams
-mkParamsAnimationII_8 = mkSugarScapeParams {
+mkParamsAnimationII_8 = SugarScapeParams {
     sgAgentCount           = 400
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Rate 1   

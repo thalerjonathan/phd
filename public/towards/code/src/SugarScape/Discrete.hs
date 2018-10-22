@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Discrete 
   ( Discrete2dDimension
   , Discrete2dCoord
@@ -35,6 +36,7 @@ module SugarScape.Discrete
   , cellAt
   , cellAtM
   , randomCell
+  , randomCellM
   , randomCellWithinRect
 
   , neighbours
@@ -108,8 +110,8 @@ createDiscrete2d d@(xLimit, yLimit) n w cs =
 dimensionsDisc2d :: Discrete2d c -> Discrete2dDimension
 dimensionsDisc2d = envDisc2dDims
 
-dimensionsDisc2dM :: Monad m
-                  => StateT (Discrete2d c) m Discrete2dDimension
+dimensionsDisc2dM :: MonadState (Discrete2d c) m
+                  => m Discrete2dDimension
 dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
 
 allCells :: Discrete2d c -> [c]
@@ -118,12 +120,13 @@ allCells e = elems $ envDisc2dCells e
 allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
 allCellsWithCoords e = assocs $ envDisc2dCells e
 
-allCellsWithCoordsM :: Monad m
-                    => StateT (Discrete2d c) m [Discrete2dCell c]
+allCellsWithCoordsM :: MonadState (Discrete2d c) m
+                    => m [Discrete2dCell c]
 allCellsWithCoordsM = state (\e -> (allCellsWithCoords e, e))
 
-updateCellsM :: Monad m
-             => (c -> c) -> StateT (Discrete2d c) m ()
+updateCellsM :: MonadState (Discrete2d c) m
+             => (c -> c) 
+             -> m ()
 updateCellsM f = state (\e -> ((), updateCells f e))
 
 updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
@@ -132,9 +135,9 @@ updateCells f e = e { envDisc2dCells = ec' }
     ec = envDisc2dCells e
     ec' = amap f ec
 
-updateCellsWithCoordsM :: Monad m
+updateCellsWithCoordsM :: MonadState (Discrete2d c) m
                        => (Discrete2dCell c -> c) 
-                       -> StateT (Discrete2d c) m ()
+                       -> m ()
 updateCellsWithCoordsM f = state (\e -> ((), updateCellsWithCoords f e))
 
 updateCellsWithCoords :: (Discrete2dCell c -> c) 
@@ -164,10 +167,10 @@ changeCellAt coord c e = e { envDisc2dCells = arr' }
     arr = envDisc2dCells e
     arr' = arr // [(coord, c)]
 
-changeCellAtM :: Monad m
+changeCellAtM :: MonadState (Discrete2d c) m
               => Discrete2dCoord 
               -> c 
-              -> StateT (Discrete2d c) m ()
+              -> m ()
 changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
 
 cellsAroundRadius :: Discrete2dCoord 
@@ -180,12 +183,16 @@ cellsAroundRadius  pos r e =
     ecs = allCellsWithCoords e
     -- TODO: does not yet wrap around boundaries
 
-cellsAroundRadiusM :: Discrete2dCoord 
+cellsAroundRadiusM :: MonadState (Discrete2d c) m
+                   => Discrete2dCoord 
                    -> Double 
-                   -> State (Discrete2d c) [Discrete2dCell c]
+                   -> m [Discrete2dCell c]
 cellsAroundRadiusM pos r = state (\e -> (cellsAroundRadius pos r e, e))
 
-cellsAroundRect :: Discrete2dCoord -> Int -> Discrete2d c -> [Discrete2dCell c]
+cellsAroundRect :: Discrete2dCoord 
+                -> Int 
+                -> Discrete2d c 
+                -> [Discrete2dCell c]
 cellsAroundRect (cx, cy) r e = zip wrappedCs cells
   where
     cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
@@ -204,12 +211,14 @@ cellAt coord e = arr ! coord
   where
     arr = envDisc2dCells e
 
-cellAtM :: Monad m
+cellAtM :: MonadState (Discrete2d c) m
         => Discrete2dCoord 
-        -> StateT (Discrete2d c) m c
+        -> m c
 cellAtM coord = state (\e -> (cellAt coord e, e))
 
-randomCell :: MonadRandom m => Discrete2d c -> m (c, Discrete2dCoord)
+randomCell :: MonadRandom m
+           => Discrete2d c 
+           -> m (c, Discrete2dCoord)
 randomCell e = do
   let (maxX, maxY) = envDisc2dDims e
 
@@ -217,9 +226,19 @@ randomCell e = do
   randY <- getRandomR (0, maxY - 1)
 
   let randCoord = (randX, randY)
-  let randCell = cellAt randCoord e
+      randCell  = cellAt randCoord e
 
   return (randCell, randCoord)
+
+randomCellM :: (MonadRandom m, MonadState (Discrete2d c) m)
+            => m (c, Discrete2dCoord)
+randomCellM = do
+  (maxX, maxY) <- dimensionsDisc2dM
+  randX        <- getRandomR (0, maxX - 1) 
+  randY        <- getRandomR (0, maxY - 1)
+  randCell     <- cellAtM (randX, randY)
+
+  return (randCell, (randX, randY))
 
 randomCellWithinRect :: MonadRandom m 
                      => Discrete2dCoord 
@@ -253,11 +272,11 @@ neighboursInNeumannDistance coord dist ic e = zip wrappedNs cells
     wrappedNs = wrapNeighbourhood l w ns
     cells = cellsAt wrappedNs e
 
-neighboursInNeumannDistanceM :: Monad m
+neighboursInNeumannDistanceM :: MonadState (Discrete2d c) m
                              => Discrete2dCoord 
                              -> Int 
                              -> Bool 
-                             -> StateT (Discrete2d c) m [Discrete2dCell c]
+                             -> m [Discrete2dCell c]
 neighboursInNeumannDistanceM coord dist ic = 
   state (\e -> (neighboursInNeumannDistance coord dist ic e, e))
 
@@ -269,10 +288,11 @@ neighboursCellsInNeumannDistance :: Discrete2dCoord
 neighboursCellsInNeumannDistance coord dist ic e = 
   map snd (neighboursInNeumannDistance coord dist ic e)
 
-neighboursCellsInNeumannDistanceM :: Discrete2dCoord 
+neighboursCellsInNeumannDistanceM :: MonadState (Discrete2d c) m
+                                  => Discrete2dCoord 
                                   -> Int 
                                   -> Bool 
-                                  -> State (Discrete2d c) [c]
+                                  -> m [c]
 neighboursCellsInNeumannDistanceM coord dist ic = 
   state (\e -> (neighboursCellsInNeumannDistance coord dist ic e, e))
 
@@ -286,19 +306,19 @@ neighbours coord ic e = zip wrappedNs cells
     wrappedNs = wrapNeighbourhood l w ns
     cells = cellsAt wrappedNs e
 
-neighboursM :: Monad m
+neighboursM :: MonadState (Discrete2d c) m
             => Discrete2dCoord 
             -> Bool 
-            -> StateT (Discrete2d c) m [Discrete2dCell c]
+            -> m [Discrete2dCell c]
 neighboursM coord ic = state (\e -> (neighbours coord ic e, e))
 
 neighbourCells :: Discrete2dCoord -> Bool -> Discrete2d c -> [c]
 neighbourCells coord ic e = map snd (neighbours coord ic e)
 
-neighbourCellsM :: Monad m
+neighbourCellsM :: MonadState (Discrete2d c) m
                 => Discrete2dCoord 
                 -> Bool 
-                -> StateT (Discrete2d c) m [c]
+                -> m [c]
 neighbourCellsM coord ic = state (\e -> (neighbourCells coord ic e, e))
 -------------------------------------------------------------------------------
 
@@ -343,10 +363,10 @@ wrapNeighbourhood :: Discrete2dDimension
                   -> EnvironmentWrapping 
                   -> Discrete2dNeighbourhood 
                   -> Discrete2dNeighbourhood
-wrapNeighbourhood l w ns = map (wrapDisc2d l w) ns
+wrapNeighbourhood l w = map (wrapDisc2d l w)
 
 wrapDisc2dEnv :: Discrete2d c -> Discrete2dCoord -> Discrete2dCoord
-wrapDisc2dEnv e c = wrapDisc2d d w c
+wrapDisc2dEnv e = wrapDisc2d d w
   where
     d = envDisc2dDims e
     w = envDisc2dWrapping e

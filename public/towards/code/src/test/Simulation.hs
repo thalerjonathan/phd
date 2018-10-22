@@ -96,9 +96,9 @@ prop_terracing g0 = assertBool
           where
             coord       = sugObsCoord ao
             selfCell    = cellAt coord env
-            selfCellLvl = sugEnvSugarLevel selfCell
+            selfCellLvl = sugEnvCellSugarLevel selfCell
             cells       = neighbourCells coord False env
-            sameLvls    = any (\c -> sugEnvSugarLevel c /= selfCellLvl) cells
+            sameLvls    = any (\c -> sugEnvCellSugarLevel c /= selfCellLvl) cells
 
 prop_carrying_cap :: RandomGen g => g -> IO ()
 prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confidence of " ++ show expMean) $ pass tTestRet

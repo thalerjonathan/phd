@@ -148,14 +148,16 @@ simulationStep ss0 = (ssFinal, sao)
         sfAbsState = runReaderT sfReader dt
         sfEnvState = runStateT sfAbsState absState
         sfRand     = runStateT sfEnvState env
-        ((((_out, _sf'), absState'), env'), g') = runRand sfRand g
+        ((((ao', asf'), absState'), env'), g') = runRand sfRand g
 
         -- TODO: update am: delete agent or update agentout in case of TimeStep event
         -- TODO: schedule new events
 
+        am' = Map.insert aid (asf', aoObservable ao') am
+
         t          = absTime absState 
         absState'' = absState' { absTime = t + dt }
-        ss'        = mkSimState am absState'' env' g' (steps + 1)
+        ss'        = mkSimState am' absState'' env' g' (steps + 1)
 
 mkSimState :: AgentMap g
            -> ABSState

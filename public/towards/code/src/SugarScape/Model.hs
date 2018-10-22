@@ -285,7 +285,7 @@ mkParamsAnimationII_7 = mkSugarScapeParams {
   , spPolutionDiffusion    = Nothing  
   }
 
--- Seasonal Migration as described on page 45 to 50 in Animation I8
+-- Polution as described on page 45 to 50 in Animation II-8
 mkParamsAnimationII_8 :: SugarScapeParams
 mkParamsAnimationII_8 = mkSugarScapeParams {
     sgAgentCount           = 400

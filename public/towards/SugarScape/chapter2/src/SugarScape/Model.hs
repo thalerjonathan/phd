@@ -2,7 +2,6 @@ module SugarScape.Model
   ( SugAgentState (..)
   , SugAgentObservable (..)
 
-  , SugEnvCellOccupier (..)
   , SugEnvCell (..)
 
   , SugAgentMonad
@@ -12,7 +11,6 @@ module SugarScape.Model
 
   , SugAgent
   , SugAgentDef
-  , SugAgentIn
   , SugAgentOut
 
   , AgentAgeSpan (..)
@@ -68,15 +66,11 @@ data SugAgentObservable = SugAgentObservable
   , sugObsSugMetab :: Int
   } deriving (Show, Eq)
 
-data SugEnvCellOccupier = SugEnvCellOccupier 
-  { sugEnvOccId     :: AgentId
-  } deriving (Show, Eq)
-
 data SugEnvCell = SugEnvCell 
   { sugEnvCellSugarCapacity :: Double
   , sugEnvCellSugarLevel    :: Double
   , sugEnvCellPolutionLevel :: Double
-  , sugEnvCellOccupier      :: Maybe SugEnvCellOccupier
+  , sugEnvCellOccupier      :: Maybe AgentId
   } deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvCell
@@ -86,7 +80,6 @@ type SugAgentMonadT g = AgentT (SugAgentMonad g)
 
 type SugAgent g     = Agent    (SugAgentMonad g) SugAgentObservable
 type SugAgentDef g  = AgentDef (SugAgentMonad g) SugAgentObservable
-type SugAgentIn     = AgentIn 
 type SugAgentOut g  = AgentOut (SugAgentMonad g) SugAgentObservable
 ------------------------------------------------------------------------------------------------------------------------
 

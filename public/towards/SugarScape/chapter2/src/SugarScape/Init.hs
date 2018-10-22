@@ -97,7 +97,7 @@ initRandomCell :: [(Discrete2dCoord, (AgentId, SugAgentState))]
 initRandomCell os (coord, sugar) = (coord, c)
   where
     mayOccupier = Data.List.find ((==coord) . fst) os
-    occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
+    occ         = maybe Nothing (\(_, (aid, s)) -> (Just aid)) mayOccupier
 
     c = SugEnvCell {
       sugEnvCellSugarCapacity = fromIntegral sugar

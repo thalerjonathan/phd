@@ -130,9 +130,9 @@ simStepSF ais0 sfs0 envSf0 shuffleRng = MSF $ \_ -> do
   let (sfsAis, shuffleRng') = fisherYatesShuffle shuffleRng (zip sfs0 ais0)
       (sfs, ais)            = unzip sfsAis
 
-  ret         <- mapM (`unMSF` AgentIn) sfs
+  ret         <- mapM (`unMSF` ()) sfs
   -- NOTE: run environment separately after all agents
-  (_, envSf') <- unMSF envSf0 AgentIn 
+  (_, envSf') <- unMSF envSf0 () 
 
   let adefs = concatMap (\(ao, _) -> aoCreate ao) ret
       newSfs = map adBeh adefs

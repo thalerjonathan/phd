@@ -7,7 +7,6 @@ module SugarScape.Common
 
   , unoccupiedNeighbourhoodOfNeighbours
 
-  , cellOccupier
   , cellUnoccupied
   , cellOccupied
 
@@ -80,12 +79,6 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     nncsDupl = foldr (\(coord', _) acc -> neighbours coord' False e ++ acc) ncs ncs
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
-
-
-cellOccupier :: AgentId -> SugAgentState -> SugEnvCellOccupier
-cellOccupier aid s = SugEnvCellOccupier 
-  { sugEnvOccId = aid
-  }
 
 cellOccupied :: SugEnvCell -> Bool
 cellOccupied cell = isJust $ sugEnvCellOccupier cell

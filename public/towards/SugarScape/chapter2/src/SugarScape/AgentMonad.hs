@@ -9,7 +9,6 @@ module SugarScape.AgentMonad
   , AgentT
   
   , AgentDef (..)
-  , AgentIn (..)
   , AgentOut (..)
 
   , nextAgentId
@@ -40,14 +39,12 @@ data ABSState = ABSState
   } deriving (Show, Eq)
 
 type AgentT m  = (StateT ABSState m)
-type Agent m o = SF (AgentT m) AgentIn (AgentOut m o)
+type Agent m o = SF (AgentT m) () (AgentOut m o)
 
 data AgentDef m o = AgentDef
   { adId       :: !AgentId
   , adBeh      :: Agent m o
   }
-
-data AgentIn = AgentIn
 
 data AgentOut m o = AgentOut 
   { aoKill       :: !(Event ())

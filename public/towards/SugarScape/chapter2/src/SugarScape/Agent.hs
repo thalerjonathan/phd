@@ -25,10 +25,10 @@ sugAgent :: RandomGen g
          -> AgentId
          -> SugAgentState
          -> SugAgent g
-sugAgent params aid s0 = feedback s0 (proc (ain, s) -> do
+sugAgent params aid s0 = feedback s0 (proc (_, s) -> do
   t        <- time -< ()
   let age = floor t
-  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII params aid ain age) s) -< (age, ain, s)
+  (ao, s') <- arrM (\(age, s) -> lift $ runStateT (chapterII params aid age) s) -< (age, s)
   returnA -< (ao, s'))
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -37,10 +37,9 @@ sugAgent params aid s0 = feedback s0 (proc (ain, s) -> do
 chapterII :: RandomGen g 
           => SugarScapeParams
           -> AgentId
-          -> SugAgentIn
           -> Int
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII params aid _ain age = do
+chapterII params aid age = do
   agentAgeing age
   
   harvestAmount <- agentMove params aid
@@ -95,10 +94,8 @@ agentMoveTo aid cellCoord = do
 
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
-  s <- get
-
   cell <- lift $ lift $ cellAtM cellCoord
-  let co = cell { sugEnvCellOccupier = Just (cellOccupier aid s) }
+  let co = cell { sugEnvCellOccupier = Just aid }
   lift $ lift $ changeCellAtM cellCoord co 
 
 agentHarvestCell :: RandomGen g
@@ -173,7 +170,7 @@ birthNewAgent params = do
     (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (sugAgent params) id
 
     -- need to occupy the cell to prevent other agents occupying it
-    let newCell' = newCell { sugEnvCellOccupier = Just (cellOccupier newAid newAState) }
+    let newCell' = newCell { sugEnvCellOccupier = Just newAid }
     lift $ lift $ changeCellAtM newCoord newCell' 
 
     return (newAid, newA)

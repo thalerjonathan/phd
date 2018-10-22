@@ -12,7 +12,9 @@ why sugarscape
 page 28, footnote 16: we can guarantee that in haskell at compile time
 
 \section{Chapter II}
+each agent is a Signal Function with no input and outputs an AgentOut which contains a list of agents it wants to spawn, a flag if the agent is to be removed from the simulation (e.g. starved to death) and observable properties the agent exhibits to the outside world. All the agents properties are encapsulated in the SF continuation and there is no way to access and manipulate the data from outside without running the SF itself which will produce an AgentOut
+
 Straight-forward because agents interact with each other indirectly through the environment. In each step the agents are shuffled and updated one after another, where agents can see actions of agents updated before. This is implemented by sharing the environment as a shared data-structure amongst all agents which can read/write it - this is possible in functional programming using Monadic Programming which can simulate a global state, accessible from within a function which can then read/write this state. 
 
 \section{Chapter III}
-The main challenge begins here because in this chapter the agents first 
+The main challenge begins here because in this chapter the agents first beg

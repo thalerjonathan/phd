@@ -70,18 +70,18 @@ executable sugarscape
   -- Other library packages from which modules are imported.
   build-depends:        base
                       , array
+                      , bearriver
                       , containers
                       , dunai
-                      , bearriver
-                      , parallel
-                      , IfElse
-                      , transformers
-                      , MonadRandom
-                      , split
-                      , random
-                      , mtl
                       , gloss
-
+                      , IfElse
+                      , MonadRandom
+                      , mtl
+                      , parallel
+                      , random
+                      , split
+                      , transformers
+                      
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src

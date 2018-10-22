@@ -9,7 +9,6 @@ module SugarScape.Simulation
   , initSimulationSeed
 
   , simulationStep
-  , simStepSF
 
   , mkSimState
   , simulateUntil
@@ -18,6 +17,7 @@ module SugarScape.Simulation
   ) where
 
 import Data.Maybe
+import qualified Data.IntMap.Strict as Map -- better performance than normal Map
 import System.Random
 
 import Control.Monad.Random
@@ -26,10 +26,12 @@ import Control.Monad.State.Strict
 import FRP.BearRiver
 
 import SugarScape.AgentMonad
-import SugarScape.Environment
 import SugarScape.Model
 import SugarScape.Init
 import SugarScape.Random
+
+type AgentMap g = Map.IntMap (SugAgent g, Maybe (AgentObservable SugAgentObservable))
+type EventList  = [(AgentId, ABSEvent SugEvent)]
 
 type AgentObservable o = (AgentId, o)
 type SimStepOut        = (Time, SugEnvironment, [AgentObservable SugAgentObservable])
@@ -37,7 +39,7 @@ type SimStepOut        = (Time, SugEnvironment, [AgentObservable SugAgentObserva
 -- NOTE: strictness on those fields, otherwise space-leak 
 -- (memory consumption increases throughout run-time and execution gets slower and slower)
 data SimulationState g = SimulationState 
-  { simSf       :: SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
+  { simAgentMap :: !(AgentMap g)
   , simAbsState :: !ABSState 
   , simEnv      :: !SugEnvironment
   , simRng      :: !g
@@ -73,16 +75,13 @@ initSimulationRng :: RandomGen g
                    -> (SimulationState g, SugEnvironment)
 initSimulationRng g0 params = (initSimState, initEnv)
   where
-    -- split
-    (gSim, shuffleRng)         = split g0
     -- initial agents and environment data
-    ((initAs, initEnv), gSim') = runRand (createSugarScape params) gSim
+    ((initAs, initEnv), g') = runRand (createSugarScape params) g0
+    -- initial agent map
+    agentMap                = foldr (\(aid, asf) am' -> Map.insert aid (asf, Nothing) am') Map.empty initAs
+    (initAis, _)            = unzip initAs
     -- initial simulation state
-    (initAis, initSfs)     = unzip initAs
-    -- initial simulation state
-    initSimState           = mkSimState 
-                              (simStepSF initAis initSfs (sugEnvironment params) shuffleRng) 
-                              (mkAbsState $ maximum initAis) initEnv gSim' 0
+    initSimState            = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv g' 0
 
 simulateUntil :: RandomGen g
               => Time
@@ -90,7 +89,8 @@ simulateUntil :: RandomGen g
               -> [SimStepOut]
 simulateUntil tMax ss0 = simulateUntilAux ss0 []
   where
-    simulateUntilAux :: SimulationState g
+    simulateUntilAux :: RandomGen g
+                     => SimulationState g
                      -> [SimStepOut]
                      -> [SimStepOut]
     simulateUntilAux ss acc
@@ -100,26 +100,78 @@ simulateUntil tMax ss0 = simulateUntilAux ss0 []
         (ss', so@(t, _, _)) = simulationStep ss
         acc' = so : acc
 
-simulationStep :: SimulationState g
+simulationStep :: RandomGen g
+               => SimulationState g
                -> (SimulationState g, SimStepOut)
-simulationStep ss = (ss', (t, env', out))
+simulationStep ss0 = (ssFinal, sao)
   where
-    sf       = simSf ss
-    absState = simAbsState ss
-    env      = simEnv ss
-    g        = simRng ss
-    steps    = simSteps ss
+    am0  = simAgentMap ss0
+    ais0 = Map.keys am0
+    g0   = simRng ss0
+    (aisShuffled, gShuff) = fisherYatesShuffle g0 ais0
+    -- schedule TimeStep messages in random order by generating event-list from shuffled agent-ids
+    el  = zip aisShuffled (repeat TimeStep)
 
-    sfReader   = unMSF sf ()
-    sfAbsState = runReaderT sfReader sugarScapeTimeDelta
-    sfEnvState = runStateT sfAbsState absState
-    sfRand     = runStateT sfEnvState env
-    ((((out, sf'), absState'), env'), g') = runRand sfRand g
+    ssFinal = simulationStepAux el (ss0 { simRng = gShuff })
+    sao     = simStepOutFromSimState ssFinal
 
-    t          = absTime absState 
-    absState'' = absState' { absTime = t + sugarScapeTimeDelta }
-    ss'        = mkSimState sf' absState'' env' g' (steps + 1)
+    simStepOutFromSimState :: SimulationState g
+                           -> SimStepOut
+    simStepOutFromSimState ss = (t, env, aos)
+      where
+        t   = absTime $ simAbsState ss
+        env = simEnv ss
+        aos = mapMaybe snd (Map.elems $ simAgentMap ss)
 
+    simulationStepAux :: EventList
+                      -> SimulationState g 
+                      -> SimulationState g
+    simulationStepAux [] ss         = ss --(ss', (t, env', out))
+    simulationStepAux ((aid, evt) : es) ss 
+        | isNothing mayAgent = simulationStepAux es ss
+        | otherwise          = simulationStepAux es ss'
+      where
+        am       = simAgentMap ss
+        absState = simAbsState ss
+        env      = simEnv ss
+        g        = simRng ss
+        steps    = simSteps ss
+
+        mayAgent = Map.lookup aid am
+        (asf, _ao) = fromJust mayAgent
+
+        dt = case evt of
+              TimeStep -> sugarScapeTimeDelta
+              _        -> 0.0
+
+        sfReader   = unMSF asf evt
+        sfAbsState = runReaderT sfReader dt
+        sfEnvState = runStateT sfAbsState absState
+        sfRand     = runStateT sfEnvState env
+        ((((_out, _sf'), absState'), env'), g') = runRand sfRand g
+
+        -- TODO: update am: delete agent or update agentout in case of TimeStep event
+        -- TODO: schedule new events
+
+        t          = absTime absState 
+        absState'' = absState' { absTime = t + dt }
+        ss'        = mkSimState am absState'' env' g' (steps + 1)
+
+mkSimState :: AgentMap g
+           -> ABSState
+           -> SugEnvironment
+           -> g
+           -> Int
+           -> SimulationState g
+mkSimState am absState env g steps = SimulationState 
+  { simAgentMap = am
+  , simAbsState = absState 
+  , simEnv      = env
+  , simRng      = g
+  , simSteps    = steps
+  }
+
+{-
 simStepSF :: RandomGen g
           => [AgentId]
           -> [SugAgent g]
@@ -151,17 +203,5 @@ simStepSF ais0 sfs0 envSf0 shuffleRng = MSF $ \_ -> do
       ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') envSf' shuffleRng'
 
   return (obs, ct)
+-}
 
-mkSimState :: SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
-           -> ABSState
-           -> SugEnvironment
-           -> g
-           -> Int
-           -> SimulationState g
-mkSimState sf absState env g steps = SimulationState 
-  { simSf       = sf
-  , simAbsState = absState 
-  , simEnv      = env
-  , simRng      = g
-  , simSteps    = steps
-  }

@@ -94,7 +94,6 @@ executable sugarscape
                       -Wall 
                       -Werror 
                       -fwarn-tabs 
-                      -fno-warn-unused-matches
 
 Test-Suite sugarscape-test
   default-language:     Haskell2010

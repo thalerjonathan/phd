@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent 
-  ( sugAgent
+  ( agentSF
   , dieOfAge
   , agentMetabolism
   , agentDies
@@ -20,26 +20,26 @@ import SugarScape.Random
 import SugarScape.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
-sugAgent :: RandomGen g 
-         => SugarScapeParams
-         -> AgentId
-         -> SugAgentState
-         -> SugAgent g
-sugAgent params aid s0 = feedback s0 (proc (_, s) -> do
+agentSF :: RandomGen g 
+        => SugarScapeParams
+        -> AgentId
+        -> SugAgentState
+        -> SugAgent g
+agentSF params aid s0 = feedback s0 (proc (_, s) -> do
   t        <- time -< ()
   let age = floor t
-  (ao, s') <- arrM (\(age, s) -> lift $ runStateT (chapterII params aid age) s) -< (age, s)
+  (ao, s') <- arrM (\(age, s) -> lift $ runStateT (agentBehaviour params aid age) s) -< (age, s)
   returnA -< (ao, s'))
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
-chapterII :: RandomGen g 
-          => SugarScapeParams
-          -> AgentId
-          -> Int
-          -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII params aid age = do
+agentBehaviour :: RandomGen g 
+               => SugarScapeParams
+               -> AgentId
+               -> Int
+               -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+agentBehaviour params aid age = do
   agentAgeing age
   
   harvestAmount <- agentMove params aid
@@ -167,7 +167,7 @@ birthNewAgent :: RandomGen g
 birthNewAgent params = do
     newAid              <- lift nextAgentId
     (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (sugAgent params) id
+    (newA, _)           <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (agentSF params) id
 
     -- need to occupy the cell to prevent other agents occupying it
     let newCell' = newCell { sugEnvCellOccupier = Just newAid }

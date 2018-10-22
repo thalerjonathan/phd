@@ -27,7 +27,7 @@ createSugarScape params = do
                     (Corner dim) -> dim
 
   randCoords <- randomCoords (0,0) coordDims agentCount
-  ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) (sugAgent params) id) (zip ais randCoords)
+  ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) (agentSF params) id) (zip ais randCoords)
 
   let as          = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
@@ -97,7 +97,7 @@ initRandomCell :: [(Discrete2dCoord, (AgentId, SugAgentState))]
 initRandomCell os (coord, sugar) = (coord, c)
   where
     mayOccupier = Data.List.find ((==coord) . fst) os
-    occ         = maybe Nothing (\(_, (aid, s)) -> (Just aid)) mayOccupier
+    occ         = maybe Nothing (\(_, (aid, _)) -> Just aid) mayOccupier
 
     c = SugEnvCell {
       sugEnvCellSugarCapacity = fromIntegral sugar

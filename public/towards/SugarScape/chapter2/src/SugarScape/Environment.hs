@@ -32,7 +32,7 @@ polutionDiffusion (Just d) t
     | not doDiffusion = return ()
     | otherwise = do
       cs <- allCellsWithCoordsM
-      fs <- mapM (\(coord, c) -> do
+      fs <- mapM (\(coord, _) -> do
         ncs <- neighbourCellsM coord True
         let flux = sum (map sugEnvCellPolutionLevel ncs) / fromIntegral (length ncs)
         return flux) cs

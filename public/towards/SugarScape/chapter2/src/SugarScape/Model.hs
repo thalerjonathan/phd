@@ -281,7 +281,7 @@ mkParamsAnimationII_7 = SugarScapeParams {
 -- Polution as described on page 45 to 50 in Animation II-8
 mkParamsAnimationII_8 :: SugarScapeParams
 mkParamsAnimationII_8 = SugarScapeParams {
-    sgAgentCount           = 400
+    sgAgentCount           = 4
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Rate 1   
   , spSugarEndowmentRange  = (5, 25)

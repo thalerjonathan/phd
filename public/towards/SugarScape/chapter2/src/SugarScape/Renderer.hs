@@ -45,7 +45,7 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss cv
     halfWSizeY = fromIntegral wy / 2.0 
 
 renderEnvCell :: CellVisualisation -> SugEnvironmentRenderer
-renderEnvCell Sugar r@(rw, rh) w _t (coord, cell) = sugLvlCircle
+renderEnvCell Sugar r@(rw, _) w _t (coord, cell) = sugLvlCircle
   where
     sugarColor   = GLO.makeColor 0.9 0.9 0.0 1.0
     (x, y)       = transformToWindow r w coord

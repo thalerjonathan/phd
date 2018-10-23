@@ -23,12 +23,13 @@ polBlackCap = 50
 
 renderSugarScapeFrame :: (Int, Int) 
                       -> Time 
+                      -> Int
                       -> SugEnvironment
                       -> [AgentObservable SugAgentObservable]
                       -> CellVisualisation
                       -> GLO.Picture
-renderSugarScapeFrame wSize@(wx, wy) t e ss cv
-    = GLO.Pictures (envPics ++ agentPics ++ [timeStepTxt])
+renderSugarScapeFrame wSize@(wx, wy) t steps e ss cv
+    = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, stepsTxt])
   where
     (dx, dy) = dimensionsDisc2d e
     cellWidth = fromIntegral wx / fromIntegral dx
@@ -39,7 +40,8 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss cv
     agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
     envPics = map (renderEnvCell cv (cellWidth, cellHeight) wSize t) cells
 
-    timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
+    timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
+    stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show steps)
 
     halfWSizeX = fromIntegral wx / 2.0 
     halfWSizeY = fromIntegral wy / 2.0 

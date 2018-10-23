@@ -27,4 +27,4 @@ main = do
   case output of 
     Pure   steps  -> print $ simulateUntil steps initSimState
     Export steps  -> writeSimulationUntil "export/dynamics.m" steps initSimState
-    Visual sps cv -> runGloss initSimState (0, initEnv, []) sps cv
+    Visual sps cv -> runGloss initSimState (0, 0, initEnv, []) sps cv

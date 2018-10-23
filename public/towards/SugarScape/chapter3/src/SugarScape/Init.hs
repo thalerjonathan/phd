@@ -29,7 +29,7 @@ createSugarScape params = do
   randCoords <- randomCoords (0,0) coordDims agentCount
   ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) (agentSF params) id) (zip ais randCoords)
 
-  let as          = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
+  let as          = map (\(aid, (ad, _)) -> (aid, adSf ad)) (zip ais ras)
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
       sugSpecs    = parseSugarSpec sugarEnvSpec
       sugCoords   = sugarSpecToCoords sugSpecs sugarscapeDimensions

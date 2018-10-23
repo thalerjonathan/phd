@@ -1,32 +1,38 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Environment 
-  ( sugEnvironment
+  ( SugEnvironmentSF
+  , sugEnvironment
   ) where
 
-import Control.Monad.Random
+import Control.Monad.Identity
 import Control.Monad.State.Strict
 import FRP.BearRiver
 
-import SugarScape.AgentMonad
 import SugarScape.Discrete
 import SugarScape.Model
+
+type SugEnvironmentSF = SF Identity SugEnvironment SugEnvironment
 
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
-envBehaviour :: RandomGen g
-             => SugarScapeParams 
+sugEnvironment :: SugarScapeParams -> SugEnvironmentSF
+sugEnvironment params = proc env -> do
+  t <- time -< ()
+  env' <- arrM (\(t, env) -> lift $ execStateT (envBehaviour params t) env) -< (t, env)
+  returnA -< env'
+
+envBehaviour :: SugarScapeParams 
              -> Time
-             -> StateT SugEnvironment (Rand g) ()
+             -> State SugEnvironment ()
 envBehaviour params t = do
   regrowSugar (spSugarRegrow params) t
   polutionDiffusion (spPolutionDiffusion params) t
 
-polutionDiffusion :: MonadState SugEnvironment m
-                  => Maybe Int
+polutionDiffusion :: Maybe Int
                   -> Time
-                  -> m ()
+                  -> State SugEnvironment ()
 polutionDiffusion Nothing _  = return ()
 polutionDiffusion (Just d) t 
     | not doDiffusion = return ()
@@ -43,29 +49,25 @@ polutionDiffusion (Just d) t
   where
     doDiffusion = 0 == mod (floor t) d
 
-regrowSugar :: MonadState SugEnvironment m
-            => SugarRegrow 
+regrowSugar :: SugarRegrow 
             -> Time
-            -> m ()
+            -> State SugEnvironment ()
 regrowSugar Immediate   _ = regrowSugarToMax
 regrowSugar (Rate rate) _ = regrowSugarByRate rate
 regrowSugar (Season summerRate winterRate seasonDuration) t
                           = regrowSugarBySeason t summerRate winterRate seasonDuration
 
-regrowSugarToMax :: MonadState SugEnvironment m => m ()
+regrowSugarToMax :: State SugEnvironment ()
 regrowSugarToMax = updateCellsM (\c -> c { sugEnvCellSugarLevel = sugEnvCellSugarCapacity c})
 
-regrowSugarByRate :: MonadState SugEnvironment m
-                  => Double
-                  -> m ()
+regrowSugarByRate :: Double -> State SugEnvironment ()
 regrowSugarByRate rate = updateCellsM $ regrowSugarInCellWithRate rate
 
-regrowSugarBySeason :: MonadState SugEnvironment m
-                    => Time
+regrowSugarBySeason :: Time
                     -> Double
                     -> Double
                     -> Int
-                    -> m ()
+                    -> State SugEnvironment ()
 regrowSugarBySeason t summerRate winterRate seasonDuration 
     = updateCellsWithCoordsM (\((_, y), c) -> 
         if y <= half
@@ -86,11 +88,3 @@ regrowSugarInCellWithRate rate c
           min
               (sugEnvCellSugarCapacity c)
               ((sugEnvCellSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
-
-sugEnvironment :: RandomGen g 
-               => SugarScapeParams
-               -> SugAgent g
-sugEnvironment params = proc _ -> do
-  t <- time -< ()
-  arrM (lift . lift . envBehaviour params) -< t
-  returnA -< agentOut

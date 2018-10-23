@@ -34,7 +34,7 @@ writeSimulationUntil fileName tMax ss0 = do
           hPutStrLn fileHdl "}"
           writeSimulationUntilAux ss' fileHdl
       where
-        (ss', (t, _, aobs)) = simulationStep ss
+        (ss', (t, _, _, aobs)) = simulationStep ss
 
         writeAgentObservable :: AgentObservable SugAgentObservable -> IO ()
         writeAgentObservable (aid, ao) 

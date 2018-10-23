@@ -49,8 +49,8 @@ modelToPicture :: (Int, Int)
                -> CellVisualisation
                -> SimStepOut
                -> IO GLO.Picture
-modelToPicture winSize cv (t, env, as) 
-  = return $ renderSugarScapeFrame winSize t env as cv
+modelToPicture winSize cv (t, steps, env, as) 
+  = return $ renderSugarScapeFrame winSize t steps env as cv
 
 renderStep :: RandomGen g
            => IORef (SimulationState g)

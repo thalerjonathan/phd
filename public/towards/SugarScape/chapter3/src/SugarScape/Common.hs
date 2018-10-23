@@ -118,9 +118,9 @@ randomAgent params (agentId, coord) beh sup = do
   }
 
   let s'   = sup s
-  let adef = AgentDef {
+      adef = AgentDef {
     adId       = agentId
-  , adBeh      = beh agentId s'
+  , adSf      = beh agentId s'
   }
 
   return (adef, s')

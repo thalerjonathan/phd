@@ -27,10 +27,10 @@ module SugarScape.AgentMonad
   , (<°>)
   ) where
 
-import           Data.Maybe
+import Data.Maybe
 
-import           Control.Monad.State.Strict
-import           FRP.BearRiver
+import Control.Monad.State.Strict
+import FRP.BearRiver
 
 type AgentId    = Int
 data ABSEvent e = TimeStep | DomainEvent e
@@ -40,12 +40,12 @@ data ABSState = ABSState
   , absTime   :: Time
   } deriving (Show, Eq)
 
-type AgentT m  = (StateT ABSState m)
+type AgentT m    = StateT ABSState m
 type Agent m e o = SF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 data AgentDef m e o = AgentDef
-  { adId       :: !AgentId
-  , adBeh      :: Agent m e o
+  { adId :: !AgentId
+  , adSf :: Agent m e o
   }
 
 data AgentOut m e o = AgentOut 

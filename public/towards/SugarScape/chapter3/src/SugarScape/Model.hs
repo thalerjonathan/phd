@@ -89,8 +89,9 @@ data SugEnvSite = SugEnvSite
   , sugEnvSiteOccupier      :: Maybe SugEnvSiteOccupier
   } deriving (Show, Eq)
 
-data SugEvent = MatingRequest AgentGender 
+data SugEvent = MatingRequest 
               | MatingReply 
+                deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite
 

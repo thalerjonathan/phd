@@ -150,7 +150,7 @@ simulationStep ss0 = (ssFinal, sao)
     processEvents [] ss         = ss
     processEvents ((aid, evt) : es) ss 
         | isNothing mayAgent = processEvents es ss
-        | otherwise          = processEvents es' ss'
+        | otherwise          = processEvents es'' ss'
       where
         am       = simAgentMap ss
         absState = simAbsState ss
@@ -167,9 +167,19 @@ simulationStep ss0 = (ssFinal, sao)
 
         (ao, asf', absState', env', g') = runAgentSF asf evt dt absState env g
 
+         -- schedule events of the agent: will always be put infront of the list, thus processed immediately
+        es' = map (\(receiver, domEvt) -> (receiver, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
+
+        -- TODO: process event-with-continuation
+        (es'', asf'') 
+          = maybe 
+              (es', asf') 
+              (\(receiver, domEvt, cont) -> ((receiver, DomainEvent (aid, domEvt)) : es', cont)) 
+              (aoEventWCont ao)
+
         -- update observable
         am' = if isObservable ao
-                then Map.insert aid (asf', aoObservable ao) am
+                then Map.insert aid (asf'', aoObservable ao) am
                 else am
 
         -- agent is dead, remove from set (technically its a map) of agents
@@ -179,9 +189,6 @@ simulationStep ss0 = (ssFinal, sao)
 
         -- add newly created agents
         am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, Nothing) acc) am'' (aoCreate ao)
-
-        -- schedule events of the agent: will always be put infront of the list, thus processed immediately
-        es' = map (\(aidTo, domEvt) -> (aidTo, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
 
         ss' = ss { simAgentMap = am'''
                  , simAbsState = absState'

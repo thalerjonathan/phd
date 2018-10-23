@@ -19,7 +19,10 @@ module SugarScape.AgentMonad
   
   , agentOut
   , agentOutObservable
+  
   , sendEventTo
+  , sendEventToWithCont
+
   , isObservable
   , isDead
   , kill
@@ -34,7 +37,9 @@ import Control.Monad.State.Strict
 import FRP.BearRiver
 
 type AgentId    = Int
-data ABSEvent e = TimeStep | DomainEvent (AgentId, e)
+data ABSEvent e = TimeStep 
+                | DomainEvent (AgentId, e) 
+                  deriving (Show, Eq) -- sender, event 
 
 data ABSState = ABSState
   { absNextId :: AgentId
@@ -53,7 +58,8 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !(Maybe o)
-  , aoEvents     :: ![(AgentId, e)]
+  , aoEvents     :: ![(AgentId, e)]                     -- 1-directional event receiver, (DomainEvent) event
+  , aoEventWCont :: !(Maybe (AgentId, e, Agent m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
   }
 
 nextAgentId :: MonadState ABSState m
@@ -84,17 +90,29 @@ agentOutAux mo = AgentOut
   , aoCreate     = []
   , aoObservable = mo
   , aoEvents     = []
+  , aoEventWCont = Nothing
   }
 
 sendEventTo :: AgentId
             -> e
             -> AgentOut m e o
             -> AgentOut m e o
-sendEventTo aidTo evt ao = ao'
+sendEventTo receiver e ao = ao'
   where
-    aoEvts = aoEvents ao
+    es  = aoEvents ao
     -- important: respect ordering!
-    ao'    = ao { aoEvents = aoEvts ++ [(aidTo, evt)] } 
+    ao' = ao { aoEvents = es ++ [(receiver, e)] } 
+
+sendEventToWithCont :: AgentId
+                    -> e
+                    -> Agent m e o
+                    -> AgentOut m e o
+                    -> AgentOut m e o
+sendEventToWithCont receiver e cont ao
+    | isJust $ aoEventWCont ao = error "Event with continuation already exists!"
+    | otherwise                = ao'
+  where
+    ao' = ao { aoEventWCont = Just (receiver, e, cont) } 
 
 isDead :: AgentOut m e o -> Bool
 isDead ao = isEvent $ aoKill ao
@@ -119,6 +137,7 @@ isObservable ao = isJust $ aoObservable ao
     , aoCreate     = aoCreate ao1 ++ aoCreate ao2
     , aoObservable = decideMaybe (aoObservable ao1) (aoObservable ao2)
     , aoEvents     = aoEvents ao1 ++ aoEvents ao2
+    , aoEventWCont = decideMaybe (aoEventWCont ao1) (aoEventWCont ao2)
     }
   where
     decideMaybe :: Maybe a 

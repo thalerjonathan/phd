@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent 
-  ( agentSF
+  ( agentSf
   , dieOfAge
   , agentMetabolism
   , agentDies
@@ -20,12 +20,12 @@ import SugarScape.Random
 import SugarScape.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
-agentSF :: RandomGen g 
+agentSf :: RandomGen g 
         => SugarScapeParams
         -> AgentId
         -> SugAgentState
         -> SugAgent g
-agentSF params aid s0 = feedback s0 (proc (evt, s) -> do
+agentSf params aid s0 = feedback s0 (proc (evt, s) -> do
   t        <- time -< ()
   let age = floor t
   (ao, s') <- arrM (\(age, evt, s) -> lift $ runStateT (eventMatching evt params aid age) s) -< (age, evt, s)
@@ -219,7 +219,7 @@ birthNewAgent :: RandomGen g
 birthNewAgent params = do
     newAid              <- lift nextAgentId
     (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (agentSF params) id
+    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (agentSf params) id
 
     -- need to occupy the cell to prevent other agents occupying it
     let newCell' = newCell { sugEnvSiteOccupier = Just (siteOccupier newAid newAState) }

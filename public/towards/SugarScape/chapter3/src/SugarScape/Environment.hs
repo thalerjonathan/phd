@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Environment 
   ( SugEnvironmentSF
-  , sugEnvironment
+  , sugEnvironmentSf
   ) where
 
 import Control.Monad.Identity
@@ -17,8 +17,8 @@ type SugEnvironmentSF = SF Identity SugEnvironment SugEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
-sugEnvironment :: SugarScapeParams -> SugEnvironmentSF
-sugEnvironment params = proc env -> do
+sugEnvironmentSf :: SugarScapeParams -> SugEnvironmentSF
+sugEnvironmentSf params = proc env -> do
   t <- time -< ()
   env' <- arrM (\(t, env) -> lift $ execStateT (envBehaviour params t) env) -< (t, env)
   returnA -< env'

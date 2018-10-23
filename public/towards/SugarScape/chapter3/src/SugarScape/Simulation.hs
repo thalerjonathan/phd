@@ -14,6 +14,9 @@ module SugarScape.Simulation
   , simulateUntil
 
   , sugarScapeTimeDelta
+
+  , runAgentSF
+  , runEnvSF
   ) where
 
 import Data.Maybe
@@ -84,7 +87,7 @@ initSimulationRng g0 params = (initSimState, initEnv)
     agentMap                = foldr (\(aid, asf) am' -> Map.insert aid (asf, Nothing) am') Map.empty initAs
     (initAis, _)            = unzip initAs
     -- initial simulation state
-    initSimState            = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvironment params) g' 0
+    initSimState            = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvironmentSf params) g' 0
 
 simulateUntil :: RandomGen g
               => Time
@@ -226,38 +229,3 @@ mkSimState am absState env envSf g steps = SimulationState
   , simRng      = g
   , simSteps    = steps
   }
-
-{-
-simStepSF :: RandomGen g
-          => [AgentId]
-          -> [SugAgent g]
-          -> SugAgent g
-          -> g
-          -> SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
-simStepSF ais0 sfs0 envSf0 shuffleRng = MSF $ \_ -> do
-  let (sfsAis, shuffleRng') = fisherYatesShuffle shuffleRng (zip sfs0 ais0)
-      (sfs, ais)            = unzip sfsAis
-
-  ret         <- mapM (`unMSF` TimeStep) sfs
-  -- NOTE: run environment separately after all agents
-  (_, envSf') <- unMSF envSf0 TimeStep 
-
-  let adefs = concatMap (\(ao, _) -> aoCreate ao) ret
-      newSfs = map adBeh adefs
-      newAis = map adId adefs
-
-      obs = foldr (\((ao, _), aid) acc -> 
-        if isObservable ao 
-          then (aid, fromJust $ aoObservable ao) : acc  
-          else acc) [] (zip ret ais)
-
-      (sfs', ais') = foldr (\((ao, sf), aid) acc@(accSf, accAid) -> 
-        if isDead ao 
-          then acc 
-          else (sf : accSf, aid : accAid)) ([], []) (zip ret ais)
-
-      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') envSf' shuffleRng'
-
-  return (obs, ct)
--}
-

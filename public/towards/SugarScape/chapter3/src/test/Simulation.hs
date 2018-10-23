@@ -70,11 +70,11 @@ prop_terracing g0 = assertBool
         (simState, _) = initSimulationRng g sugParams
         sos           = simulateUntil steps simState
 
-        ((_, _, aosStable) : sos') = drop staticAfter sos
-        (_, envFinal, aosFinal) = last sos
+        ((_, _, _, aosStable) : sos') = drop staticAfter sos
+        (_, _, envFinal, aosFinal)    = last sos
 
         terraceNumbers = length $ filter (onTheEdge envFinal) aosFinal
-        staticNumbers  = sum $ map (\(_, _, aos) -> fromIntegral (length $ filter (sameCoord aosStable) aos) / fromIntegral (length aos)) sos'
+        staticNumbers  = sum $ map (\(_, _, _, aos) -> fromIntegral (length $ filter (sameCoord aosStable) aos) / fromIntegral (length aos)) sos'
         
         terraceRatio  = fromIntegral terraceNumbers / fromIntegral (length aosFinal)
         staticRatio   = staticNumbers / fromIntegral (length sos')
@@ -96,9 +96,9 @@ prop_terracing g0 = assertBool
           where
             coord       = sugObsCoord ao
             selfCell    = cellAt coord env
-            selfCellLvl = sugEnvCellSugarLevel selfCell
+            selfCellLvl = sugEnvSiteSugarLevel selfCell
             cells       = neighbourCells coord False env
-            sameLvls    = any (\c -> sugEnvCellSugarLevel c /= selfCellLvl) cells
+            sameLvls    = any (\c -> sugEnvSiteSugarLevel c /= selfCellLvl) cells
 
 prop_carrying_cap :: RandomGen g => g -> IO ()
 prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confidence of " ++ show expMean) $ pass tTestRet
@@ -130,7 +130,7 @@ prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confid
         (simState, _)   = initSimulationRng g sugParams
         sos             = simulateUntil steps simState
         sos'            = drop stableAfter sos
-        popSizes        = map (\(_, _, aos) -> fromIntegral $ length aos) sos'
+        popSizes        = map (\(_, _, _, aos) -> fromIntegral $ length aos) sos'
         popSizeVariance = std popSizes
         popSizeMean     = mean popSizes
         popSizeMedian   = median popSizes
@@ -166,10 +166,10 @@ prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less tha
         = trace ("skewness = " ++ show skew ++ ", kurtosis = " ++ show kurt ++ " gini = " ++ show gini) 
             (skew, kurt, gini)
       where
-        (simState, _)    = initSimulationRng g sugParams
-        sos              = simulateUntil steps simState
-        (_, _, finalAos) = last sos
-        agentWealths     = map (sugObsSugLvl . snd) finalAos
+        (simState, _)       = initSimulationRng g sugParams
+        sos                 = simulateUntil steps simState
+        (_, _, _, finalAos) = last sos
+        agentWealths        = map (sugObsSugLvl . snd) finalAos
 
         skew = skewness agentWealths
         kurt = kurtosis agentWealths

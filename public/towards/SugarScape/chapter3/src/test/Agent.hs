@@ -27,12 +27,15 @@ instance Arbitrary SugAgentState where
     randMaxAge         <- choose (60, 100)
     
     return SugAgentState {
-      sugAgCoord      = (0, 0)
-    , sugAgSugarMetab = randSugarMetab
-    , sugAgVision     = randVision
-    , sugAgSugarLevel = randSugarEndowment
-    , sugAgMaxAge     = Just randMaxAge
-    , sugAgAge        = 0
+      sugAgCoord        = (0, 0)
+    , sugAgSugarMetab   = randSugarMetab
+    , sugAgVision       = randVision
+    , sugAgSugarLevel   = randSugarEndowment
+    , sugAgMaxAge       = Just randMaxAge
+    , sugAgAge          = 0
+    , sugAgGender       = Male
+    , sugAgFertAgeRange = (0, 0)
+    , sugAgInitSugEndow = randSugarEndowment
     }
 
 agentTests :: RandomGen g 

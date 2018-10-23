@@ -1,9 +1,10 @@
 module Runner
-  ( runAgentSFSteps
-  , runAgentSF
+  ( runAgentSFTimeSteps
 
   , runAgentMonad
   , runAgentMonad_
+
+  , runSugEnvSteps
   ) where
 
 import Control.Monad.Random
@@ -13,46 +14,32 @@ import Control.Monad.State.Strict
 import FRP.BearRiver
 
 import SugarScape.AgentMonad
+import SugarScape.Environment
 import SugarScape.Model
-import SugarScape.Simulation (sugarScapeTimeDelta)
+import SugarScape.Simulation
 
-runAgentSFSteps :: RandomGen g
-                => Int
-                -> SugAgent g
-                -> ABSState
-                -> SugEnvironment
-                -> g
-                -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
-runAgentSFSteps steps = runAgentSFStepsAux steps []
+runAgentSFTimeSteps :: RandomGen g
+                    => Int
+                    -> SugAgent g
+                    -> ABSState
+                    -> SugEnvironment
+                    -> g
+                    -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
+runAgentSFTimeSteps steps = runAgentSFTimeStepsAux steps []
   where 
-    runAgentSFStepsAux :: RandomGen g
-                       => Int
-                       -> [(SugAgentOut g, SugEnvironment)]
-                       -> SugAgent g
-                       -> ABSState
-                       -> SugEnvironment
-                       -> g
-                       -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
-    runAgentSFStepsAux 0 acc sf absState env g = (reverse acc, sf, absState, g)
-    runAgentSFStepsAux n acc sf absState env g = runAgentSFStepsAux (n - 1) acc' sf' absState' env' g'
+    runAgentSFTimeStepsAux :: RandomGen g
+                           => Int
+                           -> [(SugAgentOut g, SugEnvironment)]
+                           -> SugAgent g
+                           -> ABSState
+                           -> SugEnvironment
+                           -> g
+                           -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
+    runAgentSFTimeStepsAux 0 acc sf absState env g = (reverse acc, sf, absState, g)
+    runAgentSFTimeStepsAux n acc sf absState env g = runAgentSFTimeStepsAux (n - 1) acc' sf' absState' env' g'
       where
-        (out, env', sf', absState', g') = runAgentSF sf absState env g
+        (out, sf', absState', env', g') = runAgentSF sf TimeStep sugarScapeTimeDelta absState env g
         acc' = (out, env') : acc
-
-runAgentSF :: RandomGen g
-           => SugAgent g
-           -> ABSState
-           -> SugEnvironment
-           -> g
-           -> (SugAgentOut g, SugEnvironment, SugAgent g, ABSState, g)
-runAgentSF sf absState env g
-    = (out, env', sf', absState', g') 
-  where
-    sfReader   = unMSF sf AgentIn
-    sfAbsState = runReaderT sfReader sugarScapeTimeDelta
-    sfEnvState = runStateT sfAbsState absState
-    sfRand     = runStateT sfEnvState env
-    ((((out, sf'), absState'), env'), g') = runRand sfRand g
 
 -- runs a computation of the agent monad and discharges all context except return value of computation
 -- StateT SugAgentState ((StateT ABSState m) (StateT SugEnvironment (Rand g))) ret
@@ -81,3 +68,12 @@ runAgentMonad f as0 absState0 env0 g0
     fEnvState = runStateT fAbsState absState0
     fRand     = runStateT fEnvState env0
     ((((ret, as'), absState'), env'), g') = runRand fRand g0
+
+runSugEnvSteps :: Int 
+               -> SugEnvironment
+               -> SugEnvironmentSF
+               -> (SugEnvironment, SugEnvironmentSF)
+runSugEnvSteps 0 env envSf = (env, envSf)
+runSugEnvSteps n env envSf = runSugEnvSteps (n - 1) env' envSf'
+  where
+    (env', envSf') = runEnvSF env envSf

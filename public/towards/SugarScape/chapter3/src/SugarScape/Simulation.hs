@@ -33,7 +33,7 @@ import SugarScape.Init
 import SugarScape.Random
 
 type AgentMap g = Map.IntMap (SugAgent g, Maybe SugAgentObservable)
-type EventList  = [(AgentId, ABSEvent SugEvent)]
+type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
 
 type AgentObservable o = (AgentId, o)
 type SimStepOut        = (Time, Int, SugEnvironment, [AgentObservable SugAgentObservable])
@@ -174,11 +174,11 @@ simulationStep ss0 = (ssFinal, sao)
                 then Map.delete aid am'
                 else am'
 
-        -- newly created agents
+        -- add newly created agents
         am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, Nothing) acc) am'' (aoCreate ao)
 
-        -- schedule new events of agent
-        es'  = es
+        -- schedule events of the agent: will always be put infront of the list, thus processed immediately
+        es' = map (\(aidTo, domEvt) -> (aidTo, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
 
         ss' = ss { simAgentMap = am'''
                  , simAbsState = absState'

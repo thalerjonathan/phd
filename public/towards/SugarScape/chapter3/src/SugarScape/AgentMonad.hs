@@ -19,6 +19,7 @@ module SugarScape.AgentMonad
   
   , agentOut
   , agentOutObservable
+  , sendEventTo
   , isObservable
   , isDead
   , kill
@@ -33,7 +34,7 @@ import Control.Monad.State.Strict
 import FRP.BearRiver
 
 type AgentId    = Int
-data ABSEvent e = TimeStep | DomainEvent e
+data ABSEvent e = TimeStep | DomainEvent (AgentId, e)
 
 data ABSState = ABSState
   { absNextId :: AgentId
@@ -52,6 +53,7 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !(Maybe o)
+  , aoEvents     :: ![(AgentId, e)]
   }
 
 nextAgentId :: MonadState ABSState m
@@ -81,7 +83,18 @@ agentOutAux mo = AgentOut
   { aoKill       = NoEvent
   , aoCreate     = []
   , aoObservable = mo
+  , aoEvents     = []
   }
+
+sendEventTo :: AgentId
+            -> e
+            -> AgentOut m e o
+            -> AgentOut m e o
+sendEventTo aidTo evt ao = ao'
+  where
+    aoEvts = aoEvents ao
+    -- important: respect ordering!
+    ao'    = ao { aoEvents = aoEvts ++ [(aidTo, evt)] } 
 
 isDead :: AgentOut m e o -> Bool
 isDead ao = isEvent $ aoKill ao
@@ -105,6 +118,7 @@ isObservable ao = isJust $ aoObservable ao
     { aoKill       = mergeBy (\_ _ -> ()) (aoKill ao1) (aoKill ao2)
     , aoCreate     = aoCreate ao1 ++ aoCreate ao2
     , aoObservable = decideMaybe (aoObservable ao1) (aoObservable ao2)
+    , aoEvents     = aoEvents ao1 ++ aoEvents ao2
     }
   where
     decideMaybe :: Maybe a 

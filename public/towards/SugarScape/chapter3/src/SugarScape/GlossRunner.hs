@@ -16,9 +16,10 @@ runGloss :: RandomGen g
          => SimulationState g
          -> SimStepOut
          -> Int
-         -> CellVisualisation
+         -> AgentVis
+         -> SiteVis
          -> IO ()
-runGloss initSimState initOut stepsPerSec cv = do
+runGloss initSimState initOut stepsPerSec av cv = do
   let winSize  = (800, 800)
       winTitle = "SugarScape"
       
@@ -33,24 +34,25 @@ runGloss initSimState initOut stepsPerSec cv = do
         white                     -- background
         stepsPerSec               -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
-        (modelToPicture winSize cv)  -- model-to-picture function
+        (modelToPicture winSize av cv)  -- model-to-picture function
         (renderStep ssRef)    -- 
     else
       animateIO
         (displayGlossWindow winTitle winSize)
         white
-        (renderStepAnimate winSize ssRef cv)
+        (renderStepAnimate winSize ssRef av cv)
         (const $ return ())
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow winTitle winSize = GLO.InWindow winTitle winSize (0, 0)
 
 modelToPicture :: (Int, Int)
-               -> CellVisualisation
+               -> AgentVis
+               -> SiteVis
                -> SimStepOut
                -> IO GLO.Picture
-modelToPicture winSize cv (t, steps, env, as) 
-  = return $ renderSugarScapeFrame winSize t steps env as cv
+modelToPicture winSize av cv (t, steps, env, as) 
+  = return $ renderSugarScapeFrame winSize t steps env as av cv
 
 renderStep :: RandomGen g
            => IORef (SimulationState g)
@@ -68,12 +70,13 @@ renderStep ssRef _ _ _ = do
 renderStepAnimate :: RandomGen g
                   => (Int, Int)
                   -> IORef (SimulationState g)
-                  -> CellVisualisation
+                  -> AgentVis
+                  -> SiteVis
                   -> Float
                   -> IO GLO.Picture
-renderStepAnimate winSize ssRef cv _ = do
+renderStepAnimate winSize ssRef av cv _ = do
   ss <- readIORef ssRef
   let (ss', out) = simulationStep ss
   writeIORef ssRef ss'
 
-  modelToPicture winSize cv out 
+  modelToPicture winSize av cv out 

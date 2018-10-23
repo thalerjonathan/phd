@@ -1,9 +1,10 @@
 module SugarScape.Model 
-  ( SugAgentState (..)
+  ( AgentGender (..)
+  , SugAgentState (..)
   , SugAgentObservable (..)
 
-  , SugEnvCellOccupier (..)
-  , SugEnvCell (..)
+  , SugEnvSiteOccupier (..)
+  , SugEnvSite (..)
 
   , SugEvent (..)
 
@@ -23,6 +24,10 @@ module SugarScape.Model
   , SugarRegrow (..)
   , PolutionFormation (..)
 
+  , maxSugarCapacitySite
+  , sugarscapeDimensions
+  , sugarEnvSpec
+
   , mkSugarScapeParams
 
   , mkParamsAnimationII_1
@@ -32,14 +37,11 @@ module SugarScape.Model
   , mkParamsAnimationII_6
   , mkParamsAnimationII_7
   , mkParamsAnimationII_8
-  
   , mkParamsTerracing
   , mkParamsCarryingCapacity
   , mkParamsWealthDistr
 
-  , maxSugarCapacityCell
-  , sugarscapeDimensions
-  , sugarEnvSpec
+  , mkParamsAnimationIII_1
   ) where
 
 import Control.Monad.Random
@@ -51,14 +53,19 @@ import SugarScape.Discrete
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
+data AgentGender = Male | Female deriving (Show, Eq)
 
 data SugAgentState = SugAgentState 
-  { sugAgCoord            :: Discrete2dCoord
-  , sugAgSugarMetab       :: Int               -- integer because discrete, otherwise no exact replication possible
-  , sugAgVision           :: Int
-  , sugAgSugarLevel       :: Double            -- floating point because regrow-rate can be set to floating point values
-  , sugAgAge              :: Int
-  , sugAgMaxAge           :: Maybe Int
+  { sugAgCoord        :: Discrete2dCoord
+  , sugAgSugarMetab   :: Int               -- integer because discrete, otherwise no exact replication possible
+  , sugAgVision       :: Int
+  , sugAgSugarLevel   :: Double            -- floating point because regrow-rate can be set to floating point values
+  , sugAgAge          :: Int
+  , sugAgMaxAge       :: Maybe Int
+  -- Chapter III properties
+  , sugAgGender       :: AgentGender
+  , sugAgFertAgeRange :: (Int, Int)        -- from, to
+  , sugAgInitSugEndow :: Double
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
@@ -67,36 +74,39 @@ data SugAgentObservable = SugAgentObservable
   , sugObsAge      :: Int
   , sugObsSugLvl   :: Double
   , sugObsSugMetab :: Int
+  -- Chapter III properties
+  , sugObsGender   :: AgentGender
   } deriving (Show, Eq)
 
-data SugEnvCellOccupier = SugEnvCellOccupier 
+data SugEnvSiteOccupier = SugEnvSiteOccupier 
   { sugEnvOccId     :: AgentId
   } deriving (Show, Eq)
 
-data SugEnvCell = SugEnvCell 
-  { sugEnvCellSugarCapacity :: Double
-  , sugEnvCellSugarLevel    :: Double
-  , sugEnvCellPolutionLevel :: Double
-  , sugEnvCellOccupier      :: Maybe SugEnvCellOccupier
+data SugEnvSite = SugEnvSite 
+  { sugEnvSiteSugarCapacity :: Double
+  , sugEnvSiteSugarLevel    :: Double
+  , sugEnvSitePolutionLevel :: Double
+  , sugEnvSiteOccupier      :: Maybe SugEnvSiteOccupier
   } deriving (Show, Eq)
 
-data SugEvent = MateRequest
+data SugEvent = MatingRequest AgentGender 
+              | MatingReply 
 
-type SugEnvironment = Discrete2d SugEnvCell
+type SugEnvironment = Discrete2d SugEnvSite
 
 type SugAgentMonad g  = StateT SugEnvironment (Rand g)
 type SugAgentMonadT g = AgentT (SugAgentMonad g)
 
-type SugAgent g     = Agent    (SugAgentMonad g) SugEvent SugAgentObservable
-type SugAgentDef g  = AgentDef (SugAgentMonad g) SugEvent SugAgentObservable
-type SugAgentOut g  = AgentOut (SugAgentMonad g) SugEvent SugAgentObservable
+type SugAgent g    = Agent    (SugAgentMonad g) SugEvent SugAgentObservable
+type SugAgentDef g = AgentDef (SugAgentMonad g) SugEvent SugAgentObservable
+type SugAgentOut g = AgentOut (SugAgentMonad g) SugEvent SugAgentObservable
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SUGARSCAPE PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
-maxSugarCapacityCell :: Int
-maxSugarCapacityCell = 4
+maxSugarCapacitySite :: Int
+maxSugarCapacitySite = 4
 
 -- the sugarscape is 51x51 in our implementation
 sugarscapeDimensions :: Discrete2dCoord
@@ -181,6 +191,13 @@ data SugarScapeParams = SugarScapeParams
   , spAgeSpan              :: AgentAgeSpan
   , spPolutionFormation    :: PolutionFormation
   , spPolutionDiffusion    :: Maybe Int
+  -- Chapter III params
+  , spSexRuleActive        :: Bool
+  , spGenderRatio          :: Double        -- percentage of female agents in population
+  , spFertStartRangeWoman  :: (Int, Int)
+  , spFertStartRangeMen    :: (Int, Int)
+  , spFertEndRangeWoman    :: (Int, Int)
+  , spFertEndRangeMen      :: (Int, Int)
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -195,6 +212,12 @@ mkSugarScapeParams = SugarScapeParams {
   , spAgeSpan              = Forever
   , spPolutionFormation    = NoPolution
   , spPolutionDiffusion    = Nothing
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)  
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -212,7 +235,13 @@ mkParamsAnimationII_1 = SugarScapeParams {
   , spReplaceAgents        = False   -- no replacing of died agents
   , spAgeSpan              = Forever  -- agents dont die of age in this case
   , spPolutionFormation    = NoPolution
-  , spPolutionDiffusion    = Nothing  
+  , spPolutionDiffusion    = Nothing
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0  
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)  
   }
 -- terracing phenomenon as described on page 28
 mkParamsTerracing :: SugarScapeParams 
@@ -230,7 +259,13 @@ mkParamsAnimationII_2 = SugarScapeParams {
   , spReplaceAgents        = False        -- no replacing of died agents
   , spAgeSpan              = Forever  -- agents dont die of age in this case
   , spPolutionFormation    = NoPolution
-  , spPolutionDiffusion    = Nothing  
+  , spPolutionDiffusion    = Nothing
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0  
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)  
   }
 -- carrying capacity property as described on page 30
 mkParamsCarryingCapacity :: SugarScapeParams
@@ -249,6 +284,12 @@ mkParamsAnimationII_3 = SugarScapeParams {
   , spAgeSpan              = Range 60 100  -- page 33
   , spPolutionFormation    = NoPolution
   , spPolutionDiffusion    = Nothing  
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)   
   }
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
@@ -270,6 +311,12 @@ mkParamsAnimationII_6 = SugarScapeParams {
   , spAgeSpan              = Forever      -- agents in Migration experiment do not die of age
   , spPolutionFormation    = NoPolution
   , spPolutionDiffusion    = Nothing  
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)  
   }
 
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
@@ -285,6 +332,12 @@ mkParamsAnimationII_7 = SugarScapeParams {
   , spAgeSpan              = Forever
   , spPolutionFormation    = NoPolution
   , spPolutionDiffusion    = Nothing  
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)   
   }
 
 -- Polution as described on page 45 to 50 in Animation II-8
@@ -300,5 +353,35 @@ mkParamsAnimationII_8 = SugarScapeParams {
   , spAgeSpan              = Forever
   , spPolutionFormation    = Polute 1 1
   , spPolutionDiffusion    = Just 1
+  , spSexRuleActive        = False
+  , spGenderRatio          = 0
+  , spFertStartRangeWoman  = (0, 0)
+  , spFertStartRangeMen    = (0, 0)
+  , spFertEndRangeWoman    = (0, 0)
+  , spFertEndRangeMen      = (0, 0)   
   }
 ------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
+------------------------------------------------------------------------------------------------------------------------
+-- page 57
+mkParamsAnimationIII_1 :: SugarScapeParams
+mkParamsAnimationIII_1 = SugarScapeParams {
+    sgAgentCount           = 400
+  , sgAgentDistribution    = Scatter
+  , spSugarRegrow          = Rate 1   
+  , spSugarEndowmentRange  = (5, 25)
+  , spSugarMetabolismRange = (1, 4)
+  , spVisionRange          = (1, 6)       
+  , spReplaceAgents        = True
+  , spAgeSpan              = Range 60 100
+  , spPolutionFormation    = NoPolution
+  , spPolutionDiffusion    = Nothing
+  , spSexRuleActive        = True
+  , spGenderRatio          = 0.5            -- equal ratio of gender
+  , spFertStartRangeWoman  = (12, 15)
+  , spFertStartRangeMen    = (12, 15)
+  , spFertEndRangeWoman    = (40, 50)
+  , spFertEndRangeMen      = (50, 60)
+  }

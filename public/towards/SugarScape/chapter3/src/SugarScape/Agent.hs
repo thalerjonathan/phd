@@ -55,12 +55,53 @@ timeStep params aid age = do
   harvestAmount <- agentMove params aid
   metabAmount   <- agentMetabolism
 
+  -- TODO: is this the right order?
+  _ao <- agentMating params aid
+
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (agentDies params)
     observable
+
+agentMating :: RandomGen g
+            => SugarScapeParams
+            -> AgentId
+            -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+agentMating params aid
+    | not $ spSexRuleActive params = return agentOut
+    | otherwise = ifThenElseM
+                    isAgentFertile
+                    mateWithNeighbours
+                    (return agentOut)
+  where
+    mateWithNeighbours :: StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+    mateWithNeighbours = do
+      coord  <- agentProperty sugAgCoord
+      ns     <- lift $ lift $ neighboursM coord False 
+      
+      let _freeNs = filter (siteUnoccupied . snd) ns
+
+      return agentOut
+
+isAgentFertile :: MonadState SugAgentState m
+               => m Bool
+isAgentFertile = isAgentFertileAge `andM` isAgentFertileWealth
+
+isAgentFertileAge :: MonadState SugAgentState m
+                  => m Bool
+isAgentFertileAge = do
+  age        <- agentProperty sugAgAge
+  (from, to) <- agentProperty sugAgFertAgeRange
+  return $ age >= from && age <= to
+
+isAgentFertileWealth :: MonadState SugAgentState m
+                     => m Bool
+isAgentFertileWealth = do
+  sugLvl     <- agentProperty sugAgSugarLevel
+  initSugLvl <- agentProperty sugAgInitSugEndow
+  return $ sugLvl >= initSugLvl
 
 agentMove :: RandomGen g
           => SugarScapeParams
@@ -70,7 +111,7 @@ agentMove params aid = do
   cellsInSight <- agentLookout
   coord        <- agentProperty sugAgCoord
 
-  let uoc = filter (cellUnoccupied . snd) cellsInSight
+  let uoc = filter (siteUnoccupied . snd) cellsInSight
 
   ifThenElse 
     (null uoc)
@@ -81,15 +122,15 @@ agentMove params aid = do
         selfCell <- lift $ lift $ cellAtM coord
         
         let uoc' = (coord, selfCell) : uoc
-            bf   = bestCellFunc params
-            bcs  = selectBestCells bf coord uoc'
+            bf   = bestSiteFunc params
+            bcs  = selectBestSites bf coord uoc'
 
         (cellCoord, _) <- lift $ lift $ lift $ randomElemM bcs
         agentMoveTo aid cellCoord
         agentHarvestCell cellCoord)
 
 agentLookout :: RandomGen g
-             => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvCell)]
+             => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvSite)]
 agentLookout = do
   vis   <- agentProperty sugAgVision
   coord <- agentProperty sugAgCoord
@@ -107,26 +148,25 @@ agentMoveTo aid cellCoord = do
   s <- get
 
   cell <- lift $ lift $ cellAtM cellCoord
-  let co = cell { sugEnvCellOccupier = Just (cellOccupier aid s) }
+  let co = cell { sugEnvSiteOccupier = Just (siteOccupier aid s) }
   lift $ lift $ changeCellAtM cellCoord co 
 
 agentHarvestCell :: RandomGen g
                  => Discrete2dCoord 
                  -> StateT SugAgentState (SugAgentMonadT g) Double
 agentHarvestCell cellCoord = do
-  cell <- lift $ lift $ cellAtM cellCoord
+  cell   <- lift $ lift $ cellAtM cellCoord
+  sugLvl <- agentProperty sugAgSugarLevel
 
-  sugarLevelAgent <- agentProperty sugAgSugarLevel
-
-  let sugarLevelCell     = sugEnvCellSugarLevel cell
-  let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
+  let sugLvlSite         = sugEnvSiteSugarLevel cell
+      newSugarLevelAgent = sugLvlSite + sugLvl
 
   updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
-  let cellHarvested = cell { sugEnvCellSugarLevel = 0 }
+  let cellHarvested = cell { sugEnvSiteSugarLevel = 0 }
   lift $ lift $ changeCellAtM cellCoord cellHarvested
 
-  return sugarLevelCell
+  return sugLvlSite
 
 agentMetabolism :: MonadState SugAgentState m
                 => m Int
@@ -155,7 +195,7 @@ agentPolute params s m = agentPoluteAux $ spPolutionFormation params
       let polution = a * s + b * m
 
       (coord, c) <- agentCellOnCoord
-      let c' = c { sugEnvCellPolutionLevel = sugEnvCellPolutionLevel c + polution }
+      let c' = c { sugEnvSitePolutionLevel = sugEnvSitePolutionLevel c + polution }
       lift $ lift $ changeCellAtM coord c'
 
 -- this is rule R implemented, see page 32/33 "when an agent dies it is replaced by an agent 
@@ -182,7 +222,7 @@ birthNewAgent params = do
     (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) (agentSF params) id
 
     -- need to occupy the cell to prevent other agents occupying it
-    let newCell' = newCell { sugEnvCellOccupier = Just (cellOccupier newAid newAState) }
+    let newCell' = newCell { sugEnvSiteOccupier = Just (siteOccupier newAid newAState) }
     lift $ lift $ changeCellAtM newCoord newCell' 
 
     return (newAid, newA)
@@ -190,12 +230,12 @@ birthNewAgent params = do
     -- the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position
     findUnoccpiedRandomPosition :: RandomGen g
-                                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
+                                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
       e          <- lift $ lift get
       (c, coord) <- lift $ lift $ lift $ randomCell e -- TODO: replace by randomCellM
       ifThenElse
-        (cellOccupied c) 
+        (siteOccupied c) 
         findUnoccpiedRandomPosition
         (return (coord, c))
 
@@ -224,11 +264,11 @@ unoccupyPosition :: RandomGen g
                  => StateT SugAgentState (SugAgentMonadT g) ()
 unoccupyPosition = do
   (coord, cell) <- agentCellOnCoord
-  let cell' = cell { sugEnvCellOccupier = Nothing }
+  let cell' = cell { sugEnvSiteOccupier = Nothing }
   lift $ lift $ changeCellAtM coord cell'
 
 agentCellOnCoord :: RandomGen g
-                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
+                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvSite)
 agentCellOnCoord = do
   coord <- agentProperty sugAgCoord
   cell  <- lift $ lift $ cellAtM coord

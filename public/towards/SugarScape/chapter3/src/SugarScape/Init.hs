@@ -33,12 +33,12 @@ createSugarScape params = do
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
       sugSpecs    = parseSugarSpec sugarEnvSpec
       sugCoords   = sugarSpecToCoords sugSpecs sugarscapeDimensions
-      cells       = createCells sugCoords occupations
+      sites       = createSites sugCoords occupations
       env         = createDiscrete2d
                       sugarscapeDimensions
                       neumann
                       WrapBoth
-                      cells
+                      sites
 
   return (as, env)
 
@@ -85,25 +85,25 @@ parseSugarSpec = map parseSugarSpecLine
           | isNumber c = parseSugarSpecAux cs (digitToInt c : acc)
           | otherwise  = error "bad character in sugar specification"
 
-createCells :: [(Discrete2dCoord, Int)]
+createSites :: [(Discrete2dCoord, Int)]
             -> [(Discrete2dCoord, (AgentId, SugAgentState))]
-            -> [(Discrete2dCoord, SugEnvCell)]
-createCells cellSpecs occupations 
-  = map (initRandomCell occupations) cellSpecs
+            -> [(Discrete2dCoord, SugEnvSite)]
+createSites siteSpecs occupations 
+  = map (initRandomSite occupations) siteSpecs
  
-initRandomCell :: [(Discrete2dCoord, (AgentId, SugAgentState))] 
+initRandomSite :: [(Discrete2dCoord, (AgentId, SugAgentState))] 
                -> (Discrete2dCoord, Int) 
-               -> (Discrete2dCoord, SugEnvCell)
-initRandomCell os (coord, sugar) = (coord, c)
+               -> (Discrete2dCoord, SugEnvSite)
+initRandomSite os (coord, sugar) = (coord, c)
   where
     mayOccupier = Data.List.find ((==coord) . fst) os
-    occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
+    occ         = maybe Nothing (\(_, (aid, s)) -> (Just (siteOccupier aid s))) mayOccupier
 
-    c = SugEnvCell {
-      sugEnvCellSugarCapacity = fromIntegral sugar
-    , sugEnvCellSugarLevel    = fromIntegral sugar
-    , sugEnvCellOccupier      = occ
-    , sugEnvCellPolutionLevel = 0
+    c = SugEnvSite {
+      sugEnvSiteSugarCapacity = fromIntegral sugar
+    , sugEnvSiteSugarLevel    = fromIntegral sugar
+    , sugEnvSiteOccupier      = occ
+    , sugEnvSitePolutionLevel = 0
     }
 
 randomCoords :: RandomGen g

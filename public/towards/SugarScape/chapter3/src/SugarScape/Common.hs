@@ -1,15 +1,15 @@
 module SugarScape.Common 
   ( sugObservableFromState
   
-  , BestCellMeasureFunc
-  , selectBestCells
-  , bestCellFunc
+  , BestSiteMeasureFunc
+  , selectBestSites
+  , bestSiteFunc
 
   , unoccupiedNeighbourhoodOfNeighbours
 
-  , cellOccupier
-  , cellUnoccupied
-  , cellOccupied
+  , siteOccupier
+  , siteUnoccupied
+  , siteOccupied
 
   , randomAgent
   ) where
@@ -32,12 +32,13 @@ sugObservableFromState s = SugAgentObservable
   , sugObsAge      = sugAgAge s 
   , sugObsSugLvl   = sugAgSugarLevel s
   , sugObsSugMetab = sugAgSugarMetab s
+  , sugObsGender   = sugAgGender s
   }
 
-type BestCellMeasureFunc = (SugEnvCell -> Double) 
+type BestSiteMeasureFunc = (SugEnvSite -> Double) 
 
-bestCellFunc :: SugarScapeParams -> BestCellMeasureFunc
-bestCellFunc params
+bestSiteFunc :: SugarScapeParams -> BestSiteMeasureFunc
+bestSiteFunc params
     | diffusionActive = bestSugarPolutionRatio
     | otherwise       = bestSugarLevel 
   where
@@ -45,21 +46,21 @@ bestCellFunc params
                         NoPolution -> False
                         _          -> True
 
-bestSugarLevel :: BestCellMeasureFunc
-bestSugarLevel = sugEnvCellSugarLevel
+bestSugarLevel :: BestSiteMeasureFunc
+bestSugarLevel = sugEnvSiteSugarLevel
 
-bestSugarPolutionRatio :: BestCellMeasureFunc
+bestSugarPolutionRatio :: BestSiteMeasureFunc
 bestSugarPolutionRatio c 
     = s / (1 + p)
   where
-    s = sugEnvCellSugarLevel c
-    p = sugEnvCellPolutionLevel c
+    s = sugEnvSiteSugarLevel c
+    p = sugEnvSitePolutionLevel c
 
-selectBestCells :: BestCellMeasureFunc
+selectBestSites :: BestSiteMeasureFunc
                 -> Discrete2dCoord
-                -> [(Discrete2dCoord, SugEnvCell)]
-                -> [(Discrete2dCoord, SugEnvCell)]
-selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
+                -> [(Discrete2dCoord, SugEnvSite)]
+                -> [(Discrete2dCoord, SugEnvSite)]
+selectBestSites measureFunc refCoord cs = bestShortestdistanceManhattanCells
   where
     cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
     bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
@@ -71,9 +72,9 @@ selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
 
 unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord 
                                     -> SugEnvironment
-                                    -> [(Discrete2dCoord, SugEnvCell)]
+                                    -> [(Discrete2dCoord, SugEnvSite)]
 unoccupiedNeighbourhoodOfNeighbours coord e 
-    = filter (isNothing . sugEnvCellOccupier . snd) nncsUnique
+    = filter (isNothing . sugEnvSiteOccupier . snd) nncsUnique
   where
     ncs = neighbours coord False e
     -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
@@ -82,16 +83,16 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
 
-cellOccupier :: AgentId -> SugAgentState -> SugEnvCellOccupier
-cellOccupier aid s = SugEnvCellOccupier 
+siteOccupier :: AgentId -> SugAgentState -> SugEnvSiteOccupier
+siteOccupier aid s = SugEnvSiteOccupier 
   { sugEnvOccId = aid
   }
 
-cellOccupied :: SugEnvCell -> Bool
-cellOccupied cell = isJust $ sugEnvCellOccupier cell
+siteOccupied :: SugEnvSite -> Bool
+siteOccupied = isJust . sugEnvSiteOccupier
 
-cellUnoccupied :: SugEnvCell -> Bool
-cellUnoccupied = not . cellOccupied
+siteUnoccupied :: SugEnvSite -> Bool
+siteUnoccupied = not . siteOccupied
 
 randomAgent :: RandomGen g  
             => SugarScapeParams
@@ -107,14 +108,20 @@ randomAgent params (agentId, coord) beh sup = do
   randVision         <- getRandomR $ spVisionRange params
   randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
   ageSpan            <- randomAgentAge $ spAgeSpan params
+  randGender         <- randomGender $ spGenderRatio params
+  randFertAgeRange   <- randomFertilityRange params randGender
 
-  let s = SugAgentState {
-    sugAgCoord      = coord
-  , sugAgSugarMetab = randSugarMetab
-  , sugAgVision     = randVision
-  , sugAgSugarLevel = fromIntegral randSugarEndowment
-  , sugAgMaxAge     = ageSpan
-  , sugAgAge        = 0
+  let initSugar = fromIntegral randSugarEndowment
+      s = SugAgentState {
+    sugAgCoord        = coord
+  , sugAgSugarMetab   = randSugarMetab
+  , sugAgVision       = randVision
+  , sugAgSugarLevel   = initSugar
+  , sugAgMaxAge       = ageSpan
+  , sugAgAge          = 0
+  , sugAgGender       = randGender
+  , sugAgFertAgeRange = randFertAgeRange
+  , sugAgInitSugEndow = initSugar
   }
 
   let s'   = sup s
@@ -124,6 +131,28 @@ randomAgent params (agentId, coord) beh sup = do
   }
 
   return (adef, s')
+
+randomGender :: RandomGen g
+             => Double
+             -> Rand g AgentGender
+randomGender p = do
+  r <- getRandom
+  if r <= p
+    then return Male
+    else return Female
+
+randomFertilityRange :: RandomGen g
+                     => SugarScapeParams 
+                     -> AgentGender
+                     -> Rand g (Int, Int)
+randomFertilityRange params Male = do
+  from <- getRandomR $ spFertStartRangeMen params
+  to   <- getRandomR $ spFertEndRangeMen params
+  return (from, to)
+randomFertilityRange params Female = do
+  from <- getRandomR $ spFertStartRangeWoman params
+  to   <- getRandomR $ spFertEndRangeWoman params
+  return (from, to)
 
 randomAgentAge :: RandomGen g
                => AgentAgeSpan 

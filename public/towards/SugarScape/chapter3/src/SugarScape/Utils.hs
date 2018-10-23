@@ -2,7 +2,10 @@ module SugarScape.Utils
   ( ifThenElse
   , ifThenElseM
   , orM
+  , andM
   ) where
+
+import Control.Monad
 
 -------------------------------------------------------------------------------
 -- MONADIC UTILITIES
@@ -27,7 +30,10 @@ orM :: Monad m
     => m Bool
     -> m Bool
     -> m Bool
-orM m1 m2 = do
-  b1 <- m1
-  b2 <- m2
-  return $ b1 || b2
+orM = liftM2 (||) 
+
+andM :: Monad m
+     => m Bool
+     -> m Bool
+     -> m Bool
+andM = liftM2 (&&) 

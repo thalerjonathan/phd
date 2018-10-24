@@ -6,7 +6,7 @@ module SugarScape.Model
 
   , SugAgentMonad
   , SugAgentMonadT
-
+  
   , SugEnvironment
 
   , SugAgent
@@ -40,7 +40,6 @@ module SugarScape.Model
   ) where
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 
 import SugarScape.AgentMonad
 import SugarScape.Discrete
@@ -75,12 +74,12 @@ data SugEnvCell = SugEnvCell
 
 type SugEnvironment = Discrete2d SugEnvCell
 
-type SugAgentMonad g  = StateT SugEnvironment (Rand g)
-type SugAgentMonadT g = AgentT (SugAgentMonad g)
+type SugAgentMonad g = Rand g
+type SugAgentMonadT g = AgentT (Rand g)
 
-type SugAgent g     = Agent    (SugAgentMonad g) SugAgentObservable
-type SugAgentDef g  = AgentDef (SugAgentMonad g) SugAgentObservable
-type SugAgentOut g  = AgentOut (SugAgentMonad g) SugAgentObservable
+type SugAgent g     = Agent    (SugAgentMonad g) SugAgentObservable SugEnvironment
+type SugAgentDef g  = AgentDef (SugAgentMonad g) SugAgentObservable SugEnvironment
+type SugAgentOut g  = AgentOut (SugAgentMonad g) SugAgentObservable SugEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

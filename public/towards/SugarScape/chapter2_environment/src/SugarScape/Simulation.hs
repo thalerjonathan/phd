@@ -17,6 +17,7 @@ module SugarScape.Simulation
   , sugarScapeTimeDelta
   ) where
 
+import qualified Data.Map as Map
 import Data.Maybe
 import System.Random
 
@@ -26,6 +27,7 @@ import Control.Monad.State.Strict
 import FRP.BearRiver
 
 import SugarScape.AgentMonad
+import SugarScape.Discrete 
 import SugarScape.Environment
 import SugarScape.Model
 import SugarScape.Init
@@ -73,16 +75,14 @@ initSimulationRng :: RandomGen g
                    -> (SimulationState g, SugEnvironment)
 initSimulationRng g0 params = (initSimState, initEnv)
   where
-    -- split
-    (gSim, shuffleRng)         = split g0
     -- initial agents and environment data
-    ((initAs, initEnv), gSim') = runRand (createSugarScape params) gSim
+    ((initAs, initEnv), g) = runRand (createSugarScape params) g0
     -- initial simulation state
     (initAis, initSfs)     = unzip initAs
     -- initial simulation state
     initSimState           = mkSimState 
-                              (simStepSF initAis initSfs (sugEnvironment params) shuffleRng) 
-                              (mkAbsState $ maximum initAis) initEnv gSim' 0
+                              (simStepSF initAis initSfs (sugEnvironment params)) 
+                              (mkAbsState $ maximum initAis) initEnv g 0
 
 simulateUntil :: RandomGen g
               => Time
@@ -131,57 +131,95 @@ simulationStep ss = (ss', (t, env', out))
 
   -- for now we just run the set of agents in conflict again without selecting
   -- a winner
-resolveConflicts :: RandomGen g
-                 => SugEnvironment
-                 -> [AgentId]
-                 -> [SugAgent g]
-                 -> ReaderT DTime (SugAgentMonadT g) ()
-resolveConflicts env sfs = do
-  ret <- mapM (`unMSF` env) sfs
+type AgentConflictData g = (AgentId, SugAgentOut g, SugEnvironment, SugAgent g)
 
-  
+runAndResolveConflicts :: RandomGen g
+                       => [AgentId]
+                       -> [SugAgent g]
+                       -> SugEnvironment
+                       -> [(AgentId, SugAgentOut g, SugAgent g)]
+                       -> ReaderT DTime (SugAgentMonadT g) ([(AgentId, SugAgentOut g, SugAgent g)], SugEnvironment)
+runAndResolveConflicts ais0 sfs0 env0 finalAs = do
+    sfsAis <- lift $ lift $ fisherYatesShuffleM (zip sfs0 ais0)
+    
+    let (sfs, ais) = unzip sfsAis
 
-  return ()
+    ret <- mapM (`unMSF` env0) sfs
 
-  findConflicts :: RandomGen g
-                => SugAgentOut g
-                -> 
+    let coordMap = foldr insertByCoord Map.empty (zip ais ret)
+        els      = Map.elems coordMap
+        (nonConflictAs, conflictAs) = foldr divide ([], []) els
+
+        env' = foldr foldEnvironment env0 nonConflictAs
+
+    if null conflictAs
+      then return (nonConflictAs, env')
+      else runAndResolveConflicts
+
+  where
+    foldEnvironment :: AgentConflictData g
+                    -> SugEnvironment
+                    -> SugEnvironment
+    foldEnvironment (_, ao, ae, _) env = env'
+      where
+        obs   = fromJust $ aoObservable ao
+        coord = sugObsCoord obs
+        cell  = cellAt coord ae
+        env'  = changeCellAt coord cell env
+
+    divide :: [AgentConflictData g]
+           -> ([AgentConflictData g], [AgentConflictData g])
+           -> ([AgentConflictData g], [AgentConflictData g])
+    divide [acd] (ncas, cas)        = (acd : ncas, cas)
+    -- TODO: would need the old SF for the conflicting agents
+    divide (acd : acds) (ncas, cas) = (acd : ncas, cas ++ acds) -- select the first to win this site and add the others to the conflicting agents,
+
+    insertByCoord :: RandomGen g
+                  => (AgentId, ((SugAgentOut g, SugEnvironment), SugAgent g))
+                  -> Map.Map Discrete2dCoord [AgentConflictData g]
+                  -> Map.Map Discrete2dCoord [AgentConflictData g]
+    insertByCoord (aid, ((ao, aenv), asf)) acc = acc'
+        -- | not $ isObservable ao = acc
+        -- | otherwise             = acc'
+      where
+        obs   = fromJust $ aoObservable ao
+        coord = sugObsCoord obs
+        acc'  = Map.alter (insertWithDefault (aid, ao, aenv, asf)) coord acc
+
+        insertWithDefault :: RandomGen g
+                          => AgentConflictData g
+                          -> Maybe [AgentConflictData g]
+                          -> Maybe [AgentConflictData g]
+        insertWithDefault v Nothing   = Just [v]
+        insertWithDefault v (Just es) = Just $ v : es
 
 simStepSF :: RandomGen g
           => [AgentId]
           -> [SugAgent g]
           -> SugAgent g
-          -> g
           -> SF (SugAgentMonadT g) SugEnvironment ([AgentObservable SugAgentObservable], SugEnvironment)
-simStepSF ais0 sfs0 envSf0 shuffleRng = MSF $ \env -> do
-  let (sfsAis, shuffleRng') = fisherYatesShuffle shuffleRng (zip sfs0 ais0)
-      (sfs, ais)            = unzip sfsAis
+simStepSF ais0 sfs0 envSf0 = MSF $ \env -> do
+  (as, env') <- runAndResolveConflicts ais0 sfs0 env []
+  -- run environment separately after all agents
+  ((_, env'), envSf') <- unMSF envSf0 env'
 
-  ret <- mapM (`unMSF` env) sfs
-
-  resolveConflicts env sfs
-
-  
-  -- NOTE: run environment separately after all agents
-  ((_, env'), envSf') <- unMSF envSf0 env 
-
-  let adefs  = concatMap (\((ao, _), _) -> aoCreate ao) ret
+  let adefs  = concatMap (\(_, ao, _) -> aoCreate ao) as
       newSfs = map adBeh adefs
       newAis = map adId adefs
 
-      obs = foldr (\(((ao, _), _), aid) acc -> 
+      obs = foldr (\(aid, ao, _) acc -> 
         if isObservable ao 
           then (aid, fromJust $ aoObservable ao) : acc  
-          else acc) [] (zip ret ais)
+          else acc) [] as
 
-      (sfs', ais') = foldr (\(((ao, _), sf), aid) acc@(accSf, accAid) -> 
+      (sfs', ais') = foldr (\(aid, ao, sf) acc@(accSf, accAid) -> 
         if isDead ao 
           then acc 
-          else (sf : accSf, aid : accAid)) ([], []) (zip ret ais)
+          else (sf : accSf, aid : accAid)) ([], []) as
 
-      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') envSf' shuffleRng'
+      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') envSf'
 
-  return ((obs, env'), ct)
+  return (([], env), ct)
 
 mkSimState :: SF (SugAgentMonadT g) SugEnvironment ([AgentObservable SugAgentObservable], SugEnvironment)
            -> ABSState

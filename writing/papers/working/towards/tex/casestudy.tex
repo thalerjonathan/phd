@@ -28,6 +28,7 @@ Although this solution is much slower and more complex to implement and thus not
 - it is "closer" to functional programming in spirit because programming with globally mutable state (even if its restricted, explicit and only simulated) should be avoided as far as possible.
 - we can exploit data-parallelism (but in this case its not possible anyway because of monadic computations: need mapM which can by definition not be parallel because ordering matters)
 - it serves more as a study to what different approaches are possible and how difficult / easy it is to implement them in FP, in this case, "rolling back" the actions of an agent is trivial in FP as long as the underlying monadic context is immune to rollbacks, in our case we argue that it is: incrementing agentids in ABSState does not matter, as it doesnt matter that we have a changed random-number stream. It would be a different matter if there is a global shared state which was modified by the agent.
+- in the extreme case this degenerates to a (much more expensive) sequential update 
 
 \section{Chapter III}
 This chapter reveals the fundamental difference and difficulty in pure functional programming over established OOP approaches in the field: direct agent-interaction e.g. in mating where 2 agents interact synchronously with each other and might updated their internal state. These interactions \textit{must} happen synchronously because there are resource constraints in place which could be violated if an agent interacts with multiple agents virtually at the same time.

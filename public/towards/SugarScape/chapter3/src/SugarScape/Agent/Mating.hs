@@ -3,7 +3,6 @@
 module SugarScape.Agent.Mating 
   ( agentMating
   , handleMatingRequest
-  , handleMatingReply
   ) where
 
 import Control.Monad.Random
@@ -39,38 +38,9 @@ agentMating params myId act0
         else do
           let ocs     = filter (siteOccupied . snd) ns
           let _freeNs = filter (siteUnoccupied . snd) ns
-          ao <- mateWith act ocs
+          ao <- mateWith myId act ocs
           return $ Just ao
-
-    mateWith :: RandomGen g
-             => AgentAction g (SugAgentOut g)
-             -> [(Discrete2dCoord, SugEnvSite)] 
-             -> AgentAction g (SugAgentOut g)
-    mateWith finaliseAct []  = finaliseAct -- iteration finished, pick up agent-behaviour where it left before starting mating, 
-                               -- TODO: need to switch back into agentSf
-    mateWith finaliseAct ((c, s) : ns) =
-      ifThenElseM
-        isAgentFertile
-        (do
-          agentState <- get
-          let naid = sugEnvOccId $ fromJust $ sugEnvSiteOccupier s -- fromJust guaranteed not to fail, neighbours contain only occupied sites 
-          let cont = matingCont agentState
-          gender <- agentProperty sugAgGender
-          ao     <- agentOutObservableM
-
-          return $ 
-            trace ("Agent " ++ show myId ++ ": sending (MatingRequest " ++ show gender ++ ") to agent " ++ show naid) 
-                  (sendEventToWithCont naid (MatingRequest gender) cont ao))
-        finaliseAct -- not fertile, iteration finished, pick up agent-behaviour where it left before starting mating, 
-                    -- TODO: need to switch back into agentSf
-
-    matingCont :: RandomGen g
-               => SugAgentState
-               -> SugAgentSF g
-    matingCont s = proc evt -> do
-      let ao = agentOut $ sugObservableFromState s 
-      returnA -< trace ("Agent " ++ show myId ++ ": holy fuck! We are in the continuation! Received " ++ show evt) ao
-
+         
 handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
                     => AgentId
                     -> AgentId
@@ -85,13 +55,58 @@ handleMatingRequest myId sender otherGender = do
          ", will reply with MatingReply " ++ show accept ++ "!") 
     (return $ sendEventTo sender (MatingReply accept) ao)
 
-handleMatingReply :: (RandomGen g, MonadState SugAgentState m)
-                  => AgentId
-                  -> AgentId
-                  -> Bool
-                  -> m (SugAgentOut g)
-handleMatingReply myId sender accept 
-  = trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender) agentOutObservableM
+mateWith :: RandomGen g
+         => AgentId
+         -> AgentAction g (SugAgentOut g)
+         -> [(Discrete2dCoord, SugEnvSite)]
+         -> AgentAction g (SugAgentOut g)
+mateWith myId cont0 []  = cont0 -- iteration finished, pick up agent-behaviour where it left before starting mating, 
+                              -- TODO: need to switch back into agentSf
+mateWith myId cont0 ((coord, site) : ns) =
+    ifThenElseM
+      isAgentFertile
+      (do
+        -- TODO: check if there is a free site: 
+        agentState <- get
+        let naid = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site -- fromJust guaranteed not to fail, neighbours contain only occupied sites 
+        let cont = matingCont cont0 agentState
+        gender <- agentProperty sugAgGender
+        ao     <- agentOutObservableM
+
+        return $ 
+          trace ("Agent " ++ show myId ++ ": sending (MatingRequest " ++ show gender ++ ") to agent " ++ show naid) 
+                (sendEventToWithCont naid (MatingRequest gender) cont ao))
+      cont0 -- not fertile, iteration finished, pick up agent-behaviour where it left before starting mating, 
+                  -- TODO: need to switch back into agentSf
+  where
+    matingCont :: RandomGen g
+               => AgentAction g (SugAgentOut g)
+               -> SugAgentState
+               -> SugAgentMSF g
+    matingCont cont' s = proc evt -> 
+        case evt of
+          (DomainEvent (sender, MatingReply accept)) -> do
+            (ao, s') <- arrM (\(sender, accept) -> runStateT (handleMatingReply cont' sender accept) s) -< (sender, accept)
+            returnA -< ao
+          _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!"
+      where
+        handleMatingReply :: RandomGen g
+                          => AgentAction g (SugAgentOut g)
+                          -> AgentId
+                          -> Bool
+                          -> AgentAction g (SugAgentOut g)
+        handleMatingReply cont'' sender accept 
+          -- the sender accepts the mating-request
+          | accept = do
+            -- 1. calculate new-born genes
+            -- 2. create a new born and endow 
+            -- 3. continue with next neighbour
+            agentOutObservableM 
+          -- the sender refusese the mating-request
+          | otherwise  = do
+            -- continue with next neighbour
+            mateWith myId cont'' ns
+            -- trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender) agentOutObservableM
 
 acceptMatingRequest :: MonadState SugAgentState m
                     => AgentGender

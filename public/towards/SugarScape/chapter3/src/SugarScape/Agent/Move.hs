@@ -16,7 +16,7 @@ import SugarScape.Utils
 agentMove :: RandomGen g
           => SugarScapeParams
           -> AgentId
-          -> StateT SugAgentState (SugAgentMonadT g) Double
+          -> AgentAction g Double
 agentMove params aid = do
   cellsInSight <- agentLookout
   coord        <- agentProperty sugAgCoord
@@ -40,7 +40,7 @@ agentMove params aid = do
         agentHarvestCell cellCoord)
 
 agentLookout :: RandomGen g
-             => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvSite)]
+             => AgentAction g [(Discrete2dCoord, SugEnvSite)]
 agentLookout = do
   vis   <- agentProperty sugAgVision
   coord <- agentProperty sugAgCoord
@@ -49,7 +49,7 @@ agentLookout = do
 agentMoveTo :: RandomGen g
              => AgentId
              -> Discrete2dCoord 
-             -> StateT SugAgentState (SugAgentMonadT g) ()
+             -> AgentAction g ()
 agentMoveTo aid cellCoord = do
   unoccupyPosition
 
@@ -63,7 +63,7 @@ agentMoveTo aid cellCoord = do
 
 agentHarvestCell :: RandomGen g
                  => Discrete2dCoord 
-                 -> StateT SugAgentState (SugAgentMonadT g) Double
+                 -> AgentAction g Double
 agentHarvestCell cellCoord = do
   cell   <- lift $ lift $ cellAtM cellCoord
   sugLvl <- agentProperty sugAgSugarLevel

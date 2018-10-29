@@ -19,7 +19,7 @@ import SugarScape.Utils
 agentDies :: RandomGen g
           => SugarScapeParams
           -> SugarScapeAgent g
-          -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+          -> AgentAction g (SugAgentOut g)
 agentDies params asf = do
   unoccupyPosition
   ao <- liftM kill agentOutObservableM 
@@ -32,7 +32,7 @@ agentDies params asf = do
 birthNewAgent :: RandomGen g
               => SugarScapeParams
               -> SugarScapeAgent g
-              -> StateT SugAgentState (SugAgentMonadT g) (AgentId, SugAgentDef g)
+              -> AgentAction g (AgentId, SugAgentDef g)
 birthNewAgent params asf = do
     newAid              <- lift nextAgentId
     (newCoord, newCell) <- findUnoccpiedRandomPosition
@@ -47,7 +47,7 @@ birthNewAgent params asf = do
     -- the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position
     findUnoccpiedRandomPosition :: RandomGen g
-                                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvSite)
+                                => AgentAction g (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
       e          <- lift $ lift get
       (c, coord) <- lift $ lift $ lift $ randomCell e -- TODO: replace by randomCellM

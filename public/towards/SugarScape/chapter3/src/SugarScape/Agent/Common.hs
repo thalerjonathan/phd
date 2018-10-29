@@ -35,7 +35,7 @@ import SugarScape.Agent.Interface
 import SugarScape.Discrete
 import SugarScape.Model
 
-type SugarScapeAgent g = SugarScapeParams -> AgentId -> SugAgentState -> SugAgentSF g
+type SugarScapeAgent g = SugarScapeParams -> AgentId -> SugAgentState -> SugAgentMSF g
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
 
 type BestSiteMeasureFunc = (SugEnvSite -> Double) 
@@ -108,14 +108,14 @@ siteUnoccupied :: SugEnvSite -> Bool
 siteUnoccupied = not . siteOccupied
 
 unoccupyPosition :: RandomGen g
-                 => StateT SugAgentState (SugAgentMonadT g) ()
+                 => AgentAction g ()
 unoccupyPosition = do
   (coord, cell) <- agentCellOnCoord
   let cell' = cell { sugEnvSiteOccupier = Nothing }
   lift $ lift $ changeCellAtM coord cell'
 
 agentCellOnCoord :: RandomGen g
-                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvSite)
+                => AgentAction g (Discrete2dCoord, SugEnvSite)
 agentCellOnCoord = do
   coord <- agentProperty sugAgCoord
   cell  <- lift $ lift $ cellAtM coord

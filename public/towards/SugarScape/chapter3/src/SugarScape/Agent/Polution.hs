@@ -4,7 +4,6 @@ module SugarScape.Agent.Polution
   ) where
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Discrete
@@ -14,12 +13,12 @@ agentPolute :: RandomGen g
             => SugarScapeParams
             -> Double
             -> Double
-            -> StateT SugAgentState (SugAgentMonadT g) ()
+            -> AgentAction g ()
 agentPolute params s m = agentPoluteAux $ spPolutionFormation params
   where
     agentPoluteAux :: RandomGen g
                    => PolutionFormation 
-                   -> StateT SugAgentState (SugAgentMonadT g) ()
+                   -> AgentAction g ()
     agentPoluteAux NoPolution = return ()
     agentPoluteAux (Polute a b) = do
       let polution = a * s + b * m

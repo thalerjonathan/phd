@@ -6,7 +6,7 @@ module SugarScape.Agent.Interface
 
   , ABSState (..)
   
-  , AgentSF
+  , AgentMSF
   , AgentT
   
   , AgentDef (..)
@@ -43,13 +43,13 @@ data ABSState = ABSState
   , absTime   :: Time
   } deriving (Show, Eq)
 
-type AgentT m      = StateT ABSState m
+type AgentT m       = StateT ABSState m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double in SugarScape (we switch MSFs which would resert time anyway)
-type AgentSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
+type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 data AgentDef m e o = AgentDef
   { adId      :: !AgentId
-  , adSf      :: AgentSF m e o
+  , adSf      :: AgentMSF m e o
   , adInitObs :: !o
   }
 
@@ -58,7 +58,7 @@ data AgentOut m e o = AgentOut
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
   , aoEvents     :: ![(AgentId, e)]                     -- 1-directional event receiver, (DomainEvent) event
-  , aoEventWCont :: !(Maybe (AgentId, e, AgentSF m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
+  , aoEventWCont :: !(Maybe (AgentId, e, AgentMSF m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
   }
 
 nextAgentId :: MonadState ABSState m
@@ -98,7 +98,7 @@ sendEventTo receiver e ao = ao'
 
 sendEventToWithCont :: AgentId
                     -> e
-                    -> AgentSF m e o
+                    -> AgentMSF m e o
                     -> AgentOut m e o
                     -> AgentOut m e o
 sendEventToWithCont receiver e cont ao

@@ -13,7 +13,7 @@ module SugarScape.Model
 
   , SugEnvironment
 
-  , SugAgentSF
+  , SugAgentMSF
   , SugAgentDef
   , SugAgentOut
 
@@ -99,7 +99,7 @@ type SugEnvironment = Discrete2d SugEnvSite
 type SugAgentMonad g  = StateT SugEnvironment (Rand g)
 type SugAgentMonadT g = AgentT (SugAgentMonad g)
 
-type SugAgentSF g  = AgentSF  (SugAgentMonad g) SugEvent SugAgentObservable
+type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentDef g = AgentDef (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentOut g = AgentOut (SugAgentMonad g) SugEvent SugAgentObservable
 ------------------------------------------------------------------------------------------------------------------------

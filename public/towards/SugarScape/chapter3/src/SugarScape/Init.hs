@@ -16,7 +16,7 @@ import SugarScape.Random
 
 createSugarScape :: RandomGen g
                  => SugarScapeParams
-                 -> Rand g ([(AgentId, SugAgentObservable, SugAgentSF g)], SugEnvironment)
+                 -> Rand g ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment)
 createSugarScape params = do
   let agentCount = sgAgentCount params
       agentDistr = sgAgentDistribution params

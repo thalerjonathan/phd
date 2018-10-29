@@ -35,7 +35,7 @@ import SugarScape.Model
 import SugarScape.Init
 import SugarScape.Random
 
-type AgentMap g = Map.IntMap (SugAgentSF g, SugAgentObservable)
+type AgentMap g = Map.IntMap (SugAgentMSF g, SugAgentObservable)
 type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
 
 type AgentObservable o = (AgentId, o)
@@ -203,13 +203,13 @@ runEnvSF env envSf = runIdentity sfId
     sfId     = runReaderT sfReader sugarScapeTimeDelta
 
 runAgentSF :: RandomGen g
-           => SugAgentSF g
+           => SugAgentMSF g
            -> ABSEvent SugEvent
            -> DTime
            -> ABSState
            -> SugEnvironment
            -> g
-           -> (SugAgentOut g, SugAgentSF g, ABSState, SugEnvironment, g)
+           -> (SugAgentOut g, SugAgentMSF g, ABSState, SugEnvironment, g)
 runAgentSF sf evt dt absState env g
     = (out, sf', absState', env', g') 
   where

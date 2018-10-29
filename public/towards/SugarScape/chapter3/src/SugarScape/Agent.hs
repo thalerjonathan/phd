@@ -26,7 +26,6 @@ import SugarScape.Utils
 ------------------------------------------------------------------------------------------------------------------------
 agentSf :: RandomGen g => SugarScapeAgent g
 agentSf params aid s0 = feedback s0 (proc (evt, s) -> do
-  -- t        <- time -< () -- TODO: this will not work when we are switching into new sf => age will start with 0 => no need for SF! we simply resort back to MSFs
   (ao, s') <- arrM (\(evt, s) -> runStateT (eventMatching evt params aid) s) -< (evt, s)
   returnA -< (ao, s'))
 
@@ -42,8 +41,9 @@ eventMatching TimeStep params myId
   = timeStep params myId
 eventMatching (DomainEvent (sender, MatingRequest otherGender)) _ myId
   = handleMatingRequest myId sender otherGender
-eventMatching (DomainEvent (sender, MatingReply accept)) _ myId
-  = handleMatingReply myId sender accept
+-- NOTE: this is NOT handled in this continuation!!! See Mathing.hs
+-- eventMatching (DomainEvent (sender, MatingReply accept)) _ myId
+--  = handleMatingReply myId sender accept
 eventMatching _ _ _                
   = error "undefined event in agent, terminating!"
 

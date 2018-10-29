@@ -22,7 +22,7 @@ agentDies :: RandomGen g
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 agentDies params asf = do
   unoccupyPosition
-  let ao = kill agentOut
+  ao <- liftM kill agentOutObservableM 
   if spReplaceAgents params
     then do
       (_, newA) <- birthNewAgent params asf

@@ -35,7 +35,7 @@ import SugarScape.Model
 import SugarScape.Init
 import SugarScape.Random
 
-type AgentMap g = Map.IntMap (SugAgentSF g, Maybe SugAgentObservable)
+type AgentMap g = Map.IntMap (SugAgentSF g, SugAgentObservable)
 type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
 
 type AgentObservable o = (AgentId, o)
@@ -84,8 +84,8 @@ initSimulationRng g0 params = (initSimState, initEnv)
     -- initial agents and environment data
     ((initAs, initEnv), g') = runRand (createSugarScape params) g0
     -- initial agent map
-    agentMap                = foldr (\(aid, asf) am' -> Map.insert aid (asf, Nothing) am') Map.empty initAs
-    (initAis, _)            = unzip initAs
+    agentMap                = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
+    (initAis, _, _)            = unzip3 initAs
     -- initial simulation state
     initSimState            = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvironmentSf params) g' 0
 
@@ -141,7 +141,7 @@ simulationStep ss0 = (ssFinal, sao)
         t     = absTime $ simAbsState ss
         steps = simSteps ss
         env   = simEnvState ss
-        aos   = foldr (\(aid, (_, mao)) acc -> maybe acc (\ao -> (aid, ao) : acc) mao) [] (Map.assocs $ simAgentMap ss)
+        aos   = map (\(aid, (_, ao)) -> (aid, ao)) (Map.assocs $ simAgentMap ss)
 
     processEvents :: RandomGen g
                   => EventList
@@ -159,7 +159,7 @@ simulationStep ss0 = (ssFinal, sao)
         steps    = simSteps ss
 
         mayAgent = Map.lookup aid am
-        (asf, aoPre) = fromJust mayAgent
+        (asf, _) = fromJust mayAgent
 
         dt = case evt of
               TimeStep -> sugarScapeTimeDelta
@@ -176,14 +176,9 @@ simulationStep ss0 = (ssFinal, sao)
               (es', asf') 
               (\(receiver, domEvt, cont) -> ((receiver, DomainEvent (aid, domEvt)) : es', cont)) 
               (aoEventWCont ao)
-
-        -- update observable
-        ao' = if isObservable ao
-                then aoObservable ao
-                else aoPre
                 
         -- update new signalfunction and agent-observable
-        am' = Map.insert aid (asf'', ao') am
+        am' = Map.insert aid (asf'', aoObservable ao) am
 
         -- agent is dead, remove from set (technically its a map) of agents
         am'' = if isDead ao
@@ -191,7 +186,7 @@ simulationStep ss0 = (ssFinal, sao)
                 else am'
 
         -- add newly created agents
-        am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, Nothing) acc) am'' (aoCreate ao)
+        am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) am'' (aoCreate ao)
 
         ss' = ss { simAgentMap = am'''
                  , simAbsState = absState'

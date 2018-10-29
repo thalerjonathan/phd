@@ -26,7 +26,7 @@ import SugarScape.Utils
 ------------------------------------------------------------------------------------------------------------------------
 agentSf :: RandomGen g => SugarScapeAgent g
 agentSf params aid s0 = feedback s0 (proc (evt, s) -> do
-  t        <- time -< () -- TODO: this will not work when we are switching into new sf => age will start with 0
+  t        <- time -< () -- TODO: this will not work when we are switching into new sf => age will start with 0 => no need for SF! we simply resort back to MSFs
   let age = floor t
   (ao, s') <- arrM (\(age, evt, s) -> lift $ runStateT (eventMatching evt params aid age) s) -< (age, evt, s)
   returnA -< (ao, s'))
@@ -76,4 +76,4 @@ finalize params harvestAmount metabAmount = do
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (agentDies params agentSf)
-    observable
+    agentOutObservableM

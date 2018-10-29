@@ -56,10 +56,11 @@ agentMating params myId act0
           let naid = sugEnvOccId $ fromJust $ sugEnvSiteOccupier s -- fromJust guaranteed not to fail, neighbours contain only occupied sites 
           let cont = matingCont agentState
           gender <- agentProperty sugAgGender
+          ao     <- agentOutObservableM
 
           return $ 
             trace ("Agent " ++ show myId ++ ": sending (MatingRequest " ++ show gender ++ ") to agent " ++ show naid) 
-                  (sendEventToWithCont naid (MatingRequest gender) cont agentOut))
+                  (sendEventToWithCont naid (MatingRequest gender) cont ao))
         finaliseAct -- not fertile, iteration finished, pick up agent-behaviour where it left before starting mating, 
                     -- TODO: need to switch back into agentSf
 
@@ -67,7 +68,7 @@ agentMating params myId act0
                => SugAgentState
                -> SugAgentSF g
     matingCont s = proc evt -> do
-      let ao = agentOutObservable $ sugObservableFromState s 
+      let ao = agentOut $ sugObservableFromState s 
       returnA -< trace ("Agent " ++ show myId ++ ": holy fuck! We are in the continuation! Received " ++ show evt) ao
 
 handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
@@ -77,7 +78,7 @@ handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
                     -> m (SugAgentOut g)
 handleMatingRequest myId sender otherGender = do
   accept <- acceptMatingRequest otherGender
-  ao     <- observable
+  ao     <- agentOutObservableM
   trace ("Agent " ++ show myId ++ 
          ": incoming (MatingRequest " ++ show otherGender ++ 
          ") from agent " ++ show sender ++ 
@@ -90,7 +91,7 @@ handleMatingReply :: (RandomGen g, MonadState SugAgentState m)
                   -> Bool
                   -> m (SugAgentOut g)
 handleMatingReply myId sender accept 
-  = trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender) observable
+  = trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender) agentOutObservableM
 
 acceptMatingRequest :: MonadState SugAgentState m
                     => AgentGender

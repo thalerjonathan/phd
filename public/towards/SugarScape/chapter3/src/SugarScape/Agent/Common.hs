@@ -20,7 +20,8 @@ module SugarScape.Agent.Common
   
   , randomAgent
 
-  , observable
+  , agentOutObservable
+  , agentOutObservableM
   , updateAgentState
   , agentProperty
   ) where
@@ -127,9 +128,6 @@ randomAgent :: RandomGen g
             -> (SugAgentState -> SugAgentState)
             -> Rand g (SugAgentDef g, SugAgentState)
 randomAgent params (agentId, coord) beh sup = do
-  -- NOTE: need to split here otherwise agents would end up with the same random-values when not already splitting in the calling function
-  _rng <- getSplit
-
   randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
   randVision         <- getRandomR $ spVisionRange params
   randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
@@ -152,8 +150,9 @@ randomAgent params (agentId, coord) beh sup = do
 
   let s'   = sup s
       adef = AgentDef {
-    adId = agentId
-  , adSf = beh params agentId s'
+    adId      = agentId
+  , adSf      = beh params agentId s'
+  , adInitObs = sugObservableFromState s'
   }
 
   return (adef, s')
@@ -163,7 +162,7 @@ randomGender :: RandomGen g
              -> Rand g AgentGender
 randomGender p = do
   r <- getRandom
-  if r <= p
+  if r >= p
     then return Male
     else return Female
 
@@ -198,7 +197,10 @@ agentProperty :: MonadState SugAgentState m
               -> m p
 agentProperty = gets
 
-observable :: (MonadState SugAgentState m, RandomGen g)
-           => m (SugAgentOut g)
-observable 
-  = get >>= \s -> return $ agentOutObservable $ sugObservableFromState s 
+agentOutObservable :: SugAgentState -> SugAgentOut g 
+agentOutObservable = agentOut . sugObservableFromState
+
+agentOutObservableM :: (MonadState SugAgentState m, RandomGen g)
+                    => m (SugAgentOut g)
+agentOutObservableM 
+  = get >>= \s -> return $ agentOutObservable s

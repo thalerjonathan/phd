@@ -18,17 +18,13 @@ module SugarScape.Agent.Interface
   , defaultAbsState
   
   , agentOut
-  , agentOutObservable
   
   , sendEventTo
   , sendEventToWithCont
 
-  , isObservable
   , isDead
   , kill
   , newAgent
-
-  , (<°>)
   ) where
 
 import Data.Maybe
@@ -50,14 +46,15 @@ type AgentT m      = StateT ABSState m
 type AgentSF m e o = SF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 data AgentDef m e o = AgentDef
-  { adId :: !AgentId
-  , adSf :: AgentSF m e o
+  { adId      :: !AgentId
+  , adSf      :: AgentSF m e o
+  , adInitObs :: !o
   }
 
 data AgentOut m e o = AgentOut 
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m e o]
-  , aoObservable :: !(Maybe o)
+  , aoObservable :: !o
   , aoEvents     :: ![(AgentId, e)]                     -- 1-directional event receiver, (DomainEvent) event
   , aoEventWCont :: !(Maybe (AgentId, e, AgentSF m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
   }
@@ -78,17 +75,11 @@ mkAbsState initId = ABSState
   , absTime   = 0
   }
 
-agentOut :: AgentOut m e o
-agentOut = agentOutAux Nothing
-
-agentOutObservable :: o -> AgentOut m e o
-agentOutObservable o = agentOutAux $ Just o
-
-agentOutAux :: Maybe o -> AgentOut m e o
-agentOutAux mo = AgentOut 
+agentOut :: o -> AgentOut m e o
+agentOut o = AgentOut 
   { aoKill       = NoEvent
   , aoCreate     = []
-  , aoObservable = mo
+  , aoObservable = o
   , aoEvents     = []
   , aoEventWCont = Nothing
   }
@@ -125,25 +116,3 @@ newAgent :: AgentDef m e o
          -> AgentOut m e o
 newAgent adef ao 
   = ao { aoCreate = adef : aoCreate ao }
-
-isObservable :: AgentOut m e o -> Bool
-isObservable ao = isJust $ aoObservable ao
-
-(<°>) :: AgentOut m e o 
-      -> AgentOut m e o 
-      -> AgentOut m e o
-(<°>) ao1 ao2 = AgentOut 
-    { aoKill       = mergeBy (\_ _ -> ()) (aoKill ao1) (aoKill ao2)
-    , aoCreate     = aoCreate ao1 ++ aoCreate ao2
-    , aoObservable = decideMaybe (aoObservable ao1) (aoObservable ao2)
-    , aoEvents     = aoEvents ao1 ++ aoEvents ao2
-    , aoEventWCont = decideMaybe (aoEventWCont ao1) (aoEventWCont ao2)
-    }
-  where
-    decideMaybe :: Maybe a 
-                -> Maybe a 
-                -> Maybe a
-    decideMaybe Nothing Nothing  = Nothing
-    decideMaybe (Just a) Nothing = Just a
-    decideMaybe Nothing (Just a) = Just a
-    decideMaybe _       _        = error "Can't decide between two Maybes"

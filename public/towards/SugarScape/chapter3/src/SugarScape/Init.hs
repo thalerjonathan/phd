@@ -16,7 +16,7 @@ import SugarScape.Random
 
 createSugarScape :: RandomGen g
                  => SugarScapeParams
-                 -> Rand g ([(AgentId, SugAgentSF g)], SugEnvironment)
+                 -> Rand g ([(AgentId, SugAgentObservable, SugAgentSF g)], SugEnvironment)
 createSugarScape params = do
   let agentCount = sgAgentCount params
       agentDistr = sgAgentDistribution params
@@ -29,7 +29,7 @@ createSugarScape params = do
   randCoords <- randomCoords (0,0) coordDims agentCount
   ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentSf id) (zip ais randCoords)
 
-  let as          = map (\(aid, (ad, _)) -> (aid, adSf ad)) (zip ais ras)
+  let as          = map (\(aid, (ad, _)) -> (aid, adInitObs ad, adSf ad)) (zip ais ras)
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
       sugSpecs    = parseSugarSpec sugarEnvSpec
       sugCoords   = sugarSpecToCoords sugSpecs sugarscapeDimensions

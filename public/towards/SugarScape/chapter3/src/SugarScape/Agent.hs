@@ -23,12 +23,10 @@ import SugarScape.Agent.Polution
 import SugarScape.Model
 import SugarScape.Utils
 
-import Debug.Trace
-
 ------------------------------------------------------------------------------------------------------------------------
 agentSf :: RandomGen g => SugarScapeAgent g
 agentSf params aid s0 = feedback s0 (proc (evt, s) -> do
-  t        <- time -< ()
+  t        <- time -< () -- TODO: this will not work when we are switching into new sf => age will start with 0
   let age = floor t
   (ao, s') <- arrM (\(age, evt, s) -> lift $ runStateT (eventMatching evt params aid age) s) -< (age, evt, s)
   returnA -< (ao, s'))
@@ -42,37 +40,40 @@ eventMatching :: RandomGen g
               -> AgentId
               -> Int
               -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-eventMatching TimeStep params aid age           
-  = timeStep params aid age
-eventMatching (DomainEvent (sender, MatingRequest)) _ aid _ = do
-  ao <- observable
-  trace ("Agent " ++ show aid ++ ": incoming MatingRequest from agent " ++ show sender ++ ", will reply with MatingReply!") 
-    (return $ sendEventTo sender MatingReply ao)
-eventMatching (DomainEvent (sender, MatingReply)) _ aid _
-  = trace ("Agent " ++ show aid ++ ": incoming MatingReply from agent " ++ show sender) observable
-
---error "undefined event in agent, terminating!"
--- eventMatching _ _ _ _                        = error "undefined event in agent, terminating!"
+eventMatching TimeStep params myId age           
+  = timeStep params myId age
+eventMatching (DomainEvent (sender, MatingRequest otherGender)) _ myId _ 
+  = handleMatingRequest myId sender otherGender
+eventMatching (DomainEvent (sender, MatingReply accept)) _ myId _
+  = handleMatingReply myId sender accept
+eventMatching _ _ _ _                        
+  = error "undefined event in agent, terminating!"
 
 timeStep :: RandomGen g 
          => SugarScapeParams
          -> AgentId
          -> Int
-         -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-timeStep params aid age = do
+         -> AgentAction g (SugAgentOut g)
+timeStep params myId age = do
   agentAgeing age
   
-  harvestAmount <- agentMove params aid
+  harvestAmount <- agentMove params myId
   metabAmount   <- agentMetabolism
 
-  -- TODO: is this the right order?
-  ao <- agentMating params aid
+  mao <- agentMating params myId (finalize params harvestAmount metabAmount)
+  case mao of
+    Nothing -> finalize params harvestAmount metabAmount
+    Just ao -> return ao
 
+finalize :: RandomGen g 
+         => SugarScapeParams
+         -> Double
+         -> Int
+         -> AgentAction g (SugAgentOut g)
+finalize params harvestAmount metabAmount = do
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
-  ao' <- ifThenElseM
-          (starvedToDeath `orM` dieOfAge)
-          (agentDies params agentSf)
-          observable
-
-  return $ ao <°> ao'
+  ifThenElseM
+    (starvedToDeath `orM` dieOfAge)
+    (agentDies params agentSf)
+    observable

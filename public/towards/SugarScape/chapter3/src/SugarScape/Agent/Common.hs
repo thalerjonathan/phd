@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Common
   ( SugarScapeAgent
+  , AgentAction
+  
   , BestSiteMeasureFunc
 
   , sugObservableFromState
@@ -33,6 +35,8 @@ import SugarScape.Discrete
 import SugarScape.Model
 
 type SugarScapeAgent g = SugarScapeParams -> AgentId -> SugAgentState -> SugAgentSF g
+type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
+
 type BestSiteMeasureFunc = (SugEnvSite -> Double) 
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable

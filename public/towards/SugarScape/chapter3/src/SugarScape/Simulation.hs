@@ -159,7 +159,7 @@ simulationStep ss0 = (ssFinal, sao)
         steps    = simSteps ss
 
         mayAgent = Map.lookup aid am
-        (asf, _) = fromJust mayAgent
+        (asf, aoPre) = fromJust mayAgent
 
         dt = case evt of
               TimeStep -> sugarScapeTimeDelta
@@ -170,7 +170,7 @@ simulationStep ss0 = (ssFinal, sao)
          -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         es' = map (\(receiver, domEvt) -> (receiver, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
 
-        -- TODO: process event-with-continuation
+        -- process event-with-continuation
         (es'', asf'') 
           = maybe 
               (es', asf') 
@@ -178,9 +178,12 @@ simulationStep ss0 = (ssFinal, sao)
               (aoEventWCont ao)
 
         -- update observable
-        am' = if isObservable ao
-                then Map.insert aid (asf'', aoObservable ao) am
-                else am
+        ao' = if isObservable ao
+                then aoObservable ao
+                else aoPre
+                
+        -- update new signalfunction and agent-observable
+        am' = Map.insert aid (asf'', ao') am
 
         -- agent is dead, remove from set (technically its a map) of agents
         am'' = if isDead ao

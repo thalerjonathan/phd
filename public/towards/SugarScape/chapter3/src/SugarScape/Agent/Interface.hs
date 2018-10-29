@@ -6,7 +6,7 @@ module SugarScape.Agent.Interface
 
   , ABSState (..)
   
-  , Agent
+  , AgentSF
   , AgentT
   
   , AgentDef (..)
@@ -46,12 +46,12 @@ data ABSState = ABSState
   , absTime   :: Time
   } deriving (Show, Eq)
 
-type AgentT m    = StateT ABSState m
-type Agent m e o = SF (AgentT m) (ABSEvent e) (AgentOut m e o)
+type AgentT m      = StateT ABSState m
+type AgentSF m e o = SF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 data AgentDef m e o = AgentDef
   { adId :: !AgentId
-  , adSf :: Agent m e o
+  , adSf :: AgentSF m e o
   }
 
 data AgentOut m e o = AgentOut 
@@ -59,7 +59,7 @@ data AgentOut m e o = AgentOut
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !(Maybe o)
   , aoEvents     :: ![(AgentId, e)]                     -- 1-directional event receiver, (DomainEvent) event
-  , aoEventWCont :: !(Maybe (AgentId, e, Agent m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
+  , aoEventWCont :: !(Maybe (AgentId, e, AgentSF m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
   }
 
 nextAgentId :: MonadState ABSState m
@@ -105,7 +105,7 @@ sendEventTo receiver e ao = ao'
 
 sendEventToWithCont :: AgentId
                     -> e
-                    -> Agent m e o
+                    -> AgentSF m e o
                     -> AgentOut m e o
                     -> AgentOut m e o
 sendEventToWithCont receiver e cont ao

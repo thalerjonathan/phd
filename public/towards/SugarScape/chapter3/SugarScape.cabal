@@ -51,9 +51,14 @@ executable sugarscape
 
   -- Modules included in this executable, other than Main.
   other-modules:  SugarScape.Agent
-                , SugarScape.Agent.Mating
+                , SugarScape.Agent.Ageing
+                , SugarScape.Agent.Birthing
                 , SugarScape.Agent.Common
                 , SugarScape.Agent.Interface
+                , SugarScape.Agent.Mating
+                , SugarScape.Agent.Metabolism
+                , SugarScape.Agent.Move
+                , SugarScape.Agent.Polution
                 , SugarScape.Discrete
                 , SugarScape.Environment
                 , SugarScape.ExportRunner

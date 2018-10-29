@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Common
-  ( BestSiteMeasureFunc
+  ( SugarScapeAgent
+  , BestSiteMeasureFunc
 
   , sugObservableFromState
   , selectBestSites
@@ -12,6 +13,9 @@ module SugarScape.Agent.Common
   , siteUnoccupied
   , siteOccupied
 
+  , unoccupyPosition
+  , agentCellOnCoord
+  
   , randomAgent
 
   , observable
@@ -28,6 +32,7 @@ import SugarScape.Agent.Interface
 import SugarScape.Discrete
 import SugarScape.Model
 
+type SugarScapeAgent g = SugarScapeParams -> AgentId -> SugAgentState -> SugAgentSF g
 type BestSiteMeasureFunc = (SugEnvSite -> Double) 
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
@@ -97,10 +102,24 @@ siteOccupied = isJust . sugEnvSiteOccupier
 siteUnoccupied :: SugEnvSite -> Bool
 siteUnoccupied = not . siteOccupied
 
+unoccupyPosition :: RandomGen g
+                 => StateT SugAgentState (SugAgentMonadT g) ()
+unoccupyPosition = do
+  (coord, cell) <- agentCellOnCoord
+  let cell' = cell { sugEnvSiteOccupier = Nothing }
+  lift $ lift $ changeCellAtM coord cell'
+
+agentCellOnCoord :: RandomGen g
+                => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvSite)
+agentCellOnCoord = do
+  coord <- agentProperty sugAgCoord
+  cell  <- lift $ lift $ cellAtM coord
+  return (coord, cell)
+
 randomAgent :: RandomGen g  
             => SugarScapeParams
             -> (AgentId, Discrete2dCoord)
-            -> (AgentId -> SugAgentState -> SugAgent g)
+            -> SugarScapeAgent g
             -> (SugAgentState -> SugAgentState)
             -> Rand g (SugAgentDef g, SugAgentState)
 randomAgent params (agentId, coord) beh sup = do
@@ -129,8 +148,8 @@ randomAgent params (agentId, coord) beh sup = do
 
   let s'   = sup s
       adef = AgentDef {
-    adId       = agentId
-  , adSf      = beh agentId s'
+    adId = agentId
+  , adSf = beh params agentId s'
   }
 
   return (adef, s')

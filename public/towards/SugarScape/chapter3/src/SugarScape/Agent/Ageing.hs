@@ -10,9 +10,8 @@ import SugarScape.Agent.Common
 import SugarScape.Model
 
 agentAgeing :: MonadState SugAgentState m
-            => Int
-            -> m ()
-agentAgeing age = updateAgentState (\s' -> s' { sugAgAge = age })
+            => m ()
+agentAgeing = updateAgentState (\s' -> s' { sugAgAge = sugAgAge s' + 1 })
 
 dieOfAge :: MonadState SugAgentState m
           => m Bool

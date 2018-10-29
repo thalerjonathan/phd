@@ -26,9 +26,8 @@ import SugarScape.Utils
 ------------------------------------------------------------------------------------------------------------------------
 agentSf :: RandomGen g => SugarScapeAgent g
 agentSf params aid s0 = feedback s0 (proc (evt, s) -> do
-  t        <- time -< () -- TODO: this will not work when we are switching into new sf => age will start with 0 => no need for SF! we simply resort back to MSFs
-  let age = floor t
-  (ao, s') <- arrM (\(age, evt, s) -> lift $ runStateT (eventMatching evt params aid age) s) -< (age, evt, s)
+  -- t        <- time -< () -- TODO: this will not work when we are switching into new sf => age will start with 0 => no need for SF! we simply resort back to MSFs
+  (ao, s') <- arrM (\(evt, s) -> runStateT (eventMatching evt params aid) s) -< (evt, s)
   returnA -< (ao, s'))
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -38,24 +37,22 @@ eventMatching :: RandomGen g
               => ABSEvent SugEvent
               -> SugarScapeParams
               -> AgentId
-              -> Int
-              -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-eventMatching TimeStep params myId age           
-  = timeStep params myId age
-eventMatching (DomainEvent (sender, MatingRequest otherGender)) _ myId _ 
+              -> AgentAction g (SugAgentOut g)
+eventMatching TimeStep params myId           
+  = timeStep params myId
+eventMatching (DomainEvent (sender, MatingRequest otherGender)) _ myId
   = handleMatingRequest myId sender otherGender
-eventMatching (DomainEvent (sender, MatingReply accept)) _ myId _
+eventMatching (DomainEvent (sender, MatingReply accept)) _ myId
   = handleMatingReply myId sender accept
-eventMatching _ _ _ _                        
+eventMatching _ _ _                
   = error "undefined event in agent, terminating!"
 
 timeStep :: RandomGen g 
          => SugarScapeParams
          -> AgentId
-         -> Int
          -> AgentAction g (SugAgentOut g)
-timeStep params myId age = do
-  agentAgeing age
+timeStep params myId = do
+  agentAgeing
   
   harvestAmount <- agentMove params myId
   metabAmount   <- agentMetabolism

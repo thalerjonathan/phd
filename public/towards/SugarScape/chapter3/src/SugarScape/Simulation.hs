@@ -213,8 +213,7 @@ runAgentSF :: RandomGen g
 runAgentSF sf evt dt absState env g
     = (out, sf', absState', env', g') 
   where
-    sfReader   = unMSF sf evt
-    sfAbsState = runReaderT sfReader dt
+    sfAbsState = unMSF sf evt
     sfEnvState = runStateT sfAbsState absState
     sfRand     = runStateT sfEnvState env
     ((((out, sf'), absState'), env'), g') = runRand sfRand g

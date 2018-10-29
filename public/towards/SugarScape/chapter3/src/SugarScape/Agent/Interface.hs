@@ -28,6 +28,7 @@ module SugarScape.Agent.Interface
   ) where
 
 import Data.Maybe
+import Data.MonadicStreamFunction
 
 import Control.Monad.State.Strict
 import FRP.BearRiver
@@ -43,7 +44,8 @@ data ABSState = ABSState
   } deriving (Show, Eq)
 
 type AgentT m      = StateT ABSState m
-type AgentSF m e o = SF (AgentT m) (ABSEvent e) (AgentOut m e o)
+-- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double in SugarScape (we switch MSFs which would resert time anyway)
+type AgentSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 data AgentDef m e o = AgentDef
   { adId      :: !AgentId

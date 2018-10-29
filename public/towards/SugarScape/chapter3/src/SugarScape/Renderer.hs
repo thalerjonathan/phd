@@ -9,7 +9,7 @@ module SugarScape.Renderer
 import FRP.BearRiver
 import Graphics.Gloss as GLO
 
-import SugarScape.AgentMonad
+import SugarScape.Agent.Interface
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Simulation

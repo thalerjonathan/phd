@@ -29,7 +29,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import FRP.BearRiver
 
-import SugarScape.AgentMonad
+import SugarScape.Agent.Interface
 import SugarScape.Environment
 import SugarScape.Model
 import SugarScape.Init

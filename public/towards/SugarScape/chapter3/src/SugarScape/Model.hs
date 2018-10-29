@@ -47,7 +47,7 @@ module SugarScape.Model
 import Control.Monad.Random
 import Control.Monad.State.Strict
 
-import SugarScape.AgentMonad
+import SugarScape.Agent.Interface
 import SugarScape.Discrete
 
 ------------------------------------------------------------------------------------------------------------------------

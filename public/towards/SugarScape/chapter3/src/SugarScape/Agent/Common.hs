@@ -1,7 +1,8 @@
-module SugarScape.Common 
-  ( sugObservableFromState
-  
-  , BestSiteMeasureFunc
+{-# LANGUAGE FlexibleContexts #-}
+module SugarScape.Agent.Common
+  ( BestSiteMeasureFunc
+
+  , sugObservableFromState
   , selectBestSites
   , bestSiteFunc
 
@@ -12,19 +13,23 @@ module SugarScape.Common
   , siteOccupied
 
   , randomAgent
+
+  , observable
+  , updateAgentState
+  , agentProperty
   ) where
 
 import Control.Monad.Random
-
+import Control.Monad.State.Strict
 import Data.Maybe
 import Data.List
 
-import SugarScape.AgentMonad
+import SugarScape.Agent.Interface
 import SugarScape.Discrete
 import SugarScape.Model
-------------------------------------------------------------------------------------------------------------------------
--- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
-------------------------------------------------------------------------------------------------------------------------
+
+type BestSiteMeasureFunc = (SugEnvSite -> Double) 
+
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState s = SugAgentObservable
   { sugObsCoord    = sugAgCoord s 
@@ -35,7 +40,6 @@ sugObservableFromState s = SugAgentObservable
   , sugObsGender   = sugAgGender s
   }
 
-type BestSiteMeasureFunc = (SugEnvSite -> Double) 
 
 bestSiteFunc :: SugarScapeParams -> BestSiteMeasureFunc
 bestSiteFunc params
@@ -81,7 +85,6 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     nncsDupl = foldr (\(coord', _) acc -> neighbours coord' False e ++ acc) ncs ncs
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
-
 
 siteOccupier :: AgentId -> SugAgentState -> SugEnvSiteOccupier
 siteOccupier aid s = SugEnvSiteOccupier 
@@ -161,3 +164,18 @@ randomAgentAge Forever         = return Nothing
 randomAgentAge (Range from to) = do
   randMaxAge <- getRandomR (from, to)
   return $ Just randMaxAge
+
+updateAgentState :: MonadState SugAgentState m
+                 => (SugAgentState -> SugAgentState)
+                 -> m ()
+updateAgentState = modify
+
+agentProperty :: MonadState SugAgentState m
+              => (SugAgentState -> p)
+              -> m p
+agentProperty = gets
+
+observable :: (MonadState SugAgentState m, RandomGen g)
+           => m (SugAgentOut g)
+observable 
+  = get >>= \s -> return $ agentOutObservable $ sugObservableFromState s 

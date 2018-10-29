@@ -8,8 +8,8 @@ import Data.Char
 import Data.List
 
 import SugarScape.Agent
-import SugarScape.AgentMonad
-import SugarScape.Common
+import SugarScape.Agent.Common
+import SugarScape.Agent.Interface
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Random

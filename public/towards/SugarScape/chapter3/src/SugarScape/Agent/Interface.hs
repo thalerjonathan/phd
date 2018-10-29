@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.AgentMonad
+module SugarScape.Agent.Interface
   ( AgentId
   , ABSEvent (..)
 

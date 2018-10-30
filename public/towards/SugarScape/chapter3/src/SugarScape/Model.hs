@@ -90,8 +90,9 @@ data SugEnvSite = SugEnvSite
   } deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
-              | MatingReply Bool
-              | MatingTx 
+              | MatingReply (Maybe (Double, Int, Int)) -- in case of acceptance: Just share of sugar, metab, vision
+              | MatingTx AgentId
+              | MatingContinue
                 deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite
@@ -372,15 +373,15 @@ mkParamsAnimationIII_1 :: SugarScapeParams
 mkParamsAnimationIII_1 = SugarScapeParams {
     sgAgentCount           = 400
   , sgAgentDistribution    = Scatter
-  , spSugarRegrow          = Rate 1   
-  , spSugarEndowmentRange  = (5, 25)
+  , spSugarRegrow          = Rate 1
+  , spSugarEndowmentRange  = (50, 100)
   , spSugarMetabolismRange = (1, 4)
-  , spVisionRange          = (1, 6)       
-  , spReplaceAgents        = True
-  , spAgeSpan              = Range 60 100
+  , spVisionRange          = (1, 6)
+  , spReplaceAgents        = False          -- agents are NOT replaced...
+  , spAgeSpan              = Range 60 100   -- ... but can die of age!
   , spPolutionFormation    = NoPolution
   , spPolutionDiffusion    = Nothing
-  , spSexRuleActive        = True
+  , spSexRuleActive        = True           -- agents reproduce
   , spGenderRatio          = 0.5            -- equal ratio of gender
   , spFertStartRangeWoman  = (12, 15)
   , spFertStartRangeMen    = (12, 15)

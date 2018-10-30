@@ -13,7 +13,7 @@ module SugarScape.Agent.Interface
   , AgentOut (..)
 
   , nextAgentId
-
+  
   , mkAbsState
   , defaultAbsState
   
@@ -64,7 +64,7 @@ nextAgentId = do
   aid <- gets absNextId
   modify (\s -> s { absNextId = aid + 1 })
   return aid
-
+  
 defaultAbsState :: ABSState
 defaultAbsState = mkAbsState 0 
 

@@ -27,7 +27,7 @@ createSugarScape params = do
                     (Corner dim) -> dim
 
   randCoords <- randomCoords (0,0) coordDims agentCount
-  ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentSf id) (zip ais randCoords)
+  ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf id) (zip ais randCoords)
 
   let as          = map (\(aid, (ad, _)) -> (aid, adInitObs ad, adSf ad)) (zip ais ras)
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras

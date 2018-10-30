@@ -35,19 +35,23 @@ renderSugarScapeFrame :: (Int, Int)
                       -> SiteVis
                       -> GLO.Picture
 renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
-    = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, stepsTxt])
+    = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, stepsTxt, asCntTxt, maxIdTxt])
   where
-    (dx, dy) = dimensionsDisc2d e
-    siteWidth = fromIntegral wx / fromIntegral dx
+    (dx, dy)   = dimensionsDisc2d e
+    siteWidth  = fromIntegral wx / fromIntegral dx
     siteHeight = fromIntegral wy / fromIntegral dy
 
     sites = allCellsWithCoords e
 
     agentPics = map (sugarscapeAgentRenderer av (siteWidth, siteHeight) wSize t) ss
-    envPics = map (renderEnvSite cv (siteWidth, siteHeight) wSize t) sites
+    envPics   = map (renderEnvSite cv (siteWidth, siteHeight) wSize t) sites
 
-    timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
-    stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show steps)
+    maxId = maximum $ map fst ss
+
+    timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text ("t = " ++ show t)
+    stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text ("steps = " ++ show steps)
+    asCntTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 40) $ GLO.scale 0.1 0.1 $ GLO.Text ("number of agents = " ++ show (length ss))
+    maxIdTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 60) $ GLO.scale 0.1 0.1 $ GLO.Text ("total agents created = " ++ show maxId)
 
     halfWSizeX = fromIntegral wx / 2.0 
     halfWSizeY = fromIntegral wy / 2.0 

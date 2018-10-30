@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Agent.Birthing 
+module SugarScape.Agent.Rebirthing 
   ( agentDies
-  , birthNewAgent
   ) where
 
 import Control.Monad.Random
@@ -25,15 +24,15 @@ agentDies params asf = do
   ao <- liftM kill agentOutObservableM 
   if spReplaceAgents params
     then do
-      (_, newA) <- birthNewAgent params asf
+      (_, newA) <- rebirthNewAgent params asf
       return $ newAgent newA ao
     else return ao
 
-birthNewAgent :: RandomGen g
-              => SugarScapeParams
-              -> SugarScapeAgent g
-              -> AgentAction g (AgentId, SugAgentDef g)
-birthNewAgent params asf = do
+rebirthNewAgent :: RandomGen g
+                => SugarScapeParams
+                -> SugarScapeAgent g
+                -> AgentAction g (AgentId, SugAgentDef g)
+rebirthNewAgent params asf = do
     newAid              <- lift nextAgentId
     (newCoord, newCell) <- findUnoccpiedRandomPosition
     (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf id

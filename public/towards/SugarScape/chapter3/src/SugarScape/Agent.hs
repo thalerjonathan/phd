@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent 
-  ( agentSf
+  ( agentMsf
   ) where
 
 import Control.Monad.Random
@@ -9,13 +9,13 @@ import Control.Monad.Trans.MSF.State
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
-import SugarScape.Agent.Birthing
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Mating
 import SugarScape.Agent.Metabolism
 import SugarScape.Agent.Move
 import SugarScape.Agent.Polution
+import SugarScape.Agent.Rebirthing
 import SugarScape.Agent.Utils
 import SugarScape.Model
 import SugarScape.Utils
@@ -23,8 +23,8 @@ import SugarScape.Utils
 import Debug.Trace as DBG
 
 ------------------------------------------------------------------------------------------------------------------------
-agentSf :: RandomGen g => SugarScapeAgent g
-agentSf params aid s0 = feedback s0 (proc (evt, s) -> do
+agentMsf :: RandomGen g => SugarScapeAgent g
+agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
   (s', ao) <- runStateS (generalEventHandler params aid) -< (s, evt)
   returnA -< (ao, s'))
 
@@ -50,8 +50,11 @@ generalEventHandler params myId =
         (DomainEvent (sender, MatingRequest otherGender)) -> do
           ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)
           returnA -< (ao, Nothing)
+        (DomainEvent (sender, MatingTx childId)) -> do
+          ao <- arrM (uncurry (handleMatingTx myId)) -< (sender, childId)
+          returnA -< (ao, Nothing)
         _        -> 
-          returnA -< error "undefined event in agent, terminating!")
+          returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
 handleTimeStep :: RandomGen g 
                => SugarScapeParams
@@ -66,6 +69,7 @@ handleTimeStep params myId = do
   ret <- agentMating 
           params 
           myId 
+          agentMsf
           (generalEventHandler params myId) 
           (agentFinalize params myId harvestAmount metabAmount)
 
@@ -86,7 +90,7 @@ agentFinalize params myId harvestAmount metabAmount = do
 
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
-    (agentDies params agentSf)
+    (agentDies params agentMsf)
     agentOutObservableM
 
 {-

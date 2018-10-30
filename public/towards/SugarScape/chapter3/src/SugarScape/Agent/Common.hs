@@ -3,6 +3,8 @@ module SugarScape.Agent.Common
   ( SugarScapeAgent
   , AgentAction
   
+  , EventHandler
+
   , BestSiteMeasureFunc
 
   , sugObservableFromState
@@ -29,6 +31,7 @@ module SugarScape.Agent.Common
 import Control.Monad.Random
 import Control.Monad.State.Strict
 import Data.Maybe
+import Data.MonadicStreamFunction
 import Data.List
 
 import SugarScape.Agent.Interface
@@ -37,6 +40,8 @@ import SugarScape.Model
 
 type SugarScapeAgent g = SugarScapeParams -> AgentId -> SugAgentState -> SugAgentMSF g
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
+
+type EventHandler g = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
 type BestSiteMeasureFunc = (SugEnvSite -> Double) 
 

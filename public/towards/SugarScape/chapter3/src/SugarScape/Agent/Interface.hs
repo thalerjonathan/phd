@@ -20,14 +20,12 @@ module SugarScape.Agent.Interface
   , agentOut
   
   , sendEventTo
-  , sendEventToWithCont
 
   , isDead
   , kill
   , newAgent
   ) where
 
-import Data.Maybe
 import Data.MonadicStreamFunction
 
 import Control.Monad.State.Strict
@@ -57,8 +55,7 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
-  , aoEvents     :: ![(AgentId, e)]                     -- 1-directional event receiver, (DomainEvent) event
-  , aoEventWCont :: !(Maybe (AgentId, e, AgentMSF m e o))  -- bi-directional event, receiver, (DomainEvent) event, continuation
+  , aoEvents     :: ![(AgentId, e)]   -- event receiver, (DomainEvent) event
   }
 
 nextAgentId :: MonadState ABSState m
@@ -83,7 +80,6 @@ agentOut o = AgentOut
   , aoCreate     = []
   , aoObservable = o
   , aoEvents     = []
-  , aoEventWCont = Nothing
   }
 
 sendEventTo :: AgentId
@@ -95,17 +91,6 @@ sendEventTo receiver e ao = ao'
     es  = aoEvents ao
     -- important: respect ordering!
     ao' = ao { aoEvents = es ++ [(receiver, e)] } 
-
-sendEventToWithCont :: AgentId
-                    -> e
-                    -> AgentMSF m e o
-                    -> AgentOut m e o
-                    -> AgentOut m e o
-sendEventToWithCont receiver e cont ao
-    | isJust $ aoEventWCont ao = error "Event with continuation already exists!"
-    | otherwise                = ao'
-  where
-    ao' = ao { aoEventWCont = Just (receiver, e, cont) } 
 
 isDead :: AgentOut m e o -> Bool
 isDead ao = isEvent $ aoKill ao

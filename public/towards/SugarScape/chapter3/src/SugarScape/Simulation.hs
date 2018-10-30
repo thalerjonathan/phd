@@ -150,7 +150,7 @@ simulationStep ss0 = (ssFinal, sao)
     processEvents [] ss         = ss
     processEvents ((aid, evt) : es) ss 
         | isNothing mayAgent = processEvents es ss
-        | otherwise          = processEvents es'' ss'
+        | otherwise          = processEvents es' ss'
       where
         am       = simAgentMap ss
         absState = simAbsState ss
@@ -170,15 +170,8 @@ simulationStep ss0 = (ssFinal, sao)
          -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         es' = map (\(receiver, domEvt) -> (receiver, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
 
-        -- process event-with-continuation
-        (es'', asf'') 
-          = maybe 
-              (es', asf') 
-              (\(receiver, domEvt, cont) -> ((receiver, DomainEvent (aid, domEvt)) : es', cont)) 
-              (aoEventWCont ao)
-                
         -- update new signalfunction and agent-observable
-        am' = Map.insert aid (asf'', aoObservable ao) am
+        am' = Map.insert aid (asf', aoObservable ao) am
 
         -- agent is dead, remove from set (technically its a map) of agents
         am'' = if isDead ao

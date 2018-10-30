@@ -59,6 +59,7 @@ executable sugarscape
                 , SugarScape.Agent.Metabolism
                 , SugarScape.Agent.Move
                 , SugarScape.Agent.Polution
+                , SugarScape.Agent.Utils
                 , SugarScape.Discrete
                 , SugarScape.Environment
                 , SugarScape.ExportRunner

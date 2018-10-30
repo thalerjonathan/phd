@@ -13,6 +13,7 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
+import SugarScape.Agent.Utils
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Utils
@@ -34,14 +35,25 @@ agentMating params myId mainHandler0 act0
                        -> AgentAction g (SugAgentOut g)
                        -> AgentAction g (Maybe (SugAgentOut g, Maybe (EventHandler g)))
     mateWithNeighbours mainHandler act = do
-      coord  <- agentProperty sugAgCoord
-      ns     <- lift $ lift $ neighboursM coord False
-      if null ns
-        then return Nothing
+      coord   <- agentProperty sugAgCoord
+      ns      <- lift $ lift $ neighboursM coord False
+      fertile <- isAgentFertile
+
+      let ocs = filter (siteOccupied . snd) ns
+    
+      -- note: we check at this point already if 
+      --    1. there are agents 
+      --    2. the agent is fertile
+      -- This is being checked also in mateWith but when either one does not apply
+      -- the switch will occur back to mainHandler from where we are coming anyway
+      -- thus carrying out this extra check is a performance optimisation
+      if null ocs || not fertile
+        then DBG.trace ("Agent " ++ show myId ++ ": no neighbours (" ++ show (null ocs) ++ "), or i'm not fertile (" ++ show (not fertile) ++ ") => not initiating mating") 
+              return Nothing
         else do
-          let ocs     = filter (siteOccupied . snd) ns
-          
-          ret <- mateWith myId mainHandler act ocs
+          let visNs = map (\(c, s) -> (sugEnvOccId $ fromJust $ sugEnvSiteOccupier s, c)) ocs
+          ret <- DBG.trace ("Agent " ++ show myId ++ ": found " ++ show (length ocs) ++ " neighbours: " ++ show visNs ++ ", and i'm fertile => initiating mating") 
+                  mateWith myId mainHandler act ocs
           return $ Just ret
 
 mateWith :: RandomGen g
@@ -54,7 +66,7 @@ mateWith myId mainHandler0 cont0 [] = do
   -- mating finished, continue with agent-behaviour where it left before starting mating
   ao <- cont0 
   -- need to switch back into the main handler
-  return (ao, Just mainHandler0)
+  DBG.trace ("Agent " ++ show myId ++ ": mating finished, carry on with normal behaviour" ) (return (ao, Just mainHandler0))
 mateWith myId mainHandler0 cont0 ((coord, site) : ns) =
     ifThenElseM
       isAgentFertile
@@ -84,23 +96,19 @@ mateWith myId mainHandler0 cont0 ((coord, site) : ns) =
         -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
         ao <- cont0 
         -- need to switch back into the main handler
-        return (ao, Just mainHandler0))
+        DBG.trace ("Agent " ++ show myId ++ ": not fertile, mating finished, carry on with normal behaviour" ) (return (ao, Just mainHandler0)))
   where
     matingCont :: RandomGen g
                => EventHandler g
                -> AgentAction g (SugAgentOut g)
                -> EventHandler g
     matingCont mainHandler cont' = 
-      -- TODO: need to delay the switching, bcs continuation will be evaluated at time of
-      -- switching which would override the old output
-        switch
+        continueWithAfter
           (proc evt -> 
             case evt of
               (DomainEvent (sender, MatingReply accept)) -> 
                 arrM (uncurry (handleMatingReply mainHandler cont')) -< (sender, accept)
               _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
-          -- id
-          (DBG.trace $ "Agent " ++ show myId ++ ": switching in matingCont")
       where
         handleMatingReply :: RandomGen g
                           => EventHandler g
@@ -115,13 +123,15 @@ mateWith myId mainHandler0 cont0 ((coord, site) : ns) =
             -- 2. create a new born and endow 
             -- 3. send the mating-partner a message: ack of mating
             -- 4. continue with next neighbour
-            mateWith myId mainHandler' cont'' ns
+            DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender)
+              --(mateWith myId mainHandler' cont'' ns)
+              (error "finally an accepted a mating")
           -- the sender refuse the mating-request
           | otherwise = 
+            DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender)
             -- continue with next neighbour
-            mateWith myId mainHandler' cont'' ns
-            -- trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show accept ++ ") from agent " ++ show sender) agentOutObservableM
-
+              (mateWith myId mainHandler' cont'' ns)
+    
 acceptMatingRequest :: MonadState SugAgentState m
                     => AgentGender
                     -> m Bool

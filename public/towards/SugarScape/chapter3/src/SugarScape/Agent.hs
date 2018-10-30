@@ -16,10 +16,11 @@ import SugarScape.Agent.Mating
 import SugarScape.Agent.Metabolism
 import SugarScape.Agent.Move
 import SugarScape.Agent.Polution
+import SugarScape.Agent.Utils
 import SugarScape.Model
 import SugarScape.Utils
 
--- import Debug.Trace as DBG
+import Debug.Trace as DBG
 
 ------------------------------------------------------------------------------------------------------------------------
 agentSf :: RandomGen g => SugarScapeAgent g
@@ -41,7 +42,7 @@ generalEventHandler params myId =
   -- switching the top event handler to a new one
   -- TODO: need to delay the switching, bcs continuation will be evaluated at time of
   -- switching which would override the old output
-  switch 
+  continueWithAfter 
     (proc evt -> 
       case evt of 
         TimeStep -> 
@@ -50,17 +51,14 @@ generalEventHandler params myId =
           ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)
           returnA -< (ao, Nothing)
         _        -> 
-        -- NOTE: MatingReply is NOT handled in this continuation!!! See Mathing.hs
           returnA -< error "undefined event in agent, terminating!")
-    id
-    --(DBG.trace $ "Agent " ++ show myId ++ ": switching in generalEventHandler")
 
 handleTimeStep :: RandomGen g 
                => SugarScapeParams
                -> AgentId
                -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 handleTimeStep params myId = do
-  agentAgeing
+  DBG.trace ("Agent " ++ show myId ++ ": handleTimeStep") agentAgeing
   
   harvestAmount <- agentMove params myId
   metabAmount   <- agentMetabolism
@@ -69,26 +67,27 @@ handleTimeStep params myId = do
           params 
           myId 
           (generalEventHandler params myId) 
-          (agentFinalize params harvestAmount metabAmount)
+          (agentFinalize params myId harvestAmount metabAmount)
+
   case ret of
     Nothing -> do
-      ao <- agentFinalize params harvestAmount metabAmount
+      ao <- agentFinalize params myId harvestAmount metabAmount
       return (ao, Nothing)
     Just (ao, mhdl) -> return (ao, mhdl)
 
 agentFinalize :: RandomGen g 
               => SugarScapeParams
+              -> AgentId
               -> Double
               -> Int
               -> AgentAction g (SugAgentOut g)
-agentFinalize params harvestAmount metabAmount = do
-  agentPolute params harvestAmount (fromIntegral metabAmount)
+agentFinalize params myId harvestAmount metabAmount = do
+  DBG.trace ("Agent " ++ show myId ++ ": finalizing") (agentPolute params harvestAmount (fromIntegral metabAmount))
 
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (agentDies params agentSf)
     agentOutObservableM
-
 
 {-
 switchTest :: RandomGen g 

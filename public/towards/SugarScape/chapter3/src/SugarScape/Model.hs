@@ -42,6 +42,8 @@ module SugarScape.Model
   , mkParamsWealthDistr
 
   , mkParamsAnimationIII_1
+  , mkParamsFigureIII_3
+  , mkParamsFigureIII_4
   ) where
 
 import Control.Monad.Random
@@ -388,4 +390,17 @@ mkParamsAnimationIII_1 = SugarScapeParams {
   , spFertStartRangeMen    = (12, 15)
   , spFertEndRangeWoman    = (40, 50)
   , spFertEndRangeMen      = (50, 60)
+  }
+
+-- page 64, same as mkParamsAnimationIII_1 but with changed fertiliy ranges
+mkParamsFigureIII_3 :: SugarScapeParams
+mkParamsFigureIII_3 = mkParamsAnimationIII_1 {
+    spFertEndRangeWoman    = (30, 40)
+  , spFertEndRangeMen      = (40, 50)
+  }
+
+-- page 65, same as mkParamsAnimationIII_1 but with changed intiial endowment (=> lower requirements for child-bearing wealth)
+mkParamsFigureIII_4 :: SugarScapeParams
+mkParamsFigureIII_4 = mkParamsAnimationIII_1 {
+    spSugarEndowmentRange  = (10, 40)
   }

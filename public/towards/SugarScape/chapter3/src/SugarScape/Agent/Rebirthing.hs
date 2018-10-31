@@ -36,10 +36,10 @@ rebirthNewAgent :: RandomGen g
 rebirthNewAgent params asf = do
     newAid              <- lift nextAgentId
     (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf id
+    (newA, _newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf id
 
     -- need to occupy the cell to prevent other agents occupying it
-    let newCell' = newCell { sugEnvSiteOccupier = Just (siteOccupier newAid newAState) }
+    let newCell' = newCell { sugEnvSiteOccupier = Just (siteOccupier newAid) }
     lift $ lift $ changeCellAtM newCoord newCell' 
 
     return (newAid, newA)

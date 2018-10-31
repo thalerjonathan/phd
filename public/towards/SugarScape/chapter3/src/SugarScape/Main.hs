@@ -17,8 +17,8 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let sugParams = mkParamsAnimationIII_1 -- mkParamsAnimationIII_1 -- mkParamsAnimationII_8 mkParamsAnimationII_7 mkAnimationII_6 mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_3 mkParamsAnimationII_2 mkParamsAnimationII_1 
-      output    = Export 1500 -- Visual 0 Gender Sugar -- Export 1500
+  let sugParams = mkParamsFigureIII_3 -- mkParamsFigureIII_3 mkParamsAnimationIII_1 mkParamsAnimationII_8 mkParamsAnimationII_7 mkAnimationII_6 mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_3 mkParamsAnimationII_2 mkParamsAnimationII_1 
+      output    = Visual 0 Gender Sugar -- Visual 0 Gender Sugar -- Export 1500
       rngSeed   = Nothing -- Just 42
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams

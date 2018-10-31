@@ -33,7 +33,7 @@ polutionDiffusion (Just d) t env
     timeForDiffusion = 0 == mod t d
 
     cs = allCellsWithCoords env
-    fs = map (\(coord, c) -> do
+    fs = map (\(coord, _) -> do
           let ncs  = neighbourCells coord True env
           let flux = sum (map sugEnvSitePolutionLevel ncs) / fromIntegral (length ncs)
           flux) cs

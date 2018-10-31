@@ -46,7 +46,7 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     agentPics = map (sugarscapeAgentRenderer av (siteWidth, siteHeight) wSize t) ss
     envPics   = map (renderEnvSite cv (siteWidth, siteHeight) wSize t) sites
 
-    maxId = maximum $ map fst ss
+    maxId = if null ss then 0 else maximum $ map fst ss
 
     timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text ("t = " ++ show t)
     stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text ("steps = " ++ show steps)

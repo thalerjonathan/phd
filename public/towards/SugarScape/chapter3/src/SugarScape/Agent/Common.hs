@@ -101,8 +101,8 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
-siteOccupier :: AgentId -> SugAgentState -> SugEnvSiteOccupier
-siteOccupier aid s = SugEnvSiteOccupier 
+siteOccupier :: AgentId -> SugEnvSiteOccupier
+siteOccupier aid = SugEnvSiteOccupier 
   { sugEnvOccId = aid
   }
 

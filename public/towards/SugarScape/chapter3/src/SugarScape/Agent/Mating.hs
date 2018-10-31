@@ -156,10 +156,10 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                                   (lift nextAgentId)
       (childCoord, childSite) <- lift $ lift $ lift $ randomElemM freeSites
       -- update new-born state with its genes and initial endowment
-      (childDef, childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
+      (childDef, _childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
 
       -- child occupies the site immediately to prevent others from occupying it
-      let childSite' = childSite { sugEnvSiteOccupier = Just (siteOccupier childId childState) }
+      let childSite' = childSite { sugEnvSiteOccupier = Just (siteOccupier childId) }
       lift $ lift $ changeCellAtM childCoord childSite' 
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 

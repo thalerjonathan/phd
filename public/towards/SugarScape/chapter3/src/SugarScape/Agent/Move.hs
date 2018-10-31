@@ -4,7 +4,6 @@ module SugarScape.Agent.Move
   ) where
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
@@ -55,10 +54,8 @@ agentMoveTo aid cellCoord = do
 
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
-  s <- get
-
   cell <- lift $ lift $ cellAtM cellCoord
-  let co = cell { sugEnvSiteOccupier = Just (siteOccupier aid s) }
+  let co = cell { sugEnvSiteOccupier = Just (siteOccupier aid) }
   lift $ lift $ changeCellAtM cellCoord co 
 
 agentHarvestCell :: RandomGen g

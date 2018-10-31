@@ -41,9 +41,13 @@ writeSimulationUntil fileName tMax ss0 = do
                                  show age ++ ", " ++
                                  show sug ++ ", " ++
                                  show met ++ ", " ++ 
-                                 show vis ++ "], ")
+                                 show vis ++ ", " ++
+                                 show gen ++ "], ")
           where
             vis = sugObsVision ao
             age = sugObsAge ao
             sug = sugObsSugLvl ao
             met = sugObsSugMetab ao
+            gen = case sugObsGender ao of
+                    Male   -> 0 :: Int
+                    Female -> 1 :: Int

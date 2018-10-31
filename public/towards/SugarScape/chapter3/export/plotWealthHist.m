@@ -5,12 +5,12 @@ for t = 1 : length( dynamics )
   ws = [];
   
   for ai = 2 : length (dynamics{t})
-    a = dynamics{t}{ai};
-    agentId = dynamics{t}{ai}(1);
-    agentAge = dynamics{t}{ai}(2);
+    %a = dynamics{t}{ai};
+    %agentId = dynamics{t}{ai}(1);
+    %agentAge = dynamics{t}{ai}(2);
     agentSug = dynamics{t}{ai}(3);
-    agentMet = dynamics{t}{ai}(4);
-    agentVis = dynamics{t}{ai}(5);
+    %agentMet = dynamics{t}{ai}(4);
+    %agentVis = dynamics{t}{ai}(5);
     
     ws(end+1,:) = agentSug;
   endfor

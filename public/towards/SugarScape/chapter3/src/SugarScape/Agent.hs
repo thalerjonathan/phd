@@ -40,8 +40,6 @@ generalEventHandler :: RandomGen g
                     -> EventHandler g
 generalEventHandler params myId =
   -- switching the top event handler to a new one
-  -- TODO: need to delay the switching, bcs continuation will be evaluated at time of
-  -- switching which would override the old output
   continueWithAfter 
     (proc evt -> 
       case evt of 

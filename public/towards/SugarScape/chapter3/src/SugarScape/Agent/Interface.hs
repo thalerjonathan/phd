@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
 module SugarScape.Agent.Interface
   ( AgentId
   , ABSEvent (..)
@@ -12,11 +12,6 @@ module SugarScape.Agent.Interface
   , AgentDef (..)
   , AgentOut (..)
 
-  , nextAgentId
-  
-  , mkAbsState
-  , defaultAbsState
-  
   , agentOut
   
   , sendEventTo
@@ -26,20 +21,14 @@ module SugarScape.Agent.Interface
   , newAgent
   ) where
 
+import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
 
-import Control.Monad.State.Strict
-import FRP.BearRiver
+import SugarScape.Common
 
-type AgentId    = Int
 data ABSEvent e = TimeStep 
                 | DomainEvent (AgentId, e) 
                   deriving (Show, Eq) -- sender, event 
-
-data ABSState = ABSState
-  { absNextId :: AgentId
-  , absTime   :: Time
-  } deriving (Show, Eq)
 
 type AgentT m       = StateT ABSState m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double in SugarScape (we switch MSFs which would resert time anyway)
@@ -52,31 +41,15 @@ data AgentDef m e o = AgentDef
   }
 
 data AgentOut m e o = AgentOut 
-  { aoKill       :: !(Event ())
+  { aoKill       :: !Bool
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
   , aoEvents     :: ![(AgentId, e)]   -- event receiver, (DomainEvent) event
   }
 
-nextAgentId :: MonadState ABSState m
-            => m AgentId
-nextAgentId = do
-  aid <- gets absNextId
-  modify (\s -> s { absNextId = aid + 1 })
-  return aid
-  
-defaultAbsState :: ABSState
-defaultAbsState = mkAbsState 0 
-
-mkAbsState :: AgentId -> ABSState
-mkAbsState initId = ABSState 
-  { absNextId = initId + 1
-  , absTime   = 0
-  }
-
 agentOut :: o -> AgentOut m e o
 agentOut o = AgentOut 
-  { aoKill       = NoEvent
+  { aoKill       = False
   , aoCreate     = []
   , aoObservable = o
   , aoEvents     = []
@@ -93,10 +66,10 @@ sendEventTo receiver e ao = ao'
     ao' = ao { aoEvents = es ++ [(receiver, e)] } 
 
 isDead :: AgentOut m e o -> Bool
-isDead ao = isEvent $ aoKill ao
+isDead = aoKill
 
 kill :: AgentOut m e o -> AgentOut m e o
-kill ao = ao { aoKill = Event () }
+kill ao = ao { aoKill = True }
 
 newAgent :: AgentDef m e o
          -> AgentOut m e o 

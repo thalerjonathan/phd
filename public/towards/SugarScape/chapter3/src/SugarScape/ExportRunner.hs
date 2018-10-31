@@ -5,9 +5,8 @@ module SugarScape.ExportRunner
 import System.IO
 import System.Random
 
-import FRP.BearRiver
-
-import SugarScape.Model 
+import SugarScape.Common
+import SugarScape.Model
 import SugarScape.Simulation
 
 writeSimulationUntil :: RandomGen g

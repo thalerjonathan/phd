@@ -16,20 +16,19 @@ module SugarScape.Simulation
   , sugarScapeTimeDelta
 
   , runAgentSF
-  , runEnvSF
+  , runEnv
   ) where
 
 import Data.Maybe
-import qualified Data.IntMap.Strict as Map -- better performance than normal Map
 import System.Random
 
-import Control.Monad.Identity
 import Control.Monad.Random
-import Control.Monad.Reader
 import Control.Monad.State.Strict
-import FRP.BearRiver
+import Data.MonadicStreamFunction
+import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
 import SugarScape.Agent.Interface
+import SugarScape.Common
 import SugarScape.Environment
 import SugarScape.Model
 import SugarScape.Init
@@ -47,14 +46,14 @@ data SimulationState g = SimulationState
   { simAgentMap :: !(AgentMap g)
   , simAbsState :: !ABSState 
   , simEnvState :: !SugEnvironment
-  , simEnvSF    :: SugEnvironmentSF
+  , simEnvBeh   :: SugEnvBehaviour
   , simRng      :: !g
   , simSteps    :: !Int
   }
 
 -- sugarscape is stepped with a time-delta of 1.0
 sugarScapeTimeDelta :: DTime
-sugarScapeTimeDelta = 1.0
+sugarScapeTimeDelta = 1
 
 initSimulation :: SugarScapeParams
                -> IO (SimulationState StdGen, SugEnvironment)
@@ -84,10 +83,10 @@ initSimulationRng g0 params = (initSimState, initEnv)
     -- initial agents and environment data
     ((initAs, initEnv), g') = runRand (createSugarScape params) g0
     -- initial agent map
-    agentMap                = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
-    (initAis, _, _)            = unzip3 initAs
+    agentMap        = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
+    (initAis, _, _) = unzip3 initAs
     -- initial simulation state
-    initSimState            = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvironmentSf params) g' 0
+    initSimState = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvBehaviour params) g' 0
 
 simulateUntil :: RandomGen g
               => Time
@@ -120,10 +119,10 @@ simulationStep ss0 = (ssFinal, sao)
     -- process all events
     ssSteps = processEvents el (ss0 { simRng = gShuff })
     -- run the environment
-    (envFinal, envSfFinal) = runEnvSF (simEnvState ssSteps) (simEnvSF ssSteps)
-    ssSteps'               = incrementTime ssSteps
-    ssFinal                = ssSteps' { simEnvState = envFinal
-                                      , simEnvSF    = envSfFinal }
+    envFinal = runEnv ssSteps
+    ssSteps' = incrementTime ssSteps
+    ssFinal  = ssSteps' { simEnvState = envFinal }
+
     -- produce final output of this step
     sao = simStepOutFromSimState ssFinal
 
@@ -160,12 +159,8 @@ simulationStep ss0 = (ssFinal, sao)
 
         mayAgent = Map.lookup aid am
         (asf, _) = fromJust mayAgent
-
-        dt = case evt of
-              TimeStep -> sugarScapeTimeDelta
-              _        -> 0.0
-
-        (ao, asf', absState', env', g') = runAgentSF asf evt dt absState env g
+        
+        (ao, asf', absState', env', g') = runAgentSF asf evt absState env g
 
          -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         es' = map (\(receiver, domEvt) -> (receiver, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
@@ -187,23 +182,22 @@ simulationStep ss0 = (ssFinal, sao)
                  , simRng      = g'
                  , simSteps    = steps + 1 }
 
-runEnvSF :: SugEnvironment
-         -> SugEnvironmentSF
-         -> (SugEnvironment, SugEnvironmentSF)
-runEnvSF env envSf = runIdentity sfId
+runEnv :: SimulationState g
+       -> SugEnvironment
+runEnv ss = eb t env
   where
-    sfReader = unMSF envSf env
-    sfId     = runReaderT sfReader sugarScapeTimeDelta
+    eb  = simEnvBeh ss 
+    env = simEnvState ss
+    t   = absTime $ simAbsState ss
 
 runAgentSF :: RandomGen g
            => SugAgentMSF g
            -> ABSEvent SugEvent
-           -> DTime
            -> ABSState
            -> SugEnvironment
            -> g
            -> (SugAgentOut g, SugAgentMSF g, ABSState, SugEnvironment, g)
-runAgentSF sf evt dt absState env g
+runAgentSF sf evt absState env g
     = (out, sf', absState', env', g') 
   where
     sfAbsState = unMSF sf evt
@@ -214,15 +208,15 @@ runAgentSF sf evt dt absState env g
 mkSimState :: AgentMap g
            -> ABSState
            -> SugEnvironment
-           -> SugEnvironmentSF
+           -> SugEnvBehaviour
            -> g
            -> Int
            -> SimulationState g
-mkSimState am absState env envSf g steps = SimulationState 
+mkSimState am absState env eb g steps = SimulationState 
   { simAgentMap = am
   , simAbsState = absState 
   , simEnvState = env
-  , simEnvSF    = envSf
+  , simEnvBeh   = eb
   , simRng      = g
   , simSteps    = steps
   }

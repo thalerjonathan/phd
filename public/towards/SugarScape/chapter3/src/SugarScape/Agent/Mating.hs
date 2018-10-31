@@ -16,12 +16,13 @@ import Data.MonadicStreamFunction
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
+import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Random
 import SugarScape.Utils
 
-import Debug.Trace as DBG
+--import Debug.Trace as DBG
 
 -- TODO: do we really need a Maybe for EventHandler?
 agentMating :: RandomGen g
@@ -47,14 +48,14 @@ agentMating params myId amsf0 mainHandler0 finalizeAction0
     -- the switch will occur back to mainHandler from where we are coming anyway
     -- thus carrying out this extra check is a performance optimisation
     if null ocs || not fertile
-      then DBG.trace ("Agent " ++ show myId ++ ": no neighbours (" ++ show (null ocs) ++ "), or i'm not fertile (" ++ show (not fertile) ++ ") => not initiating mating") 
-            return Nothing
+      then --DBG.trace ("Agent " ++ show myId ++ ": no neighbours (" ++ show (null ocs) ++ "), or i'm not fertile (" ++ show (not fertile) ++ ") => not initiating mating") 
+           return Nothing
       else do
         -- TODO: shuffle ocs bcs selecting agents at random according to the book
 
-        let visNs = map (\(c, s) -> (sugEnvOccId $ fromJust $ sugEnvSiteOccupier s, c)) ocs
-        ret <- DBG.trace ("Agent " ++ show myId ++ ": found " ++ show (length ocs) ++ " neighbours: " ++ show visNs ++ ", and i'm fertile => initiating mating") 
-                mateWith params myId amsf0 mainHandler0 finalizeAction0 ocs
+        --let visNs = map (\(c, s) -> (sugEnvOccId $ fromJust $ sugEnvSiteOccupier s, c)) ocs
+        ret <- --DBG.trace ("Agent " ++ show myId ++ ": found " ++ show (length ocs) ++ " neighbours: " ++ show visNs ++ ", and i'm fertile => initiating mating") 
+               mateWith params myId amsf0 mainHandler0 finalizeAction0 ocs
         return $ Just ret
 
 mateWith :: RandomGen g
@@ -65,12 +66,12 @@ mateWith :: RandomGen g
          -> AgentAction g (SugAgentOut g)
          -> [(Discrete2dCoord, SugEnvSite)]
          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-mateWith _ myId _ mainHandler finalizeAction [] = do
+mateWith _ _myId _ mainHandler finalizeAction [] = do
   -- mating finished, continue with agent-behaviour where it left before starting mating
   ao <- finalizeAction 
   -- need to switch back into the main handler
-  DBG.trace ("Agent " ++ show myId ++ ": no more neighbours, mating finished, carry on with normal behaviour" ) 
-    (return (ao, Just mainHandler))
+  --DBG.trace ("Agent " ++ show myId ++ ": no more neighbours, mating finished, carry on with normal behaviour" ) 
+  (return (ao, Just mainHandler))
 mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
     -- check fertility again because might not be fertile because of previous matings
     ifThenElseM
@@ -95,14 +96,14 @@ mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
             ao       <- agentOutObservableM
 
             return $ 
-              DBG.trace ("Agent " ++ show myId ++ ": sending (MatingRequest " ++ show myGender ++ ") to agent " ++ show matingPartnerId) 
+              --DBG.trace ("Agent " ++ show myId ++ ": sending (MatingRequest " ++ show myGender ++ ") to agent " ++ show matingPartnerId) 
                     (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
       (do
         -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
         ao <- finalizeAction 
         -- need to switch back into the main handler
-        DBG.trace ("Agent " ++ show myId ++ ": not fertile, mating finished, carry on with normal behaviour" ) 
-          (return (ao, Just mainHandler)))
+        --DBG.trace ("Agent " ++ show myId ++ ": not fertile, mating finished, carry on with normal behaviour" ) 
+        (return (ao, Just mainHandler)))
 
 matingHandler :: RandomGen g
               => SugarScapeParams
@@ -122,7 +123,7 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
           (DomainEvent (sender, MatingContinue)) -> 
             if sender /= myId 
               then returnA -< error $ "Agent " ++ show myId ++ ": received MatingContinue not from self, terminating!"
-              else DBG.trace ("Agent " ++ show myId ++ ": received MatingContinue from self, carry on with mating")
+              else --DBG.trace ("Agent " ++ show myId ++ ": received MatingContinue from self, carry on with mating")
                     arrM_ (mateWith params myId amsf0 mainHandler0 finalizeAction0 ns) -< ()
           _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
   where
@@ -133,11 +134,11 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                       -> AgentId
                       -> Maybe (Double, Int, Int)
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply amsf mainHandler finalizeAction sender Nothing =  -- the sender refuse the mating-request
-      DBG.trace ("Agent " ++ show myId ++ ": agent " ++ show sender ++ " refuses mating-reply, check next neighbour")
+    handleMatingReply amsf mainHandler finalizeAction _ Nothing =  -- the sender refuse the mating-request
+      --DBG.trace ("Agent " ++ show myId ++ ": agent " ++ show sender ++ " refuses mating-reply, check next neighbour")
         -- continue with next neighbour
-          (mateWith params myId amsf mainHandler finalizeAction ns)
-    handleMatingReply amsf mainHandler finalizeAction sender acc@(Just (otherSugShare, otherMetab, otherVision)) = do -- the sender accepts the mating-request
+      (mateWith params myId amsf mainHandler finalizeAction ns)
+    handleMatingReply amsf _ _ sender _acc@(Just (otherSugShare, otherMetab, otherVision)) = do -- the sender accepts the mating-request
       mySugLvl <- agentProperty sugAgSugarLevel
       myMetab  <- agentProperty sugAgSugarMetab
       myVision <- agentProperty sugAgVision
@@ -151,9 +152,10 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                                      , sugAgSugarMetab = childMetab
                                      , sugAgVision     = childVision }
 
-      childId                 <- DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show acc ++ ") from agent " ++ show sender) (lift nextAgentId)
+      childId                 <- --DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show acc ++ ") from agent " ++ show sender) 
+                                  (lift nextAgentId)
       (childCoord, childSite) <- lift $ lift $ lift $ randomElemM freeSites
-      -- TODO: update new-born state with its genes and initial endowment
+      -- update new-born state with its genes and initial endowment
       (childDef, childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
 
       -- child occupies the site immediately to prevent others from occupying it
@@ -164,10 +166,10 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
       -- mating-partner => agent sends to itself a MatingContinue event
       ao0 <- liftM (newAgent childDef) agentOutObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      let ao'  = DBG.trace ("Agent " ++ show myId ++ ": sending (MatingTx " ++ show childId ++ ") to agent " ++ show sender)
+      let ao'  = --DBG.trace ("Agent " ++ show myId ++ ": sending (MatingTx " ++ show childId ++ ") to agent " ++ show sender)
                   sendEventTo sender (MatingTx childId) ao0
       -- THEN continue with mating-requests to the remaining neighbours
-      let ao'' = DBG.trace ("Agent " ++ show myId ++ ": sending MatingContinue to agent " ++ show myId ++ " (myself)")
+      let ao'' = --DBG.trace ("Agent " ++ show myId ++ ": sending MatingContinue to agent " ++ show myId ++ " (myself)")
                   sendEventTo myId MatingContinue ao'
 
       return (ao'', Nothing)
@@ -203,7 +205,7 @@ handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
                     -> AgentId
                     -> AgentGender
                     -> m (SugAgentOut g)
-handleMatingRequest myId sender otherGender = do
+handleMatingRequest _myId sender otherGender = do
   accept <- acceptMatingRequest otherGender
   ao     <- agentOutObservableM
 
@@ -216,24 +218,24 @@ handleMatingRequest myId sender otherGender = do
       then Just (sugLvl / 2, metab, vision)
       else Nothing
 
-  DBG.trace ("Agent " ++ show myId ++ 
-         ": incoming (MatingRequest " ++ show otherGender ++ 
-         ") from agent " ++ show sender ++ 
-         ", will reply with MatingReply " ++ show accept ++ "!") 
-    (return $ sendEventTo sender (MatingReply acc) ao)
+  --DBG.trace ("Agent " ++ show myId ++ 
+  --       ": incoming (MatingRequest " ++ show otherGender ++ 
+  --       ") from agent " ++ show sender ++ 
+  --       ", will reply with MatingReply " ++ show accept ++ "!") 
+  (return $ sendEventTo sender (MatingReply acc) ao)
 
 handleMatingTx :: (RandomGen g, MonadState SugAgentState m)
                => AgentId
                -> AgentId
                -> AgentId
                -> m (SugAgentOut g)
-handleMatingTx myId sender childId = do
+handleMatingTx _myId _sender _childId = do
   sugLvl <- agentProperty sugAgSugarLevel
   -- subtract 50% wealth, each parent provides 50% of its wealth to the child
   updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2 })
 
   ao <- agentOutObservableM
-  DBG.trace ("Agent " ++ show myId ++ 
-         ": incoming (MatinTx " ++ show childId ++ 
-         ") from agent " ++ show sender) 
-    return ao
+  --DBG.trace ("Agent " ++ show myId ++ 
+  --       ": incoming (MatinTx " ++ show childId ++ 
+  --       ") from agent " ++ show sender) 
+  return ao

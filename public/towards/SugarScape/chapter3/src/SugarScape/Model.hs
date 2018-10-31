@@ -48,6 +48,7 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Interface
+import SugarScape.Common
 import SugarScape.Discrete
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -174,12 +175,12 @@ sugarEnvSpec =
   ]
 
 data AgentAgeSpan      = Forever 
-                       | Range Int Int deriving (Show, Eq)
+                       | Range Time Time deriving (Show, Eq)
 data AgentDistribution = Scatter 
                        | Corner Discrete2dCoord deriving (Show, Eq)
 data SugarRegrow       = Immediate 
                        | Rate Double 
-                       | Season Double Double Int deriving (Show, Eq)
+                       | Season Double Double Time deriving (Show, Eq)
 data PolutionFormation = NoPolution 
                        | Polute Double Double deriving (Show, Eq)
 

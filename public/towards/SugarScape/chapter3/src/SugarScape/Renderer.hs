@@ -6,10 +6,10 @@ module SugarScape.Renderer
   , renderSugarScapeFrame
   ) where
 
-import FRP.BearRiver
 import Graphics.Gloss as GLO
 
 import SugarScape.Agent.Interface
+import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Simulation
@@ -57,7 +57,7 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     halfWSizeY = fromIntegral wy / 2.0 
 
 renderEnvSite :: SiteVis -> SugEnvironmentRenderer
-renderEnvSite Sugar r@(rw, rh) w _t (coord, site) = sugLvlCircle
+renderEnvSite Sugar r@(rw, _rh) w _t (coord, site) = sugLvlCircle
   where
     sugarColor   = GLO.makeColor 0.9 0.9 0.0 1.0
     (x, y)       = transformToWindow r w coord

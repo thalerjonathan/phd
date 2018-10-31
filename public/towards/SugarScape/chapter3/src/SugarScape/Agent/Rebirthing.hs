@@ -8,6 +8,7 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
+import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Utils

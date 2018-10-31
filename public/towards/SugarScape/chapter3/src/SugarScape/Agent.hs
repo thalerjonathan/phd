@@ -20,7 +20,7 @@ import SugarScape.Agent.Utils
 import SugarScape.Model
 import SugarScape.Utils
 
-import Debug.Trace as DBG
+--import Debug.Trace as DBG
 
 ------------------------------------------------------------------------------------------------------------------------
 agentMsf :: RandomGen g => SugarScapeAgent g
@@ -61,7 +61,8 @@ handleTimeStep :: RandomGen g
                -> AgentId
                -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 handleTimeStep params myId = do
-  DBG.trace ("Agent " ++ show myId ++ ": handleTimeStep") agentAgeing
+  --DBG.trace ("Agent " ++ show myId ++ ": handleTimeStep") 
+  agentAgeing
   
   harvestAmount <- agentMove params myId
   metabAmount   <- agentMetabolism
@@ -85,34 +86,11 @@ agentFinalize :: RandomGen g
               -> Double
               -> Int
               -> AgentAction g (SugAgentOut g)
-agentFinalize params myId harvestAmount metabAmount = do
-  DBG.trace ("Agent " ++ show myId ++ ": finalizing") (agentPolute params harvestAmount (fromIntegral metabAmount))
+agentFinalize params _myId harvestAmount metabAmount = do
+  --DBG.trace ("Agent " ++ show myId ++ ": finalizing") 
+  (agentPolute params harvestAmount (fromIntegral metabAmount))
 
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (agentDies params agentMsf)
     agentOutObservableM
-
-{-
-switchTest :: RandomGen g 
-           => SugarScapeParams
-           -> AgentId 
-           -> MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
-switchTest params myId = proc evt -> 
-  switch 
-    (proc evt -> do
-      ao <- arrM_ agentOutObservableM -< ()
-      DBG.trace "switching now in switchTest" returnA -< (ao, Just ()))
-    (const (switchTest' params myId)) -< evt
-
-switchTest' :: RandomGen g 
-            => SugarScapeParams
-            -> AgentId 
-            -> MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
-switchTest' params myId = proc evt -> 
-  switch 
-    (proc evt -> do
-      ao <- arrM_ agentOutObservableM -< ()
-      DBG.trace "switching now in switchTest'" returnA -< (ao, Just ()))
-    (const (switchTest params myId)) -< evt
-    -}

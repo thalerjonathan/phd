@@ -55,7 +55,6 @@ sugObservableFromState s = SugAgentObservable
   , sugObsGender   = sugAgGender s
   }
 
-
 bestSiteFunc :: SugarScapeParams -> BestSiteMeasureFunc
 bestSiteFunc params
     | diffusionActive = bestSugarPolutionRatio
@@ -132,7 +131,7 @@ randomAgent :: RandomGen g
             -> SugarScapeAgent g
             -> (SugAgentState -> SugAgentState)
             -> Rand g (SugAgentDef g, SugAgentState)
-randomAgent params (agentId, coord) beh sup = do
+randomAgent params (agentId, coord) asf f = do
   randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
   randVision         <- getRandomR $ spVisionRange params
   randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
@@ -153,10 +152,10 @@ randomAgent params (agentId, coord) beh sup = do
   , sugAgInitSugEndow = initSugar
   }
 
-  let s'   = sup s
+  let s'   = f s
       adef = AgentDef {
     adId      = agentId
-  , adSf      = beh params agentId s'
+  , adSf      = asf params agentId s'
   , adInitObs = sugObservableFromState s'
   }
 

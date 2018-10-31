@@ -77,7 +77,7 @@ mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
     ifThenElseM
       isAgentFertile
       (do
-        myCoord         <- agentProperty sugAgCoord
+        myCoord <- agentProperty sugAgCoord
         -- always query again bcs might have changed since previous iteration
         mySites        <- lift $ lift $ neighboursM myCoord False
         neighbourSites <- lift $ lift $ neighboursM coord False

@@ -35,4 +35,7 @@ Cycles of population sizes not able to reproduce at first. Then we realised that
 Although our bug was probably quite obvious, the lack of specification of the order of the application of the rules is an issue in the SugarScape book. TODO: does it really have that much of an influence?
 
 \subsection{Inheritance}
-Gini Coefficient didn't reach 0.7 and seems to arrive 0.4 
+We couldnt replicate the findings of the Sugarscape Book regarding the gini Coefficient with inheritance. The authors report that they reach a gini coefficient of 0.7 and above in Animation III-4. Our gini coefficient fluctuated around 0.35. Compared to the same configuration but without inheritance - Animation III-1 - which reached a gini coefficient of about 0.21, this is indeed a substantial increase - also with inheritance we reach a larger number of agents of around 1000 as compared to around 300 without inheritance.
+The sugarscape book compares this to chapter II Animation II-4 for which they report a gini coefficient of around 0.5 which we could reproduce as well. TODO: why is it then lower (lower inequality) with inheritance?
+
+The baseline is that this shows that inheritance indeed has an influence on the inequality in a population. Thus we deemed that our results are qualitatively the same as the make the same point. Still there must be some mechanisms going on behind the scenes which are unspecified in the original sugarscape.

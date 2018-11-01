@@ -10,6 +10,7 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
 import SugarScape.Agent.Common
+import SugarScape.Agent.Culture
 import SugarScape.Agent.Dying
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Mating
@@ -39,7 +40,7 @@ generalEventHandler :: RandomGen g
                     -> AgentId 
                     -> EventHandler g
 generalEventHandler params myId =
-  -- switching the top event handler to a new one
+  -- optionally switching the top event handler 
   continueWithAfter 
     (proc evt -> 
       case evt of 
@@ -53,6 +54,9 @@ generalEventHandler params myId =
           returnA -< (ao, Nothing)
         (DomainEvent (sender, Inherit share)) -> do
           ao <- arrM (uncurry (handleInheritance myId)) -< (sender, share)
+          returnA -< (ao, Nothing)
+        (DomainEvent (sender, CulturalProcess tag)) -> do
+          ao <- arrM (uncurry (handleCulturalProcess myId)) -< (sender, tag)
           returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
@@ -95,6 +99,10 @@ agentContAfterMating :: RandomGen g
                      => SugarScapeParams
                      -> AgentId
                      -> AgentAction g (SugAgentOut g)
-agentContAfterMating _params _myId = do
+agentContAfterMating params myId = do
   --DBG.trace ("Agent " ++ show myId ++ ": agentContAfterMating") 
-  agentOutObservableM
+  -- NOTE: perform cultural process here, does not matter if it is before or after mating (or is this wrong?)
+  mao <- agentCultureProcess params myId
+  case mao of
+    Nothing -> agentOutObservableM
+    Just ao -> return ao

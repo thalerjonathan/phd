@@ -3,6 +3,8 @@ module SugarScape.Utils
   , ifThenElseM
   , orM
   , andM
+
+  , flipBoolAtIdx
   ) where
 
 import Control.Monad
@@ -37,3 +39,11 @@ andM :: Monad m
      -> m Bool
      -> m Bool
 andM = liftM2 (&&) 
+
+flipBoolAtIdx :: Int -> [Bool] -> [Bool]
+flipBoolAtIdx idx bs = front ++ (flippedElem : backNoElem)
+  where
+    (front, back) = splitAt idx bs  -- NOTE: back includes the element with the index
+    elemAtIdx     = bs !! idx
+    flippedElem   = not elemAtIdx
+    backNoElem    = tail back

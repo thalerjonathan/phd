@@ -97,7 +97,7 @@ initRandomSite :: [(Discrete2dCoord, (AgentId, SugAgentState))]
 initRandomSite os (coord, sugar) = (coord, c)
   where
     mayOccupier = Data.List.find ((==coord) . fst) os
-    occ         = maybe Nothing (\(_, (aid, _)) -> (Just (siteOccupier aid))) mayOccupier
+    occ         = maybe Nothing (\(_, (aid, _)) -> (Just (occupier aid))) mayOccupier
 
     c = SugEnvSite {
       sugEnvSiteSugarCapacity = fromIntegral sugar

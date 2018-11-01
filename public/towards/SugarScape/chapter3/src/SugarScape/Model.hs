@@ -1,5 +1,7 @@
 module SugarScape.Model 
   ( AgentGender (..)
+  , CultureTag
+  
   , SugAgentState (..)
   , SugAgentObservable (..)
 
@@ -46,6 +48,7 @@ module SugarScape.Model
   , mkParamsFigureIII_4
   , mkParamsFigureIII_7
   , mkParamsAnimationIII_4
+  , mkParamsAnimationIII_6
   ) where
 
 import Control.Monad.Random
@@ -59,40 +62,42 @@ import SugarScape.Discrete
 -- AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data AgentGender = Male | Female deriving (Show, Eq)
+type CultureTag  = [Bool]
 
 data SugAgentState = SugAgentState 
-  { sugAgCoord        :: Discrete2dCoord
-  , sugAgSugarMetab   :: Int               -- integer because discrete, otherwise no exact replication possible
-  , sugAgVision       :: Int
-  , sugAgSugarLevel   :: Double            -- floating point because regrow-rate can be set to floating point values
-  , sugAgAge          :: Int
-  , sugAgMaxAge       :: Maybe Int
+  { sugAgCoord        :: !Discrete2dCoord
+  , sugAgSugarMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
+  , sugAgVision       :: !Int
+  , sugAgSugarLevel   :: !Double            -- floating point because regrow-rate can be set to floating point values
+  , sugAgAge          :: !Int
+  , sugAgMaxAge       :: !(Maybe Int)
   -- Chapter III properties
-  , sugAgGender       :: AgentGender
-  , sugAgFertAgeRange :: (Int, Int)        -- from, to
-  , sugAgInitSugEndow :: Double
-  , sugAgChildren     :: [AgentId]         -- list of all children the agent has given birth to (together with another agent of opposing sex)
+  , sugAgGender       :: !AgentGender
+  , sugAgFertAgeRange :: !(Int, Int)        -- from, to
+  , sugAgInitSugEndow :: !Double
+  , sugAgChildren     :: ![AgentId]         -- list of all children the agent has given birth to (together with another agent of opposing sex)
+  , sugAgCultureTag   :: !CultureTag
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
-  { sugObsCoord    :: Discrete2dCoord
-  , sugObsVision   :: Int
-  , sugObsAge      :: Int
-  , sugObsSugLvl   :: Double
-  , sugObsSugMetab :: Int
+  { sugObsCoord    :: !Discrete2dCoord
+  , sugObsVision   :: !Int
+  , sugObsAge      :: !Int
+  , sugObsSugLvl   :: !Double
+  , sugObsSugMetab :: !Int
   -- Chapter III properties
-  , sugObsGender   :: AgentGender
+  , sugObsGender   :: !AgentGender
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
-  { sugEnvOccId     :: AgentId
+  { sugEnvOccId     :: !AgentId
   } deriving (Show, Eq)
 
 data SugEnvSite = SugEnvSite 
-  { sugEnvSiteSugarCapacity :: Double
-  , sugEnvSiteSugarLevel    :: Double
-  , sugEnvSitePolutionLevel :: Double
-  , sugEnvSiteOccupier      :: Maybe SugEnvSiteOccupier
+  { sugEnvSiteSugarCapacity :: !Double
+  , sugEnvSiteSugarLevel    :: !Double
+  , sugEnvSitePolutionLevel :: !Double
+  , sugEnvSiteOccupier      :: !(Maybe SugEnvSiteOccupier)
   } deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
@@ -101,6 +106,8 @@ data SugEvent = MatingRequest AgentGender
               | MatingContinue
 
               | Inherit Double 
+
+              | CulturalProcess CultureTag
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite
@@ -202,6 +209,7 @@ data SugarScapeParams = SugarScapeParams
   , spAgeSpan              :: AgentAgeSpan
   , spPolutionFormation    :: PolutionFormation
   , spPolutionDiffusion    :: Maybe Int
+  
   -- Chapter III params
   , spSexRuleActive        :: Bool
   , spGenderRatio          :: Double        -- percentage of female agents in population
@@ -209,7 +217,10 @@ data SugarScapeParams = SugarScapeParams
   , spFertStartRangeMen    :: (Int, Int)
   , spFertEndRangeWoman    :: (Int, Int)
   , spFertEndRangeMen      :: (Int, Int)
+  
   , spInheritance          :: Bool           -- inheritance rule I on / off
+  
+  , spCulturalProcess      :: Maybe Int      -- cultural process rule K on / off, with culture tag of given length
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -231,6 +242,7 @@ mkSugarScapeParams = SugarScapeParams {
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -256,6 +268,7 @@ mkParamsAnimationII_1 = SugarScapeParams {
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 -- terracing phenomenon as described on page 28
 mkParamsTerracing :: SugarScapeParams 
@@ -281,6 +294,7 @@ mkParamsAnimationII_2 = SugarScapeParams {
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)  
   , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 -- carrying capacity property as described on page 30
 mkParamsCarryingCapacity :: SugarScapeParams
@@ -305,7 +319,8 @@ mkParamsAnimationII_3 = SugarScapeParams {
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)
-  , spInheritance          = False  
+  , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
@@ -334,6 +349,7 @@ mkParamsAnimationII_6 = SugarScapeParams {
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0) 
   , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
@@ -355,7 +371,8 @@ mkParamsAnimationII_7 = SugarScapeParams {
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)
-  , spInheritance          = False  
+  , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 
 -- Polution as described on page 45 to 50 in Animation II-8
@@ -377,7 +394,8 @@ mkParamsAnimationII_8 = SugarScapeParams {
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)
-  , spInheritance          = False 
+  , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -404,6 +422,7 @@ mkParamsAnimationIII_1 = SugarScapeParams {
   , spFertEndRangeWoman    = (40, 50)
   , spFertEndRangeMen      = (50, 60)
   , spInheritance          = False
+  , spCulturalProcess      = Nothing
   }
 
 -- page 64, same as mkParamsAnimationIII_1 but with changed fertiliy ranges
@@ -427,3 +446,8 @@ mkParamsFigureIII_7 = mkParamsAnimationIII_1 {
 
 mkParamsAnimationIII_4 :: SugarScapeParams
 mkParamsAnimationIII_4 = mkParamsFigureIII_7
+
+mkParamsAnimationIII_6 :: SugarScapeParams
+mkParamsAnimationIII_6 = mkParamsAnimationII_2 {
+    spCulturalProcess      = Just 10
+  }

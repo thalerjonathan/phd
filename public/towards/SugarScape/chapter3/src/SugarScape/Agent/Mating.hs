@@ -163,7 +163,7 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                                 , sugAgChildren   = childId : sugAgChildren s })
 
       -- child occupies the site immediately to prevent others from occupying it
-      let childSite' = childSite { sugEnvSiteOccupier = Just (siteOccupier childId) }
+      let childSite' = childSite { sugEnvSiteOccupier = Just (occupier childId) }
       lift $ lift $ changeCellAtM childCoord childSite' 
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 

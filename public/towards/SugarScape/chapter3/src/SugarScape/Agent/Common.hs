@@ -13,6 +13,7 @@ module SugarScape.Agent.Common
 
   , unoccupiedNeighbourhoodOfNeighbours
 
+  , occupier
   , siteOccupier
   , siteUnoccupied
   , siteOccupied
@@ -100,10 +101,13 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
-siteOccupier :: AgentId -> SugEnvSiteOccupier
-siteOccupier aid = SugEnvSiteOccupier 
-  { sugEnvOccId = aid
+occupier :: AgentId -> SugEnvSiteOccupier
+occupier aid = SugEnvSiteOccupier { 
+    sugEnvOccId = aid
   }
+
+siteOccupier :: SugEnvSite -> AgentId
+siteOccupier site = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site
 
 siteOccupied :: SugEnvSite -> Bool
 siteOccupied = isJust . sugEnvSiteOccupier
@@ -138,6 +142,7 @@ randomAgent params (agentId, coord) asf f = do
   ageSpan            <- randomAgentAge $ spAgeSpan params
   randGender         <- randomGender $ spGenderRatio params
   randFertAgeRange   <- randomFertilityRange params randGender
+  randCultureTag     <- randomCultureTag params
 
   let initSugar = fromIntegral randSugarEndowment
       s = SugAgentState {
@@ -151,6 +156,7 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgFertAgeRange = randFertAgeRange
   , sugAgInitSugEndow = initSugar
   , sugAgChildren     = []
+  , sugAgCultureTag   = randCultureTag
   }
 
   let s'   = f s
@@ -161,6 +167,16 @@ randomAgent params (agentId, coord) asf f = do
   }
 
   return (adef, s')
+
+randomCultureTag :: RandomGen g
+                 => SugarScapeParams
+                 -> Rand g CultureTag
+randomCultureTag params = 
+  case spCulturalProcess params of 
+    Nothing -> return []
+    Just n  -> do
+      rs <- getRandoms
+      return $ take n rs
 
 randomGender :: RandomGen g
              => Double

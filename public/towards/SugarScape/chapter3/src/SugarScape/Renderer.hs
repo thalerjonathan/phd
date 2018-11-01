@@ -15,10 +15,12 @@ import SugarScape.Model
 import SugarScape.Simulation
 
 data AgentVis = Default 
-              | Gender deriving (Eq, Show)
+              | Gender 
+              deriving (Eq, Show)
 
 data SiteVis = Sugar 
-             | Polution deriving (Eq, Show)
+             | Polution 
+             deriving (Eq, Show)
 
 type SugEnvironmentRenderer = EnvRendererDisc2d SugEnvSite
 type SugarScapeAgentRenderer = AgentRendererDisc2d SugAgentObservable

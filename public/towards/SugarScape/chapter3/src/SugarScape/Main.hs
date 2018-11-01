@@ -13,12 +13,14 @@ data Output = Pure Time
             | Export Time
             | Visual Int AgentVis SiteVis deriving (Eq, Show)
 
+-- TODO: leaking memory again... (
+
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let sugParams = mkParamsAnimationII_4   -- mkParamsFigureIII_4 mkParamsFigureIII_3 mkParamsAnimationIII_1 mkParamsAnimationII_8 mkParamsAnimationII_7 mkAnimationII_6 mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_3 mkParamsAnimationII_2 mkParamsAnimationII_1 
-      output    = Export 1000 -- Export 1000 -- Visual 0 Gender Sugar -- Export 1500
+  let sugParams = mkParamsAnimationIII_6   -- mkParamsFigureIII_4 mkParamsFigureIII_3 mkParamsAnimationIII_1 mkParamsAnimationII_8 mkParamsAnimationII_7 mkAnimationII_6 mkParamsWealthDistr mkParamsCarryingCapacity mkParamsAnimationII_3 mkParamsAnimationII_2 mkParamsAnimationII_1 
+      output    = Visual 0 Gender Sugar -- Export 1000 -- Visual 0 Gender Sugar -- Export 1500
       rngSeed   = Nothing               -- Just 42
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams

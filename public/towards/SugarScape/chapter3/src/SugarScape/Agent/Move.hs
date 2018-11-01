@@ -55,7 +55,7 @@ agentMoveTo aid cellCoord = do
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
   cell <- lift $ lift $ cellAtM cellCoord
-  let co = cell { sugEnvSiteOccupier = Just (siteOccupier aid) }
+  let co = cell { sugEnvSiteOccupier = Just (occupier aid) }
   lift $ lift $ changeCellAtM cellCoord co 
 
 agentHarvestCell :: RandomGen g

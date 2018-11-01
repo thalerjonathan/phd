@@ -8,37 +8,35 @@ module Runner
   ) where
 
 import Control.Monad.Random
-import Control.Monad.Reader
 import Control.Monad.State.Strict
 
-import FRP.BearRiver
-
-import SugarScape.AgentMonad
+import SugarScape.Agent.Interface
+import SugarScape.Common
 import SugarScape.Environment
 import SugarScape.Model
 import SugarScape.Simulation
 
 runAgentSFTimeSteps :: RandomGen g
                     => Int
-                    -> SugAgent g
+                    -> SugAgentMSF g
                     -> ABSState
                     -> SugEnvironment
                     -> g
-                    -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
+                    -> ([(SugAgentOut g, SugEnvironment)], SugAgentMSF g, ABSState, g)
 runAgentSFTimeSteps steps = runAgentSFTimeStepsAux steps []
   where 
     runAgentSFTimeStepsAux :: RandomGen g
                            => Int
                            -> [(SugAgentOut g, SugEnvironment)]
-                           -> SugAgent g
+                           -> SugAgentMSF g
                            -> ABSState
                            -> SugEnvironment
                            -> g
-                           -> ([(SugAgentOut g, SugEnvironment)], SugAgent g, ABSState, g)
-    runAgentSFTimeStepsAux 0 acc sf absState env g = (reverse acc, sf, absState, g)
+                           -> ([(SugAgentOut g, SugEnvironment)], SugAgentMSF g, ABSState, g)
+    runAgentSFTimeStepsAux 0 acc sf absState _ g = (reverse acc, sf, absState, g)
     runAgentSFTimeStepsAux n acc sf absState env g = runAgentSFTimeStepsAux (n - 1) acc' sf' absState' env' g'
       where
-        (out, sf', absState', env', g') = runAgentSF sf TimeStep sugarScapeTimeDelta absState env g
+        (out, sf', absState', env', g') = runAgentSF sf TimeStep absState env g
         acc' = (out, env') : acc
 
 -- runs a computation of the agent monad and discharges all context except return value of computation
@@ -69,11 +67,12 @@ runAgentMonad f as0 absState0 env0 g0
     fRand     = runStateT fEnvState env0
     ((((ret, as'), absState'), env'), g') = runRand fRand g0
 
-runSugEnvSteps :: Int 
+runSugEnvSteps :: Int
+               -> Time
                -> SugEnvironment
-               -> SugEnvironmentSF
-               -> (SugEnvironment, SugEnvironmentSF)
-runSugEnvSteps 0 env envSf = (env, envSf)
-runSugEnvSteps n env envSf = runSugEnvSteps (n - 1) env' envSf'
+               -> SugEnvBehaviour
+               -> SugEnvironment
+runSugEnvSteps 0 _ env _ = env
+runSugEnvSteps n t env eb = runSugEnvSteps (n - 1) (t + 1) env' eb
   where
-    (env', envSf') = runEnvSF env envSf
+    env' = eb t env -- ignoring 

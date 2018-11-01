@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Agent.Rebirthing 
+module SugarScape.Agent.Dying 
   ( agentDies
   , handleInheritance
   ) where
@@ -49,7 +49,7 @@ birthNewAgent params asf ao
 
     return $ newAgent newA ao
   where
-    -- the more cells occupied the less likely an unoccupied position will be found
+    -- TODO: the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position
     findUnoccpiedRandomPosition :: RandomGen g
                                 => AgentAction g (Discrete2dCoord, SugEnvSite)

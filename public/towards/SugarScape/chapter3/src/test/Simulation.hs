@@ -2,27 +2,21 @@ module Simulation
   ( simTests
   ) where
 
-import Control.Monad.Random
-import Control.Parallel.Strategies
 import Data.List
 import Data.Maybe
 
+import Control.Monad.Random
+import Control.Parallel.Strategies
 import Test.Tasty
 import Test.Tasty.HUnit      as Unit
-import Test.Tasty.QuickCheck as QC
 
-import SugarScape.Agent
-import SugarScape.AgentMonad
 import SugarScape.Discrete
-import SugarScape.Environment
-import SugarScape.Init
 import SugarScape.Model
 import SugarScape.Random
 import SugarScape.Simulation
-
 -- need this import for Arbitrary instance of SugEnvironment but Haskell thinks its unused => turn off unused import :(
-import Agent
-import Environment
+-- import Agent
+-- import Environment
 import StatsUtils
 
 import Debug.Trace
@@ -32,9 +26,9 @@ simTests :: RandomGen g
          -> TestTree 
 simTests g = testGroup 
               "Simulation Tests" 
-              [ --Unit.testCase "Terracing" $ prop_terracing g,
-              -- Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
-               Unit.testCase "Wealth Distribution" $ prop_wealth_dist g ]
+              [ Unit.testCase "Terracing" $ prop_terracing g,
+                Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
+                Unit.testCase "Wealth Distribution" $ prop_wealth_dist g ]
 
 prop_terracing :: RandomGen g => g -> IO ()
 prop_terracing g0 = assertBool 

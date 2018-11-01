@@ -10,12 +10,12 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
 import SugarScape.Agent.Common
+import SugarScape.Agent.Dying
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Mating
 import SugarScape.Agent.Metabolism
 import SugarScape.Agent.Move
 import SugarScape.Agent.Polution
-import SugarScape.Agent.Rebirthing
 import SugarScape.Agent.Utils
 import SugarScape.Model
 import SugarScape.Utils

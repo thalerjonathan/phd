@@ -3,18 +3,16 @@ module Agent
   ) where
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 import Data.Maybe
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import SugarScape.Agent
-import SugarScape.AgentMonad
+import SugarScape.Agent.Ageing
+import SugarScape.Agent.Metabolism 
+import SugarScape.Common
 import SugarScape.Discrete
-import SugarScape.Environment
 import SugarScape.Model
-import SugarScape.Simulation
 
 import Runner
 
@@ -36,6 +34,7 @@ instance Arbitrary SugAgentState where
     , sugAgGender       = Male
     , sugAgFertAgeRange = (0, 0)
     , sugAgInitSugEndow = randSugarEndowment
+    , sugAgChildren     = []
     }
 
 agentTests :: RandomGen g 

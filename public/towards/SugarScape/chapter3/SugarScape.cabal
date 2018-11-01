@@ -53,12 +53,12 @@ executable sugarscape
   other-modules:  SugarScape.Agent
                 , SugarScape.Agent.Ageing
                 , SugarScape.Agent.Common
+                , SugarScape.Agent.Dying                
                 , SugarScape.Agent.Interface
                 , SugarScape.Agent.Mating
                 , SugarScape.Agent.Metabolism
                 , SugarScape.Agent.Move
                 , SugarScape.Agent.Polution
-                , SugarScape.Agent.Rebirthing
                 , SugarScape.Agent.Utils
                 , SugarScape.Common 
                 , SugarScape.Discrete
@@ -114,8 +114,16 @@ Test-Suite sugarscape-test
                       , Runner
                       
                       , SugarScape.Agent
-                      , SugarScape.AgentMonad
-                      , SugarScape.Common
+                      , SugarScape.Agent.Ageing
+                      , SugarScape.Agent.Common
+                      , SugarScape.Agent.Dying                
+                      , SugarScape.Agent.Interface
+                      , SugarScape.Agent.Mating
+                      , SugarScape.Agent.Metabolism
+                      , SugarScape.Agent.Move
+                      , SugarScape.Agent.Polution
+                      , SugarScape.Agent.Utils
+                      , SugarScape.Common 
                       , SugarScape.Discrete
                       , SugarScape.Environment
                       , SugarScape.Init
@@ -131,8 +139,8 @@ Test-Suite sugarscape-test
 
   build-depends:        base
                       , array
-                      , bearriver
                       , containers
+                      , dunai
                       , mtl
                       , MonadRandom
                       , parallel
@@ -149,8 +157,5 @@ Test-Suite sugarscape-test
                       -Werror 
                       -threaded -with-rtsopts=-N
                       -fwarn-tabs 
-                      -fno-warn-unused-matches
                       -fno-warn-orphans
-                      -fno-warn-unused-top-binds
-                      -fno-warn-unused-imports
                       

@@ -11,7 +11,9 @@ module SugarScape.Simulation
   , simulationStep
 
   , mkSimState
+
   , simulateUntil
+  , simulateUntilLast
 
   , sugarScapeTimeDelta
 
@@ -104,6 +106,16 @@ simulateUntil tMax ss0 = simulateUntilAux ss0 []
       where
         (ss', so@(t, _, _, _)) = simulationStep ss
         acc' = so : acc
+
+simulateUntilLast :: RandomGen g
+                  => Time
+                  -> SimulationState g
+                  -> SimStepOut
+simulateUntilLast tMax ss
+    | t < tMax  = simulateUntilLast tMax ss'
+    | otherwise = so
+  where
+    (ss', so@(t, _, _, _)) = simulationStep ss
 
 simulationStep :: RandomGen g
                => SimulationState g

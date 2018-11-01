@@ -67,7 +67,7 @@ inheritance :: RandomGen g
             -> SugAgentOut g
             -> AgentAction g (SugAgentOut g)
 inheritance params _myId ao
-  | not $ spInheritance params = agentOutObservableM
+  | not $ spInheritance params = return ao
   | otherwise = do
     sugLvl   <- agentProperty sugAgSugarLevel
     children <- agentProperty sugAgChildren

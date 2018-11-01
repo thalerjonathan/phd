@@ -158,4 +158,4 @@ Test-Suite sugarscape-test
                       -threaded -with-rtsopts=-N
                       -fwarn-tabs 
                       -fno-warn-orphans
-                      
+                      -fno-warn-unused-top-binds

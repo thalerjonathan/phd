@@ -26,9 +26,19 @@ simTests :: RandomGen g
          -> TestTree 
 simTests g = testGroup 
               "Simulation Tests" 
-              [ Unit.testCase "Terracing" $ prop_terracing g,
-                Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
-                Unit.testCase "Wealth Distribution" $ prop_wealth_dist g ]
+              [ Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g
+              --  Unit.testCase "Terracing" $ prop_terracing g,
+              --  Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
+              --  Unit.testCase "Wealth Distribution" $ prop_wealth_dist g 
+              ]
+
+prop_inheritance_gini :: RandomGen g => g -> IO ()
+prop_inheritance_gini g0 = assertBool ("Gini Coefficient less than " ++ show expGini) $ gini >= expGini
+  where
+    steps        = 1000
+    expGini      = 0.7 :: Double
+    sugParams    = mkParamsFigureIII_7
+    (_, _, gini) = genPopulationWealthStats sugParams steps g0
 
 prop_terracing :: RandomGen g => g -> IO ()
 prop_terracing g0 = assertBool 
@@ -129,9 +139,6 @@ prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confid
         popSizeMean     = mean popSizes
         popSizeMedian   = median popSizes
 
-pass :: Maybe Bool -> Bool
-pass = fromMaybe False
-
 prop_wealth_dist :: RandomGen g => g -> IO ()
 prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less than " ++ show expSkew) $ pass tTestSkew && pass tTestKurt && pass tTestGini
   where
@@ -145,7 +152,7 @@ prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less tha
     (rngs, _) = rngSplits g0 runs
     sugParams = mkParamsWealthDistr
 
-    ret       = parMap rpar genPopulationWealthStats rngs
+    ret       = parMap rpar (genPopulationWealthStats sugParams steps) rngs
 
     (sks, ks, gs) = unzip3 ret
 
@@ -153,21 +160,22 @@ prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less tha
     tTestKurt     = tTest "kurtosis wealth distr" ks expKurt 0.05
     tTestGini     = tTest "gini wealth distr" gs expGini 0.05
 
-    genPopulationWealthStats :: RandomGen g 
-                             => g
-                             -> (Double, Double, Double)
-    genPopulationWealthStats g 
-        = trace ("skewness = " ++ show skew ++ ", kurtosis = " ++ show kurt ++ " gini = " ++ show gini) 
-            (skew, kurt, gini)
-      where
-        (simState, _)       = initSimulationRng g sugParams
-        sos                 = simulateUntil steps simState
-        (_, _, _, finalAos) = last sos
-        agentWealths        = map (sugObsSugLvl . snd) finalAos
+genPopulationWealthStats :: RandomGen g 
+                          => SugarScapeParams
+                          -> Int
+                          -> g
+                          -> (Double, Double, Double)
+genPopulationWealthStats params steps g 
+    = trace ("skewness = " ++ show skew ++ ", kurtosis = " ++ show kurt ++ " gini = " ++ show gini) 
+        (skew, kurt, gini)
+  where
+    (simState, _)  = initSimulationRng g params
+    (_, _, _, aos) = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    agentWealths   = map (sugObsSugLvl . snd) aos
 
-        skew = skewness agentWealths
-        kurt = kurtosis agentWealths
-        gini = giniCoeff agentWealths
+    skew = skewness agentWealths
+    kurt = kurtosis agentWealths
+    gini = giniCoeff agentWealths
 
 giniCoeff :: [Double]
           -> Double
@@ -177,3 +185,6 @@ giniCoeff xs = numer / denom
     
     numer = sum [abs (x_i - x_j) | x_i <- xs, x_j <- xs] 
     denom = 2 * n * sum xs
+
+pass :: Maybe Bool -> Bool
+pass = fromMaybe False

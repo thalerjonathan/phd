@@ -9,8 +9,11 @@ import qualified  Graphics.Gloss as GLO
 import            Graphics.Gloss.Interface.IO.Animate
 import            Graphics.Gloss.Interface.IO.Simulate
 
+import            SugarScape.Model
 import            SugarScape.Renderer
 import            SugarScape.Simulation
+
+import Debug.Trace
 
 runGloss :: RandomGen g
          => SimulationState g
@@ -79,4 +82,17 @@ renderStepAnimate winSize ssRef av cv _ = do
   let (ss', out) = simulationStep ss
   writeIORef ssRef ss'
 
-  modelToPicture winSize av cv out 
+  let (_, _, _, aos) = out
+      agentWealths   = map (sugObsSugLvl . snd) aos
+      gini           = giniCoeff agentWealths
+
+  trace ("Gini Coeff = " ++ show gini) (modelToPicture winSize av cv out )
+
+giniCoeff :: [Double]
+          -> Double
+giniCoeff xs = numer / denom
+  where
+    n = fromIntegral $ length xs
+    
+    numer = sum [abs (x_i - x_j) | x_i <- xs, x_j <- xs] 
+    denom = 2 * n * sum xs

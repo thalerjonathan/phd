@@ -150,6 +150,7 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgGender       = randGender
   , sugAgFertAgeRange = randFertAgeRange
   , sugAgInitSugEndow = initSugar
+  , sugAgChildren     = []
   }
 
   let s'   = f s

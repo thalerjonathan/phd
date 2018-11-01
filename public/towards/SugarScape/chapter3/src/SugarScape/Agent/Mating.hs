@@ -144,8 +144,6 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
       mySugLvl <- agentProperty sugAgSugarLevel
       myMetab  <- agentProperty sugAgSugarMetab
       myVision <- agentProperty sugAgVision
-      -- subtract 50% wealth, each parent provides 50% of its wealth to the child
-      updateAgentState (\s -> s { sugAgSugarLevel = mySugLvl / 2 })
 
       childMetab  <- lift $ lift $ lift $ randomElemM [myMetab, otherMetab]
       childVision <- lift $ lift $ lift $ randomElemM [myVision, otherVision]
@@ -159,6 +157,10 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
       (childCoord, childSite) <- lift $ lift $ lift $ randomElemM freeSites
       -- update new-born state with its genes and initial endowment
       (childDef, _childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
+
+      -- subtract 50% wealth, each parent provides 50% of its wealth to the child
+      updateAgentState (\s -> s { sugAgSugarLevel = mySugLvl / 2
+                                , sugAgChildren   = childId : sugAgChildren s })
 
       -- child occupies the site immediately to prevent others from occupying it
       let childSite' = childSite { sugEnvSiteOccupier = Just (siteOccupier childId) }
@@ -231,13 +233,13 @@ handleMatingTx :: (RandomGen g, MonadState SugAgentState m)
                -> AgentId
                -> AgentId
                -> m (SugAgentOut g)
-handleMatingTx _myId _sender _childId = do
+handleMatingTx _myId _sender childId = do
   sugLvl <- agentProperty sugAgSugarLevel
   -- subtract 50% wealth, each parent provides 50% of its wealth to the child
-  updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2 })
+  updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2
+                            , sugAgChildren   = childId : sugAgChildren s})
 
-  ao <- agentOutObservableM
   --DBG.trace ("Agent " ++ show myId ++ 
   --       ": incoming (MatinTx " ++ show childId ++ 
   --       ") from agent " ++ show sender) 
-  return ao
+  agentOutObservableM

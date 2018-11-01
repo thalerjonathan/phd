@@ -48,8 +48,8 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
 
     maxId = if null ss then 0 else maximum $ map fst ss
 
-    timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 0) $ GLO.scale 0.1 0.1 $ GLO.Text ("t = " ++ show t)
-    stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text ("steps = " ++ show steps)
+    timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) halfWSizeY $ GLO.scale 0.1 0.1 $ GLO.Text ("t = " ++ show t)
+    stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text ("event count = " ++ show steps)
     asCntTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 40) $ GLO.scale 0.1 0.1 $ GLO.Text ("number of agents = " ++ show (length ss))
     maxIdTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 60) $ GLO.scale 0.1 0.1 $ GLO.Text ("total agents created = " ++ show maxId)
 

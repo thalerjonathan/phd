@@ -15,11 +15,14 @@ module SugarScape.Agent.Interface
   , agentOut
   
   , sendEventTo
+  , broadcastEvent
 
   , isDead
   , kill
   , newAgent
   ) where
+
+import Data.Tuple
 
 import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
@@ -54,6 +57,16 @@ agentOut o = AgentOut
   , aoObservable = o
   , aoEvents     = []
   }
+
+broadcastEvent :: [AgentId]
+               -> e
+               -> AgentOut m e o
+               -> AgentOut m e o
+broadcastEvent rs e ao = ao'
+  where
+    es     = aoEvents ao
+    esSend = map (swap . (,) e) rs 
+    ao'    = ao { aoEvents = es ++ esSend } 
 
 sendEventTo :: AgentId
             -> e

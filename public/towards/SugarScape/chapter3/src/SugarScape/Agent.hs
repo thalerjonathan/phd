@@ -51,6 +51,9 @@ generalEventHandler params myId =
         (DomainEvent (sender, MatingTx childId)) -> do
           ao <- arrM (uncurry (handleMatingTx myId)) -< (sender, childId)
           returnA -< (ao, Nothing)
+        (DomainEvent (sender, Inherit share)) -> do
+          ao <- arrM (uncurry (handleInheritance myId)) -< (sender, share)
+          returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
@@ -72,7 +75,7 @@ handleTimeStep params myId = do
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (do
-      ao <- agentDies params agentMsf
+      ao <- agentDies params myId agentMsf
       return (ao, Nothing))
     (do 
       ret <- agentMating 

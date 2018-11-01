@@ -44,6 +44,8 @@ module SugarScape.Model
   , mkParamsAnimationIII_1
   , mkParamsFigureIII_3
   , mkParamsFigureIII_4
+  , mkParamsFigureIII_7
+  , mkParamsAnimationIII_4
   ) where
 
 import Control.Monad.Random
@@ -69,6 +71,7 @@ data SugAgentState = SugAgentState
   , sugAgGender       :: AgentGender
   , sugAgFertAgeRange :: (Int, Int)        -- from, to
   , sugAgInitSugEndow :: Double
+  , sugAgChildren     :: [AgentId]         -- list of all children the agent has given birth to (together with another agent of opposing sex)
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
@@ -96,7 +99,9 @@ data SugEvent = MatingRequest AgentGender
               | MatingReply (Maybe (Double, Int, Int)) -- in case of acceptance: Just share of sugar, metab, vision
               | MatingTx AgentId
               | MatingContinue
-                deriving (Show, Eq)
+
+              | Inherit Double 
+              deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite
 
@@ -204,6 +209,7 @@ data SugarScapeParams = SugarScapeParams
   , spFertStartRangeMen    :: (Int, Int)
   , spFertEndRangeWoman    :: (Int, Int)
   , spFertEndRangeMen      :: (Int, Int)
+  , spInheritance          :: Bool           -- inheritance rule I on / off
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -223,7 +229,8 @@ mkSugarScapeParams = SugarScapeParams {
   , spFertStartRangeWoman  = (0, 0)
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)  
+  , spFertEndRangeMen      = (0, 0)
+  , spInheritance          = False
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -247,7 +254,8 @@ mkParamsAnimationII_1 = SugarScapeParams {
   , spFertStartRangeWoman  = (0, 0)
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)  
+  , spFertEndRangeMen      = (0, 0)
+  , spInheritance          = False
   }
 -- terracing phenomenon as described on page 28
 mkParamsTerracing :: SugarScapeParams 
@@ -272,6 +280,7 @@ mkParamsAnimationII_2 = SugarScapeParams {
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
   , spFertEndRangeMen      = (0, 0)  
+  , spInheritance          = False
   }
 -- carrying capacity property as described on page 30
 mkParamsCarryingCapacity :: SugarScapeParams
@@ -295,7 +304,8 @@ mkParamsAnimationII_3 = SugarScapeParams {
   , spFertStartRangeWoman  = (0, 0)
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)   
+  , spFertEndRangeMen      = (0, 0)
+  , spInheritance          = False  
   }
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
@@ -322,7 +332,8 @@ mkParamsAnimationII_6 = SugarScapeParams {
   , spFertStartRangeWoman  = (0, 0)
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)  
+  , spFertEndRangeMen      = (0, 0) 
+  , spInheritance          = False
   }
 
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
@@ -343,7 +354,8 @@ mkParamsAnimationII_7 = SugarScapeParams {
   , spFertStartRangeWoman  = (0, 0)
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)   
+  , spFertEndRangeMen      = (0, 0)
+  , spInheritance          = False  
   }
 
 -- Polution as described on page 45 to 50 in Animation II-8
@@ -364,7 +376,8 @@ mkParamsAnimationII_8 = SugarScapeParams {
   , spFertStartRangeWoman  = (0, 0)
   , spFertStartRangeMen    = (0, 0)
   , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)   
+  , spFertEndRangeMen      = (0, 0)
+  , spInheritance          = False 
   }
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -390,6 +403,7 @@ mkParamsAnimationIII_1 = SugarScapeParams {
   , spFertStartRangeMen    = (12, 15)
   , spFertEndRangeWoman    = (40, 50)
   , spFertEndRangeMen      = (50, 60)
+  , spInheritance          = False
   }
 
 -- page 64, same as mkParamsAnimationIII_1 but with changed fertiliy ranges
@@ -404,3 +418,12 @@ mkParamsFigureIII_4 :: SugarScapeParams
 mkParamsFigureIII_4 = mkParamsAnimationIII_1 {
     spSugarEndowmentRange  = (10, 40)
   }
+
+-- Page 67, includes the inheritance rule
+mkParamsFigureIII_7 :: SugarScapeParams
+mkParamsFigureIII_7 = mkParamsAnimationIII_1 {
+    spInheritance = True                          -- same as first animation but with inheritance on
+  }
+
+mkParamsAnimationIII_4 :: SugarScapeParams
+mkParamsAnimationIII_4 = mkParamsFigureIII_7

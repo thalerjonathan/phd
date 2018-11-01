@@ -64,31 +64,34 @@ handleTimeStep params myId = do
   
   harvestAmount <- agentMove params myId
   metabAmount   <- agentMetabolism
+  agentPolute params harvestAmount (fromIntegral metabAmount)
 
-  ret <- agentMating 
-          params 
-          myId 
-          agentMsf
-          (generalEventHandler params myId) 
-          (agentFinalize params myId harvestAmount metabAmount)
-
-  case ret of
-    Nothing -> do
-      ao <- agentFinalize params myId harvestAmount metabAmount
-      return (ao, Nothing)
-    Just (ao, mhdl) -> return (ao, mhdl)
-
-agentFinalize :: RandomGen g 
-              => SugarScapeParams
-              -> AgentId
-              -> Double
-              -> Int
-              -> AgentAction g (SugAgentOut g)
-agentFinalize params _myId harvestAmount metabAmount = do
-  --DBG.trace ("Agent " ++ show myId ++ ": finalizing") 
-  (agentPolute params harvestAmount (fromIntegral metabAmount))
-
+  -- NOTE: ordering is important to replicate the dynamics
+  -- after having aged, moved and applied metabolism, the 
+  -- agent could have died already, thus not able to mate
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
-    (agentDies params agentMsf)
-    agentOutObservableM
+    (do
+      ao <- agentDies params agentMsf
+      return (ao, Nothing))
+    (do 
+      ret <- agentMating 
+              params 
+              myId 
+              agentMsf
+              (generalEventHandler params myId) 
+              (agentContAfterMating params myId)
+
+      case ret of
+        Nothing -> do
+          ao <- agentContAfterMating params myId
+          return (ao, Nothing)
+        Just (ao, mhdl) -> return (ao, mhdl))
+
+agentContAfterMating :: RandomGen g 
+                     => SugarScapeParams
+                     -> AgentId
+                     -> AgentAction g (SugAgentOut g)
+agentContAfterMating _params _myId = do
+  --DBG.trace ("Agent " ++ show myId ++ ": agentContAfterMating") 
+  agentOutObservableM

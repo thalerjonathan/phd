@@ -30,3 +30,5 @@ order in which rules are applied is not specified and might have an impact on dy
 
 \subsection{Mating}
 Could not replicate figureIII-1, our dynamics first raise and then plunge to about 100 agents and go then on to recover and fluctuate around 300. This findings are in accordance with \cite{weaver_replicating_nodate}, where they report similar findings - also when running their NetLogo code we find the dynamics to be qualitatively the same.
+
+Cycles of population sizes not able to reproduce at first. Then we realised that our agent-behaviour was not correct: agents which died from age or metabolism could still engage in mating before actually dying - fixing this to the behaviour that agents which died from age or metabolism wont engage in mating solved that and produces the same swings as in \cite{weaver_replicating_nodate}.

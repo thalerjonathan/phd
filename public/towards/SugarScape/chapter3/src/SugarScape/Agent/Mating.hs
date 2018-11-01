@@ -51,11 +51,12 @@ agentMating params myId amsf0 mainHandler0 finalizeAction0
       then --DBG.trace ("Agent " ++ show myId ++ ": no neighbours (" ++ show (null ocs) ++ "), or i'm not fertile (" ++ show (not fertile) ++ ") => not initiating mating") 
            return Nothing
       else do
-        -- TODO: shuffle ocs bcs selecting agents at random according to the book
+        -- shuffle ocs bcs selecting agents at random according to the book
+        ocsShuff <- lift $ lift $ lift $ fisherYatesShuffleM ocs
 
         --let visNs = map (\(c, s) -> (sugEnvOccId $ fromJust $ sugEnvSiteOccupier s, c)) ocs
         ret <- --DBG.trace ("Agent " ++ show myId ++ ": found " ++ show (length ocs) ++ " neighbours: " ++ show visNs ++ ", and i'm fertile => initiating mating") 
-               mateWith params myId amsf0 mainHandler0 finalizeAction0 ocs
+               mateWith params myId amsf0 mainHandler0 finalizeAction0 ocsShuff
         return $ Just ret
 
 mateWith :: RandomGen g
@@ -82,6 +83,7 @@ mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
         mySites        <- lift $ lift $ neighboursM myCoord False
         neighbourSites <- lift $ lift $ neighboursM coord False
 
+        -- no need to remove duplicates, bcs there cant be one with neumann neighbourhood
         let freeSites = filter (siteUnoccupied . snd) (mySites ++ neighbourSites)
 
         if null freeSites

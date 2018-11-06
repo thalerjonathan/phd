@@ -26,7 +26,7 @@ import System.Random
 
 import Control.Monad.Random
 import Control.Monad.State.Strict
-import Data.MonadicStreamFunction
+import Data.MonadicStreamFunction.InternalCore
 import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
 import SugarScape.Agent.Interface
@@ -219,7 +219,7 @@ runAgentSF :: RandomGen g
 runAgentSF sf evt absState env g
     = (out, sf', absState', env', g') 
   where
-    sfAbsState = unMSF sf evt
+    sfAbsState = unMSF sf evt  -- to get rid of unMSF we would need to run it all in an MSF...
     sfEnvState = runStateT sfAbsState absState
     sfRand     = runStateT sfEnvState env
     ((((out, sf'), absState'), env'), g') = runRand sfRand g

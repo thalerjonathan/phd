@@ -127,7 +127,7 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
             if sender /= myId 
               then returnA -< error $ "Agent " ++ show myId ++ ": received MatingContinue not from self, terminating!"
               else --DBG.trace ("Agent " ++ show myId ++ ": received MatingContinue from self, carry on with mating")
-                    arrM_ (mateWith params myId amsf0 mainHandler0 finalizeAction0 ns) -< ()
+                    constM (mateWith params myId amsf0 mainHandler0 finalizeAction0 ns) -< ()
           _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
   where
     handleMatingReply :: RandomGen g

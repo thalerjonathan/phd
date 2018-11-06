@@ -45,7 +45,7 @@ generalEventHandler params myId =
     (proc evt -> 
       case evt of 
         TimeStep -> 
-          arrM_ (handleTimeStep params myId) -< ()
+          constM (handleTimeStep params myId) -< ()
         (DomainEvent (sender, MatingRequest otherGender)) -> do
           ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)
           returnA -< (ao, Nothing)

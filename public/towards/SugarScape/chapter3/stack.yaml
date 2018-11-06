@@ -39,7 +39,7 @@ resolver: lts-12.16
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- dunai-0.4.0.0
+- dunai-0.5.1
 - IfElse-0.85@sha256:6939b94acc6a55f545f63a168a349dd2fbe4b9a7cca73bf60282db5cc6aa47d2
 
 # Override default flag values for local packages and extra-deps

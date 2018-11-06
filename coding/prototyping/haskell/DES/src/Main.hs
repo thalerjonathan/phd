@@ -19,6 +19,13 @@ import qualified Data.PQueue.Min as PQ
 -- to store some statistics about their internals e.g. throughput, time in the system
 -- => store it in the DES monad?
 
+-- TODO: central problem is how to to direct an event to an MSF: events must start
+-- at the beginning of the DES network and are propagated through it. Each component
+-- MUST be isolated from each other and not carying about where it is in the network,
+-- it just cares about its interface => cant assume anything about global ids or anything
+-- (would work but is a dirty hack). Solution: count hops an event takes allows an
+-- component to identify where it is
+
 type Time = Double
 type EventId = Integer
 data EventType e 
@@ -69,8 +76,8 @@ bank :: RandomGen g
 bank g = do
     src <- source g 15.0 clientCreate
     let snk = sink clientSink
-    let q = queue 10
-    let del = Main.delay
+        q   = queue 10
+        del = Main.delay
 
     return (src >>> q >>> del >>> snk)
   where
@@ -166,10 +173,10 @@ source gInit arrivalRate es0 = do
 
 -- | Stores entities in the specified order.
 queue :: Integer -> MSF (DESMonad e s) (Event e) (Event e)
-queue _size = undefined
+queue _size = undefined -- TODO: use feedback to capture queue
 
 delay :: MSF (DESMonad e s) (Event e) (Event e)
-delay = undefined
+delay = undefined -- TODO: use feedback to capture the current element
 
 -- | A sink just absorbs entities send to it
 -- It receives only the entities and has no output

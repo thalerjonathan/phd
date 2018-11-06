@@ -9,6 +9,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Agent.Ageing
+import SugarScape.Agent.Common
 import SugarScape.Agent.Metabolism 
 import SugarScape.Common
 import SugarScape.Discrete
@@ -36,6 +37,7 @@ instance Arbitrary SugAgentState where
     , sugAgInitSugEndow = randSugarEndowment
     , sugAgChildren     = []
     , sugAgCultureTag   = []
+    , sugAgTribe        = tagToTribe []
     }
 
 agentTests :: RandomGen g 

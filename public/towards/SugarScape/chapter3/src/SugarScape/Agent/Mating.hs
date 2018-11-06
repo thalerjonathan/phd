@@ -154,20 +154,22 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
       let updateChildState = \s -> s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare
                                      , sugAgSugarMetab = childMetab
                                      , sugAgVision     = childVision
-                                     , sugAgCultureTag = childCultTag }
+                                     , sugAgCultureTag = childCultTag
+                                     , sugAgTribe      = tagToTribe childCultTag }
 
       childId                 <- --DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show acc ++ ") from agent " ++ show sender) 
                                   (lift nextAgentId)
       (childCoord, childSite) <- lift $ lift $ lift $ randomElemM freeSites
       -- update new-born state with its genes and initial endowment
-      (childDef, _childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
+      (childDef, childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
 
       -- subtract 50% wealth, each parent provides 50% of its wealth to the child
       updateAgentState (\s -> s { sugAgSugarLevel = mySugLvl / 2
                                 , sugAgChildren   = childId : sugAgChildren s })
 
       -- child occupies the site immediately to prevent others from occupying it
-      let childSite' = childSite { sugEnvSiteOccupier = Just (occupier childId) }
+      let occ        = occupier childId childState
+          childSite' = childSite { sugEnvSiteOccupier = Just occ }
       lift $ lift $ changeCellAtM childCoord childSite' 
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 

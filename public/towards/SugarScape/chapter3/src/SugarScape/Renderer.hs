@@ -17,6 +17,7 @@ import SugarScape.Simulation
 data AgentVis = Default 
               | Gender 
               | Culture
+              | Tribe
               deriving (Eq, Show)
 
 data SiteVis = Sugar 
@@ -91,21 +92,17 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
 
     agentColor :: AgentVis -> GLO.Color
     agentColor Gender  = genderColor (sugObsGender s)
-    agentColor Culture = cultureColor (sugObsCultureTag s)
+    agentColor Culture = cultureColor (sugObsTribe s)
+    agentColor Tribe   = cultureColor (sugObsTribe s)
     agentColor _       = GLO.blue
     
     genderColor :: AgentGender -> GLO.Color
     genderColor Male   = GLO.blue
     genderColor Female = GLO.rose
 
-    cultureColor :: CultureTag -> GLO.Color
-    cultureColor tag 
-        | zeros > ones = GLO.blue
-        | otherwise    = GLO.red
-      where
-        n     = length tag
-        zeros = length $ filter (==False) tag
-        ones  = n - zeros
+    cultureColor :: AgentTribe -> GLO.Color
+    cultureColor Blue = GLO.blue
+    cultureColor Red  = GLO.red
 
 -------------------------------------------------------------------------------
 type AgentRendererDisc2d s = (Float, Float) 

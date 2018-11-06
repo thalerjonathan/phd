@@ -10,10 +10,12 @@ module SugarScape.Agent.Common
   , sugObservableFromState
   , selectBestSites
   , bestSiteFunc
+  , bestCombatSite
 
   , unoccupiedNeighbourhoodOfNeighbours
 
   , occupier
+  , occupierM
   , siteOccupier
   , siteUnoccupied
   , siteOccupied
@@ -27,6 +29,8 @@ module SugarScape.Agent.Common
   , agentOutObservableM
   , updateAgentState
   , agentProperty
+
+  , tagToTribe
   ) where
 
 import Control.Monad.Random
@@ -55,6 +59,7 @@ sugObservableFromState s = SugAgentObservable
   , sugObsSugMetab   = sugAgSugarMetab s
   , sugObsGender     = sugAgGender s
   , sugObsCultureTag = sugAgCultureTag s
+  , sugObsTribe      = sugAgTribe s
   }
 
 bestSiteFunc :: SugarScapeParams -> BestSiteMeasureFunc
@@ -65,6 +70,13 @@ bestSiteFunc params
     diffusionActive = case spPolutionFormation params of
                         NoPolution -> False
                         _          -> True
+
+bestCombatSite :: Double -> BestSiteMeasureFunc
+bestCombatSite combatReward site = combatWealth + s
+  where
+    victimWealth = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier site)
+    combatWealth = min victimWealth combatReward
+    s            = sugEnvSiteSugarLevel site
 
 bestSugarLevel :: BestSiteMeasureFunc
 bestSugarLevel = sugEnvSiteSugarLevel
@@ -102,10 +114,19 @@ unoccupiedNeighbourhoodOfNeighbours coord e
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
-occupier :: AgentId -> SugEnvSiteOccupier
-occupier aid = SugEnvSiteOccupier { 
-    sugEnvOccId = aid
+occupier :: AgentId
+         -> SugAgentState
+         -> SugEnvSiteOccupier
+occupier aid s = SugEnvSiteOccupier { 
+    sugEnvOccId     = aid
+  , sugEnvOccTribe  = sugAgTribe s
+  , sugEnvOccWealth = sugAgSugarLevel s
   }
+
+occupierM :: MonadState SugAgentState m
+          => AgentId 
+          -> m SugEnvSiteOccupier
+occupierM aid = get >>= \s -> return $ occupier aid s
 
 siteOccupier :: SugEnvSite -> AgentId
 siteOccupier site = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site
@@ -158,6 +179,7 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgInitSugEndow = initSugar
   , sugAgChildren     = []
   , sugAgCultureTag   = randCultureTag
+  , sugAgTribe        = tagToTribe randCultureTag
   }
 
   let s'   = f s
@@ -168,6 +190,16 @@ randomAgent params (agentId, coord) asf f = do
   }
 
   return (adef, s')
+
+tagToTribe :: CultureTag
+           -> AgentTribe
+tagToTribe tag 
+    | zeros > ones = Blue
+    | otherwise    = Red
+  where
+    zeros = length $ filter (==False) tag
+    ones  = n - zeros  
+    n     = length tag
 
 randomCultureTag :: RandomGen g
                  => SugarScapeParams

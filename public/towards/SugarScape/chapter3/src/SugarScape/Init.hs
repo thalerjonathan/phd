@@ -18,18 +18,9 @@ createSugarScape :: RandomGen g
                  => SugarScapeParams
                  -> Rand g ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment)
 createSugarScape params = do
-  let agentCount = sgAgentCount params
-      agentDistr = sgAgentDistribution params
-      ais        = [1..agentCount]
+  ras <- agentDistribution params (sgAgentDistribution params)
 
-  let coordDims  = case agentDistr of
-                    Scatter      -> sugarscapeDimensions
-                    (Corner dim) -> dim
-
-  randCoords <- randomCoords (0,0) coordDims agentCount
-  ras        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf id) (zip ais randCoords)
-
-  let as          = map (\(aid, (ad, _)) -> (aid, adInitObs ad, adSf ad)) (zip ais ras)
+  let as          = map (\(ad, _) -> (adId ad, adInitObs ad, adSf ad)) ras
       occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
       sugSpecs    = parseSugarSpec sugarEnvSpec
       sugCoords   = sugarSpecToCoords sugSpecs sugarscapeDimensions
@@ -41,6 +32,36 @@ createSugarScape params = do
                       sites
 
   return (as, env)
+
+agentDistribution :: RandomGen g
+                  => SugarScapeParams
+                  -> AgentDistribution
+                  -> Rand g [(SugAgentDef g, SugAgentState)]
+agentDistribution params CombatCorners = do
+  let agentCount  = sgAgentCount params
+      halfCount   = floor ((fromIntegral agentCount / 2) :: Double)
+      aisTopRight = [1 .. halfCount]
+      aisBotLeft  = [halfCount + 1 .. agentCount]
+
+  randCoordsTopRight <- randomCoords (30, 30) sugarscapeDimensions (length aisTopRight)
+  rasTopRight        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf (\s -> s { sugAgTribe = Red})) (zip aisTopRight randCoordsTopRight)
+
+  randCoordsBotLeft <- randomCoords (0,0) (20, 20) (length aisBotLeft)
+  rasBotLeft        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf (\s -> s { sugAgTribe = Blue})) (zip aisBotLeft randCoordsBotLeft)
+
+  return (rasBotLeft ++ rasTopRight)
+
+agentDistribution params dist = do
+  let agentCount = sgAgentCount params
+      ais        = [1..agentCount]
+      coordDims  = case dist of 
+                    Scatter      -> sugarscapeDimensions
+                    (Corner dim) -> dim
+                    _            -> error "missing AgentDistribution case, programming fault, shouldn't happen!"
+  
+  randCoords <- randomCoords (0,0) coordDims agentCount
+  mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf id) (zip ais randCoords)
+
 
 sugarSpecToCoords :: [[Int]]
                   -> Discrete2dCoord
@@ -97,7 +118,7 @@ initRandomSite :: [(Discrete2dCoord, (AgentId, SugAgentState))]
 initRandomSite os (coord, sugar) = (coord, c)
   where
     mayOccupier = Data.List.find ((==coord) . fst) os
-    occ         = maybe Nothing (\(_, (aid, _)) -> (Just (occupier aid))) mayOccupier
+    occ         = maybe Nothing (\(_, (aid, s)) -> (Just $ occupier aid s)) mayOccupier
 
     c = SugEnvSite {
       sugEnvSiteSugarCapacity = fromIntegral sugar

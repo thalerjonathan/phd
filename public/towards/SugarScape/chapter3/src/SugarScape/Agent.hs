@@ -58,6 +58,9 @@ generalEventHandler params myId =
         (DomainEvent (sender, CulturalProcess tag)) -> do
           ao <- arrM (uncurry (handleCulturalProcess myId)) -< (sender, tag)
           returnA -< (ao, Nothing)
+        (DomainEvent (sender, KilledInCombat)) -> do
+          ao <- arrM (handleKilledInCombat myId) -< sender
+          returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 

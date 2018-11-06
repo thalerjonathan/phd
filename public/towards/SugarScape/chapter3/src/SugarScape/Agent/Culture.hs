@@ -53,6 +53,7 @@ handleCulturalProcess _myId _sender otherTag = do
     (myTag !! idx /= otherTag !! idx)
     (do
       let myTag' = flipBoolAtIdx idx myTag
-      updateAgentState (\s -> s { sugAgCultureTag = myTag' }))
+      updateAgentState (\s -> s { sugAgCultureTag = myTag'
+                                , sugAgTribe      = tagToTribe myTag' }))
 
   agentOutObservableM

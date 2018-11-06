@@ -1,7 +1,8 @@
 module SugarScape.Model 
   ( AgentGender (..)
   , CultureTag
-  
+  , AgentTribe (..)
+
   , SugAgentState (..)
   , SugAgentObservable (..)
 
@@ -51,6 +52,7 @@ module SugarScape.Model
   , mkParamsAnimationIII_6
   , mkParamsAnimationIII_7
   , mkParamsFigureIII_8
+  , mkParamsAnimationIII_9
   ) where
 
 import Control.Monad.Random
@@ -65,6 +67,7 @@ import SugarScape.Discrete
 ------------------------------------------------------------------------------------------------------------------------
 data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
+data AgentTribe  = Blue | Red deriving (Show, Eq)
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -79,6 +82,7 @@ data SugAgentState = SugAgentState
   , sugAgInitSugEndow :: !Double
   , sugAgChildren     :: ![AgentId]         -- list of all children the agent has given birth to (together with another agent of opposing sex)
   , sugAgCultureTag   :: !CultureTag
+  , sugAgTribe        :: !AgentTribe
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
@@ -90,10 +94,13 @@ data SugAgentObservable = SugAgentObservable
   -- Chapter III properties
   , sugObsGender     :: !AgentGender
   , sugObsCultureTag :: !CultureTag
+  , sugObsTribe      :: !AgentTribe
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
   { sugEnvOccId     :: !AgentId
+  , sugEnvOccWealth :: !Double
+  , sugEnvOccTribe  :: !AgentTribe
   } deriving (Show, Eq)
 
 data SugEnvSite = SugEnvSite 
@@ -111,6 +118,8 @@ data SugEvent = MatingRequest AgentGender
               | Inherit Double 
 
               | CulturalProcess CultureTag
+
+              | KilledInCombat 
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite
@@ -191,15 +200,23 @@ sugarEnvSpec =
   , "111111111111222222222211111111111111111111111111111"
   ]
 
-data AgentAgeSpan      = Forever 
-                       | Range Time Time deriving (Show, Eq)
+data AgentAgeSpan = Forever 
+                  | Range Time Time 
+                  deriving (Show, Eq)
+
 data AgentDistribution = Scatter 
-                       | Corner Discrete2dCoord deriving (Show, Eq)
-data SugarRegrow       = Immediate 
-                       | Rate Double 
-                       | Season Double Double Time deriving (Show, Eq)
+                       | Corner Discrete2dCoord 
+                       | CombatCorners 
+                       deriving (Show, Eq)
+
+data SugarRegrow = Immediate 
+                 | Rate Double 
+                 | Season Double Double Time
+                 deriving (Show, Eq)
+
 data PolutionFormation = NoPolution 
-                       | Polute Double Double deriving (Show, Eq)
+                       | Polute Double Double 
+                       deriving (Show, Eq)
 
 data SugarScapeParams = SugarScapeParams 
   { sgAgentCount           :: Int
@@ -224,6 +241,8 @@ data SugarScapeParams = SugarScapeParams
   , spInheritance          :: Bool           -- inheritance rule I on / off
   
   , spCulturalProcess      :: Maybe Int      -- cultural process rule K on / off, with culture tag of given length
+
+  , spCombat               :: Maybe Double   -- combat rule C_alpha on / off
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -246,6 +265,7 @@ mkSugarScapeParams = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -272,6 +292,7 @@ mkParamsAnimationII_1 = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 -- terracing phenomenon as described on page 28
 mkParamsTerracing :: SugarScapeParams 
@@ -298,6 +319,7 @@ mkParamsAnimationII_2 = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0)  
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 -- carrying capacity property as described on page 30
 mkParamsCarryingCapacity :: SugarScapeParams
@@ -324,6 +346,7 @@ mkParamsAnimationII_3 = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
@@ -353,6 +376,7 @@ mkParamsAnimationII_6 = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0) 
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
@@ -376,6 +400,7 @@ mkParamsAnimationII_7 = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 
 -- Polution as described on page 45 to 50 in Animation II-8
@@ -399,6 +424,7 @@ mkParamsAnimationII_8 = SugarScapeParams {
   , spFertEndRangeMen      = (0, 0)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -426,6 +452,7 @@ mkParamsAnimationIII_1 = SugarScapeParams {
   , spFertEndRangeMen      = (50, 60)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
+  , spCombat               = Nothing  
   }
 
 -- page 64, same as mkParamsAnimationIII_1 but with changed fertiliy ranges
@@ -450,9 +477,10 @@ mkParamsFigureIII_7 = mkParamsAnimationIII_1 {
 mkParamsAnimationIII_4 :: SugarScapeParams
 mkParamsAnimationIII_4 = mkParamsFigureIII_7
 
+-- cultural process, page 73
 mkParamsAnimationIII_6 :: SugarScapeParams
 mkParamsAnimationIII_6 = mkParamsAnimationII_2 {
-    spCulturalProcess      = Just 10
+    spCulturalProcess = Just 10
   }
 
 mkParamsAnimationIII_7 :: SugarScapeParams
@@ -460,3 +488,10 @@ mkParamsAnimationIII_7 = mkParamsAnimationIII_6
 
 mkParamsFigureIII_8 :: SugarScapeParams
 mkParamsFigureIII_8 = mkParamsAnimationIII_6
+
+-- combat, page 82
+mkParamsAnimationIII_9 :: SugarScapeParams
+mkParamsAnimationIII_9 = mkParamsAnimationII_2 {
+    sgAgentDistribution = CombatCorners
+  , spCombat            = Just (1 / 0)
+  }

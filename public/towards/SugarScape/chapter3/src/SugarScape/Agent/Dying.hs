@@ -41,10 +41,11 @@ birthNewAgent params asf ao
   | otherwise = do
     newAid              <- lift nextAgentId
     (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, _newAState)  <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf id
+    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf id
 
     -- need to occupy the cell to prevent other agents occupying it
-    let newCell' = newCell { sugEnvSiteOccupier = Just (occupier newAid) }
+    let occ      = occupier newAid newAState
+        newCell' = newCell { sugEnvSiteOccupier = Just occ }
     lift $ lift $ changeCellAtM newCoord newCell' 
 
     return $ newAgent newA ao

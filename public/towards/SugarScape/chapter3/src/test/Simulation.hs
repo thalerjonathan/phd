@@ -26,17 +26,55 @@ simTests :: RandomGen g
          -> TestTree 
 simTests g = testGroup 
               "Simulation Tests" 
-              [ Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g
-              --  Unit.testCase "Terracing" $ prop_terracing g,
-              --  Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
-              --  Unit.testCase "Wealth Distribution" $ prop_wealth_dist g 
+              [ Unit.testCase "Cultural Dynamics" $ prop_culture_dynamics g 
+              -- Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g
+              -- Unit.testCase "Terracing" $ prop_terracing g,
+              -- Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
+              -- Unit.testCase "Wealth Distribution" $ prop_wealth_dist g 
               ]
+
+prop_culture_dynamics ::  RandomGen g => g -> IO ()
+prop_culture_dynamics g0 = do
+    putStrLn $ "zeros-ratio = " ++ show zeroRatio
+    assertBool ("Cultures not converged sufficiently, zeros-ratio = " ++ show zeroRatio) cultureDynamicsPass
+  where
+    steps    = 2700 -- according to sugarscape around this time, culture-dynamics converge
+    -- always a few agents in level 1 which dont move => not participating in culture dynamics and keep initial ones
+    ratioDominate = 0.95 -- either one culture (red/blue) dominates completely on both hills ...
+    ratioEqual    = 0.45 -- ... or each hill has a different culture
+    params   = mkParamsAnimationIII_6
+
+    tagLength      = fromJust $ spCulturalProcess params
+    (simState, _)  = initSimulationRng g0 params
+    (_, _, _, aos) = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    agentCultTags  = map (sugObsCultureTag . snd) aos
+
+    zeroRatio      = zeroCultureRatio agentCultTags
+    -- we don't care who is dominating: zeros or ones, it just has to come to a (near) equilibrium
+    cultureDynamicsPass = if zeroRatio >= ratioDominate 
+                            then True -- zeros dominate
+                            else if zeroRatio <= (1 - ratioDominate)
+                              then True -- ones dominate
+                              else if zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual
+                                then True -- both dominate equally, each on one hill
+                                else False
+
+    zeroCultureRatio :: [CultureTag] -> Double
+    zeroCultureRatio tags = fromIntegral zeros / fromIntegral n
+      where
+        zeros = length $ filter zeroDominate tags
+        n     = length tags
+
+        zeroDominate :: CultureTag -> Bool
+        zeroDominate tag = zeroCount > (tagLength - zeroCount)
+          where
+            zeroCount = length $ filter (==False) tag
 
 prop_inheritance_gini :: RandomGen g => g -> IO ()
 prop_inheritance_gini g0 = assertBool ("Gini Coefficient less than " ++ show expGini) $ gini >= expGini
   where
     steps        = 1000
-    expGini      = 0.7 :: Double
+    expGini      = 0.30 :: Double -- conservative guess, is around 0.35, would need to take average of multiple runs but takes long time
     sugParams    = mkParamsFigureIII_7
     (_, _, gini) = genPopulationWealthStats sugParams steps g0
 

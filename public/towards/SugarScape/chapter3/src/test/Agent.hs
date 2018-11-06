@@ -35,6 +35,7 @@ instance Arbitrary SugAgentState where
     , sugAgFertAgeRange = (0, 0)
     , sugAgInitSugEndow = randSugarEndowment
     , sugAgChildren     = []
+    , sugAgCultureTag   = []
     }
 
 agentTests :: RandomGen g 

@@ -16,6 +16,7 @@ import SugarScape.Simulation
 
 data AgentVis = Default 
               | Gender 
+              | Culture
               deriving (Eq, Show)
 
 data SiteVis = Sugar 
@@ -89,12 +90,22 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
     txt    = GLO.color GLO.white $ GLO.translate (x - (rw * 0.4)) (y - (rh * 0.1)) $ GLO.scale 0.04 0.04 $ GLO.Text (show aid)
 
     agentColor :: AgentVis -> GLO.Color
-    agentColor Gender = genderColor (sugObsGender s)
-    agentColor _      = GLO.blue
+    agentColor Gender  = genderColor (sugObsGender s)
+    agentColor Culture = cultureColor (sugObsCultureTag s)
+    agentColor _       = GLO.blue
     
     genderColor :: AgentGender -> GLO.Color
     genderColor Male   = GLO.blue
     genderColor Female = GLO.rose
+
+    cultureColor :: CultureTag -> GLO.Color
+    cultureColor tag 
+        | zeros > ones = GLO.blue
+        | otherwise    = GLO.red
+      where
+        n     = length tag
+        zeros = length $ filter (==False) tag
+        ones  = n - zeros
 
 -------------------------------------------------------------------------------
 type AgentRendererDisc2d s = (Float, Float) 

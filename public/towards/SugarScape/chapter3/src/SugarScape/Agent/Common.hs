@@ -48,12 +48,13 @@ type BestSiteMeasureFunc = (SugEnvSite -> Double)
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState s = SugAgentObservable
-  { sugObsCoord    = sugAgCoord s 
-  , sugObsVision   = sugAgVision s
-  , sugObsAge      = sugAgAge s 
-  , sugObsSugLvl   = sugAgSugarLevel s
-  , sugObsSugMetab = sugAgSugarMetab s
-  , sugObsGender   = sugAgGender s
+  { sugObsCoord      = sugAgCoord s 
+  , sugObsVision     = sugAgVision s
+  , sugObsAge        = sugAgAge s 
+  , sugObsSugLvl     = sugAgSugarLevel s
+  , sugObsSugMetab   = sugAgSugarMetab s
+  , sugObsGender     = sugAgGender s
+  , sugObsCultureTag = sugAgCultureTag s
   }
 
 bestSiteFunc :: SugarScapeParams -> BestSiteMeasureFunc

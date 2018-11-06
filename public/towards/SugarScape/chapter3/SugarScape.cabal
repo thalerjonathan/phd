@@ -117,6 +117,7 @@ Test-Suite sugarscape-test
                       , SugarScape.Agent
                       , SugarScape.Agent.Ageing
                       , SugarScape.Agent.Common
+                      , SugarScape.Agent.Culture
                       , SugarScape.Agent.Dying                
                       , SugarScape.Agent.Interface
                       , SugarScape.Agent.Mating

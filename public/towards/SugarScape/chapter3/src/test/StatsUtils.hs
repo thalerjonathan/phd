@@ -17,7 +17,7 @@ import Data.Vector.Generic              as Vect
 
 import Statistics.Distribution          as Distr
 import Statistics.Distribution.StudentT as StudT
-import Statistics.Sample.Histogram      as Hist
+--import Statistics.Sample.Histogram      as Hist
 import Statistics.Sample                as Sample
 
 import Debug.Trace

@@ -42,7 +42,8 @@ writeSimulationUntil fileName tMax ss0 = do
                                  show sug ++ ", " ++
                                  show met ++ ", " ++ 
                                  show vis ++ ", " ++
-                                 show gen ++ "], ")
+                                 show gen ++ ", " ++
+                                 show cult ++ "], ")
           where
             vis = sugObsVision ao
             age = sugObsAge ao
@@ -51,3 +52,4 @@ writeSimulationUntil fileName tMax ss0 = do
             gen = case sugObsGender ao of
                     Male   -> 0 :: Int
                     Female -> 1 :: Int
+            cult = map (\tag -> if tag then 1 else 0) (sugObsCultureTag ao) :: [Int]

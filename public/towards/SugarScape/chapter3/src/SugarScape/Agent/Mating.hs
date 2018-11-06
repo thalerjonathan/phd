@@ -9,6 +9,7 @@ module SugarScape.Agent.Mating
 
 import Data.Maybe
 
+import Control.Monad
 import Control.Monad.Random
 import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
@@ -134,23 +135,26 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                       -> EventHandler g
                       -> AgentAction g (SugAgentOut g)
                       -> AgentId
-                      -> Maybe (Double, Int, Int)
+                      -> Maybe (Double, Int, Int, CultureTag)
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
     handleMatingReply amsf mainHandler finalizeAction _ Nothing =  -- the sender refuse the mating-request
       --DBG.trace ("Agent " ++ show myId ++ ": agent " ++ show sender ++ " refuses mating-reply, check next neighbour")
         -- continue with next neighbour
       (mateWith params myId amsf mainHandler finalizeAction ns)
-    handleMatingReply amsf _ _ sender _acc@(Just (otherSugShare, otherMetab, otherVision)) = do -- the sender accepts the mating-request
-      mySugLvl <- agentProperty sugAgSugarLevel
-      myMetab  <- agentProperty sugAgSugarMetab
-      myVision <- agentProperty sugAgVision
+    handleMatingReply amsf _ _ sender _acc@(Just (otherSugShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
+      mySugLvl  <- agentProperty sugAgSugarLevel
+      myMetab   <- agentProperty sugAgSugarMetab
+      myVision  <- agentProperty sugAgVision
+      myCultTag <- agentProperty sugAgCultureTag
 
-      childMetab  <- lift $ lift $ lift $ randomElemM [myMetab, otherMetab]
-      childVision <- lift $ lift $ lift $ randomElemM [myVision, otherVision]
+      childMetab   <- lift $ lift $ lift $ randomElemM [myMetab, otherMetab]
+      childVision  <- lift $ lift $ lift $ randomElemM [myVision, otherVision]
+      childCultTag <- lift $ lift $ lift $ crossOverCulture myCultTag otherCultureTag
 
       let updateChildState = \s -> s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare
                                      , sugAgSugarMetab = childMetab
-                                     , sugAgVision     = childVision }
+                                     , sugAgVision     = childVision
+                                     , sugAgCultureTag = childCultTag }
 
       childId                 <- --DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show acc ++ ") from agent " ++ show sender) 
                                   (lift nextAgentId)
@@ -177,6 +181,20 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                   sendEventTo myId MatingContinue ao'
 
       return (ao'', Nothing)
+
+crossOverCulture :: MonadRandom m 
+                 => CultureTag 
+                 -> CultureTag
+                 -> m CultureTag
+crossOverCulture = zipWithM selectTag
+  where
+    selectTag :: MonadRandom m 
+              => Bool
+              -> Bool
+              -> m Bool
+    selectTag True True   = return True
+    selectTag False False = return False
+    selectTag _ _         = getRandom
 
 acceptMatingRequest :: MonadState SugAgentState m
                     => AgentGender
@@ -213,14 +231,15 @@ handleMatingRequest _myId sender otherGender = do
   accept <- acceptMatingRequest otherGender
   ao     <- agentOutObservableM
 
-  sugLvl <- agentProperty sugAgSugarLevel
-  metab  <- agentProperty sugAgSugarMetab
-  vision <- agentProperty sugAgVision
-
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
-  let acc = if accept
-      then Just (sugLvl / 2, metab, vision)
-      else Nothing
+  acc <- if accept
+      then do
+        sugLvl <- agentProperty sugAgSugarLevel
+        metab  <- agentProperty sugAgSugarMetab
+        vision <- agentProperty sugAgVision
+        culTag <- agentProperty sugAgCultureTag
+        return $ Just (sugLvl / 2, metab, vision, culTag)
+      else return Nothing
 
   --DBG.trace ("Agent " ++ show myId ++ 
   --       ": incoming (MatingRequest " ++ show otherGender ++ 

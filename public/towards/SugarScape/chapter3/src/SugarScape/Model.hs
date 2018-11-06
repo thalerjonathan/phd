@@ -49,6 +49,8 @@ module SugarScape.Model
   , mkParamsFigureIII_7
   , mkParamsAnimationIII_4
   , mkParamsAnimationIII_6
+  , mkParamsAnimationIII_7
+  , mkParamsFigureIII_8
   ) where
 
 import Control.Monad.Random
@@ -80,13 +82,14 @@ data SugAgentState = SugAgentState
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
-  { sugObsCoord    :: !Discrete2dCoord
-  , sugObsVision   :: !Int
-  , sugObsAge      :: !Int
-  , sugObsSugLvl   :: !Double
-  , sugObsSugMetab :: !Int
+  { sugObsCoord      :: !Discrete2dCoord
+  , sugObsVision     :: !Int
+  , sugObsAge        :: !Int
+  , sugObsSugLvl     :: !Double
+  , sugObsSugMetab   :: !Int
   -- Chapter III properties
-  , sugObsGender   :: !AgentGender
+  , sugObsGender     :: !AgentGender
+  , sugObsCultureTag :: !CultureTag
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
@@ -101,7 +104,7 @@ data SugEnvSite = SugEnvSite
   } deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
-              | MatingReply (Maybe (Double, Int, Int)) -- in case of acceptance: Just share of sugar, metab, vision
+              | MatingReply (Maybe (Double, Int, Int, CultureTag)) -- in case of acceptance: Just share of sugar, metab, vision
               | MatingTx AgentId
               | MatingContinue
 
@@ -451,3 +454,9 @@ mkParamsAnimationIII_6 :: SugarScapeParams
 mkParamsAnimationIII_6 = mkParamsAnimationII_2 {
     spCulturalProcess      = Just 10
   }
+
+mkParamsAnimationIII_7 :: SugarScapeParams
+mkParamsAnimationIII_7 = mkParamsAnimationIII_6
+
+mkParamsFigureIII_8 :: SugarScapeParams
+mkParamsFigureIII_8 = mkParamsAnimationIII_6

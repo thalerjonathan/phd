@@ -26,17 +26,20 @@ import qualified Data.PQueue.Min as PQ
 -- (would work but is a dirty hack). Solution: count hops an event takes allows an
 -- component to identify where it is
 
-type Time = Double
+type Time    = Double
+type DTime   = Double
+type CompId  = Integer
 type EventId = Integer
 data EventType e 
-  = ForwardEntity e
-  | Pull
+  = NewEntity CompId e  
+  | ForwardEntity e
+  | Consumed
   deriving Show
- 
+
 data Event e = Event EventId (EventType e) deriving Show
 
 data QueueItem e = QueueItem (Event e) Time deriving Show
-type DESQueue e = PQ.MinQueue (QueueItem e)
+type DESQueue e  = PQ.MinQueue (QueueItem e)
 
 instance Eq (QueueItem e) where
   (==) (QueueItem _ t1) (QueueItem _ t2) = t1 == t2
@@ -52,6 +55,7 @@ data DESState e s = DESState
   }
 
 type DESMonad e s = State (DESState e s)
+type DESComponent e s = MSF (DESMonad e s) (Event e) (Event e)
 
 rngSeed :: Int
 rngSeed = 42
@@ -74,12 +78,16 @@ bank :: RandomGen g
      => g
      -> DESMonad Client BankState (MSF (DESMonad Client BankState) (Event Client) ())
 bank g = do
-    src <- source g 15.0 clientCreate
+    -- TODO: find a better way of assigning component ids than hard-coding them from the beginning
+    src <- source 1 g 15.0 clientCreate
     let snk = sink clientSink
-        q   = queue 10
-        del = Main.delay
+        _q   = queue 10
+        _del = Main.delay
 
-    return (src >>> q >>> del >>> snk)
+        -- net = src >>> q >>> del >>> snk
+        net = src >>> snk
+
+    return net 
   where
     clientCreate :: DESMonad Client BankState Client
     clientCreate = do
@@ -94,6 +102,98 @@ bank g = do
       let dt = t - ct
 
       modify (\s -> s { desData = dt : dts })
+
+-- | A source emits entities of type e with a given rate
+source :: RandomGen g 
+       => CompId
+       -> g                  -- ^ the random-number generator to use
+       -> DTime              -- ^ the arrival rate
+       -> DESMonad e s e
+       -> DESMonad e s (DESComponent e s)   -- ^ the source is a MSF with no input and outputs e
+source myCompId gInit arrivalRate es0 = do
+    g <- scheduleNextArrival es0 gInit
+    return $ sourceAux g es0
+  where
+    sourceAux :: RandomGen g 
+              => g
+              -> DESMonad e s e
+              -> DESComponent e s
+    sourceAux g0 es = proc evt@(Event eid et) -> 
+      case et of
+        NewEntity cid e -> 
+          if myCompId /= cid 
+          then returnA -< evt
+          else do
+            rec
+              g1 <- iPre g0 -< g2
+              g2 <- arrM (scheduleNextArrival es) -< g1
+            returnA -< (Event eid (ForwardEntity e))
+        _               -> returnA -< evt
+
+    scheduleNextArrival :: RandomGen g 
+                        => DESMonad e s e
+                        -> g
+                        -> DESMonad e s g
+    scheduleNextArrival entitySource g = do
+      let (dt, g') = runRand (randomExpM (1 / arrivalRate)) g
+      e <- entitySource
+      scheduleEvent (NewEntity myCompId e) dt
+      return g'
+
+-- | Stores entities in the specified order.
+queue :: Integer          -- ^ the size of the queue, when overflow system will exit with error
+      -> DESComponent e s -- ^ the connection to the queue, this is necessary because a queue needs to forward entities when the connector is 
+      -> DESComponent e s
+queue _size _nextComp = proc (Event _eid et) ->
+  case et of
+    ForwardEntity e -> arrM sinkAction -< e
+    _               -> returnA -< ()
+
+delay :: MSF (DESMonad e s) (Event e) (Event e)
+delay = undefined -- TODO: if a delay is occupied and receives a new element, it will fail 
+
+-- | A sink just absorbs entities send to it
+-- It receives only the entities and has no output
+sink :: (e -> DESMonad e s ()) 
+     -> MSF (DESMonad e s) (Event e) ()
+sink sinkAction = proc (Event _eid et) -> 
+  case et of
+    ForwardEntity e -> arrM sinkAction -< e
+    _               -> returnA -< ()
+
+scheduleEvent :: EventType e
+              -> DTime
+              -> DESMonad e s ()
+scheduleEvent et dt = do
+  q <- gets desQueue
+  t <- gets desTime
+
+  let evt = Event 0 et 
+
+  let qe = QueueItem evt (t + dt)
+  let q' = PQ.insert qe q
+
+  modify (\s -> s { desQueue = q' })
+
+{-
+-- | A service seizes resource units for the entity, delays it, and releases the seized units.
+-- For now it is assumed that each entity 1 ressources is required
+service :: RandomGen g
+        => g            -- ^ the random-number generator to use
+        -> Int          -- ^ the number of ressources available to the service
+        -> MSF DESMonad Event Event
+service _g _n = undefined
+
+-- | Forwards the entity to one of the output ports depending on the condition.
+selectOutputProb :: RandomGen g
+                 => g 
+                 -> MSF DESMonad Event (Maybe Event, Maybe Event)
+selectOutputProb _g = undefined
+
+-- | Stores entities in the specified order.
+queue :: MSF DESMonad Event Event
+queue = undefined
+-}
 
 runDES :: DESMonad e s (MSF (DESMonad e s) (Event e) ())
        -> s
@@ -140,88 +240,6 @@ runDES desM s0 tEnd = (desEvtCntFinal, desTimeFinal, desDataFinal)
           when 
             (t' < tEnd)
             (stepClock desMsf')
-
--- | A source emits entities of type e with a given rate
-source :: RandomGen g 
-       => g                   -- ^ the random-number generator to use
-       -> Double              -- ^ the arrival rate
-       -> DESMonad e s e
-       -> DESMonad e s (MSF (DESMonad e s) (Event e) (Event e))   -- ^ the source is a MSF with no input and outputs e
-source gInit arrivalRate es0 = do
-    g <- scheduleNextArrival es0 gInit
-    return $ sourceAux g es0
-  where
-    sourceAux :: RandomGen g 
-              => g
-              -> DESMonad e s e
-              -> MSF (DESMonad e s) (Event e) (Event e)
-    sourceAux g0 es = proc evt -> do
-      rec
-        g1 <- iPre g0 -< g2
-        g2 <- arrM (scheduleNextArrival es) -< g1
-      returnA -< evt
-
-    scheduleNextArrival :: RandomGen g 
-                        => DESMonad e s e
-                        -> g
-                        -> DESMonad e s g
-    scheduleNextArrival entitySource g = do
-      let (dt, g') = runRand (randomExpM (1 / arrivalRate)) g
-      e <- entitySource
-      scheduleEvent (ForwardEntity e) dt
-      return g'
-
--- | Stores entities in the specified order.
-queue :: Integer -> MSF (DESMonad e s) (Event e) (Event e)
-queue _size = undefined -- TODO: use feedback to capture queue
-
-delay :: MSF (DESMonad e s) (Event e) (Event e)
-delay = undefined -- TODO: use feedback to capture the current element
-
--- | A sink just absorbs entities send to it
--- It receives only the entities and has no output
-sink :: (e -> DESMonad e s ()) 
-     -> MSF (DESMonad e s) (Event e) ()
-sink sinkAction = proc (Event _eid et) -> 
-  case et of
-    ForwardEntity e -> arrM sinkAction -< e
-    _               -> returnA -< ()
-
-scheduleEvent :: EventType e
-              -> Double
-              -> DESMonad e s ()
-scheduleEvent et dt = do
-  q <- gets desQueue
-  t <- gets desTime
-
-  let evt = Event 0 et 
-
-  let qe = QueueItem evt (t + dt)
-  let q' = PQ.insert qe q
-
-  modify (\s -> s { desQueue = q' })
-
-
-
-{-
--- | A service seizes resource units for the entity, delays it, and releases the seized units.
--- For now it is assumed that each entity 1 ressources is required
-service :: RandomGen g
-        => g            -- ^ the random-number generator to use
-        -> Int          -- ^ the number of ressources available to the service
-        -> MSF DESMonad Event Event
-service _g _n = undefined
-
--- | Forwards the entity to one of the output ports depending on the condition.
-selectOutputProb :: RandomGen g
-                 => g 
-                 -> MSF DESMonad Event (Maybe Event, Maybe Event)
-selectOutputProb _g = undefined
-
--- | Stores entities in the specified order.
-queue :: MSF DESMonad Event Event
-queue = undefined
--}
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)

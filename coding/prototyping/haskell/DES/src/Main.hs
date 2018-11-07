@@ -8,6 +8,8 @@ import           Control.Monad.State.Strict
 import           Data.MonadicStreamFunction
 import qualified Data.PQueue.Min as PQ
 
+import Debug.Trace as DBG
+
 -- TODO:
 -- use dunai
 -- propagate entities through the network
@@ -29,14 +31,16 @@ import qualified Data.PQueue.Min as PQ
 type Time    = Double
 type DTime   = Double
 type CompId  = Integer
-type EventId = Integer
+
 data EventType e 
-  = NewEntity CompId e  
+  = NewEntity CompId
   | ForwardEntity e
   | Consumed
+  | Occupied
+  | Undelay CompId
   deriving Show
 
-data Event e = Event EventId (EventType e) deriving Show
+newtype Event e = Event (EventType e) deriving Show
 
 data QueueItem e = QueueItem (Event e) Time deriving Show
 type DESQueue e  = PQ.MinQueue (QueueItem e)
@@ -54,7 +58,7 @@ data DESState e s = DESState
   , desData   :: s
   }
 
-type DESMonad e s = State (DESState e s)
+type DESMonad e s     = State (DESState e s)
 type DESComponent e s = MSF (DESMonad e s) (Event e) (Event e)
 
 rngSeed :: Int
@@ -81,11 +85,10 @@ bank g = do
     -- TODO: find a better way of assigning component ids than hard-coding them from the beginning
     src <- source 1 g 15.0 clientCreate
     let snk = sink clientSink
-        _q   = queue 10
-        _del = Main.delay
-
-        -- net = src >>> q >>> del >>> snk
-        net = src >>> snk
+        del = Main.delay
+        q   = queue 10 (del >>> snk)
+        
+        net = src >>> q  
 
     return net 
   where
@@ -111,55 +114,89 @@ source :: RandomGen g
        -> DESMonad e s e
        -> DESMonad e s (DESComponent e s)   -- ^ the source is a MSF with no input and outputs e
 source myCompId gInit arrivalRate es0 = do
-    g <- scheduleNextArrival es0 gInit
+    g <- scheduleNextArrival gInit
     return $ sourceAux g es0
   where
     sourceAux :: RandomGen g 
               => g
               -> DESMonad e s e
               -> DESComponent e s
-    sourceAux g0 es = proc evt@(Event eid et) -> 
+    sourceAux g0 entitySource = proc evt@(Event et) -> 
       case et of
-        NewEntity cid e -> 
+        NewEntity cid -> 
           if myCompId /= cid 
           then returnA -< evt
           else do
             rec
               g1 <- iPre g0 -< g2
-              g2 <- arrM (scheduleNextArrival es) -< g1
-            returnA -< (Event eid (ForwardEntity e))
+              g2 <- arrM scheduleNextArrival -< g1
+            e <- arrM_ entitySource -< ()
+            returnA -< DBG.trace "emitting new entity" (Event (ForwardEntity e))
         _               -> returnA -< evt
 
     scheduleNextArrival :: RandomGen g 
-                        => DESMonad e s e
-                        -> g
+                        => g
                         -> DESMonad e s g
-    scheduleNextArrival entitySource g = do
+    scheduleNextArrival g = do
       let (dt, g') = runRand (randomExpM (1 / arrivalRate)) g
-      e <- entitySource
-      scheduleEvent (NewEntity myCompId e) dt
+      scheduleEvent (NewEntity myCompId) dt
       return g'
 
 -- | Stores entities in the specified order.
-queue :: Integer          -- ^ the size of the queue, when overflow system will exit with error
+queue :: Int          -- ^ the size of the queue, when overflow system will exit with error
       -> DESComponent e s -- ^ the connection to the queue, this is necessary because a queue needs to forward entities when the connector is 
-      -> DESComponent e s
-queue _size _nextComp = proc (Event _eid et) ->
+      -> MSF (DESMonad e s) (Event e) ()
+queue queueSize nextComp = DBG.trace "Queue: init" $ feedback [] (proc (evt@(Event et), q) -> 
   case et of
-    ForwardEntity e -> arrM sinkAction -< e
-    _               -> returnA -< ()
+    ForwardEntity e -> do
+      (Event ret) <- nextComp -< DBG.trace "Queue: forwarding ForwardEntity event..." evt
 
-delay :: MSF (DESMonad e s) (Event e) (Event e)
-delay = undefined -- TODO: if a delay is occupied and receives a new element, it will fail 
+      case ret of
+        Consumed -> returnA -< DBG.trace "Queue: received ForwardEntity and forwarded to next comp, received Consumed" ((), q)
+        _        -> 
+          if length q == queueSize
+            then returnA -< error "Queue full" --(Event (Error "Queue already full"), q)
+            else returnA -< DBG.trace "Queue: forward couldnt consume it => queue has space => enqueuing" ((), q ++ [e])
+
+    -- other cases
+    _               -> do
+      (Event ret) <- nextComp -< DBG.trace "Queue: forwarding unkown event..." evt
+
+      case ret of
+        Consumed -> 
+          if null q
+            then returnA -< DBG.trace "Queue: received non forwardentity and forwarded to next comp, queue empty"  ((), q)
+            else do
+              _ <- nextComp -< (Event $ ForwardEntity (head q))
+              returnA -< DBG.trace "Queue: dequeued element and forwarded" ((), tail q)
+        _        -> returnA -< DBG.trace "Queue: just forwarded" ((), q))
+
+delay :: DESComponent e s 
+delay = DBG.trace "Delay: init" $ feedback Nothing (proc (evt@(Event et), me) -> 
+  case et of
+    ForwardEntity e -> 
+      case me of
+        Nothing -> do
+          arrM (uncurry scheduleEvent) -< (Undelay 0, 5)
+          returnA -< DBG.trace "Delay: received ForwardEntity, and delay is unoccupied, will delay it..." (Event Consumed, Just e)
+        Just _  -> returnA -< DBG.trace "Delay: received ForwardEntity but delay is occupied, will not delay it..." (Event Occupied, me)
+    Undelay _ ->
+      case me of
+        -- still have a bug, dunno why this occurs
+        Nothing -> returnA -< error "Delay: received Undelay but cant undelay with empty delay!"
+        Just e  -> returnA -< DBG.trace "Delay: received Undelay, and delay is occupied, will forward the entity and become unoccupied..." (Event $ ForwardEntity e, Nothing)
+    _ -> returnA -< DBG.trace "Delay: received unknown event, just forward and stay as delay is..."  (evt, me))
 
 -- | A sink just absorbs entities send to it
 -- It receives only the entities and has no output
 sink :: (e -> DESMonad e s ()) 
-     -> MSF (DESMonad e s) (Event e) ()
-sink sinkAction = proc (Event _eid et) -> 
+     -> DESComponent e s
+sink sinkAction = proc evt@(Event et) -> 
   case et of
-    ForwardEntity e -> arrM sinkAction -< e
-    _               -> returnA -< ()
+    ForwardEntity e -> do
+      arrM sinkAction -< e
+      returnA -< DBG.trace "Sink: received ForwardEntity, is sinked." (Event Consumed)
+    _               -> returnA -< DBG.trace "Sink: received unknown entity, ignore it" evt
 
 scheduleEvent :: EventType e
               -> DTime
@@ -168,7 +205,7 @@ scheduleEvent et dt = do
   q <- gets desQueue
   t <- gets desTime
 
-  let evt = Event 0 et 
+  let evt = Event et 
 
   let qe = QueueItem evt (t + dt)
   let q' = PQ.insert qe q
@@ -235,7 +272,8 @@ runDES desM s0 tEnd = (desEvtCntFinal, desTimeFinal, desDataFinal)
           , desEvtCnt = desEvtCnt s + 1
           })
 
-          (_, desMsf') <- unMSF desMsf e
+
+          (_, desMsf') <- DBG.trace "Kernel: unMSF" (unMSF desMsf e)
           
           when 
             (t' < tEnd)

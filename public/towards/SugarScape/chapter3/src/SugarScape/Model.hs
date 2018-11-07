@@ -492,6 +492,7 @@ mkParamsFigureIII_8 = mkParamsAnimationIII_6
 -- combat, page 82
 mkParamsAnimationIII_9 :: SugarScapeParams
 mkParamsAnimationIII_9 = mkParamsAnimationII_2 {
-    sgAgentDistribution = CombatCorners
+    sgAgentDistribution = Scatter --CombatCorners
+  , spCulturalProcess   = Just 10
   , spCombat            = Just (1 / 0)
   }

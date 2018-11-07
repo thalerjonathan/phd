@@ -61,21 +61,29 @@ agentCombat params myId = do
     -- TODO: can we unify it e.g. no need to use agentNonCombat in case no combat sites were found
 
     -- lookout in 4 directions as far as vision perimts
-    sitesInSight <- agentLookout
-    let occSites = filter (siteOccupied . snd) sitesInSight
-    -- throw out all sites occuppied by members of agents own tribe
-    myTribe <- agentProperty sugAgTribe
-    let otherTribeSites = filter (\(_, site) -> sugEnvOccTribe (fromJust $ sugEnvSiteOccupier site) /= myTribe) occSites
-    -- throw out all sites of different tribes who are wealthier than the agent
+    myTribe  <- agentProperty sugAgTribe
     myWealth <- agentProperty sugAgSugarLevel
-    let lessWealthySites = filter (\(_, site) -> sugEnvOccWealth (fromJust $ sugEnvSiteOccupier site) < myWealth) otherTribeSites
-    -- throw out all sites which are vulnerable to retalation: 
-    nonRetaliationSites <- filterRetaliation combatReward lessWealthySites []
+    myVis    <- agentProperty sugAgVision
+
+    -- lookout in 4 directions as far as vision perimts and only consider
+    -- sites occuppied by members of different tribe who are less wealthier
+    sitesInSight <- agentLookout
+    let sites = filter (\(_, site) -> 
+                          case sugEnvSiteOccupier site of 
+                            Nothing  -> False
+                            Just occ -> trace ("Agent " ++ show myId ++ 
+                                               ", myTribe = " ++ show myTribe ++ 
+                                               ", myWealth = " ++ show myWealth ++
+                                               " occ: " ++ show occ) (sugEnvOccTribe occ /= myTribe &&
+                                        sugEnvOccWealth occ < myWealth)) sitesInSight
+
+    -- throw out all sites which are vulnerable to retalation:
+    nonRetaliationSites <- filterRetaliation myTribe myWealth myVis combatReward sites []
 
     if null nonRetaliationSites
-      then agentNonCombat params myId  -- if no sites left for combat, just do a non-combat move
+      then trace ("Agent " ++ show myId ++ " fooooooooooooooooooooooo") agentNonCombat params myId  -- if no sites left for combat, just do a non-combat move
       else do
-        myCoord <- agentProperty sugAgCoord
+        myCoord <- trace ("Agent " ++ show myId ++ " is killing!") agentProperty sugAgCoord
 
         let bf   = bestCombatSite combatReward
             bcs  = selectBestSites bf myCoord nonRetaliationSites
@@ -93,29 +101,34 @@ agentCombat params myId = do
 
   where
     filterRetaliation :: RandomGen g
-                      => Double
+                      => AgentTribe
+                      -> Double
+                      -> Int
+                      -> Double
                       -> [(Discrete2dCoord, SugEnvSite)]
                       -> [(Discrete2dCoord, SugEnvSite)]
                       -> AgentAction g [(Discrete2dCoord, SugEnvSite)]
-    filterRetaliation _            []                          acc = return acc
-    filterRetaliation combatReward (site@(siteCoord, siteState) : sites) acc = do
-      myVis       <- agentProperty sugAgVision
-      myWealth    <- agentProperty sugAgSugarLevel
-      myTribe     <- agentProperty sugAgTribe
-      futureSites <- lift $ lift $ neighboursInNeumannDistanceM siteCoord myVis False
+    filterRetaliation _ _ _ _ [] acc = return acc
+    filterRetaliation myTribe myWealth myVis combatReward (site@(sc, ss) : sites) acc = do
+      futureSites <- lift $ lift $ neighboursInNeumannDistanceM sc myVis False
 
-      let victimWealth = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier siteState) 
-          combatWealth = min victimWealth combatReward
-          futureWealth = myWealth + combatWealth
+      let victimWealth  = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier ss) 
+          combatWealth  = min victimWealth combatReward
+          futureWealth  = myWealth + combatWealth
 
-      let occSites         = filter (siteOccupied . snd) futureSites
-          otherTribeSites  = filter (\(_, siteState') -> sugEnvOccTribe (fromJust $ sugEnvSiteOccupier siteState') /= myTribe) occSites
-          moreWealthySites = filter (\(_, siteState') -> sugEnvOccWealth (fromJust $ sugEnvSiteOccupier siteState') > futureWealth) otherTribeSites
-      
+          filteredSites = filter (\(_, ss') -> 
+                          case sugEnvSiteOccupier ss' of 
+                            Nothing  -> False
+                            Just occ -> trace ("Agent " ++ show myId ++ 
+                                               ", myTribe = " ++ show myTribe ++ 
+                                               ", futureWealth = " ++ show futureWealth ++
+                                               " occ: " ++ show occ) (sugEnvOccTribe occ /= myTribe &&
+                                        sugEnvOccWealth occ > futureWealth)) futureSites
+
       -- in case sites found with agents more wealthy after this agents combat, then this site is vulnerable to retaliation, 
-      if null moreWealthySites
-        then filterRetaliation combatReward sites (site : acc) -- add this site, cant be retaliated
-        else filterRetaliation combatReward sites acc -- ignore this site, its vulnerable to retaliation
+      if null filteredSites
+        then trace ("Agent " ++ show myId ++ ": found non-retaliating site " ++ show site) $ filterRetaliation myTribe myWealth myVis combatReward sites (site : acc) -- add this site, cant be retaliated
+        else filterRetaliation myTribe myWealth myVis combatReward sites acc -- ignore this site, its vulnerable to retaliation
 
 handleKilledInCombat :: RandomGen g
                      => AgentId

@@ -72,8 +72,8 @@ handleTimeStep params myId = do
   --DBG.trace ("Agent " ++ show myId ++ ": handleTimeStep") 
   agentAgeing
   
-  harvestAmount <- agentMove params myId
-  metabAmount   <- agentMetabolism
+  (harvestAmount, maoCombat) <- agentMove params myId
+  metabAmount                <- agentMetabolism
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
   -- NOTE: ordering is important to replicate the dynamics
@@ -82,21 +82,27 @@ handleTimeStep params myId = do
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (do
-      ao <- agentDies params myId agentMsf
+      aoDie <- agentDies params myId agentMsf
+      let ao = maybe aoDie (`agentOutMergeRightObs` aoDie) maoCombat
       return (ao, Nothing))
     (do 
+      let cont = agentContAfterMating params myId
+
       ret <- agentMating 
               params 
               myId 
               agentMsf
               (generalEventHandler params myId) 
-              (agentContAfterMating params myId)
+              cont
 
       case ret of
         Nothing -> do
-          ao <- agentContAfterMating params myId
+          aoCont <- cont
+          let ao = maybe aoCont (`agentOutMergeRightObs` aoCont) maoCombat
           return (ao, Nothing)
-        Just (ao, mhdl) -> return (ao, mhdl))
+        Just (aoMating, mhdl) -> do
+          let ao = maybe aoMating (`agentOutMergeRightObs` aoMating) maoCombat
+          return (ao, mhdl))
 
 agentContAfterMating :: RandomGen g 
                      => SugarScapeParams

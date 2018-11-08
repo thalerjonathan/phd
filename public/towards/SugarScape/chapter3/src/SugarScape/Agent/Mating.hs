@@ -23,8 +23,6 @@ import SugarScape.Model
 import SugarScape.Random
 import SugarScape.Utils
 
---import Debug.Trace as DBG
-
 -- TODO: do we really need a Maybe for EventHandler?
 agentMating :: RandomGen g
             => SugarScapeParams               -- parameters of the current sugarscape scenario
@@ -72,8 +70,7 @@ mateWith _ _myId _ mainHandler finalizeAction [] = do
   -- mating finished, continue with agent-behaviour where it left before starting mating
   ao <- finalizeAction 
   -- need to switch back into the main handler
-  --DBG.trace ("Agent " ++ show myId ++ ": no more neighbours, mating finished, carry on with normal behaviour" ) 
-  (return (ao, Just mainHandler))
+  return (ao, Just mainHandler)
 mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
     -- check fertility again because might not be fertile because of previous matings
     ifThenElseM
@@ -98,15 +95,12 @@ mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
             myGender <- agentProperty sugAgGender
             ao       <- agentOutObservableM
 
-            return $ 
-              --DBG.trace ("Agent " ++ show myId ++ ": sending (MatingRequest " ++ show myGender ++ ") to agent " ++ show matingPartnerId) 
-                    (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
+            return (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
       (do
         -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
         ao <- finalizeAction 
         -- need to switch back into the main handler
-        --DBG.trace ("Agent " ++ show myId ++ ": not fertile, mating finished, carry on with normal behaviour" ) 
-        (return (ao, Just mainHandler)))
+        return (ao, Just mainHandler))
 
 matingHandler :: RandomGen g
               => SugarScapeParams
@@ -138,9 +132,7 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
                       -> Maybe (Double, Int, Int, CultureTag)
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
     handleMatingReply amsf mainHandler finalizeAction _ Nothing =  -- the sender refuse the mating-request
-      --DBG.trace ("Agent " ++ show myId ++ ": agent " ++ show sender ++ " refuses mating-reply, check next neighbour")
-        -- continue with next neighbour
-      (mateWith params myId amsf mainHandler finalizeAction ns)
+      mateWith params myId amsf mainHandler finalizeAction ns
     handleMatingReply amsf _ _ sender _acc@(Just (otherSugShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
       myMetab   <- agentProperty sugAgSugarMetab
@@ -151,14 +143,13 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
       childVision  <- lift $ lift $ lift $ randomElemM [myVision, otherVision]
       childCultTag <- lift $ lift $ lift $ crossOverCulture myCultTag otherCultureTag
 
-      let updateChildState = \s -> s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare
-                                     , sugAgSugarMetab = childMetab
-                                     , sugAgVision     = childVision
-                                     , sugAgCultureTag = childCultTag
-                                     , sugAgTribe      = tagToTribe childCultTag }
+      let updateChildState s = s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare
+                                 , sugAgSugarMetab = childMetab
+                                 , sugAgVision     = childVision
+                                 , sugAgCultureTag = childCultTag
+                                 , sugAgTribe      = tagToTribe childCultTag }
 
-      childId                 <- --DBG.trace ("Agent " ++ show myId ++ ": incoming (MatingReply " ++ show acc ++ ") from agent " ++ show sender) 
-                                  (lift nextAgentId)
+      childId                 <- lift nextAgentId
       (childCoord, childSite) <- lift $ lift $ lift $ randomElemM freeSites
       -- update new-born state with its genes and initial endowment
       (childDef, childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
@@ -176,11 +167,9 @@ matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites =
       -- mating-partner => agent sends to itself a MatingContinue event
       ao0 <- liftM (newAgent childDef) agentOutObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      let ao'  = --DBG.trace ("Agent " ++ show myId ++ ": sending (MatingTx " ++ show childId ++ ") to agent " ++ show sender)
-                  sendEventTo sender (MatingTx childId) ao0
+      let ao' = sendEventTo sender (MatingTx childId) ao0
       -- THEN continue with mating-requests to the remaining neighbours
-      let ao'' = --DBG.trace ("Agent " ++ show myId ++ ": sending MatingContinue to agent " ++ show myId ++ " (myself)")
-                  sendEventTo myId MatingContinue ao'
+      let ao'' = sendEventTo myId MatingContinue ao'
 
       return (ao'', Nothing)
 
@@ -243,11 +232,7 @@ handleMatingRequest _myId sender otherGender = do
         return $ Just (sugLvl / 2, metab, vision, culTag)
       else return Nothing
 
-  --DBG.trace ("Agent " ++ show myId ++ 
-  --       ": incoming (MatingRequest " ++ show otherGender ++ 
-  --       ") from agent " ++ show sender ++ 
-  --       ", will reply with MatingReply " ++ show accept ++ "!") 
-  (return $ sendEventTo sender (MatingReply acc) ao)
+  return $ sendEventTo sender (MatingReply acc) ao
 
 handleMatingTx :: (RandomGen g, MonadState SugAgentState m)
                => AgentId
@@ -259,8 +244,4 @@ handleMatingTx _myId _sender childId = do
   -- subtract 50% wealth, each parent provides 50% of its wealth to the child
   updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2
                             , sugAgChildren   = childId : sugAgChildren s})
-
-  --DBG.trace ("Agent " ++ show myId ++ 
-  --       ": incoming (MatinTx " ++ show childId ++ 
-  --       ") from agent " ++ show sender) 
   agentOutObservableM

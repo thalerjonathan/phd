@@ -53,6 +53,10 @@ module SugarScape.Model
   , mkParamsAnimationIII_7
   , mkParamsFigureIII_8
   , mkParamsAnimationIII_9
+  , mkParamsAnimationIII_10
+  , mkParamsAnimationIII_11
+  , mkParamsAnimationIII_14
+  , mkParamsAnimationIII_15
   ) where
 
 import Control.Monad.Random
@@ -494,4 +498,29 @@ mkParamsAnimationIII_9 :: SugarScapeParams
 mkParamsAnimationIII_9 = mkParamsAnimationII_2 {
     sgAgentDistribution = CombatCorners
   , spCombat            = Just (1 / 0)
+  }
+
+mkParamsAnimationIII_10 :: SugarScapeParams
+mkParamsAnimationIII_10 = mkParamsAnimationIII_9
+
+-- reward equal to a fixed value page 86 / 87
+mkParamsAnimationIII_11 :: SugarScapeParams
+mkParamsAnimationIII_11 = mkParamsAnimationII_2 {
+    sgAgentDistribution = CombatCorners
+  , spCombat            = Just 2
+  , spReplaceAgents     = True     
+  , spAgeSpan           = Range 60 100 
+  }
+
+mkParamsAnimationIII_14 :: SugarScapeParams
+mkParamsAnimationIII_14 = mkParamsAnimationII_2 {
+    sgAgentDistribution = CombatCorners
+  , spCombat            = Just (1 / 0)
+  , spCulturalProcess = Just 10
+  }
+
+-- proto-history page 92/93
+mkParamsAnimationIII_15 :: SugarScapeParams
+mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
+   spCulturalProcess   = Just 10
   }

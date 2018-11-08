@@ -44,10 +44,10 @@ agentDistribution params CombatCorners = do
       aisBotLeft  = [halfCount + 1 .. agentCount]
 
   randCoordsTopRight <- randomCoords (30, 30) sugarscapeDimensions (length aisTopRight)
-  rasTopRight        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf (\s -> s { sugAgTribe = Red})) (zip aisTopRight randCoordsTopRight)
+  rasTopRight        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf (changeToRedTribe params)) (zip aisTopRight randCoordsTopRight)
 
   randCoordsBotLeft <- randomCoords (0,0) (20, 20) (length aisBotLeft)
-  rasBotLeft        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf (\s -> s { sugAgTribe = Blue})) (zip aisBotLeft randCoordsBotLeft)
+  rasBotLeft        <- mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf (changeToBlueTribe params)) (zip aisBotLeft randCoordsBotLeft)
 
   return (rasBotLeft ++ rasTopRight)
 
@@ -62,6 +62,25 @@ agentDistribution params dist = do
   randCoords <- randomCoords (0,0) coordDims agentCount
   mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf id) (zip ais randCoords)
 
+changeToRedTribe :: SugarScapeParams
+                 -> SugAgentState
+                 -> SugAgentState
+changeToRedTribe params s = s { sugAgTribe      = tagToTribe redTag
+                              , sugAgCultureTag = redTag }
+  where             
+    redTag = case spCulturalProcess params of 
+              Nothing -> []
+              Just n  -> replicate n True
+
+changeToBlueTribe :: SugarScapeParams
+                  -> SugAgentState
+                  -> SugAgentState
+changeToBlueTribe params s = s { sugAgTribe     = tagToTribe blueTag
+                              , sugAgCultureTag = blueTag }
+  where             
+    blueTag = case spCulturalProcess params of 
+              Nothing -> []
+              Just n  -> replicate n False
 
 sugarSpecToCoords :: [[Int]]
                   -> Discrete2dCoord

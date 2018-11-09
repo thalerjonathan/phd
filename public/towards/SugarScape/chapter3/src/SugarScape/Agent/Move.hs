@@ -19,10 +19,19 @@ import SugarScape.Utils
 agentMove :: RandomGen g
           => SugarScapeParams
           -> AgentId
-          -> AgentAction g (Double, Maybe (SugAgentOut g))
+          -> AgentAction g (Double, SugAgentOut g)
 agentMove params myId 
-  | isNothing $ spCombat params = liftM (\v -> (v,Nothing)) $ agentNonCombat params myId
+  | isNothing $ spCombat params = runAgentNonCombat params myId
   | otherwise                   = agentCombat params myId
+
+runAgentNonCombat :: RandomGen g
+                  => SugarScapeParams
+                  -> AgentId
+                  -> AgentAction g (Double, SugAgentOut g)
+runAgentNonCombat params myId = do
+  ao     <- agentOutObservableM
+  harvest <- agentNonCombat params myId
+  return (harvest, ao)
 
 agentNonCombat :: RandomGen g
                => SugarScapeParams
@@ -54,7 +63,7 @@ agentNonCombat params myId = do
 agentCombat :: RandomGen g
             => SugarScapeParams
             -> AgentId
-            -> AgentAction g (Double, Maybe (SugAgentOut g))
+            -> AgentAction g (Double, SugAgentOut g)
 agentCombat params myId = do
     let combatReward = fromJust $ spCombat params
 
@@ -76,7 +85,7 @@ agentCombat params myId = do
     nonRetaliationSites <- filterRetaliation myTribe myWealth myVis combatReward sites []
 
     if null nonRetaliationSites
-      then liftM (\v -> (v, Nothing)) $ agentNonCombat params myId  -- if no sites left for combat, just do a non-combat move
+      then runAgentNonCombat params myId -- if no sites left for combat, just do a non-combat move
       else do
         myCoord <- agentProperty sugAgCoord
       
@@ -94,7 +103,7 @@ agentCombat params myId = do
         let victimId = sugEnvOccId (fromJust $ sugEnvSiteOccupier site)
         ao <- liftM (sendEventTo victimId KilledInCombat) agentOutObservableM
 
-        return (sugHarvested + combatWealth, Just ao)
+        return (sugHarvested + combatWealth, ao)
 
   where
     filterRetaliation :: RandomGen g

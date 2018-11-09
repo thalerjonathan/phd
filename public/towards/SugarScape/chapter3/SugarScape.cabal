@@ -60,6 +60,7 @@ executable sugarscape
                 , SugarScape.Agent.Metabolism
                 , SugarScape.Agent.Move
                 , SugarScape.Agent.Polution
+                , SugarScape.Agent.Trading
                 , SugarScape.Agent.Utils
                 , SugarScape.Common 
                 , SugarScape.Discrete

@@ -19,8 +19,8 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let sugParams = mkParamsAnimationIV_1 
-      output    = Visual 1 Welfare Resource -- Export 1000 -- Visual 0 Gender Resource
+  let sugParams = mkParamsFigureIV_3 
+      output    = Visual 0 Default Resource -- Export 1000 -- Visual 0 Gender Resource
       rngSeed   = Nothing                -- Just 42
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams

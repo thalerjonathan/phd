@@ -17,11 +17,10 @@ import SugarScape.Agent.Mating
 import SugarScape.Agent.Metabolism
 import SugarScape.Agent.Move
 import SugarScape.Agent.Polution
+import SugarScape.Agent.Trading
 import SugarScape.Agent.Utils
 import SugarScape.Model
 import SugarScape.Utils
-
---import Debug.Trace as DBG
 
 ------------------------------------------------------------------------------------------------------------------------
 agentMsf :: RandomGen g => SugarScapeAgent g
@@ -61,6 +60,9 @@ generalEventHandler params myId =
         (DomainEvent (sender, KilledInCombat)) -> do
           ao <- arrM (handleKilledInCombat myId) -< sender
           returnA -< (ao, Nothing)
+        (DomainEvent (sender, TradingOffer traderMrs)) -> do
+          ao <- arrM (uncurry (handleTradingOffer myId)) -< (sender, traderMrs)
+          returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
@@ -69,49 +71,40 @@ handleTimeStep :: RandomGen g
                -> AgentId
                -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 handleTimeStep params myId = do
-  --DBG.trace ("Agent " ++ show myId ++ ": handleTimeStep") 
   agentAgeing
   
-  (harvestAmount, maoCombat) <- agentMove params myId
-  metabAmount                <- agentMetabolism params
+  (harvestAmount, aoMove) <- agentMove params myId
+  metabAmount             <- agentMetabolism params
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
   -- NOTE: ordering is important to replicate the dynamics
   -- after having aged, moved and applied metabolism, the 
-  -- agent could have died already, thus not able to mate
+  -- agent could have died already, thus not able to apply other rules
   ifThenElseM
     (starvedToDeath params `orM` dieOfAge)
     (do
       aoDie <- agentDies params myId agentMsf
-      let ao = maybe aoDie (`agentOutMergeRightObs` aoDie) maoCombat
+      let ao = aoMove `agentOutMergeRightObs` aoDie
       return (ao, Nothing))
     (do 
       let cont = agentContAfterMating params myId
 
-      ret <- agentMating 
-              params 
-              myId 
-              agentMsf
-              (generalEventHandler params myId) 
-              cont
+      (aoMating, mhdl) <- agentMating 
+                            params 
+                            myId 
+                            agentMsf
+                            cont
 
-      case ret of
-        Nothing -> do
-          aoCont <- cont
-          let ao = maybe aoCont (`agentOutMergeRightObs` aoCont) maoCombat
-          return (ao, Nothing)
-        Just (aoMating, mhdl) -> do
-          let ao = maybe aoMating (`agentOutMergeRightObs` aoMating) maoCombat
-          return (ao, mhdl))
+      let ao = aoMove `agentOutMergeRightObs` aoMating
+      return (ao, mhdl))
 
 agentContAfterMating :: RandomGen g 
                      => SugarScapeParams
                      -> AgentId
-                     -> AgentAction g (SugAgentOut g)
+                     -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterMating params myId = do
-  --DBG.trace ("Agent " ++ show myId ++ ": agentContAfterMating") 
-  -- NOTE: perform cultural process here, does not matter if it is before or after mating (or is this wrong?)
-  mao <- agentCultureProcess params myId
-  case mao of
-    Nothing -> agentOutObservableM
-    Just ao -> return ao
+  aoCulture       <- agentCultureProcess params myId
+  (aoTrade, mhdl) <- agentTrade params myId (generalEventHandler params myId)
+
+  let ao = aoCulture `agentOutMergeRightObs` aoTrade
+  return (ao, mhdl)

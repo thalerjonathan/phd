@@ -23,16 +23,14 @@ import SugarScape.Model
 import SugarScape.Random
 import SugarScape.Utils
 
--- TODO: do we really need a Maybe for EventHandler?
 agentMating :: RandomGen g
             => SugarScapeParams               -- parameters of the current sugarscape scenario
             -> AgentId                        -- the id of the agent 
             -> SugarScapeAgent g              -- the top-level MSF of the agent, to be used for birthing children
-            -> EventHandler g                 -- the top-level event-handler of the agent
-            -> AgentAction g (SugAgentOut g)  -- the action to be carried out where agentMating has left off to finalise the agent
-            -> AgentAction g (Maybe (SugAgentOut g, Maybe (EventHandler g)))
-agentMating params myId amsf0 mainHandler0 finalizeAction0
-  | not $ spSexRuleActive params = return Nothing
+            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
+            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+agentMating params myId amsf0 cont0
+  | not $ spSexRuleActive params = cont0
   | otherwise                    = do
     coord   <- agentProperty sugAgCoord
     ns      <- lift $ lift $ neighboursM coord False
@@ -47,93 +45,79 @@ agentMating params myId amsf0 mainHandler0 finalizeAction0
     -- the switch will occur back to mainHandler from where we are coming anyway
     -- thus carrying out this extra check is a performance optimisation
     if null ocs || not fertile
-      then --DBG.trace ("Agent " ++ show myId ++ ": no neighbours (" ++ show (null ocs) ++ "), or i'm not fertile (" ++ show (not fertile) ++ ") => not initiating mating") 
-           return Nothing
+      then cont0
       else do
         -- shuffle ocs bcs selecting agents at random according to the book
         ocsShuff <- lift $ lift $ lift $ fisherYatesShuffleM ocs
-
-        --let visNs = map (\(c, s) -> (sugEnvOccId $ fromJust $ sugEnvSiteOccupier s, c)) ocs
-        ret <- --DBG.trace ("Agent " ++ show myId ++ ": found " ++ show (length ocs) ++ " neighbours: " ++ show visNs ++ ", and i'm fertile => initiating mating") 
-               mateWith params myId amsf0 mainHandler0 finalizeAction0 ocsShuff
-        return $ Just ret
+        mateWith params myId amsf0 cont0 ocsShuff
 
 mateWith :: RandomGen g
          => SugarScapeParams
          -> AgentId 
          -> SugarScapeAgent g
-         -> EventHandler g
-         -> AgentAction g (SugAgentOut g)
+         -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
          -> [(Discrete2dCoord, SugEnvSite)]
          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-mateWith _ _myId _ mainHandler finalizeAction [] = do
+mateWith _ _myId _ cont [] = 
   -- mating finished, continue with agent-behaviour where it left before starting mating
-  ao <- finalizeAction 
-  -- need to switch back into the main handler
-  return (ao, Just mainHandler)
-mateWith params myId amsf mainHandler finalizeAction ((coord, site) : ns) =
-    -- check fertility again because might not be fertile because of previous matings
-    ifThenElseM
-      isAgentFertile
-      (do
-        myCoord <- agentProperty sugAgCoord
-        -- always query again bcs might have changed since previous iteration
-        mySites        <- lift $ lift $ neighboursM myCoord False
-        neighbourSites <- lift $ lift $ neighboursM coord False
+  cont 
+mateWith params myId amsf cont ((coord, site) : ns) =
+  -- check fertility again because might not be fertile because of previous matings
+  ifThenElseM
+    isAgentFertile
+    (do
+      myCoord <- agentProperty sugAgCoord
+      -- always query again bcs might have changed since previous iteration
+      mySites        <- lift $ lift $ neighboursM myCoord False
+      neighbourSites <- lift $ lift $ neighboursM coord False
 
-        -- no need to remove duplicates, bcs there cant be one with neumann neighbourhood
-        let freeSites = filter (siteUnoccupied . snd) (mySites ++ neighbourSites)
+      -- no need to remove duplicates, bcs there cant be one with neumann neighbourhood
+      let freeSites = filter (siteUnoccupied . snd) (mySites ++ neighbourSites)
 
-        if null freeSites
-          -- in case no free sites, can't give birth to new agent, try next neighbour, might have free sites
-          then mateWith params myId amsf mainHandler finalizeAction ns
-          else do
-            -- in this case fromJust guaranteed not to fail, neighbours contain only occupied sites 
-            let matingPartnerId = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site 
-                evtHandler      = matingHandler params myId amsf mainHandler finalizeAction ns freeSites
+      if null freeSites
+        -- in case no free sites, can't give birth to new agent, try next neighbour, might have free sites
+        then mateWith params myId amsf cont ns
+        else do
+          -- in this case fromJust guaranteed not to fail, neighbours contain only occupied sites 
+          let matingPartnerId = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site 
+              evtHandler      = matingHandler params myId amsf cont ns freeSites
 
-            myGender <- agentProperty sugAgGender
-            ao       <- agentOutObservableM
+          myGender <- agentProperty sugAgGender
+          ao       <- agentOutObservableM
 
-            return (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
-      (do
-        -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
-        ao <- finalizeAction 
-        -- need to switch back into the main handler
-        return (ao, Just mainHandler))
+          return (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
+    -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
+    cont
 
 matingHandler :: RandomGen g
               => SugarScapeParams
               -> AgentId 
               -> SugarScapeAgent g
-              -> EventHandler g
-              -> AgentAction g (SugAgentOut g)
+              -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
               -> [Discrete2dCell SugEnvSite]
               -> [(Discrete2dCoord, SugEnvSite)]
               -> EventHandler g
-matingHandler params myId amsf0 mainHandler0 finalizeAction0 ns freeSites = 
+matingHandler params myId amsf0 cont0 ns freeSites = 
     continueWithAfter
       (proc evt -> 
         case evt of
           (DomainEvent (sender, MatingReply accept)) -> 
-            arrM (uncurry (handleMatingReply amsf0 mainHandler0 finalizeAction0)) -< (sender, accept)
+            arrM (uncurry (handleMatingReply amsf0 cont0)) -< (sender, accept)
           (DomainEvent (sender, MatingContinue)) -> 
             if sender /= myId 
               then returnA -< error $ "Agent " ++ show myId ++ ": received MatingContinue not from self, terminating!"
-              else --DBG.trace ("Agent " ++ show myId ++ ": received MatingContinue from self, carry on with mating")
-                    constM (mateWith params myId amsf0 mainHandler0 finalizeAction0 ns) -< ()
+              else constM (mateWith params myId amsf0 cont0 ns) -< ()
           _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
   where
     handleMatingReply :: RandomGen g
                       => SugarScapeAgent g
-                      -> EventHandler g
-                      -> AgentAction g (SugAgentOut g)
+                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
                       -> AgentId
                       -> Maybe (Double, Int, Int, CultureTag)
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply amsf mainHandler finalizeAction _ Nothing =  -- the sender refuse the mating-request
-      mateWith params myId amsf mainHandler finalizeAction ns
-    handleMatingReply amsf _ _ sender _acc@(Just (otherSugShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
+    handleMatingReply amsf cont _ Nothing =  -- the sender refuse the mating-request
+      mateWith params myId amsf cont ns
+    handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
       myMetab   <- agentProperty sugAgSugarMetab
       myVision  <- agentProperty sugAgVision

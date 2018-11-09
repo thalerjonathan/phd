@@ -14,6 +14,8 @@ module SugarScape.Agent.Common
   , agentWelfare
   , agentWelfareChange
   , mrs
+  , mrsM
+  , mrsFromState
   
   , unoccupiedNeighbourhoodOfNeighbours
 
@@ -120,6 +122,19 @@ mrs :: Double  -- ^ sugar-wealth of agent
     -> Double
 mrs w1 w2 m1 m2 = (w2 / m2) / (w1 / m1)
 
+mrsM :: MonadState SugAgentState m => m Double
+mrsM = do
+  s <- get
+  return $ mrsFromState s
+
+mrsFromState :: SugAgentState -> Double
+mrsFromState as = mrs w1 w2 m1 m2
+  where
+    m1 = fromIntegral $ sugAgSugarMetab as
+    m2 = fromIntegral $ sugAgSpiceMetab as
+    w1 = sugAgSugarLevel as
+    w2 = sugAgSpiceLevel as
+
 -- NOTE: this welfare function includes the ability to calculate the changed
 -- welfare of an agent when sugar and spice change - is required for determining
 -- the best site to move to when spice is enabled
@@ -176,6 +191,7 @@ occupier aid s = SugEnvSiteOccupier {
     sugEnvOccId     = aid
   , sugEnvOccTribe  = sugAgTribe s
   , sugEnvOccWealth = sugAgSugarLevel s
+  , sugEnvOccMRS    = mrsFromState s
   }
 
 occupierM :: MonadState SugAgentState m

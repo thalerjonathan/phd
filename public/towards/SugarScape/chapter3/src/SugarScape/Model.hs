@@ -60,6 +60,7 @@ module SugarScape.Model
   , mkParamsAnimationIII_15
 
   , mkParamsAnimationIV_1
+  , mkParamsFigureIV_3
   ) where
 
 import Control.Monad.Random
@@ -118,6 +119,7 @@ data SugEnvSiteOccupier = SugEnvSiteOccupier
   { sugEnvOccId     :: !AgentId
   , sugEnvOccWealth :: !Double
   , sugEnvOccTribe  :: !AgentTribe
+  , sugEnvOccMRS    :: !Double
   } deriving (Show, Eq)
 
 data SugEnvSite = SugEnvSite 
@@ -141,6 +143,9 @@ data SugEvent = MatingRequest AgentGender
               | CulturalProcess CultureTag
 
               | KilledInCombat 
+
+              | TradingOffer Double
+              | TradingReply Bool
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite
@@ -268,10 +273,13 @@ data SugarScapeParams = SugarScapeParams
 
   , spCombat               :: Maybe Double   -- combat rule C_alpha on / off
 
+  -- Chapter IV params
   , spSpiceEnabled         :: Bool           -- add spice to the landscape on/off
   , spSpiceRegrow          :: Regrow 
   , spSpiceEndowmentRange  :: (Int, Int)
   , spSpiceMetabolismRange :: (Int, Int)
+
+  , spTradingEnabled       :: Bool            -- trading rule T on / off
   }
 
 mkSugarScapeParams :: SugarScapeParams
@@ -299,6 +307,7 @@ mkSugarScapeParams = SugarScapeParams {
   , spSpiceRegrow          = Immediate
   , spSpiceEndowmentRange  = (0, 0)
   , spSpiceMetabolismRange = (0, 0)
+  , spTradingEnabled       = False
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -464,4 +473,9 @@ mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
   
   --, spPolutionFormation = Polute 1 1  -- just for experimentation purpose, not part of AnimationIV-1
   --, spPolutionDiffusion = Just 1      -- just for experimentation purpose, not part of AnimationIV-1
+  }
+
+mkParamsFigureIV_3 :: SugarScapeParams
+mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
+    spTradingEnabled = True
   }

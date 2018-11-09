@@ -11,6 +11,7 @@ import Data.Maybe
 import Graphics.Gloss as GLO
 
 import SugarScape.Agent.Interface
+import SugarScape.Agent.Common
 import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
@@ -122,16 +123,14 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
 
     welfareColor :: SugAgentObservable -> GLO.Color
     welfareColor obs 
-        | tau < 1   = mateBlue -- sugar more important at the moment
-        | otherwise = mateRed  -- spcie more important at the moment
+        | m < 1     = mateBlue
+        | otherwise = mateRed
       where
         m1  = fromIntegral $ sugObsSugMetab obs
         m2  = fromIntegral $ sugObsSpiMetab obs
         w1  = sugObsSugLvl obs
         w2  = sugObsSpiLvl obs
-        t1  = w1 / m1
-        t2  = w2 / m2
-        tau = t1 / t2 
+        m   = mrs w1 w2 m1 m2
 
 mateBlue :: GLO.Color
 mateBlue = GLO.makeColor 0.0 0.0 0.9 1.0

@@ -13,7 +13,8 @@ module SugarScape.Agent.Common
   , combatSiteMeasure
   , agentWelfare
   , agentWelfareChange
-
+  , mrs
+  
   , unoccupiedNeighbourhoodOfNeighbours
 
   , occupier
@@ -110,6 +111,14 @@ agentWelfare :: Double  -- ^ sugar-wealth of agent
              -> Double  -- ^ spice-metabolism of agent
              -> Double
 agentWelfare = agentWelfareChange 0 0
+
+-- see page 102, internal valuations
+mrs :: Double  -- ^ sugar-wealth of agent
+    -> Double  -- ^ spice-wealth of agent
+    -> Double  -- ^ sugar-metabolism of agent
+    -> Double  -- ^ spice-metabolism of agent
+    -> Double
+mrs w1 w2 m1 m2 = (w2 / m2) / (w1 / m1)
 
 -- NOTE: this welfare function includes the ability to calculate the changed
 -- welfare of an agent when sugar and spice change - is required for determining

@@ -75,6 +75,7 @@ agentWelfareChange as s = ((w1 + su)**(m1/mT)) * ((w2 + sp)**(m2/mT))
     su = sugEnvSiteSugarLevel s
     sp = sugEnvSiteSpiceLevel s
 
+-- TODO: include polution in all cases: its always 0 when turned off => can incorporated it in formulas => easier to maintain
 bestSiteFunc :: SugarScapeParams -> SugAgentState -> BestSiteMeasureFunc
 bestSiteFunc params as
     | diffusionActive = if spiceEnabled then bestSugarSpicePolutionRatio else bestSugarPolutionRatio
@@ -85,6 +86,7 @@ bestSiteFunc params as
                         _          -> True
     spiceEnabled    = spSpiceEnabled params
 
+-- TODO: haven't added spice yet
 bestCombatSite :: Double -> BestSiteMeasureFunc
 bestCombatSite combatReward site = combatWealth + s
   where

@@ -450,10 +450,10 @@ mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
 -- see page 99
 mkParamsAnimationIV_1 :: SugarScapeParams
 mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
-    spVisionRange          = (1, 10)
-  , spSugarMetabolismRange = (1, 5)
+    spVisionRange          = (1, 6) -- book says 1-10
+  , spSugarMetabolismRange = (1, 4)  -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
   , spSpiceEnabled         = True
   , spSpiceRegrow          = Rate 1
   , spSpiceEndowmentRange  = (5, 25)
-  , spSpiceMetabolismRange = (1, 5)
+  , spSpiceMetabolismRange = (1, 4)   -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
   }

@@ -1,4 +1,5 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows           #-}
+{-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Trading 
   ( agentTrade
   , handleTradingOffer
@@ -26,7 +27,7 @@ agentTrade params myId globalHdl
     ao <- agentOutObservableM
     return (ao, Nothing)
   | otherwise = tradingRound myId globalHdl
-    
+
 tradingRound :: RandomGen g
              => AgentId
              -> EventHandler g
@@ -43,8 +44,13 @@ tradingRound myId globalHdl = do
                             Nothing  -> False
                             Just occ -> sugEnvOccMRS occ /= myMrs) ns
 
-  potentialTraders' <- lift $ lift $ lift $ fisherYatesShuffleM potentialTraders
-  tradeWith myId globalHdl False potentialTraders'
+  if null potentialTraders
+    then do
+      ao <- agentOutObservableM
+      return (ao, Just globalHdl)
+    else do
+      potentialTraders' <- lift $ lift $ lift $ fisherYatesShuffleM potentialTraders
+      tradeWith myId globalHdl False potentialTraders'
 
 tradeWith :: RandomGen g
           => AgentId
@@ -59,27 +65,33 @@ tradeWith myId globalHdl tradeOccured []       -- iterated through all potential
     return (ao, Just globalHdl) -- no trading has occured, quit trading and switch back to globalHandler
 
 tradeWith myId globalHdl tradeOccured (trader : ts) = do -- trade with next one
-  myMrs <- mrsM
-  let traderMrs = sugEnvOccMRS trader
-      traderId  = sugEnvOccId trader
+  myMrs  <- mrsM
+  currWf <- agentWelfareM
 
-  let _price = sqrt (myMrs * traderMrs)
+  let otherMrs       = sugEnvOccMRS trader
+      (sugEx, spiEx) = computeExchange myMrs otherMrs
 
-  -- TODO: check if it makes this agent better off
-  -- TODO: how to check if MRS cross over??
+  tradeWf <- agentWelfareChangeM sugEx spiEx
 
-  let evtHandler = tradingHandler myId globalHdl tradeOccured ts
-  ao <- agentOutObservableM
+  -- TODO: check crossover
 
-  return (sendEventTo traderId (TradingOffer myMrs) ao, Just evtHandler)
+  -- NOTE: check if it makes this agent better off: does it increase the agents welfare?
+  if tradeWf < currWf
+    then tradeWith myId globalHdl tradeOccured ts -- not better off, continue with next trader
+    else do
+      let evtHandler = tradingHandler myId globalHdl otherMrs tradeOccured ts
+          traderId   = sugEnvOccId trader
+      ao <- agentOutObservableM
+      return (sendEventTo traderId (TradingOffer myMrs) ao, Just evtHandler)
 
 tradingHandler :: RandomGen g
                => AgentId
                -> EventHandler g
+               -> Double
                -> Bool
                -> [SugEnvSiteOccupier]
                -> EventHandler g
-tradingHandler myId globalHdl0 tradeOccured traders = 
+tradingHandler myId globalHdl0 otherMrs tradeOccured traders = 
     continueWithAfter
       (proc evt -> 
         case evt of
@@ -91,10 +103,14 @@ tradingHandler myId globalHdl0 tradeOccured traders =
                        => EventHandler g
                        -> Bool
                        -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-    handleTradingReply globalHdl False =  -- the sender refuse the trading-offer, continue with the next trader
+    handleTradingReply globalHdl False =  -- the sender refuses the trading-offer, continue with the next trader
       tradeWith myId globalHdl tradeOccured traders
     handleTradingReply globalHdl True = do -- the sender accepts the trading-offer
-      -- TODO: transact trade
+      myMrs <- mrsM
+      let (sugEx, spiEx) = computeExchange myMrs otherMrs
+      -- NOTE: at this point the other agent is better off as well and has already transacted
+      updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sugEx
+                                , sugAgSpiceLevel = sugAgSpiceLevel s + spiEx })
       tradeWith myId globalHdl True traders
 
 handleTradingOffer :: RandomGen g
@@ -102,8 +118,40 @@ handleTradingOffer :: RandomGen g
                    -> AgentId
                    -> Double
                    -> AgentAction g (SugAgentOut g)
-handleTradingOffer _myId _traderId _traderMrs = do
-  -- TODO: check if it makes this agent better off
-  -- TODO: how to check if MRS cross over??
+handleTradingOffer _myId sender otherMrs = do
+  myMrs  <- mrsM
+  currWf <- agentWelfareM
 
-  agentOutObservableM
+  let (sugEx, spiEx) = computeExchange myMrs otherMrs
+
+  tradeWf <- agentWelfareChangeM sugEx spiEx
+
+  -- TODO: check crossover
+
+  let acceptTrade = tradeWf > currWf
+
+  when 
+    acceptTrade
+    (updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sugEx
+                               , sugAgSpiceLevel = sugAgSpiceLevel s + spiEx }))
+
+  ao <- agentOutObservableM
+  return (sendEventTo sender (TradingReply acceptTrade) ao)
+
+computeExchange :: Double
+                -> Double
+                -> (Double, Double)
+computeExchange myMrs otherMrs 
+    | myMrs > otherMrs = (sugEx, -spiEx) -- spice flows from agent with higher mrs (myMrs) to agent with lower (otherMrs) => subtract spice from this agent and add sugar 
+    | otherwise        = (-sugEx, spiEx) -- sugar flows from agent with lower mrs (myMrs) to agent with higher (otherMrs) => subtract sugar for this agent and add spice
+  where
+    (sugEx, spiEx) = exchangeRates myMrs otherMrs
+      
+exchangeRates :: Double
+              -> Double
+              -> (Double, Double)
+exchangeRates myMrs otherMrs 
+    | price > 1 = (1, price)     -- trading p units of spice for 1 unit of sugar
+    | otherwise = (1 / price, 1) -- trading 1/p units of sugar for 1 unit of spice
+  where
+    price = sqrt (myMrs * otherMrs)

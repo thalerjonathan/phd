@@ -12,7 +12,9 @@ module SugarScape.Agent.Common
   , selectSiteMeasureFunc
   , combatSiteMeasure
   , agentWelfare
+  , agentWelfareM
   , agentWelfareChange
+  , agentWelfareChangeM
   , mrs
   , mrsM
   , mrsFromState
@@ -114,6 +116,9 @@ agentWelfare :: Double  -- ^ sugar-wealth of agent
              -> Double
 agentWelfare = agentWelfareChange 0 0
 
+agentWelfareM :: MonadState SugAgentState m => m Double
+agentWelfareM = agentWelfareChangeM 0 0
+
 -- see page 102, internal valuations
 mrs :: Double  -- ^ sugar-wealth of agent
     -> Double  -- ^ spice-wealth of agent
@@ -149,6 +154,18 @@ agentWelfareChange sugarchange spiceChange w1 w2 m1 m2
     = ((w1 + sugarchange) ** (m1/mT)) * ((w2 + spiceChange) ** (m2/mT))
   where
     mT = m1 + m2
+
+agentWelfareChangeM :: MonadState SugAgentState m 
+                    => Double
+                    -> Double
+                    -> m Double
+agentWelfareChangeM sugarchange spiceChange = do
+  m1 <- fromIntegral <$> agentProperty sugAgSugarMetab
+  m2 <- fromIntegral <$> agentProperty sugAgSpiceMetab
+  w1 <- agentProperty sugAgSugarLevel
+  w2 <- agentProperty sugAgSpiceLevel
+
+  return $ agentWelfareChange sugarchange spiceChange w1 w2 m1 m2
 
 -- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
 -- polution level will be 0 anyway if polution / diffusion is turned off

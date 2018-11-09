@@ -165,8 +165,12 @@ randomAgent params (agentId, coord) asf f = do
   randGender         <- randomGender $ spGenderRatio params
   randFertAgeRange   <- randomFertilityRange params randGender
   randCultureTag     <- randomCultureTag params
+  randSpiceEndowment <- getRandomR $ spSpiceEndowmentRange params
+  randSpiceMetab     <- getRandomR $ spSpiceMetabolismRange params
 
   let initSugar = fromIntegral randSugarEndowment
+      initSpice = fromIntegral randSpiceEndowment
+
       s = SugAgentState {
     sugAgCoord        = coord
   , sugAgSugarMetab   = randSugarMetab
@@ -180,6 +184,8 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgChildren     = []
   , sugAgCultureTag   = randCultureTag
   , sugAgTribe        = tagToTribe randCultureTag
+  , sugAgSpiceLevel   = initSpice
+  , sugAgSpiceMetab   = randSpiceMetab
   }
 
   let s'   = f s

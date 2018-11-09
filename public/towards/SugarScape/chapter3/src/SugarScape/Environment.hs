@@ -42,7 +42,7 @@ polutionDiffusion (Just d) t env
             let c' = c { sugEnvSitePolutionLevel = flux }
             changeCellAt coord c' acc) env (zip cs fs)
 
-regrowSugar :: SugarRegrow 
+regrowSugar :: Regrow 
             -> Time
             -> SugEnvironment
             -> SugEnvironment

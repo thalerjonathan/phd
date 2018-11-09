@@ -20,16 +20,21 @@ createSugarScape :: RandomGen g
 createSugarScape params = do
   ras <- agentDistribution params (sgAgentDistribution params)
 
-  let as          = map (\(ad, _) -> (adId ad, adInitObs ad, adSf ad)) ras
-      occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
-      sugSpecs    = parseSugarSpec sugarEnvSpec
-      sugCoords   = sugarSpecToCoords sugSpecs sugarscapeDimensions
-      sites       = createSites sugCoords occupations
-      env         = createDiscrete2d
-                      sugarscapeDimensions
-                      neumann
-                      WrapBoth
-                      sites
+  let as             = map (\(ad, _) -> (adId ad, adInitObs ad, adSf ad)) ras
+      occupations    = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
+
+      sugarSpecs     = envSpec
+      spiceSpecs     = map reverse envSpec
+
+      sugSpiceSpecs  = parseEnvSpec sugarSpecs spiceSpecs
+      sugSpiceCoords = specToCoords sugSpiceSpecs sugarscapeDimensions
+
+      sites          = createSites params sugSpiceCoords occupations
+      env            = createDiscrete2d
+                        sugarscapeDimensions
+                        neumann
+                        WrapBoth
+                        sites
 
   return (as, env)
 
@@ -62,6 +67,95 @@ agentDistribution params dist = do
   randCoords <- randomCoords (0,0) coordDims agentCount
   mapM (\(aid, coord) -> randomAgent params (aid, coord) agentMsf id) (zip ais randCoords)
 
+specToCoords :: [[(Int, Int)]]
+             -> Discrete2dCoord
+             -> [(Discrete2dCoord, Int, Int)]
+specToCoords specs (dimX, dimY) 
+    | length specs /= dimY = error ("sugar row count does not match y-dimensions: " ++ show (length specs) ++ " not " ++ show dimY)
+    | otherwise            = specLines specs 0 []
+  where
+    specLines :: [[(Int, Int)]]
+              -> Int
+              -> [(Discrete2dCoord, Int, Int)]
+              -> [(Discrete2dCoord, Int, Int)]
+    specLines [] _ acc       = acc
+    specLines (l : ls) y acc 
+        | length l /= dimX = error ("sugar spec line size does not match x-dimensions: " ++ show (length l) ++ " not " ++ show dimX)
+        | otherwise        = specLines ls (y + 1) acc'
+      where
+        acc' = specLineToCoords l 0 acc
+
+        specLineToCoords :: [(Int, Int)]
+                         -> Int
+                         -> [(Discrete2dCoord, Int, Int)]
+                         -> [(Discrete2dCoord, Int, Int)]
+        specLineToCoords [] _ accLine              = accLine
+        specLineToCoords ((su, sp) : ss) x accLine = specLineToCoords ss (x + 1) accLine'
+          where
+            accLine' = ((x, y), su, sp) : accLine
+
+parseEnvSpec :: [String]
+               -> [String]
+               -> [[(Int, Int)]]
+parseEnvSpec = zipWith parseEnvSpecLine
+  where
+    parseEnvSpecLine :: String 
+                       -> String
+                       -> [(Int, Int)]
+    parseEnvSpecLine sugLine spiceLine 
+        = reverse $ zipWith parseEnvSpecAux sugLine spiceLine
+      where
+        parseEnvSpecAux :: Char
+                          -> Char
+                          -> (Int, Int)
+        parseEnvSpecAux su sp 
+          | isNumber su && isNumber sp = (digitToInt su, digitToInt sp)
+          | otherwise  = error "bad character in environment specification"
+
+createSites :: SugarScapeParams
+            -> [(Discrete2dCoord, Int, Int)]
+            -> [(Discrete2dCoord, (AgentId, SugAgentState))]
+            -> [(Discrete2dCoord, SugEnvSite)]
+createSites params siteSpecs occupations 
+  = map (initRandomSite params occupations) siteSpecs
+ 
+initRandomSite :: SugarScapeParams
+               -> [(Discrete2dCoord, (AgentId, SugAgentState))] 
+               -> (Discrete2dCoord, Int, Int) 
+               -> (Discrete2dCoord, SugEnvSite)
+initRandomSite params os (coord, sugar, spice) 
+    = (coord, c)
+  where
+    mayOccupier = Data.List.find ((==coord) . fst) os
+    occ         = maybe Nothing (\(_, (aid, s)) -> (Just $ occupier aid s)) mayOccupier
+
+    spice'      = if spSpiceEnabled params then spice else 0
+
+    c = SugEnvSite {
+      sugEnvSiteSugarCapacity = fromIntegral sugar
+    , sugEnvSiteSugarLevel    = fromIntegral sugar
+    
+    , sugEnvSiteSpiceCapacity = fromIntegral spice'
+    , sugEnvSiteSpiceLevel    = fromIntegral spice'
+    
+    , sugEnvSiteOccupier      = occ
+    , sugEnvSitePolutionLevel = 0
+    }
+
+randomCoords :: RandomGen g
+             => Discrete2dDimension 
+             -> Discrete2dDimension 
+             -> Int 
+             -> Rand g [Discrete2dCoord]
+randomCoords (minX, minY) (maxX, maxY) n
+    | n > maxCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
+    | otherwise        = do
+      let coords = [ (x, y) | x <- [minX..maxX-1], y <- [minY..maxY-1] ]
+      shuffCoords <- fisherYatesShuffleM coords
+      return $ take n shuffCoords
+  where
+    maxCoords = (maxX - minX) * (maxY - minY)
+
 changeToRedTribe :: SugarScapeParams
                  -> SugAgentState
                  -> SugAgentState
@@ -81,81 +175,3 @@ changeToBlueTribe params s = s { sugAgTribe     = tagToTribe blueTag
     blueTag = case spCulturalProcess params of 
               Nothing -> []
               Just n  -> replicate n False
-
-sugarSpecToCoords :: [[Int]]
-                  -> Discrete2dCoord
-                  -> [(Discrete2dCoord, Int)]
-sugarSpecToCoords specs (dimX, dimY) 
-    | length specs /= dimY = error ("sugar row count does not match y-dimensions: " ++ show (length specs) ++ " not " ++ show dimY)
-    | otherwise            = sugarSpecLines specs 0 []
-  where
-    sugarSpecLines :: [[Int]]
-                   -> Int
-                   -> [(Discrete2dCoord, Int)]
-                   -> [(Discrete2dCoord, Int)]
-    sugarSpecLines [] _ acc       = acc
-    sugarSpecLines (l : ls) y acc 
-        | length l /= dimX = error ("sugar spec line size does not match x-dimensions: " ++ show (length l) ++ " not " ++ show dimX)
-        | otherwise        = sugarSpecLines ls (y + 1) acc'
-      where
-        acc' = sugarSpecLineToCoords l 0 acc
-
-        sugarSpecLineToCoords :: [Int]
-                              -> Int
-                              -> [(Discrete2dCoord, Int)]
-                              -> [(Discrete2dCoord, Int)]
-        sugarSpecLineToCoords [] _ accLine       = accLine
-        sugarSpecLineToCoords (s : ss) x accLine = sugarSpecLineToCoords ss (x + 1) accLine'
-          where
-            accLine' = ((x, y), s) : accLine
-
-parseSugarSpec :: [String]
-               -> [[Int]]
-parseSugarSpec = map parseSugarSpecLine
-  where
-    parseSugarSpecLine :: String 
-                       -> [Int]
-    parseSugarSpecLine line0 = reverse $ parseSugarSpecAux line0 []
-      where
-        parseSugarSpecAux :: String 
-                          -> [Int]
-                          -> [Int]
-        parseSugarSpecAux [] acc = reverse acc
-        parseSugarSpecAux (c : cs) acc 
-          | isNumber c = parseSugarSpecAux cs (digitToInt c : acc)
-          | otherwise  = error "bad character in sugar specification"
-
-createSites :: [(Discrete2dCoord, Int)]
-            -> [(Discrete2dCoord, (AgentId, SugAgentState))]
-            -> [(Discrete2dCoord, SugEnvSite)]
-createSites siteSpecs occupations 
-  = map (initRandomSite occupations) siteSpecs
- 
-initRandomSite :: [(Discrete2dCoord, (AgentId, SugAgentState))] 
-               -> (Discrete2dCoord, Int) 
-               -> (Discrete2dCoord, SugEnvSite)
-initRandomSite os (coord, sugar) = (coord, c)
-  where
-    mayOccupier = Data.List.find ((==coord) . fst) os
-    occ         = maybe Nothing (\(_, (aid, s)) -> (Just $ occupier aid s)) mayOccupier
-
-    c = SugEnvSite {
-      sugEnvSiteSugarCapacity = fromIntegral sugar
-    , sugEnvSiteSugarLevel    = fromIntegral sugar
-    , sugEnvSiteOccupier      = occ
-    , sugEnvSitePolutionLevel = 0
-    }
-
-randomCoords :: RandomGen g
-             => Discrete2dDimension 
-             -> Discrete2dDimension 
-             -> Int 
-             -> Rand g [Discrete2dCoord]
-randomCoords (minX, minY) (maxX, maxY) n
-    | n > maxCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
-    | otherwise        = do
-      let coords = [ (x, y) | x <- [minX..maxX-1], y <- [minY..maxY-1] ]
-      shuffCoords <- fisherYatesShuffleM coords
-      return $ take n shuffCoords
-  where
-    maxCoords = (maxX - minX) * (maxY - minY)

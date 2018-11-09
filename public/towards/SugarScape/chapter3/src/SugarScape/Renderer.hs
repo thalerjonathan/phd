@@ -6,6 +6,8 @@ module SugarScape.Renderer
   , renderSugarScapeFrame
   ) where
 
+import Data.Maybe
+
 import Graphics.Gloss as GLO
 
 import SugarScape.Agent.Interface
@@ -20,7 +22,7 @@ data AgentVis = Default
               | Tribe
               deriving (Eq, Show)
 
-data SiteVis = Sugar 
+data SiteVis = Ressource
              | Polution 
              deriving (Eq, Show)
 
@@ -48,7 +50,7 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     sites = allCellsWithCoords e
 
     agentPics = map (sugarscapeAgentRenderer av (siteWidth, siteHeight) wSize t) ss
-    envPics   = map (renderEnvSite cv (siteWidth, siteHeight) wSize t) sites
+    envPics   = mapMaybe (renderEnvSite cv (siteWidth, siteHeight) wSize t) sites
 
     maxId = if null ss then 0 else maximum $ map fst ss
 
@@ -61,16 +63,28 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     halfWSizeY = fromIntegral wy / 2.0 
 
 renderEnvSite :: SiteVis -> SugEnvironmentRenderer
-renderEnvSite Sugar r@(rw, _rh) w _t (coord, site) = sugLvlCircle
+renderEnvSite Ressource r@(rw, _rh) w _t (coord, site) 
+    | null pics' = Nothing
+    | otherwise  = Just $ GLO.Pictures pics'
   where
-    sugarColor   = GLO.makeColor 0.9 0.9 0.0 1.0
     (x, y)       = transformToWindow r w coord
+
+    sugarColor   = GLO.makeColor 0.9 0.9 0.0 1.0
     sugLvl       = sugEnvSiteSugarLevel site
     sugRatio     = (sugLvl / fromIntegral maxSugarCapacitySite) :: Double
     sugRadius    = rw * realToFrac sugRatio
     sugLvlCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugRadius
 
-renderEnvSite Polution r@(rw, rh) w _t (coord, site) = polLvlSquare
+    spiceColor     = GLO.makeColor 0.9 0.7 0.0 1.0
+    spiceLvl       = sugEnvSiteSpiceLevel site
+    spiceRatio     = (spiceLvl / fromIntegral maxSpiceCapacitySite) :: Double
+    spiceRadius    = rw * realToFrac spiceRatio
+    spiceLvlCircle = GLO.color spiceColor $ GLO.translate x y $ GLO.ThickCircle 0 spiceRadius
+
+    pics           = [sugLvlCircle | sugLvl > 0.1]
+    pics'          = if spiceLvl > 0.1 then spiceLvlCircle : pics else pics
+
+renderEnvSite Polution r@(rw, rh) w _t (coord, site) = Just polLvlSquare
   where
     (x, y)       = transformToWindow r w coord
     polLvl       = sugEnvSitePolutionLevel site
@@ -111,11 +125,11 @@ type AgentRendererDisc2d s = (Float, Float)
                            -> (AgentId, s)
                            -> GLO.Picture
 
-type EnvRendererDisc2d c        = (Float, Float) 
-                                -> (Int, Int)
-                                -> Time 
-                                -> (Discrete2dCoord, c) 
-                                -> GLO.Picture
+type EnvRendererDisc2d c = (Float, Float) 
+                         -> (Int, Int)
+                         -> Time 
+                         -> (Discrete2dCoord, c) 
+                         -> Maybe GLO.Picture
 
 transformToWindow :: (Float, Float)
                       -> (Int, Int) 

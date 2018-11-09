@@ -447,10 +447,13 @@ mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER IV: Sugar and Spice: Trade comes to the sugarscape
 ------------------------------------------------------------------------------------------------------------------------
+-- see page 99
 mkParamsAnimationIV_1 :: SugarScapeParams
 mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
-    spSpiceEnabled         = True
+    spVisionRange          = (1, 10)
+  , spSugarMetabolismRange = (1, 5)
+  , spSpiceEnabled         = True
   , spSpiceRegrow          = Rate 1
   , spSpiceEndowmentRange  = (5, 25)
-  , spSpiceMetabolismRange = (1, 4)
+  , spSpiceMetabolismRange = (1, 5)
   }

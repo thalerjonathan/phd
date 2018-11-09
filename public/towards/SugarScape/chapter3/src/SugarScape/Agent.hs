@@ -73,14 +73,14 @@ handleTimeStep params myId = do
   agentAgeing
   
   (harvestAmount, maoCombat) <- agentMove params myId
-  metabAmount                <- agentMetabolism
+  metabAmount                <- agentMetabolism params
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
   -- NOTE: ordering is important to replicate the dynamics
   -- after having aged, moved and applied metabolism, the 
   -- agent could have died already, thus not able to mate
   ifThenElseM
-    (starvedToDeath `orM` dieOfAge)
+    (starvedToDeath params `orM` dieOfAge)
     (do
       aoDie <- agentDies params myId agentMsf
       let ao = maybe aoDie (`agentOutMergeRightObs` aoDie) maoCombat

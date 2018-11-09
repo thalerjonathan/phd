@@ -7,6 +7,9 @@ import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
 
+type RegrowToMaxFunc = SugEnvSite -> SugEnvSite
+type RegrowByRateFunc = Double -> SugEnvSite -> SugEnvSite
+
 -- NOTE: the environment behaviour is a pure comuptation, 
 -- because there is no need for any monadic behaviour 
 -- or access of absstate 
@@ -16,10 +19,11 @@ sugEnvBehaviour :: SugarScapeParams
                 -> Time
                 -> SugEnvironment
                 -> SugEnvironment
-sugEnvBehaviour params t env = env''
+sugEnvBehaviour params t env = env'''
   where
-    env'  = regrowSugar (spSugarRegrow params) t env
-    env'' = polutionDiffusion (spPolutionDiffusion params) t env'
+    env'   = regrow (spSugarRegrow params) regrowSugarToMax regrowSugarWithRate t env
+    env''  = regrow (spSpiceRegrow params) regrowSpiceToMax regrowSpiceWithRate t env'
+    env''' = polutionDiffusion (spPolutionDiffusion params) t env''
 
 polutionDiffusion :: Maybe Int
                   -> Time
@@ -42,44 +46,53 @@ polutionDiffusion (Just d) t env
             let c' = c { sugEnvSitePolutionLevel = flux }
             changeCellAt coord c' acc) env (zip cs fs)
 
-regrowSugar :: Regrow 
-            -> Time
-            -> SugEnvironment
-            -> SugEnvironment
-regrowSugar Immediate   _ = regrowSugarToMax
-regrowSugar (Rate rate) _ = regrowSugarByRate rate
-regrowSugar (Season summerRate winterRate seasonDuration) t
-                          = regrowSugarBySeason t summerRate winterRate seasonDuration
 
-regrowSugarToMax :: SugEnvironment -> SugEnvironment
-regrowSugarToMax = updateCells (\c -> c { sugEnvSiteSugarLevel = sugEnvSiteSugarCapacity c})
+regrowSugarWithRate :: RegrowByRateFunc
+regrowSugarWithRate rate c 
+  = c { sugEnvSiteSugarLevel = 
+          min
+              (sugEnvSiteSugarCapacity c)
+              ((sugEnvSiteSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
-regrowSugarByRate :: Double -> SugEnvironment -> SugEnvironment
-regrowSugarByRate rate = updateCells $ regrowSugarInSiteWithRate rate
+regrowSugarToMax :: RegrowToMaxFunc
+regrowSugarToMax c = c { sugEnvSiteSugarLevel = sugEnvSiteSugarCapacity c}
 
-regrowSugarBySeason :: Time
-                    -> Double
-                    -> Double
-                    -> Time
-                    -> SugEnvironment
-                    -> SugEnvironment
-regrowSugarBySeason t summerRate winterRate seasonDuration 
+regrowSpiceWithRate :: RegrowByRateFunc
+regrowSpiceWithRate rate c 
+  = c { sugEnvSiteSpiceLevel = 
+          min
+              (sugEnvSiteSpiceCapacity c)
+              ((sugEnvSiteSpiceLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
+
+regrowSpiceToMax :: RegrowToMaxFunc
+regrowSpiceToMax c = c { sugEnvSiteSpiceLevel = sugEnvSiteSpiceCapacity c}
+
+regrow :: Regrow 
+       -> RegrowToMaxFunc
+       -> RegrowByRateFunc
+       -> Time
+       -> SugEnvironment
+       -> SugEnvironment
+regrow Immediate maxFun _ _    = updateCells maxFun
+regrow (Rate rate) _ rateFun _ = updateCells $ rateFun rate
+regrow (Season summerRate winterRate seasonDuration) _ rateFun t
+  = regrowBySeason rateFun t summerRate winterRate seasonDuration
+
+regrowBySeason :: RegrowByRateFunc
+               -> Time
+               -> Double
+               -> Double
+               -> Time
+               -> SugEnvironment
+               -> SugEnvironment
+regrowBySeason rateFun t summerRate winterRate seasonDuration 
     = updateCellsWithCoords (\((_, y), c) -> 
         if y <= half
-          then regrowSugarInSiteWithRate topate c
-          else regrowSugarInSiteWithRate bottomRate c)
+          then rateFun topate c
+          else rateFun bottomRate c)
   where
     half       = floor (fromIntegral (snd sugarscapeDimensions) / 2 :: Double)
 
     isSummer   = even (floor ((fromIntegral t / fromIntegral seasonDuration) :: Double) :: Integer)
     topate     = if isSummer then summerRate     else 1 / winterRate
     bottomRate = if isSummer then 1 / winterRate else summerRate
-
-regrowSugarInSiteWithRate :: Double 
-                          -> SugEnvSite
-                          -> SugEnvSite
-regrowSugarInSiteWithRate rate c 
-  = c { sugEnvSiteSugarLevel = 
-          min
-              (sugEnvSiteSugarCapacity c)
-              ((sugEnvSiteSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level

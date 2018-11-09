@@ -62,14 +62,28 @@ sugObservableFromState s = SugAgentObservable
   , sugObsTribe      = sugAgTribe s
   }
 
-bestSiteFunc :: SugarScapeParams -> BestSiteMeasureFunc
-bestSiteFunc params
-    | diffusionActive = bestSugarPolutionRatio
-    | otherwise       = bestSugarLevel 
+agentWelfareChange :: SugAgentState -> BestSiteMeasureFunc
+agentWelfareChange as s = ((w1 + su)**(m1/mT)) * ((w2 + sp)**(m2/mT))
+  where
+    m1 = fromIntegral $ sugAgSugarMetab as
+    m2 = fromIntegral $ sugAgSpiceMetab as
+    mT = m1 + m2
+
+    w1 = sugAgSugarLevel as
+    w2 = sugAgSpiceLevel as
+
+    su = sugEnvSiteSugarLevel s
+    sp = sugEnvSiteSpiceLevel s
+
+bestSiteFunc :: SugarScapeParams -> SugAgentState -> BestSiteMeasureFunc
+bestSiteFunc params as
+    | diffusionActive = if spiceEnabled then bestSugarSpicePolutionRatio else bestSugarPolutionRatio
+    | otherwise       = if spiceEnabled then agentWelfareChange as else bestSugarLevel 
   where
     diffusionActive = case spPolutionFormation params of
                         NoPolution -> False
                         _          -> True
+    spiceEnabled    = spSpiceEnabled params
 
 bestCombatSite :: Double -> BestSiteMeasureFunc
 bestCombatSite combatReward site = combatWealth + s
@@ -81,11 +95,25 @@ bestCombatSite combatReward site = combatWealth + s
 bestSugarLevel :: BestSiteMeasureFunc
 bestSugarLevel = sugEnvSiteSugarLevel
 
+_bestSugarSpice :: BestSiteMeasureFunc
+_bestSugarSpice c = su + sp
+  where
+    su = sugEnvSiteSugarLevel c
+    sp = sugEnvSiteSpiceLevel c
+
 bestSugarPolutionRatio :: BestSiteMeasureFunc
 bestSugarPolutionRatio c 
     = s / (1 + p)
   where
     s = sugEnvSiteSugarLevel c
+    p = sugEnvSitePolutionLevel c
+
+bestSugarSpicePolutionRatio :: BestSiteMeasureFunc
+bestSugarSpicePolutionRatio c 
+    = (su + sp) / (1 + p)
+  where
+    su = sugEnvSiteSugarLevel c
+    sp = sugEnvSiteSpiceLevel c
     p = sugEnvSitePolutionLevel c
 
 selectBestSites :: BestSiteMeasureFunc

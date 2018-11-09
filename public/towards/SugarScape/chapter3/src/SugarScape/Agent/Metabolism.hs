@@ -10,19 +10,42 @@ import SugarScape.Agent.Common
 import SugarScape.Model
 
 agentMetabolism :: MonadState SugAgentState m
-                => m Int
-agentMetabolism = do
-  sugarMetab <- agentProperty sugAgSugarMetab
-  sugarLevel <- agentProperty sugAgSugarLevel
+                => SugarScapeParams
+                -> m Int
+agentMetabolism params 
+  | spSpiceEnabled params = do
+    sugarMetab <- agentProperty sugAgSugarMetab
+    sugarLevel <- agentProperty sugAgSugarLevel
 
-  let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+    spiceMetab <- agentProperty sugAgSpiceMetab
+    spiceLevel <- agentProperty sugAgSpiceLevel
 
-  updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
+    let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+        spiceLevel' = max 0 (spiceLevel - fromIntegral spiceMetab)
 
-  return sugarMetab
+    updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel'
+                                , sugAgSpiceLevel = spiceLevel' })
+
+    return $ sugarMetab + spiceMetab
+  
+  | otherwise = do
+    sugarMetab <- agentProperty sugAgSugarMetab
+    sugarLevel <- agentProperty sugAgSugarLevel
+
+    let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+    updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
+
+    return sugarMetab
 
 starvedToDeath :: MonadState SugAgentState m
-               => m Bool
-starvedToDeath = do
-  sugar <- agentProperty sugAgSugarLevel
-  return $ sugar <= 0
+               => SugarScapeParams
+               -> m Bool
+starvedToDeath params 
+  | spSpiceEnabled params = do
+    sugar <- agentProperty sugAgSugarLevel
+    spice <- agentProperty sugAgSpiceLevel
+    return $ sugar <= 0 || spice <= 0
+
+  | otherwise = do
+    sugar <- agentProperty sugAgSugarLevel
+    return $ sugar <= 0

@@ -20,9 +20,10 @@ data AgentVis = Default
               | Gender 
               | Culture
               | Tribe
+              | Welfare
               deriving (Eq, Show)
 
-data SiteVis = Ressource
+data SiteVis = Resource
              | Polution 
              deriving (Eq, Show)
 
@@ -63,7 +64,7 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     halfWSizeY = fromIntegral wy / 2.0 
 
 renderEnvSite :: SiteVis -> SugEnvironmentRenderer
-renderEnvSite Ressource r@(rw, _rh) w _t (coord, site) 
+renderEnvSite Resource r@(rw, _rh) w _t (coord, site) 
     | null pics' = Nothing
     | otherwise  = Just $ GLO.Pictures pics'
   where
@@ -108,15 +109,36 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
     agentColor Gender  = genderColor (sugObsGender s)
     agentColor Culture = cultureColor (sugObsTribe s)
     agentColor Tribe   = cultureColor (sugObsTribe s)
-    agentColor _       = GLO.blue
+    agentColor Welfare = welfareColor s
+    agentColor _       = mateBlue
     
     genderColor :: AgentGender -> GLO.Color
-    genderColor Male   = GLO.blue
+    genderColor Male   = mateBlue
     genderColor Female = GLO.rose
 
     cultureColor :: AgentTribe -> GLO.Color
-    cultureColor Blue = GLO.blue
-    cultureColor Red  = GLO.red
+    cultureColor Blue = mateBlue
+    cultureColor Red  = mateRed
+
+    welfareColor :: SugAgentObservable -> GLO.Color
+    welfareColor obs 
+        | tau < 1   = mateBlue -- sugar more important at the moment
+        | otherwise = mateRed  -- spcie more important at the moment
+      where
+        m1  = fromIntegral $ sugObsSugMetab obs
+        m2  = fromIntegral $ sugObsSpiMetab obs
+        w1  = sugObsSugLvl obs
+        w2  = sugObsSpiLvl obs
+        t1  = w1 / m1
+        t2  = w2 / m2
+        tau = t1 / t2 
+
+mateBlue :: GLO.Color
+mateBlue = GLO.makeColor 0.0 0.0 0.9 1.0
+
+mateRed :: GLO.Color
+mateRed = GLO.makeColor 0.9 0.0 0.0 1.0
+
 
 -------------------------------------------------------------------------------
 type AgentRendererDisc2d s = (Float, Float) 

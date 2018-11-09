@@ -5,12 +5,14 @@ module SugarScape.Agent.Common
   
   , EventHandler
 
-  , BestSiteMeasureFunc
+  , SiteMeasureFunc
 
   , sugObservableFromState
   , selectBestSites
-  , bestSiteFunc
-  , bestCombatSite
+  , selectSiteMeasureFunc
+  , combatSiteMeasure
+  , agentWelfare
+  , agentWelfareChange
 
   , unoccupiedNeighbourhoodOfNeighbours
 
@@ -48,7 +50,7 @@ type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
 
 type EventHandler g = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
-type BestSiteMeasureFunc = (SugEnvSite -> Double) 
+type SiteMeasureFunc = SugEnvSite -> Double
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState s = SugAgentObservable
@@ -60,65 +62,79 @@ sugObservableFromState s = SugAgentObservable
   , sugObsGender     = sugAgGender s
   , sugObsCultureTag = sugAgCultureTag s
   , sugObsTribe      = sugAgTribe s
+  , sugObsSpiLvl     = sugAgSpiceLevel s
+  , sugObsSpiMetab   = sugAgSpiceMetab s
   }
 
-agentWelfareChange :: SugAgentState -> BestSiteMeasureFunc
-agentWelfareChange as s = ((w1 + su)**(m1/mT)) * ((w2 + sp)**(m2/mT))
-  where
-    m1 = fromIntegral $ sugAgSugarMetab as
-    m2 = fromIntegral $ sugAgSpiceMetab as
-    mT = m1 + m2
+selectSiteMeasureFunc :: SugarScapeParams -> SugAgentState -> SiteMeasureFunc
+selectSiteMeasureFunc params as
+  | spSpiceEnabled params = sugarSpiceSiteMeasure as
+  | otherwise             = sugarSiteMeasure
 
-    w1 = sugAgSugarLevel as
-    w2 = sugAgSpiceLevel as
-
-    su = sugEnvSiteSugarLevel s
-    sp = sugEnvSiteSpiceLevel s
-
--- TODO: include polution in all cases: its always 0 when turned off => can incorporated it in formulas => easier to maintain
-bestSiteFunc :: SugarScapeParams -> SugAgentState -> BestSiteMeasureFunc
-bestSiteFunc params as
-    | diffusionActive = if spiceEnabled then bestSugarSpicePolutionRatio else bestSugarPolutionRatio
-    | otherwise       = if spiceEnabled then agentWelfareChange as else bestSugarLevel 
-  where
-    diffusionActive = case spPolutionFormation params of
-                        NoPolution -> False
-                        _          -> True
-    spiceEnabled    = spSpiceEnabled params
-
+-- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
+-- polution level will be 0 anyway if polution / diffusion is turned off
 -- TODO: haven't added spice yet
-bestCombatSite :: Double -> BestSiteMeasureFunc
-bestCombatSite combatReward site = combatWealth + s
+combatSiteMeasure :: SugarScapeParams -> Double -> SiteMeasureFunc
+combatSiteMeasure _params combatReward site = combatWealth + sug 
   where
     victimWealth = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier site)
     combatWealth = min victimWealth combatReward
-    s            = sugEnvSiteSugarLevel site
 
-bestSugarLevel :: BestSiteMeasureFunc
-bestSugarLevel = sugEnvSiteSugarLevel
+    pol          = sugEnvSitePolutionLevel site
+    sug          = sugEnvSiteSugarLevel site / (1 + pol)
 
-_bestSugarSpice :: BestSiteMeasureFunc
-_bestSugarSpice c = su + sp
+-- See page 97, The Agent Welfare Function and Appendix C (Example makes it quite clear)
+-- The agent welfare function itself computes whether the agent requires more 
+-- sugar or more spice, depending on the respective metabolisms. 
+-- Now we apply this welfare function to compute a measure for the site which means
+-- we compute the potential welfare when the agent is on that site, thus we
+-- add the sites sugar / spice to the respective parts of the equation.
+-- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
+-- polution level will be 0 anyway if polution / diffusion is turned off
+sugarSpiceSiteMeasure :: SugAgentState -> SiteMeasureFunc
+sugarSpiceSiteMeasure as site = agentWelfareChange sug spi w1 w2 m1 m2
   where
-    su = sugEnvSiteSugarLevel c
-    sp = sugEnvSiteSpiceLevel c
+    m1 = fromIntegral $ sugAgSugarMetab as
+    m2 = fromIntegral $ sugAgSpiceMetab as
+    w1 = sugAgSugarLevel as
+    w2 = sugAgSpiceLevel as
 
-bestSugarPolutionRatio :: BestSiteMeasureFunc
-bestSugarPolutionRatio c 
-    = s / (1 + p)
+    pol = sugEnvSitePolutionLevel site
+    sug = sugEnvSiteSugarLevel site / (1 + pol)
+    spi = sugEnvSiteSpiceLevel site / (1 + pol)
+
+-- default welfare function, not incorporating change to sugar / spice
+agentWelfare :: Double  -- ^ sugar-wealth of agent
+             -> Double  -- ^ spice-wealth of agent
+             -> Double  -- ^ sugar-metabolism of agent
+             -> Double  -- ^ spice-metabolism of agent
+             -> Double
+agentWelfare = agentWelfareChange 0 0
+
+-- NOTE: this welfare function includes the ability to calculate the changed
+-- welfare of an agent when sugar and spice change - is required for determining
+-- the best site to move to when spice is enabled
+agentWelfareChange :: Double  -- ^ sugar-change in welfare
+                   -> Double  -- ^ spice-change in welfare
+                   -> Double  -- ^ sugar-wealth of agent
+                   -> Double  -- ^ spice-wealth of agent
+                   -> Double  -- ^ sugar-metabolism of agent
+                   -> Double  -- ^ spice-metabolism of agent
+                   -> Double
+agentWelfareChange sugarchange spiceChange w1 w2 m1 m2 
+    = ((w1 + sugarchange) ** (m1/mT)) * ((w2 + spiceChange) ** (m2/mT))
   where
-    s = sugEnvSiteSugarLevel c
-    p = sugEnvSitePolutionLevel c
+    mT = m1 + m2
 
-bestSugarSpicePolutionRatio :: BestSiteMeasureFunc
-bestSugarSpicePolutionRatio c 
-    = (su + sp) / (1 + p)
+-- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
+-- polution level will be 0 anyway if polution / diffusion is turned off
+sugarSiteMeasure :: SiteMeasureFunc
+sugarSiteMeasure site = sug / (1 + pol)
   where
-    su = sugEnvSiteSugarLevel c
-    sp = sugEnvSiteSpiceLevel c
-    p = sugEnvSitePolutionLevel c
+    sug = sugEnvSiteSugarLevel site
+    pol = sugEnvSitePolutionLevel site
 
-selectBestSites :: BestSiteMeasureFunc
+selectBestSites :: SiteMeasureFunc
                 -> Discrete2dCoord
                 -> [(Discrete2dCoord, SugEnvSite)]
                 -> [(Discrete2dCoord, SugEnvSite)]

@@ -103,10 +103,15 @@ data SugAgentObservable = SugAgentObservable
   , sugObsAge        :: !Int
   , sugObsSugLvl     :: !Double
   , sugObsSugMetab   :: !Int
+
   -- Chapter III properties
   , sugObsGender     :: !AgentGender
   , sugObsCultureTag :: !CultureTag
   , sugObsTribe      :: !AgentTribe
+
+  -- Chapter IV properties
+  , sugObsSpiLvl     :: !Double
+  , sugObsSpiMetab   :: !Int
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
@@ -456,4 +461,7 @@ mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
   , spSpiceRegrow          = Rate 1
   , spSpiceEndowmentRange  = (5, 25)
   , spSpiceMetabolismRange = (1, 4)   -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
+  
+  --, spPolutionFormation = Polute 1 1  -- just for experimentation purpose, not part of AnimationIV-1
+  --, spPolutionDiffusion = Just 1      -- just for experimentation purpose, not part of AnimationIV-1
   }

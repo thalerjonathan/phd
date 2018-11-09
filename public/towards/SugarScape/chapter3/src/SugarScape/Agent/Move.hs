@@ -44,7 +44,7 @@ agentNonCombat params myId = do
         myState  <- get
 
         let uoc' = (coord, selfCell) : uoc
-            bf   = bestSiteFunc params myState
+            bf   = selectSiteMeasureFunc params myState
             bcs  = selectBestSites bf coord uoc'
 
         (cellCoord, _) <- lift $ lift $ lift $ randomElemM bcs
@@ -80,7 +80,7 @@ agentCombat params myId = do
       else do
         myCoord <- agentProperty sugAgCoord
       
-        let bf   = bestCombatSite combatReward
+        let bf   = combatSiteMeasure params combatReward
             bcs  = selectBestSites bf myCoord nonRetaliationSites
 
         (siteCoord, site) <- lift $ lift $ lift $ randomElemM bcs

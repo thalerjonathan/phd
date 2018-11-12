@@ -21,8 +21,8 @@ type DTime = Int
 type AgentId = Int
 
 data ABSState = ABSState
-  { absNextId :: AgentId
-  , absTime   :: Time
+  { absNextId :: !AgentId
+  , absTime   :: !Time
   } deriving (Show, Eq)
 
 getSimTime :: MonadState ABSState m

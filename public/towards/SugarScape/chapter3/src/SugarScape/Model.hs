@@ -481,12 +481,17 @@ mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
   , spSpiceRegrow          = Rate 1
   , spSpiceEndowmentRange  = (5, 25)
   , spSpiceMetabolismRange = (1, 4)   -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
-  
-  --, spPolutionFormation = Polute 1 1  -- just for experimentation purpose, not part of AnimationIV-1
-  --, spPolutionDiffusion = Just 1      -- just for experimentation purpose, not part of AnimationIV-1
   }
 
+-- see page 108
 mkParamsFigureIV_3 :: SugarScapeParams
 mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
-    spTradingEnabled = True
+    sgAgentCount           = 200     -- 200 only !
+  , spSugarMetabolismRange = (1, 5)  -- 1-5 !
+  , spSpiceMetabolismRange = (1, 5)  -- 1-5 !
+
+  , spSugarEndowmentRange  = (25, 50)
+  , spSpiceEndowmentRange  = (25, 50)
+
+  , spTradingEnabled = True
   }

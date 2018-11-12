@@ -13,13 +13,11 @@ data Output = Pure Time
             | Export Time
             | Visual Int AgentVis SiteVis deriving (Eq, Show)
 
--- TODO: leaking memory again... (
-
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let sugParams = mkParamsFigureIV_3 
+  let sugParams = mkParamsFigureIV_3 -- mkParamsFigureIV_3 
       output    = Visual 0 Default Resource -- Export 1000 -- Visual 0 Gender Resource
       rngSeed   = Just 42                   -- Nothing -- Just 42
 

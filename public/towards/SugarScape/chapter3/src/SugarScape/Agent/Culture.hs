@@ -20,7 +20,7 @@ agentCultureProcess :: RandomGen g
                     -> AgentId                        -- the id of the agent 
                     -> AgentAction g (SugAgentOut g)
 agentCultureProcess params _myId 
-    | isNothing $ spCulturalProcess params = agentOutObservableM
+    | isNothing $ spCulturalProcess params = agentObservableM
     | otherwise = do
       -- simply broadcast to all neighbours, they compute and flip their tags themselves
       coord   <- agentProperty sugAgCoord
@@ -30,9 +30,9 @@ agentCultureProcess params _myId
 
       -- no neighbours, ignore cultural process
       if null neighbourIds
-        then agentOutObservableM
+        then agentObservableM
         else do
-          ao         <- agentOutObservableM
+          ao         <- agentObservableM
           cultureTag <- agentProperty sugAgCultureTag
           return $ broadcastEvent neighbourIds (CulturalProcess cultureTag) ao
 
@@ -41,7 +41,7 @@ handleCulturalProcess :: RandomGen g
                       -> AgentId
                       -> CultureTag
                       -> AgentAction g (SugAgentOut g)
-handleCulturalProcess _myId _sender otherTag = do
+handleCulturalProcess myId _sender otherTag = do
   myTag <- agentProperty sugAgCultureTag
   
   -- NOTE: assuming length otherTag == length myTag
@@ -54,6 +54,8 @@ handleCulturalProcess _myId _sender otherTag = do
     (do
       let myTag' = flipBoolAtIdx idx myTag
       updateAgentState (\s -> s { sugAgCultureTag = myTag'
-                                , sugAgTribe      = tagToTribe myTag' }))
+                                , sugAgTribe      = tagToTribe myTag' })
+      -- NOTE: need to update occupier info because tribe might have changed
+      updateSiteWithOccupier myId)
 
-  agentOutObservableM
+  agentObservableM

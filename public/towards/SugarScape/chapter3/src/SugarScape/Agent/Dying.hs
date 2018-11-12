@@ -14,8 +14,6 @@ import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Utils
 
---import Debug.Trace
-
 -- Here rule R is implemented, see page 32/33 "when an agent dies it is replaced by an agent 
 -- of agent 0 having random genetic attributes, random position on the sugarscape..."
 -- Also rule I is implemented, see page 67...
@@ -27,7 +25,7 @@ agentDies :: RandomGen g
           -> AgentAction g (SugAgentOut g)
 agentDies params myId asf = do
   unoccupyPosition
-  ao  <- liftM kill agentOutObservableM
+  ao  <- fmap kill agentObservableM
   ao' <- birthNewAgent params asf ao
   inheritance params myId ao'
 
@@ -40,8 +38,12 @@ birthNewAgent params asf ao
   | not $ spReplaceAgents params = return ao
   | otherwise = do
     newAid              <- lift nextAgentId
+    myTribe             <- agentProperty sugAgTribe
     (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf id
+    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf 
+                              (\as -> case myTribe of
+                                        Red  -> changeToRedTribe params as
+                                        Blue -> changeToBlueTribe params as)
 
     -- need to occupy the cell to prevent other agents occupying it
     let occ      = occupier newAid newAState
@@ -79,9 +81,7 @@ inheritance params _myId ao
     if sugLvl > 0 && not (null children)
       then do
         let share = sugLvl / fromIntegral (length children)
-        return $ 
-          --trace ("Agent: " ++ show myId ++ " inheriting " ++ show share ++ " to children " ++ show children) 
-          (broadcastEvent children (Inherit share) ao)
+        return $ broadcastEvent children (Inherit share) ao
       else return ao
 
 handleInheritance :: RandomGen g
@@ -89,7 +89,8 @@ handleInheritance :: RandomGen g
                   -> AgentId
                   -> Double
                   -> AgentAction g (SugAgentOut g)
-handleInheritance _myId _parent share = do
+handleInheritance myId _parent share = do
   updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + share })
-  --trace ("Agent: " ++ show myId ++ " inheriting " ++ show share ++ " from parent " ++ show parent) 
-  agentOutObservableM
+  -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+  updateSiteWithOccupier myId
+  agentObservableM

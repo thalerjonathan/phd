@@ -83,7 +83,7 @@ mateWith params myId amsf cont ((coord, site) : ns) =
               evtHandler      = matingHandler params myId amsf cont ns freeSites
 
           myGender <- agentProperty sugAgGender
-          ao       <- agentOutObservableM
+          ao       <- agentObservableM
 
           return (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
@@ -113,12 +113,13 @@ matingHandler params myId amsf0 cont0 ns freeSites =
                       => SugarScapeAgent g
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
                       -> AgentId
-                      -> Maybe (Double, Int, Int, CultureTag)
+                      -> Maybe (Double, Double, Int, Int, CultureTag)
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
     handleMatingReply amsf cont _ Nothing =  -- the sender refuse the mating-request
       mateWith params myId amsf cont ns
-    handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
+    handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
+      mySpiLvl  <- agentProperty sugAgSpiceLevel
       myMetab   <- agentProperty sugAgSugarMetab
       myVision  <- agentProperty sugAgVision
       myCultTag <- agentProperty sugAgCultureTag
@@ -127,7 +128,7 @@ matingHandler params myId amsf0 cont0 ns freeSites =
       childVision  <- lift $ lift $ lift $ randomElemM [myVision, otherVision]
       childCultTag <- lift $ lift $ lift $ crossOverCulture myCultTag otherCultureTag
 
-      let updateChildState s = s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare
+      let updateChildState s = s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare + (mySpiLvl / 2) + otherSpiShare
                                  , sugAgSugarMetab = childMetab
                                  , sugAgVision     = childVision
                                  , sugAgCultureTag = childCultTag
@@ -140,7 +141,10 @@ matingHandler params myId amsf0 cont0 ns freeSites =
 
       -- subtract 50% wealth, each parent provides 50% of its wealth to the child
       updateAgentState (\s -> s { sugAgSugarLevel = mySugLvl / 2
+                                , sugAgSpiceLevel = mySpiLvl / 2
                                 , sugAgChildren   = childId : sugAgChildren s })
+      -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+      updateSiteWithOccupier myId
 
       -- child occupies the site immediately to prevent others from occupying it
       let occ        = occupier childId childState
@@ -149,7 +153,7 @@ matingHandler params myId amsf0 cont0 ns freeSites =
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao0 <- liftM (newAgent childDef) agentOutObservableM
+      ao0 <- fmap (newAgent childDef) agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
       let ao' = sendEventTo sender (MatingTx childId) ao0
       -- THEN continue with mating-requests to the remaining neighbours
@@ -204,28 +208,36 @@ handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
                     -> m (SugAgentOut g)
 handleMatingRequest _myId sender otherGender = do
   accept <- acceptMatingRequest otherGender
-  ao     <- agentOutObservableM
+  ao     <- agentObservableM
 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
   acc <- if accept
       then do
         sugLvl <- agentProperty sugAgSugarLevel
+        spiLvl <- agentProperty sugAgSpiceLevel
         metab  <- agentProperty sugAgSugarMetab
         vision <- agentProperty sugAgVision
         culTag <- agentProperty sugAgCultureTag
-        return $ Just (sugLvl / 2, metab, vision, culTag)
+        return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag)
       else return Nothing
 
   return $ sendEventTo sender (MatingReply acc) ao
 
-handleMatingTx :: (RandomGen g, MonadState SugAgentState m)
+handleMatingTx :: RandomGen g
                => AgentId
                -> AgentId
                -> AgentId
-               -> m (SugAgentOut g)
-handleMatingTx _myId _sender childId = do
+               -> AgentAction g (SugAgentOut g)
+handleMatingTx myId _sender childId = do
   sugLvl <- agentProperty sugAgSugarLevel
+  spiLvl <- agentProperty sugAgSpiceLevel
+
   -- subtract 50% wealth, each parent provides 50% of its wealth to the child
   updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2
+                            , sugAgSpiceLevel = spiLvl / 2
                             , sugAgChildren   = childId : sugAgChildren s})
-  agentOutObservableM
+
+  -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+  updateSiteWithOccupier myId
+
+  agentObservableM

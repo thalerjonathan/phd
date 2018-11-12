@@ -29,7 +29,7 @@ runAgentNonCombat :: RandomGen g
                   -> AgentId
                   -> AgentAction g (Double, SugAgentOut g)
 runAgentNonCombat params myId = do
-  ao     <- agentOutObservableM
+  ao      <- agentObservableM
   harvest <- agentNonCombat params myId
   return (harvest, ao)
 
@@ -45,7 +45,7 @@ agentNonCombat params myId = do
 
   ifThenElse 
     (null uoc)
-    (agentHarvestSite params coord)
+    (agentHarvestSite params myId coord)
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
@@ -58,7 +58,7 @@ agentNonCombat params myId = do
 
         (cellCoord, _) <- lift $ lift $ lift $ randomElemM bcs
         agentMoveTo myId cellCoord
-        agentHarvestSite params cellCoord)
+        agentHarvestSite params myId cellCoord)
 
 agentCombat :: RandomGen g
             => SugarScapeParams
@@ -97,15 +97,14 @@ agentCombat params myId = do
 
         (siteCoord, site) <- lift $ lift $ lift $ randomElemM bcs
         agentMoveTo myId siteCoord
-        harvestAmount <- agentHarvestSite params siteCoord
+        harvestAmount <- agentHarvestSite params myId siteCoord
 
         let victim       = fromJust $ sugEnvSiteOccupier site
             victimWealth = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
             combatWealth = min victimWealth combatReward
 
-        -- TODO: send KilledInCombat to the victim
         let victimId = sugEnvOccId (fromJust $ sugEnvSiteOccupier site)
-        ao <- liftM (sendEventTo victimId KilledInCombat) agentOutObservableM
+        ao <- fmap (sendEventTo victimId KilledInCombat) agentObservableM
 
         return (harvestAmount + combatWealth, ao)
 
@@ -144,7 +143,7 @@ handleKilledInCombat :: RandomGen g
                      -> AgentId
                      -> AgentAction g (SugAgentOut g)
 handleKilledInCombat _myId _killerId 
-  = liftM kill agentOutObservableM
+  = fmap kill agentObservableM
 
 agentLookout :: RandomGen g
              => AgentAction g [(Discrete2dCoord, SugEnvSite)]
@@ -157,21 +156,22 @@ agentMoveTo :: RandomGen g
              => AgentId
              -> Discrete2dCoord 
              -> AgentAction g ()
-agentMoveTo aid cellCoord = do
+agentMoveTo myId cellCoord = do
   unoccupyPosition
 
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
-  occ  <- occupierM aid
+  occ  <- occupierM myId
   cell <- lift $ lift $ cellAtM cellCoord
   let co = cell { sugEnvSiteOccupier = Just occ }
   lift $ lift $ changeCellAtM cellCoord co 
 
 agentHarvestSite :: RandomGen g
                  => SugarScapeParams
+                 -> AgentId
                  -> Discrete2dCoord 
                  -> AgentAction g Double
-agentHarvestSite params siteCoord = do
+agentHarvestSite params myId siteCoord = do
   site   <- lift $ lift $ cellAtM siteCoord
   sugLvl <- agentProperty sugAgSugarLevel
   
@@ -191,8 +191,12 @@ agentHarvestSite params siteCoord = do
         updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite })
         return sugLvlSite
 
+  -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+  occ <- occupierM myId
+
   let siteHarvested = site { sugEnvSiteSugarLevel = 0
-                           , sugEnvSiteSpiceLevel = 0 }
+                           , sugEnvSiteSpiceLevel = 0
+                           , sugEnvSiteOccupier   = Just occ }
   lift $ lift $ changeCellAtM siteCoord siteHarvested
 
   return harvestAmount

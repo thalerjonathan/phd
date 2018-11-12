@@ -74,7 +74,7 @@ handleTimeStep params myId = do
   agentAgeing
   
   (harvestAmount, aoMove) <- agentMove params myId
-  metabAmount             <- agentMetabolism params
+  metabAmount             <- agentMetabolism params myId
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
   -- NOTE: ordering is important to replicate the dynamics

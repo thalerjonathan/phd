@@ -155,23 +155,3 @@ randomCoords (minX, minY) (maxX, maxY) n
       return $ take n shuffCoords
   where
     maxCoords = (maxX - minX) * (maxY - minY)
-
-changeToRedTribe :: SugarScapeParams
-                 -> SugAgentState
-                 -> SugAgentState
-changeToRedTribe params s = s { sugAgTribe      = tagToTribe redTag
-                              , sugAgCultureTag = redTag }
-  where             
-    redTag = case spCulturalProcess params of 
-              Nothing -> []
-              Just n  -> replicate n True
-
-changeToBlueTribe :: SugarScapeParams
-                  -> SugAgentState
-                  -> SugAgentState
-changeToBlueTribe params s = s { sugAgTribe     = tagToTribe blueTag
-                              , sugAgCultureTag = blueTag }
-  where             
-    blueTag = case spCulturalProcess params of 
-              Nothing -> []
-              Just n  -> replicate n False

@@ -2,6 +2,7 @@ module SugarScape.Model
   ( AgentGender (..)
   , CultureTag
   , AgentTribe (..)
+  , TradeInfo (..)
   
   , SugAgentState (..)
   , SugAgentObservable (..)
@@ -78,6 +79,7 @@ import SugarScape.Discrete
 data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
 data AgentTribe  = Blue | Red deriving (Show, Eq)
+data TradeInfo   = TradeInfo Double AgentId AgentId deriving (Show, Eq) -- price, trade-offerer, trade-acceptor
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -115,6 +117,7 @@ data SugAgentObservable = SugAgentObservable
   -- Chapter IV properties
   , sugObsSpiLvl     :: !Double
   , sugObsSpiMetab   :: !Int
+  , sugObsTrades     :: [TradeInfo]
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
@@ -145,7 +148,7 @@ data TradingReply = Accept
                   deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
-              | MatingReply (Maybe (Double, Int, Int, CultureTag)) -- in case of acceptance: Just share of sugar, metab, vision
+              | MatingReply (Maybe (Double, Double, Int, Int, CultureTag)) -- in case of acceptance: Just share of sugar, spice, metab, vision
               | MatingTx AgentId
               | MatingContinue
 
@@ -442,6 +445,7 @@ mkParamsAnimationIII_9 :: SugarScapeParams
 mkParamsAnimationIII_9 = mkParamsAnimationII_2 {
     sgAgentDistribution = CombatCorners
   , spCombat            = Just (1 / 0)
+  , spCulturalProcess   = Just 10 
   }
 
 mkParamsAnimationIII_10 :: SugarScapeParams

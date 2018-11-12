@@ -36,12 +36,16 @@ module SugarScape.Agent.Common
   
   , randomAgent
 
-  , agentOutObservable
-  , agentOutObservableM
+  , agentObservable
+  , agentObservableM
+  , observableTrades
   , updateAgentState
   , agentProperty
 
   , tagToTribe
+
+  , changeToRedTribe
+  , changeToBlueTribe
   ) where
 
 import Control.Monad.Random
@@ -62,17 +66,18 @@ type EventHandler g = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent Su
 type SiteMeasureFunc = SugEnvSite -> Double
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
-sugObservableFromState s = SugAgentObservable
-  { sugObsCoord      = sugAgCoord s 
-  , sugObsVision     = sugAgVision s
-  , sugObsAge        = sugAgAge s 
-  , sugObsSugLvl     = sugAgSugarLevel s
-  , sugObsSugMetab   = sugAgSugarMetab s
-  , sugObsGender     = sugAgGender s
-  , sugObsCultureTag = sugAgCultureTag s
-  , sugObsTribe      = sugAgTribe s
-  , sugObsSpiLvl     = sugAgSpiceLevel s
-  , sugObsSpiMetab   = sugAgSpiceMetab s
+sugObservableFromState as = SugAgentObservable
+  { sugObsCoord      = sugAgCoord as 
+  , sugObsVision     = sugAgVision as
+  , sugObsAge        = sugAgAge as 
+  , sugObsSugLvl     = sugAgSugarLevel as
+  , sugObsSugMetab   = sugAgSugarMetab as
+  , sugObsGender     = sugAgGender as
+  , sugObsCultureTag = sugAgCultureTag as
+  , sugObsTribe      = sugAgTribe as
+  , sugObsSpiLvl     = sugAgSpiceLevel as
+  , sugObsSpiMetab   = sugAgSpiceMetab as
+  , sugObsTrades     = []
   }
 
 selectSiteMeasureFunc :: SugarScapeParams -> SugAgentState -> SiteMeasureFunc
@@ -328,6 +333,26 @@ randomAgent params (agentId, coord) asf f = do
 
   return (adef, s')
 
+changeToRedTribe :: SugarScapeParams
+                 -> SugAgentState
+                 -> SugAgentState
+changeToRedTribe params s = s { sugAgTribe      = tagToTribe redTag
+                              , sugAgCultureTag = redTag }
+  where             
+    redTag = case spCulturalProcess params of 
+              Nothing -> replicate 10 True -- cultural process is deactivated => select default of 10 to generate different Red tribe
+              Just n  -> replicate n True
+
+changeToBlueTribe :: SugarScapeParams
+                  -> SugAgentState
+                  -> SugAgentState
+changeToBlueTribe params s = s { sugAgTribe     = tagToTribe blueTag
+                              , sugAgCultureTag = blueTag }
+  where             
+    blueTag = case spCulturalProcess params of 
+              Nothing -> replicate 10 False -- cultural process is deactivated => select default of 10 to generate different Red tribe
+              Just n  -> replicate n False
+
 tagToTribe :: CultureTag
            -> AgentTribe
 tagToTribe tag 
@@ -388,10 +413,17 @@ agentProperty :: MonadState SugAgentState m
               -> m p
 agentProperty = gets
 
-agentOutObservable :: SugAgentState -> SugAgentOut g 
-agentOutObservable = agentOut . sugObservableFromState
+agentObservable :: SugAgentState -> SugAgentOut g 
+agentObservable = agentOut . sugObservableFromState
 
-agentOutObservableM :: (MonadState SugAgentState m, RandomGen g)
-                    => m (SugAgentOut g)
-agentOutObservableM 
-  = get >>= \s -> return $ agentOutObservable s
+agentObservableM :: (MonadState SugAgentState m, RandomGen g)
+                 => m (SugAgentOut g)
+agentObservableM 
+  = get >>= \s -> return $ agentObservable s
+
+observableTrades :: [TradeInfo] 
+                 -> SugAgentOut g 
+                 -> SugAgentOut g 
+observableTrades trades ao = ao { aoObservable = obs { sugObsTrades = trades }}
+  where
+    obs = aoObservable ao

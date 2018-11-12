@@ -38,6 +38,8 @@ instance Arbitrary SugAgentState where
     , sugAgChildren     = []
     , sugAgCultureTag   = []
     , sugAgTribe        = tagToTribe []
+    , sugAgSpiceLevel   = randSugarEndowment
+    , sugAgSpiceMetab   = randSugarMetab
     }
 
 agentTests :: RandomGen g 
@@ -65,7 +67,7 @@ prop_agent_starved g0 asInit sugLvl
     absState0 = defaultAbsState
     env0      = emptyEnvironment
 
-    (starved, as', absState', env', _) = runAgentMonad starvedToDeath as0 absState0 env0 g0
+    (starved, as', absState', env', _) = runAgentMonad (starvedToDeath mkSugarScapeParams) as0 absState0 env0 g0
     asUnchanged       = as0 == as'
     absStateUnchanged = absState0 == absState'
     envUnchanged      = env0 == env'

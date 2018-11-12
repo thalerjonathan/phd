@@ -133,14 +133,7 @@ mrs :: Double  -- ^ sugar-wealth of agent
     -> Double  -- ^ sugar-metabolism of agent
     -> Double  -- ^ spice-metabolism of agent
     -> Double  -- ^ mrs value: less than 1 the agent values sugar more, and spice otherwise
-mrs w1 w2 m1 m2 
-    | isNaN m   = error ("invalid mrs: w1 = " ++ show w1 ++ 
-                         ", w2 = " ++ show w2 ++ 
-                         ", m1 = " ++ show m1 ++ 
-                         ", m2 = " ++ show m2)
-    | otherwise = m
-  where
-    m = (w2 / m2) / (w1 / m1) 
+mrs w1 w2 m1 m2 = (w2 / m2) / (w1 / m1)
 
 mrsM :: MonadState SugAgentState m => m Double
 mrsM = do
@@ -173,6 +166,7 @@ agentWelfareChange :: Double  -- ^ sugar-change in welfare
                    -> Double  -- ^ spice-metabolism of agent
                    -> Double
 agentWelfareChange sugarChange spiceChange w1 w2 m1 m2 
+{-
     | isNaN wf = error ("invalid welfare change: w1 = " ++ show w1 ++ 
                         ", w2 = " ++ show w2 ++ 
                         ", m1 = " ++ show m1 ++ 
@@ -180,11 +174,12 @@ agentWelfareChange sugarChange spiceChange w1 w2 m1 m2
                         ", sugarchange = " ++ show sugarChange ++ 
                         ", spiceChange = " ++ show spiceChange)
     | otherwise = wf
+    -}
+    = (w1Diff ** (m1/mT)) * (w2Diff ** (m2/mT))
   where
     mT = m1 + m2
     w1Diff = max (w1 + sugarChange) 0 -- prevent negative wealth, would result in NaN
     w2Diff = max (w2 + spiceChange) 0 -- prevent negative wealth, would result in NaN
-    wf = (w1Diff ** (m1/mT)) * (w2Diff ** (m2/mT))
 
 agentWelfareChangeState :: SugAgentState
                         -> Double

@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Agent.Trading 
+module SugarScape.Agent.Trading
   ( agentTrade
   , handleTradingOffer
   ) where

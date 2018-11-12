@@ -21,6 +21,10 @@ instance Arbitrary SugEnvSite where
     return SugEnvSite {
       sugEnvSiteSugarCapacity = cap
     , sugEnvSiteSugarLevel    = lvl
+
+    , sugEnvSiteSpiceLevel    = lvl
+    , sugEnvSiteSpiceCapacity = cap
+
     , sugEnvSiteOccupier      = Nothing
     , sugEnvSitePolutionLevel = 0
     }

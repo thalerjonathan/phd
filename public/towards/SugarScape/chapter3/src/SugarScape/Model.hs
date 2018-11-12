@@ -2,15 +2,17 @@ module SugarScape.Model
   ( AgentGender (..)
   , CultureTag
   , AgentTribe (..)
-
+  
   , SugAgentState (..)
   , SugAgentObservable (..)
 
   , SugEnvSiteOccupier (..)
   , SugEnvSite (..)
 
+  , TradingRefuse (..)
+  , TradingReply (..)
   , SugEvent (..)
-
+  
   , SugAgentMonad
   , SugAgentMonadT
 
@@ -116,10 +118,11 @@ data SugAgentObservable = SugAgentObservable
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
-  { sugEnvOccId     :: !AgentId
-  , sugEnvOccWealth :: !Double
-  , sugEnvOccTribe  :: !AgentTribe
-  , sugEnvOccMRS    :: !Double
+  { sugEnvOccId          :: !AgentId
+  , sugEnvOccSugarWealth :: !Double
+  , sugEnvOccSpiceWealth :: !Double
+  , sugEnvOccTribe       :: !AgentTribe
+  , sugEnvOccMRS         :: !Double
   } deriving (Show, Eq)
 
 data SugEnvSite = SugEnvSite 
@@ -133,6 +136,14 @@ data SugEnvSite = SugEnvSite
   , sugEnvSiteOccupier      :: !(Maybe SugEnvSiteOccupier)
   } deriving (Show, Eq)
 
+data TradingRefuse = NoWelfareIncrease  -- refuse trade because no increase in welfare
+                   | MRSCrossover       -- refuse trade because MRS cross-over
+                   deriving (Show, Eq)
+
+data TradingReply = Accept         
+                  | Refuse TradingRefuse 
+                  deriving (Show, Eq)
+
 data SugEvent = MatingRequest AgentGender
               | MatingReply (Maybe (Double, Int, Int, CultureTag)) -- in case of acceptance: Just share of sugar, metab, vision
               | MatingTx AgentId
@@ -144,8 +155,8 @@ data SugEvent = MatingRequest AgentGender
 
               | KilledInCombat 
 
-              | TradingOffer Double
-              | TradingReply Bool
+              | TradingOffer Double Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
+              | TradingReply TradingReply
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

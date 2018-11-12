@@ -60,8 +60,8 @@ generalEventHandler params myId =
         (DomainEvent (sender, KilledInCombat)) -> do
           ao <- arrM (handleKilledInCombat myId) -< sender
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, TradingOffer traderMrs)) -> do
-          ao <- arrM (uncurry (handleTradingOffer myId)) -< (sender, traderMrs)
+        (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
+          ao <- arrM (uncurry3 (handleTradingOffer myId)) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")

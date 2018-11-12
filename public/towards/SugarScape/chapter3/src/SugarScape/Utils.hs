@@ -5,6 +5,8 @@ module SugarScape.Utils
   , andM
 
   , flipBoolAtIdx
+  
+  , uncurry3
   ) where
 
 import Control.Monad
@@ -47,3 +49,6 @@ flipBoolAtIdx idx bs = front ++ (flippedElem : backNoElem)
     elemAtIdx     = bs !! idx
     flippedElem   = not elemAtIdx
     backNoElem    = tail back
+
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f (a, b, c) = f a b c

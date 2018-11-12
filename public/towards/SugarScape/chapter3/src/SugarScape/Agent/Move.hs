@@ -69,8 +69,11 @@ agentCombat params myId = do
 
     -- lookout in 4 directions as far as vision perimts
     myTribe  <- agentProperty sugAgTribe
-    myWealth <- agentProperty sugAgSugarLevel
+    mySugLvl <- agentProperty sugAgSugarLevel
+    mySpiLvl <- agentProperty sugAgSpiceLevel
     myVis    <- agentProperty sugAgVision
+
+    let myWealth = mySugLvl + mySpiLvl
 
     -- lookout in 4 directions as far as vision perimts and only consider
     -- sites occuppied by members of different tribe who are less wealthier
@@ -79,7 +82,7 @@ agentCombat params myId = do
                           case sugEnvSiteOccupier site of 
                             Nothing  -> False
                             Just occ -> sugEnvOccTribe occ /= myTribe &&
-                                        sugEnvOccWealth occ < myWealth) sitesInSight
+                                        (sugEnvOccSugarWealth occ + sugEnvOccSpiceWealth occ) < myWealth) sitesInSight
 
     -- throw out all sites which are vulnerable to retalation:
     nonRetaliationSites <- filterRetaliation myTribe myWealth myVis combatReward sites []
@@ -94,16 +97,17 @@ agentCombat params myId = do
 
         (siteCoord, site) <- lift $ lift $ lift $ randomElemM bcs
         agentMoveTo myId siteCoord
-        sugHarvested <- agentHarvestSite params siteCoord
+        harvestAmount <- agentHarvestSite params siteCoord
 
-        let victimWealth = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier site)
+        let victim       = fromJust $ sugEnvSiteOccupier site
+            victimWealth = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
             combatWealth = min victimWealth combatReward
 
         -- TODO: send KilledInCombat to the victim
         let victimId = sugEnvOccId (fromJust $ sugEnvSiteOccupier site)
         ao <- liftM (sendEventTo victimId KilledInCombat) agentOutObservableM
 
-        return (sugHarvested + combatWealth, ao)
+        return (harvestAmount + combatWealth, ao)
 
   where
     filterRetaliation :: RandomGen g
@@ -118,7 +122,8 @@ agentCombat params myId = do
     filterRetaliation myTribe myWealth myVis combatReward (site@(sc, ss) : sites) acc = do
       futureSites <- lift $ lift $ neighboursInNeumannDistanceM sc myVis False
 
-      let victimWealth  = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier ss) 
+      let victim        = fromJust $ sugEnvSiteOccupier ss
+          victimWealth  = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
           combatWealth  = min victimWealth combatReward
           sugLvlSite    = sugEnvSiteSugarLevel ss
           futureWealth  = myWealth + combatWealth + sugLvlSite
@@ -127,7 +132,7 @@ agentCombat params myId = do
                           case sugEnvSiteOccupier ss' of 
                             Nothing  -> False
                             Just occ -> sugEnvOccTribe occ /= myTribe &&
-                                        sugEnvOccWealth occ > futureWealth) futureSites
+                                        (sugEnvOccSugarWealth occ + sugEnvOccSpiceWealth occ) > futureWealth) futureSites
 
       -- in case sites found with agents more wealthy after this agents combat, then this site is vulnerable to retaliation, 
       if null filteredSites
@@ -167,26 +172,27 @@ agentHarvestSite :: RandomGen g
                  -> Discrete2dCoord 
                  -> AgentAction g Double
 agentHarvestSite params siteCoord = do
-    site     <- lift $ lift $ cellAtM siteCoord
-    sugLvl   <- agentProperty sugAgSugarLevel
-    
-    let sugLvlSite = sugEnvSiteSugarLevel site
+  site   <- lift $ lift $ cellAtM siteCoord
+  sugLvl <- agentProperty sugAgSugarLevel
+  
+  let sugLvlSite = sugEnvSiteSugarLevel site
 
-    resColl <- if spSpiceEnabled params 
-                then do
-                  spiceLvl <- agentProperty sugAgSpiceLevel
-                  let spiceLvlSite = sugEnvSiteSpiceLevel site
+  harvestAmount <- 
+    if spSpiceEnabled params 
+      then do
+        spiceLvl <- agentProperty sugAgSpiceLevel
+        let spiceLvlSite = sugEnvSiteSpiceLevel site
 
-                  updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite
-                                            , sugAgSpiceLevel = spiceLvl + spiceLvlSite})
-                  return (sugLvlSite + spiceLvlSite)
+        updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite
+                                  , sugAgSpiceLevel = spiceLvl + spiceLvlSite})
+        return (sugLvlSite + spiceLvlSite)
 
-                else do
-                  updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite })
-                  return sugLvlSite
+      else do
+        updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite })
+        return sugLvlSite
 
-    let siteHarvested = site { sugEnvSiteSugarLevel = 0
-                            , sugEnvSiteSpiceLevel = 0 }
-    lift $ lift $ changeCellAtM siteCoord siteHarvested
+  let siteHarvested = site { sugEnvSiteSugarLevel = 0
+                           , sugEnvSiteSpiceLevel = 0 }
+  lift $ lift $ changeCellAtM siteCoord siteHarvested
 
-    return resColl
+  return harvestAmount

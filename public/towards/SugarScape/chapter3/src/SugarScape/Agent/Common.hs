@@ -13,11 +13,14 @@ module SugarScape.Agent.Common
   , combatSiteMeasure
   , agentWelfare
   , agentWelfareM
+  , agentWelfareState
   , agentWelfareChange
   , agentWelfareChangeM
+  , agentWelfareChangeState
   , mrs
   , mrsM
-  , mrsFromState
+  , mrsState
+  , mrsStateChange
   
   , unoccupiedNeighbourhoodOfNeighbours
 
@@ -28,6 +31,7 @@ module SugarScape.Agent.Common
   , siteOccupied
 
   , unoccupyPosition
+  , updateSiteWithOccupier
   , agentCellOnCoord
   
   , randomAgent
@@ -78,15 +82,16 @@ selectSiteMeasureFunc params as
 
 -- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
 -- polution level will be 0 anyway if polution / diffusion is turned off
--- TODO: haven't added spice yet
 combatSiteMeasure :: SugarScapeParams -> Double -> SiteMeasureFunc
-combatSiteMeasure _params combatReward site = combatWealth + sug 
+combatSiteMeasure _params combatReward site = combatWealth + sug + spi
   where
-    victimWealth = sugEnvOccWealth (fromJust $ sugEnvSiteOccupier site)
+    victim       = fromJust $ sugEnvSiteOccupier site
+    victimWealth = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
     combatWealth = min victimWealth combatReward
 
     pol          = sugEnvSitePolutionLevel site
     sug          = sugEnvSiteSugarLevel site / (1 + pol)
+    spi          = sugEnvSiteSpiceLevel site / (1 + pol)
 
 -- See page 97, The Agent Welfare Function and Appendix C (Example makes it quite clear)
 -- The agent welfare function itself computes whether the agent requires more 
@@ -116,6 +121,9 @@ agentWelfare :: Double  -- ^ sugar-wealth of agent
              -> Double
 agentWelfare = agentWelfareChange 0 0
 
+agentWelfareState :: SugAgentState -> Double
+agentWelfareState as = agentWelfareChangeState as 0 0
+
 agentWelfareM :: MonadState SugAgentState m => m Double
 agentWelfareM = agentWelfareChangeM 0 0
 
@@ -124,21 +132,35 @@ mrs :: Double  -- ^ sugar-wealth of agent
     -> Double  -- ^ spice-wealth of agent
     -> Double  -- ^ sugar-metabolism of agent
     -> Double  -- ^ spice-metabolism of agent
-    -> Double
-mrs w1 w2 m1 m2 = (w2 / m2) / (w1 / m1)
+    -> Double  -- ^ mrs value: less than 1 the agent values sugar more, and spice otherwise
+mrs w1 w2 m1 m2 
+    | isNaN m   = error ("invalid mrs: w1 = " ++ show w1 ++ 
+                         ", w2 = " ++ show w2 ++ 
+                         ", m1 = " ++ show m1 ++ 
+                         ", m2 = " ++ show m2)
+    | otherwise = m
+  where
+    m = (w2 / m2) / (w1 / m1) 
 
 mrsM :: MonadState SugAgentState m => m Double
 mrsM = do
   s <- get
-  return $ mrsFromState s
+  return $ mrsState s
 
-mrsFromState :: SugAgentState -> Double
-mrsFromState as = mrs w1 w2 m1 m2
+mrsStateChange :: SugAgentState 
+               -> Double
+               -> Double
+               -> Double
+mrsStateChange as sugarChange spiceChange 
+    = mrs (w1 + sugarChange) (w2 + spiceChange) m1 m2
   where
     m1 = fromIntegral $ sugAgSugarMetab as
     m2 = fromIntegral $ sugAgSpiceMetab as
     w1 = sugAgSugarLevel as
     w2 = sugAgSpiceLevel as
+
+mrsState :: SugAgentState -> Double
+mrsState as = mrsStateChange as 0 0
 
 -- NOTE: this welfare function includes the ability to calculate the changed
 -- welfare of an agent when sugar and spice change - is required for determining
@@ -150,22 +172,38 @@ agentWelfareChange :: Double  -- ^ sugar-change in welfare
                    -> Double  -- ^ sugar-metabolism of agent
                    -> Double  -- ^ spice-metabolism of agent
                    -> Double
-agentWelfareChange sugarchange spiceChange w1 w2 m1 m2 
-    = ((w1 + sugarchange) ** (m1/mT)) * ((w2 + spiceChange) ** (m2/mT))
+agentWelfareChange sugarChange spiceChange w1 w2 m1 m2 
+    | isNaN wf = error ("invalid welfare change: w1 = " ++ show w1 ++ 
+                        ", w2 = " ++ show w2 ++ 
+                        ", m1 = " ++ show m1 ++ 
+                        ", m2 = " ++ show m2 ++
+                        ", sugarchange = " ++ show sugarChange ++ 
+                        ", spiceChange = " ++ show spiceChange)
+    | otherwise = wf
   where
     mT = m1 + m2
+    w1Diff = max (w1 + sugarChange) 0 -- prevent negative wealth, would result in NaN
+    w2Diff = max (w2 + spiceChange) 0 -- prevent negative wealth, would result in NaN
+    wf = (w1Diff ** (m1/mT)) * (w2Diff ** (m2/mT))
+
+agentWelfareChangeState :: SugAgentState
+                        -> Double
+                        -> Double
+                        -> Double
+agentWelfareChangeState as sugarChange spiceChange 
+    = agentWelfareChange sugarChange spiceChange w1 w2 m1 m2
+  where
+    m1 = fromIntegral $ sugAgSugarMetab as
+    m2 = fromIntegral $ sugAgSpiceMetab as
+    w1 = sugAgSugarLevel as
+    w2 = sugAgSpiceLevel as
 
 agentWelfareChangeM :: MonadState SugAgentState m 
                     => Double
                     -> Double
                     -> m Double
-agentWelfareChangeM sugarchange spiceChange = do
-  m1 <- fromIntegral <$> agentProperty sugAgSugarMetab
-  m2 <- fromIntegral <$> agentProperty sugAgSpiceMetab
-  w1 <- agentProperty sugAgSugarLevel
-  w2 <- agentProperty sugAgSpiceLevel
-
-  return $ agentWelfareChange sugarchange spiceChange w1 w2 m1 m2
+agentWelfareChangeM sugarChange spiceChange 
+  = state (\s -> (agentWelfareChangeState s sugarChange spiceChange, s))
 
 -- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
 -- polution level will be 0 anyway if polution / diffusion is turned off
@@ -204,11 +242,12 @@ unoccupiedNeighbourhoodOfNeighbours coord e
 occupier :: AgentId
          -> SugAgentState
          -> SugEnvSiteOccupier
-occupier aid s = SugEnvSiteOccupier { 
-    sugEnvOccId     = aid
-  , sugEnvOccTribe  = sugAgTribe s
-  , sugEnvOccWealth = sugAgSugarLevel s
-  , sugEnvOccMRS    = mrsFromState s
+occupier aid as = SugEnvSiteOccupier { 
+    sugEnvOccId          = aid
+  , sugEnvOccTribe       = sugAgTribe as
+  , sugEnvOccSugarWealth = sugAgSugarLevel as
+  , sugEnvOccSpiceWealth = sugAgSpiceLevel as
+  , sugEnvOccMRS         = mrsState as
   }
 
 occupierM :: MonadState SugAgentState m
@@ -230,6 +269,15 @@ unoccupyPosition :: RandomGen g
 unoccupyPosition = do
   (coord, cell) <- agentCellOnCoord
   let cell' = cell { sugEnvSiteOccupier = Nothing }
+  lift $ lift $ changeCellAtM coord cell'
+
+updateSiteWithOccupier :: RandomGen g
+                       => AgentId
+                       -> AgentAction g ()
+updateSiteWithOccupier aid = do
+  (coord, cell) <- agentCellOnCoord
+  occ           <- occupierM aid
+  let cell' = cell { sugEnvSiteOccupier = Just occ }
   lift $ lift $ changeCellAtM coord cell'
 
 agentCellOnCoord :: RandomGen g

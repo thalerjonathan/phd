@@ -46,3 +46,4 @@ If we build on the approach we used for Chapter II (and which worked very well t
 
 A solution is to change to an event-driven approach: SF now have an input, which indicates an EventType and Agents need some way of initiating a multi-step interaction where a reply can lead to a new event and so on. In case of a simple time-advancement the SF is run with a "TimeStep" event, if an agent requests mating, then it sends "MatingRequest" to the other SF. This requires a completely different approach to iterating the agents.
 
+Stateful programming (or programming that \textit{feels} stateful) comes inherently with difficulties where one can forget to update a state or mutate state where not appropriate. A pure functional approach to that is no exception and shows the same problems. In our case we e.g. forgot to update the MRS by recomputing it and updating it in the environment.

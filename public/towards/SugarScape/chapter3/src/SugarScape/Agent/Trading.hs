@@ -141,7 +141,7 @@ tradingHandler myId globalHdl0 tradeInfos tradeOccured traders (sugEx, spiEx) =
     handleTradingReply globalHdl traderId Accept = do -- the sender accepts the trading-offer
       -- NOTE: at this point the trade-partner agent is better off as well, MRS won't cross over and the other agent has already transacted
       let price       = if abs sugEx == 1 then spiEx else sugEx
-          tradeInfos' = TradeInfo price myId traderId : tradeInfos
+          tradeInfos' = TradeInfo price traderId : tradeInfos
 
       transactTradeWealth myId sugEx spiEx
 

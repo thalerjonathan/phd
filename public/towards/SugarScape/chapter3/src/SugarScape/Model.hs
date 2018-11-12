@@ -79,7 +79,7 @@ import SugarScape.Discrete
 data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
 data AgentTribe  = Blue | Red deriving (Show, Eq)
-data TradeInfo   = TradeInfo Double AgentId AgentId deriving (Show, Eq) -- price, trade-offerer, trade-acceptor
+data TradeInfo   = TradeInfo Double AgentId deriving (Show, Eq) -- price, trade-partner
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord

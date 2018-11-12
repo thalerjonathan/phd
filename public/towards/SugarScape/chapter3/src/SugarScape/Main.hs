@@ -18,7 +18,7 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let sugParams = mkParamsFigureIV_3
-      output    = Visual 0 Default Resource -- Export 1000 -- Visual 0 Gender Resource
+      output    = Export 1000 -- Export 1000 -- Visual 0 Default Resource
       rngSeed   = Just 42                   -- Nothing -- Just 42
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams

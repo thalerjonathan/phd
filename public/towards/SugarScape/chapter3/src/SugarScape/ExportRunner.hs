@@ -42,8 +42,9 @@ writeSimulationUntil fileName tMax ss0 = do
                                  show sug ++ ", " ++
                                  show met ++ ", " ++ 
                                  show vis ++ ", " ++
-                                 show gen ++ ", " ++
-                                 show cult ++ "], ")
+                                 show gen ++ ", {" ++
+                                 show cult ++ "}, " ++
+                                 trades ++ "], ")
           where
             vis = sugObsVision ao
             age = sugObsAge ao
@@ -53,3 +54,7 @@ writeSimulationUntil fileName tMax ss0 = do
                     Male   -> 0 :: Int
                     Female -> 1 :: Int
             cult = map (\tag -> if tag then 1 else 0) (sugObsCultureTag ao) :: [Int]
+            trades = "{[" ++ concatMap tradeInfoToString (sugObsTrades ao) ++ "]}"
+    
+    tradeInfoToString :: TradeInfo -> String
+    tradeInfoToString (TradeInfo price _) = show price ++ ", "

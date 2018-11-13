@@ -9,8 +9,8 @@ import SugarScape.Model
 import SugarScape.Renderer
 import SugarScape.Simulation
 
-data Output = Pure Time 
-            | Export Time
+data Output = Console Time 
+            | File Time
             | Visual Int AgentVis SiteVis
             deriving (Eq, Show)
 
@@ -21,7 +21,7 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let sugParams = mkParamsFigureIV_14 
-      output    = Visual 0 Default Resource            -- Export 1000 -- Visual 0 Default Resource
+      output    = File 1000              -- File 1000 -- Visual 0 Default Resource
       rngSeed   = Nothing :: (Maybe Int) -- Nothing :: (Maybe Int) -- Just 42
 
   putStrLn $ "Running Sugarscape with... \n--------------------------------------------------\n" ++ show sugParams ++ "\n--------------------------------------------------"
@@ -31,8 +31,18 @@ main = do
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams
 
   case output of 
-    Pure   steps     -> print $ simulateUntil steps initSimState
-    Export steps     -> writeSimulationUntil "export/dynamics.m" steps initSimState
+    Console steps    -> print $ simulateUntil steps initSimState
+    File   steps     -> writeSimulationUntil "export/dynamics.m" steps initSimState
     Visual sps av cv -> runGloss sugParams initSimState (0, 0, initEnv, []) sps av cv
 
   putStrLn "\n--------------------------------------------------\n"
+
+{-
+Usage sugarscape --scenario STRING [--output Visual | File | Console]
+                                   [--outfile STRING] 
+                                   [--agentvis Default | Gender | Culture | Tribe | Welfare ]
+                                   [--sitevis Resource | Polution ]
+                                   [--renderfreq INT] 
+                                   [--steps INT] 
+                                   [--rng INT]
+-}

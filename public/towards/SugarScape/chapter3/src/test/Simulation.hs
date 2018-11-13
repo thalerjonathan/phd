@@ -26,13 +26,34 @@ simTests :: RandomGen g
          -> TestTree 
 simTests g = testGroup 
               "Simulation Tests" 
-              [ Unit.testCase "Cultural Dynamics" $ prop_culture_dynamics g 
+              [ Unit.testCase "Trading Dynamics" $ prop_trading_dynamics g
+              -- Unit.testCase "Cultural Dynamics" $ prop_culture_dynamics g 
               -- Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g
               -- Unit.testCase "Terracing" $ prop_terracing g,
               -- Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
               -- Unit.testCase "Wealth Distribution" $ prop_wealth_dist g 
               ]
 
+prop_trading_dynamics ::  RandomGen g => g -> IO ()
+prop_trading_dynamics g0 = do
+    putStrLn $ "trading-prices std = " ++ show tradingPricesStd
+    assertBool ("Trading Prices standard deviation too high, should be below 0.05, is " ++ show tradingPricesStd) tradingDynamicsPass
+  where
+    -- according to sugarscape around this time, trading-prices standard deviation is LTE 0.05
+    steps                 = 1000 
+    tradingPricesStdLimit = 0.05
+    params   = mkParamsFigureIV_3
+
+    (simState, _)    = initSimulationRng g0 params
+    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    trades           = concatMap (sugObsTrades . snd) aos
+    tradingPricesStd = std $ map tradingPrice trades
+
+    tradingDynamicsPass = tradingPricesStd <= tradingPricesStdLimit
+    
+    tradingPrice :: TradeInfo -> Double
+    tradingPrice (TradeInfo price _ _ _ ) = price
+    
 prop_culture_dynamics ::  RandomGen g => g -> IO ()
 prop_culture_dynamics g0 = do
     putStrLn $ "zeros-ratio = " ++ show zeroRatio

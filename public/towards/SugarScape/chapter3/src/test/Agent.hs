@@ -40,6 +40,7 @@ instance Arbitrary SugAgentState where
     , sugAgTribe        = tagToTribe []
     , sugAgSpiceLevel   = randSugarEndowment
     , sugAgSpiceMetab   = randSugarMetab
+    , sugAgInitSpiEndow = randSugarEndowment
     }
 
 agentTests :: RandomGen g 

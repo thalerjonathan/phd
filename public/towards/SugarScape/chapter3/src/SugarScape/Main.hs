@@ -20,7 +20,7 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let sugParams = mkParamsFigureIV_9 
+  let sugParams = mkParamsFigureIV_10 
       output    = Export 1000            -- Export 1000 -- Visual 0 Default Resource
       rngSeed   = Nothing :: (Maybe Int) -- Nothing :: (Maybe Int) -- Just 42
 

@@ -69,6 +69,7 @@ module SugarScape.Model
   , mkParamsFigureIV_7
   , mkParamsFigureIV_8
   , mkParamsFigureIV_9
+  , mkParamsFigureIV_10
   ) where
 
 import Control.Monad.Random
@@ -615,4 +616,12 @@ mkParamsFigureIV_9 :: SugarScapeParams
 mkParamsFigureIV_9 = mkParamsFigureIV_3 {
     sgParamsName  = "Figure IV-9"
   , spVisionRange = (1, 15)
+  }
+
+-- see page 121
+mkParamsFigureIV_10 :: SugarScapeParams
+mkParamsFigureIV_10 = mkParamsFigureIV_3 {
+    sgParamsName    = "Figure IV-10"
+  , spReplaceAgents = True          -- R rule is turned on
+  , spAgeSpan       = Range 60 100  -- and agents can die of age
   }

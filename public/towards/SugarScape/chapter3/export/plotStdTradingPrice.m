@@ -35,7 +35,7 @@ endfor
 % needed for octave on Fedora, otherwise only black output
 graphics_toolkit("gnuplot");
 
-breaks = ceil(sqrt(tMax))
+breaks = floor(tMax / 10); %ceil(sqrt(tMax))
 x = [1 : tMax];
 stdTrend = splinefit(x, stdPrice, breaks, "order", 2);
 stdTrendY = ppval(stdTrend, x);

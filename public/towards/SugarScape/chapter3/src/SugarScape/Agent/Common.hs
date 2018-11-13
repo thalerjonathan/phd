@@ -55,6 +55,7 @@ import Data.MonadicStreamFunction
 import Data.List
 
 import SugarScape.Agent.Interface
+import SugarScape.Agent.Utils
 import SugarScape.Discrete
 import SugarScape.Model
 
@@ -269,7 +270,7 @@ unoccupyPosition :: RandomGen g
 unoccupyPosition = do
   (coord, cell) <- agentCellOnCoord
   let cell' = cell { sugEnvSiteOccupier = Nothing }
-  lift $ lift $ changeCellAtM coord cell'
+  envLift $ changeCellAtM coord cell'
 
 updateSiteWithOccupier :: RandomGen g
                        => AgentId
@@ -278,13 +279,13 @@ updateSiteWithOccupier aid = do
   (coord, cell) <- agentCellOnCoord
   occ           <- occupierM aid
   let cell' = cell { sugEnvSiteOccupier = Just occ }
-  lift $ lift $ changeCellAtM coord cell'
+  envLift $ changeCellAtM coord cell'
 
 agentCellOnCoord :: RandomGen g
                 => AgentAction g (Discrete2dCoord, SugEnvSite)
 agentCellOnCoord = do
   coord <- agentProperty sugAgCoord
-  cell  <- lift $ lift $ cellAtM coord
+  cell  <- envLift $ cellAtM coord
   return (coord, cell)
 
 randomAgent :: RandomGen g  

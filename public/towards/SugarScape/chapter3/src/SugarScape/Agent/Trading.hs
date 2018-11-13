@@ -37,7 +37,7 @@ tradingRound :: RandomGen g
 tradingRound myId globalHdl tradeInfos = do
   myCoord <- agentProperty sugAgCoord
   -- (re-)fetch neighbours from environment, to get up-to-date information
-  ns    <- lift $ lift $ neighboursM myCoord False
+  ns    <- envLift $ neighboursM myCoord False
   myMrs <- mrsM
 
   -- filter out unoccupied sites and traders with same MRS (VERY unlikely with floating point)
@@ -52,7 +52,7 @@ tradingRound myId globalHdl tradeInfos = do
       ao <- agentObservableM
       return (ao, Just globalHdl)
     else do
-      potentialTraders' <- lift $ lift $ lift $ fisherYatesShuffleM potentialTraders
+      potentialTraders' <- randLift $ fisherYatesShuffleM potentialTraders
       tradeWith myId globalHdl tradeInfos False potentialTraders'
 
 tradeWith :: RandomGen g

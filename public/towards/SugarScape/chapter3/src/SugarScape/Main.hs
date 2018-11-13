@@ -14,13 +14,16 @@ data Output = Pure Time
             | Visual Int AgentVis SiteVis
             deriving (Eq, Show)
 
+-- TODO: test carrying capacity with / without TRADE again (bad configuration)
+-- TODO: implement optargs
+
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let sugParams = mkParamsFigureIV_3
-      output    = Export 1000 -- Export 1000 -- Visual 0 Default Resource
-      rngSeed   = Just 42                    -- Nothing -- Just 42
+  let sugParams = mkParamsFigureIV_9 
+      output    = Export 1000          -- Export 1000 -- Visual 0 Default Resource
+      rngSeed   = Just 42              -- Nothing -- Just 42
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams
 

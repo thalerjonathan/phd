@@ -11,6 +11,7 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
+import SugarScape.Agent.Utils
 import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Random
@@ -49,14 +50,14 @@ agentNonCombat params myId = do
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
-        selfCell <- lift $ lift $ cellAtM coord
+        selfCell <- envLift $ cellAtM coord
         myState  <- get
 
         let uoc' = (coord, selfCell) : uoc
             bf   = selectSiteMeasureFunc params myState
             bcs  = selectBestSites bf coord uoc'
 
-        (cellCoord, _) <- lift $ lift $ lift $ randomElemM bcs
+        (cellCoord, _) <- randLift $ randomElemM bcs
         agentMoveTo myId cellCoord
         agentHarvestSite params myId cellCoord)
 
@@ -95,7 +96,7 @@ agentCombat params myId = do
         let bf   = combatSiteMeasure params combatReward
             bcs  = selectBestSites bf myCoord nonRetaliationSites
 
-        (siteCoord, site) <- lift $ lift $ lift $ randomElemM bcs
+        (siteCoord, site) <- randLift $ randomElemM bcs
         agentMoveTo myId siteCoord
         harvestAmount <- agentHarvestSite params myId siteCoord
 
@@ -119,7 +120,7 @@ agentCombat params myId = do
                       -> AgentAction g [(Discrete2dCoord, SugEnvSite)]
     filterRetaliation _ _ _ _ [] acc = return acc
     filterRetaliation myTribe myWealth myVis combatReward (site@(sc, ss) : sites) acc = do
-      futureSites <- lift $ lift $ neighboursInNeumannDistanceM sc myVis False
+      futureSites <- envLift $ neighboursInNeumannDistanceM sc myVis False
 
       let victim        = fromJust $ sugEnvSiteOccupier ss
           victimWealth  = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
@@ -150,7 +151,7 @@ agentLookout :: RandomGen g
 agentLookout = do
   vis   <- agentProperty sugAgVision
   coord <- agentProperty sugAgCoord
-  lift $ lift $ neighboursInNeumannDistanceM coord vis False
+  envLift $ neighboursInNeumannDistanceM coord vis False
 
 agentMoveTo :: RandomGen g
              => AgentId
@@ -162,9 +163,9 @@ agentMoveTo myId cellCoord = do
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
   occ  <- occupierM myId
-  cell <- lift $ lift $ cellAtM cellCoord
+  cell <- envLift $ cellAtM cellCoord
   let co = cell { sugEnvSiteOccupier = Just occ }
-  lift $ lift $ changeCellAtM cellCoord co 
+  envLift $ changeCellAtM cellCoord co 
 
 agentHarvestSite :: RandomGen g
                  => SugarScapeParams
@@ -172,7 +173,7 @@ agentHarvestSite :: RandomGen g
                  -> Discrete2dCoord 
                  -> AgentAction g Double
 agentHarvestSite params myId siteCoord = do
-  site   <- lift $ lift $ cellAtM siteCoord
+  site   <- envLift $ cellAtM siteCoord
   sugLvl <- agentProperty sugAgSugarLevel
   
   let sugLvlSite = sugEnvSiteSugarLevel site
@@ -197,6 +198,6 @@ agentHarvestSite params myId siteCoord = do
   let siteHarvested = site { sugEnvSiteSugarLevel = 0
                            , sugEnvSiteSpiceLevel = 0
                            , sugEnvSiteOccupier   = Just occ }
-  lift $ lift $ changeCellAtM siteCoord siteHarvested
+  envLift $ changeCellAtM siteCoord siteHarvested
 
   return harvestAmount

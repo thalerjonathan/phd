@@ -41,6 +41,7 @@ module SugarScape.Model
   , mkParamsAnimationII_2
   , mkParamsAnimationII_3
   , mkParamsAnimationII_4
+  , mkParamsAnimationII_5
   , mkParamsAnimationII_6
   , mkParamsAnimationII_7
   , mkParamsAnimationII_8
@@ -64,6 +65,13 @@ module SugarScape.Model
 
   , mkParamsAnimationIV_1
   , mkParamsFigureIV_3
+  , mkParamsFigureIV_4
+  , mkParamsFigureIV_5
+  , mkParamsFigureIV_6
+  , mkCarryingCapacityWithSpice
+  , mkParamsFigureIV_7
+  , mkParamsFigureIV_8
+  , mkParamsFigureIV_9
   ) where
 
 import Control.Monad.Random
@@ -363,6 +371,10 @@ mkParamsAnimationII_3 = mkParamsAnimationII_2 {
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
 mkParamsAnimationII_4 = mkParamsAnimationII_3 -- same as G_1, M, R_60,100 => same as Animiation II-3
+
+mkParamsAnimationII_5 :: SugarScapeParams
+mkParamsAnimationII_5 = mkParamsAnimationII_4
+
 -- wealth distribution as described on page 32-37
 mkParamsWealthDistr :: SugarScapeParams
 mkParamsWealthDistr = mkParamsAnimationII_3 -- same as G_1, M, R_60,100 => same as Animiation II-3
@@ -480,18 +492,22 @@ mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
 -- see page 99
 mkParamsAnimationIV_1 :: SugarScapeParams
 mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
-    spVisionRange          = (1, 6) -- book says 1-10
-  , spSugarMetabolismRange = (1, 4)  -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
+    spVisionRange          = (1, 10) -- book says 1-10
+  
+  , spSugarMetabolismRange = (1, 5)  -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
+  , spSpiceMetabolismRange = (1, 5)   -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
+  , spSpiceEndowmentRange  = (5, 25)
+
   , spSpiceEnabled         = True
   , spSpiceRegrow          = Rate 1
-  , spSpiceEndowmentRange  = (5, 25)
-  , spSpiceMetabolismRange = (1, 4)   -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
   }
 
 -- see page 108
 mkParamsFigureIV_3 :: SugarScapeParams
 mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
-    sgAgentCount           = 400     -- 200 only !
+    sgAgentCount           = 200     -- 200 only !
+  , spVisionRange          = (1, 5)
+
   , spSugarMetabolismRange = (1, 5)  -- 1-5 !
   , spSpiceMetabolismRange = (1, 5)  -- 1-5 !
 
@@ -499,4 +515,40 @@ mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
   , spSpiceEndowmentRange  = (25, 50)
 
   , spTradingEnabled = True
+  }
+
+mkParamsFigureIV_4 :: SugarScapeParams
+mkParamsFigureIV_4 = mkParamsFigureIV_3
+
+mkParamsFigureIV_5 :: SugarScapeParams
+mkParamsFigureIV_5 = mkParamsFigureIV_3
+
+-- see page 111 and 112
+-- NOTE: we need to compare the carrying capacity with / without trade to one which has spice in it,
+-- otherwise this will be not really comparable
+mkCarryingCapacityWithSpice :: SugarScapeParams
+mkCarryingCapacityWithSpice = mkParamsAnimationII_2 {
+    spSpiceMetabolismRange = (1, 4)     -- add spice 
+  , spSpiceEndowmentRange  = (5, 25)    -- add spice
+  , spSpiceEnabled         = True       -- enable spice
+  , spSpiceRegrow          = Rate 1     -- enable regrow
+  }
+
+mkParamsFigureIV_6 :: SugarScapeParams
+mkParamsFigureIV_6 = mkCarryingCapacityWithSpice {
+    spTradingEnabled = True       -- enable trading
+  }
+
+-- see page 117 and 118
+mkParamsFigureIV_7 :: SugarScapeParams
+mkParamsFigureIV_7 = mkParamsFigureIV_3 {
+    spVisionRange  = (1, 1)
+  }
+
+mkParamsFigureIV_8 :: SugarScapeParams
+mkParamsFigureIV_8 = mkParamsFigureIV_7
+
+mkParamsFigureIV_9 :: SugarScapeParams
+mkParamsFigureIV_9 = mkParamsFigureIV_3 {
+    spVisionRange  = (1, 15)
   }

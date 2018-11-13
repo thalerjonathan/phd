@@ -6,6 +6,7 @@ module SugarScape.Agent.Polution
 import Control.Monad.Random
 
 import SugarScape.Agent.Common
+import SugarScape.Agent.Utils
 import SugarScape.Discrete
 import SugarScape.Model
 
@@ -14,7 +15,8 @@ agentPolute :: RandomGen g
             -> Double
             -> Double
             -> AgentAction g ()
-agentPolute params s m = agentPoluteAux $ spPolutionFormation params
+agentPolute params s m 
+    = agentPoluteAux $ spPolutionFormation params
   where
     agentPoluteAux :: RandomGen g
                    => PolutionFormation 
@@ -25,4 +27,4 @@ agentPolute params s m = agentPoluteAux $ spPolutionFormation params
 
       (coord, c) <- agentCellOnCoord
       let c' = c { sugEnvSitePolutionLevel = sugEnvSitePolutionLevel c + polution }
-      lift $ lift $ changeCellAtM coord c'
+      envLift $ changeCellAtM coord c'

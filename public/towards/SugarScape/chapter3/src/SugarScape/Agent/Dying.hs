@@ -9,6 +9,7 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
+import SugarScape.Agent.Utils
 import SugarScape.Common
 import SugarScape.Discrete
 import SugarScape.Model
@@ -40,7 +41,7 @@ birthNewAgent params asf ao
     newAid              <- lift nextAgentId
     myTribe             <- agentProperty sugAgTribe
     (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, newAState)   <- lift $ lift $ lift $ randomAgent params (newAid, newCoord) asf 
+    (newA, newAState)   <- randLift $ randomAgent params (newAid, newCoord) asf 
                               (\as -> case myTribe of
                                         Red  -> changeToRedTribe params as
                                         Blue -> changeToBlueTribe params as)
@@ -48,7 +49,7 @@ birthNewAgent params asf ao
     -- need to occupy the cell to prevent other agents occupying it
     let occ      = occupier newAid newAState
         newCell' = newCell { sugEnvSiteOccupier = Just occ }
-    lift $ lift $ changeCellAtM newCoord newCell' 
+    envLift $ changeCellAtM newCoord newCell' 
 
     return $ newAgent newA ao
   where
@@ -57,8 +58,8 @@ birthNewAgent params asf ao
     findUnoccpiedRandomPosition :: RandomGen g
                                 => AgentAction g (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
-      e          <- lift $ lift get
-      (c, coord) <- lift $ lift $ lift $ randomCell e -- TODO: replace by randomCellM
+      e          <- envLift get
+      (c, coord) <- randLift $ randomCell e -- TODO: replace by randomCellM
       ifThenElse
         (siteOccupied c) 
         findUnoccpiedRandomPosition

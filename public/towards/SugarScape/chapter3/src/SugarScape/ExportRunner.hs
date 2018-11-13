@@ -16,7 +16,7 @@ writeSimulationUntil :: RandomGen g
                      -> IO ()
 writeSimulationUntil fileName tMax ss0 = do
     fileHdl <- openFile fileName WriteMode
-    hPutStrLn fileHdl "dynamics = {"
+    hPutStrLn fileHdl "clear;\ndynamics = {"
     writeSimulationUntilAux ss0 fileHdl
     hPutStrLn fileHdl "};"
     hClose fileHdl

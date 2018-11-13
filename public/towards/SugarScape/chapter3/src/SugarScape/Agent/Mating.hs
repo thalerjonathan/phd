@@ -33,7 +33,7 @@ agentMating params myId amsf0 cont0
   | not $ spSexRuleActive params = cont0
   | otherwise                    = do
     coord   <- agentProperty sugAgCoord
-    ns      <- lift $ lift $ neighboursM coord False
+    ns      <- envLift $ neighboursM coord False
     fertile <- isAgentFertile
 
     let ocs = filter (siteOccupied . snd) ns
@@ -48,7 +48,7 @@ agentMating params myId amsf0 cont0
       then cont0
       else do
         -- shuffle ocs bcs selecting agents at random according to the book
-        ocsShuff <- lift $ lift $ lift $ fisherYatesShuffleM ocs
+        ocsShuff <- randLift $ fisherYatesShuffleM ocs
         mateWith params myId amsf0 cont0 ocsShuff
 
 mateWith :: RandomGen g
@@ -68,8 +68,8 @@ mateWith params myId amsf cont ((coord, site) : ns) =
     (do
       myCoord <- agentProperty sugAgCoord
       -- always query again bcs might have changed since previous iteration
-      mySites        <- lift $ lift $ neighboursM myCoord False
-      neighbourSites <- lift $ lift $ neighboursM coord False
+      mySites        <- envLift $ neighboursM myCoord False
+      neighbourSites <- envLift $ neighboursM coord False
 
       -- no need to remove duplicates, bcs there cant be one with neumann neighbourhood
       let freeSites = filter (siteUnoccupied . snd) (mySites ++ neighbourSites)
@@ -124,9 +124,9 @@ matingHandler params myId amsf0 cont0 ns freeSites =
       myVision  <- agentProperty sugAgVision
       myCultTag <- agentProperty sugAgCultureTag
 
-      childMetab   <- lift $ lift $ lift $ randomElemM [myMetab, otherMetab]
-      childVision  <- lift $ lift $ lift $ randomElemM [myVision, otherVision]
-      childCultTag <- lift $ lift $ lift $ crossOverCulture myCultTag otherCultureTag
+      childMetab   <- randLift $ randomElemM [myMetab, otherMetab]
+      childVision  <- randLift $ randomElemM [myVision, otherVision]
+      childCultTag <- randLift $ crossOverCulture myCultTag otherCultureTag
 
       let updateChildState s = s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare + (mySpiLvl / 2) + otherSpiShare
                                  , sugAgSugarMetab = childMetab
@@ -134,10 +134,10 @@ matingHandler params myId amsf0 cont0 ns freeSites =
                                  , sugAgCultureTag = childCultTag
                                  , sugAgTribe      = tagToTribe childCultTag }
 
-      childId                 <- lift nextAgentId
-      (childCoord, childSite) <- lift $ lift $ lift $ randomElemM freeSites
+      childId                 <- absStateLift nextAgentId
+      (childCoord, childSite) <- randLift $ randomElemM freeSites
       -- update new-born state with its genes and initial endowment
-      (childDef, childState) <- lift $ lift $ lift $ randomAgent params (childId, childCoord) amsf updateChildState
+      (childDef, childState) <- randLift $ randomAgent params (childId, childCoord) amsf updateChildState
 
       -- subtract 50% wealth, each parent provides 50% of its wealth to the child
       updateAgentState (\s -> s { sugAgSugarLevel = mySugLvl / 2
@@ -149,7 +149,7 @@ matingHandler params myId amsf0 cont0 ns freeSites =
       -- child occupies the site immediately to prevent others from occupying it
       let occ        = occupier childId childState
           childSite' = childSite { sugEnvSiteOccupier = Just occ }
-      lift $ lift $ changeCellAtM childCoord childSite' 
+      envLift $ changeCellAtM childCoord childSite' 
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event

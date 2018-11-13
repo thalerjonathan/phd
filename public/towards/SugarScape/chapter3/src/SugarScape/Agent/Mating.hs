@@ -198,8 +198,12 @@ isAgentFertileWealth :: MonadState SugAgentState m
                      => m Bool
 isAgentFertileWealth = do
   sugLvl     <- agentProperty sugAgSugarLevel
+  spiLvl     <- agentProperty sugAgSpiceLevel
+
   initSugLvl <- agentProperty sugAgInitSugEndow
-  return $ sugLvl >= initSugLvl
+  initSpiLvl <- agentProperty sugAgInitSpiEndow
+  
+  return $ sugLvl >= initSugLvl && spiLvl >= initSpiLvl
 
 handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
                     => AgentId
@@ -211,15 +215,15 @@ handleMatingRequest _myId sender otherGender = do
   ao     <- agentObservableM
 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
-  acc <- if accept
-      then do
+  acc <- if not accept
+      then return Nothing
+      else do
         sugLvl <- agentProperty sugAgSugarLevel
         spiLvl <- agentProperty sugAgSpiceLevel
         metab  <- agentProperty sugAgSugarMetab
         vision <- agentProperty sugAgVision
         culTag <- agentProperty sugAgCultureTag
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag)
-      else return Nothing
 
   return $ sendEventTo sender (MatingReply acc) ao
 

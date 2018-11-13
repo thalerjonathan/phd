@@ -79,7 +79,7 @@ tradeWith myId globalHdl tradeInfos tradeOccured (trader : ts) = do -- trade wit
   let myMrsBefore     = mrsState myState     -- agents mrs BEFORE trade
       traderMrsBefore = sugEnvOccMRS trader  -- trade-partners MRS BEFORE trade
       
-      (sugEx, spiEx) = computeExchange myMrsBefore traderMrsBefore   -- amount of sugar / spice to trade
+      (price, sugEx, spiEx) = computeExchange myMrsBefore traderMrsBefore   -- amount of sugar / spice to trade
       
       myWfBefore = agentWelfareState myState                    -- agents welfare BEFORE trade
       myWfAfter  = agentWelfareChangeState myState sugEx spiEx  -- agents welfare AFTER trade
@@ -103,7 +103,7 @@ tradeWith myId globalHdl tradeInfos tradeOccured (trader : ts) = do -- trade wit
                     ", a trade with " ++ show (sugEnvOccId trader) ++
                     " NOT better off, continue with next trader...") tradeWith myId globalHdl tradeInfos tradeOccured ts -- not better off, continue with next trader
     else do
-      let evtHandler = tradingHandler myId globalHdl tradeInfos tradeOccured ts (sugEx, spiEx) 
+      let evtHandler = tradingHandler myId globalHdl tradeInfos tradeOccured ts (price, sugEx, spiEx) 
       ao <- agentObservableM
       DBG.trace ("Agent " ++ show myId ++ 
                 ": myMrsBefore = " ++ show myMrsBefore ++ 
@@ -120,9 +120,9 @@ tradingHandler :: RandomGen g
                -> [TradeInfo]
                -> Bool
                -> [SugEnvSiteOccupier]
-               -> (Double, Double)
+               -> (Double, Double, Double)
                -> EventHandler g
-tradingHandler myId globalHdl0 tradeInfos tradeOccured traders (sugEx, spiEx) = 
+tradingHandler myId globalHdl0 tradeInfos tradeOccured traders (price, sugEx, spiEx) = 
     continueWithAfter
       (proc evt -> 
         case evt of
@@ -140,8 +140,7 @@ tradingHandler myId globalHdl0 tradeInfos tradeOccured traders (sugEx, spiEx) =
       tradeWith myId globalHdl tradeInfos tradeOccured traders
     handleTradingReply globalHdl traderId Accept = do -- the sender accepts the trading-offer
       -- NOTE: at this point the trade-partner agent is better off as well, MRS won't cross over and the other agent has already transacted
-      let price       = if abs sugEx == 1 then spiEx else sugEx
-          tradeInfos' = TradeInfo price traderId : tradeInfos
+      let tradeInfos' = TradeInfo price sugEx spiEx traderId : tradeInfos
 
       transactTradeWealth myId sugEx spiEx
 
@@ -157,9 +156,9 @@ handleTradingOffer :: RandomGen g
 handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
   myState <- get
 
-  let myMrsBefore    = mrsState myState -- agents mrs BEFORE trade
-
-      (sugEx, spiEx) = computeExchange myMrsBefore traderMrsBefore   -- amount of sugar / spice to trade
+  let myMrsBefore  = mrsState myState -- agents mrs BEFORE trade
+      -- amount of sugar / spice to trade
+      (_, sugEx, spiEx) = computeExchange myMrsBefore traderMrsBefore   
       
       myWfBefore     = agentWelfareState myState                    -- agents welfare BEFORE trade
       myWfAfter      = agentWelfareChangeState myState sugEx spiEx  -- agents welfare AFTER trade
@@ -212,19 +211,19 @@ mrsCrossover mrs1Pre mrs2Pre mrs1Post mrs2Post
 
 computeExchange :: Double
                 -> Double
-                -> (Double, Double)
+                -> (Double, Double, Double)
 computeExchange myMrs otherMrs 
-    | myMrs > otherMrs = (sugEx, -spiEx) -- spice flows from agent with higher mrs (myMrs) to agent with lower (otherMrs) => subtract spice from this agent and add sugar 
-    | otherwise        = (-sugEx, spiEx) -- sugar flows from agent with lower mrs (myMrs) to agent with higher (otherMrs) => subtract sugar for this agent and add spice
+    | myMrs > otherMrs = (price, sugEx, -spiEx) -- spice flows from agent with higher mrs (myMrs) to agent with lower (otherMrs) => subtract spice from this agent and add sugar 
+    | otherwise        = (price, -sugEx, spiEx) -- sugar flows from agent with lower mrs (myMrs) to agent with higher (otherMrs) => subtract sugar for this agent and add spice
   where
-    (sugEx, spiEx) = exchangeRates myMrs otherMrs
+    (price, sugEx, spiEx) = exchangeRates myMrs otherMrs
 
 exchangeRates :: Double
               -> Double
-              -> (Double, Double)
+              -> (Double, Double, Double)
 exchangeRates myMrs otherMrs 
-    | price > 1 = (1, price)     -- trading p units of spice for 1 unit of sugar
-    | otherwise = (1 / price, 1) -- trading 1/p units of sugar for 1 unit of spice
+    | price > 1 = (price, 1, price)     -- trading p units of spice for 1 unit of sugar
+    | otherwise = (price, 1 / price, 1) -- trading 1/p units of sugar for 1 unit of spice
   where
     price = sqrt (myMrs * otherMrs) -- price is the geometric mean
 

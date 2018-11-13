@@ -79,7 +79,7 @@ import SugarScape.Discrete
 data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
 data AgentTribe  = Blue | Red deriving (Show, Eq)
-data TradeInfo   = TradeInfo Double AgentId deriving (Show, Eq) -- price, trade-partner
+data TradeInfo   = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -99,6 +99,7 @@ data SugAgentState = SugAgentState
   
   -- Chapter IV properties
   , sugAgSpiceLevel   :: !Double            -- floating point because regrow-rate can be set to floating point values
+  , sugAgInitSpiEndow :: !Double
   , sugAgSpiceMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
   } deriving (Show, Eq)
 
@@ -490,7 +491,7 @@ mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
 -- see page 108
 mkParamsFigureIV_3 :: SugarScapeParams
 mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
-    sgAgentCount           = 200     -- 200 only !
+    sgAgentCount           = 400     -- 200 only !
   , spSugarMetabolismRange = (1, 5)  -- 1-5 !
   , spSpiceMetabolismRange = (1, 5)  -- 1-5 !
 

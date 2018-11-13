@@ -5,14 +5,10 @@ for t = 1 : length( dynamics )
   ws = [];
   
   for ai = 2 : length (dynamics{t})
-    %a = dynamics{t}{ai};
-    %agentId = dynamics{t}{ai}(1);
-    %agentAge = dynamics{t}{ai}(2);
-    agentSug = dynamics{t}{ai}(3);
-    %agentMet = dynamics{t}{ai}(4);
-    %agentVis = dynamics{t}{ai}(5);
+    sug = dynamics{t}{ai}(3){1};
+    spi = dynamics{t}{ai}(4){1};
     
-    ws(end+1,:) = agentSug;
+    ws(end+1,:) = sug + spi;
   endfor
   
   wealth{t} = ws;
@@ -24,4 +20,6 @@ graphics_toolkit("gnuplot");
 skewness (wealth{length(wealth)})
 kurtosis (wealth{length(wealth)})
 
+figure;
 hist(wealth{length(wealth)});
+title('Wealth Distribution (Sugar + Spice)');

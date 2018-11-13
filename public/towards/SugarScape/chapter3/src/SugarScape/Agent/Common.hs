@@ -307,7 +307,7 @@ randomAgent params (agentId, coord) asf f = do
   let initSugar = fromIntegral randSugarEndowment
       initSpice = fromIntegral randSpiceEndowment
 
-      s = SugAgentState {
+  let s = SugAgentState {
     sugAgCoord        = coord
   , sugAgSugarMetab   = randSugarMetab
   , sugAgVision       = randVision
@@ -321,6 +321,7 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgCultureTag   = randCultureTag
   , sugAgTribe        = tagToTribe randCultureTag
   , sugAgSpiceLevel   = initSpice
+  , sugAgInitSpiEndow = initSpice
   , sugAgSpiceMetab   = randSpiceMetab
   }
 

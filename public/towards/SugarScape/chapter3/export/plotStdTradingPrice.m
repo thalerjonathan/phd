@@ -1,4 +1,4 @@
-meanPrice = [];
+stdPrice = [];
 tMax = length(dynamics);
 
 for t = 1 : tMax
@@ -26,9 +26,9 @@ for t = 1 : tMax
   endfor
  
   if length(avgPrices) == 0
-    meanPrice(end+1,:) = nan; % no trades amongst agents, add nan for this time-step
+    stdPrice(end+1,:) = nan; % no trades amongst agents, add nan for this time-step
   else
-    meanPrice(end+1,:) = mean(avgPrices);
+    stdPrice(end+1,:) = std(avgPrices);
   endif
 endfor 
 
@@ -37,15 +37,15 @@ graphics_toolkit("gnuplot");
 
 breaks = ceil(sqrt(tMax))
 x = [1 : tMax];
-meanTrend = splinefit(x, meanPrice, breaks, "order", 2);
-meanTrendY = ppval(meanTrend, x);
+stdTrend = splinefit(x, stdPrice, breaks, "order", 2);
+stdTrendY = ppval(stdTrend, x);
 
 figure;
-scatter(x, meanPrice, 'filled');
+scatter(x, stdPrice, 'filled');
 hold on;
-plot(meanTrendY, "linewidth", 2, "color", 'red');
-title ('Average Trading Prices');
+plot(stdTrendY, "linewidth", 2, "color", 'red');
+title ('Standard Deviation Trading Prices');
 xlabel('Time');
-ylabel('Average');
+ylabel('Std');
 legend('Prices', 'Trend');
 grid on;

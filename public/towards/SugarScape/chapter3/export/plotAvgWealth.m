@@ -1,28 +1,31 @@
-meanWealth = [];
+meanSugWealth = [];
+meanSpiWealth = [];
 
 for t = 1 : length( dynamics ) 
-  time = dynamics{t}{1};
-  mw = [];
+  msug = [];
+  mspi = [];
   
   for ai = 2 : length (dynamics{t})
-    %a = dynamics{t}{ai};
-    %agentId = dynamics{t}{ai}(1);
-    %agentAge = dynamics{t}{ai}(2);
-    agentSug = dynamics{t}{ai}(3);
-    %agentMet = dynamics{t}{ai}(4);
-    %agentVis = dynamics{t}{ai}(5);
+    sug = dynamics{t}{ai}(3){1};
+    spi = dynamics{t}{ai}(4){1};
     
-    mw(end+1,:) = agentSug;
+    msug(end+1,:) = sug;
+    mspi(end+1,:) = spi;
   endfor
   
-  meanWealth(end+1,:) = mean (mw);
+  meanSugWealth(end+1,:) = mean(msug);
+  meanSpiWealth(end+1,:) = mean(mspi);
 endfor 
 
 % needed for octave on Fedora, otherwise only black output
 graphics_toolkit("gnuplot");
 
-plot(meanWealth);
-title ('Average Wealth');
-xlabel ('Time');
-ylabel ('Average');
-% octave seems to give the lines in the legend different colors... makes it f*** useless
+figure;
+plot(meanSugWealth, "linewidth", 2, "color", 'green');
+hold on;
+plot(meanSpiWealth, "linewidth", 2, "color", 'blue');
+title('Average Wealth');
+xlabel('Time');
+ylabel('Average');
+legend('Sugar', 'Spice');
+grid on;

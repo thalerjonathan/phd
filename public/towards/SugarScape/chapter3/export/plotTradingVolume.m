@@ -1,25 +1,47 @@
-tradingVolume = [];
+tradingVolumeSugar = [];
+tradingVolumeSpice = [];
 tMax = length(dynamics);
 
 for t = 1 : tMax
   time = dynamics{t}{1};
-  tv = 0;
+  tvSug = 0;
+  tvSpi = 0;
   
   for ai = 2 : length (dynamics{t})
-    a = dynamics{t}{ai};
-    agentTrades = dynamics{t}{ai}(8){1};
+    agentTradeInfo = dynamics{t}{ai}(9){1};
     
-    tv = tv + length (agentTrades);
+    tradeInfoSize = size(agentTradeInfo, 2);
+    % a trade has 3 elements: price, sugar and spice exchanged => tradeInfoSize
+    % must always come in multiples of 3
+    trades = tradeInfoSize / 3;
+    
+    if trades > 0 
+      for i = 1 : 3 : tradeInfoSize
+        sug = agentTradeInfo(i+1);
+        spi = agentTradeInfo(i+2);
+ 
+        % note: must take absolute values because its always from the agents
+        % perspective, so can be negative to indicate 'selling' of sugar / spice
+ 
+        tvSug = tvSug + abs(sug); 
+        tvSpi = tvSpi + abs(spi);
+      endfor
+    endif
   endfor
   
-  tradingVolume(end+1,:) = tv;
+  tradingVolumeSugar(end+1,:) = tvSug;
+  tradingVolumeSpice(end+1,:) = tvSpi;
 endfor 
 
 % needed for octave on Fedora, otherwise only black output
 graphics_toolkit("gnuplot");
 
-plot(tradingVolume);
-
-title ('Trading Volume');
-xlabel ('Time');
-ylabel ('Volume');
+figure;
+plot(tradingVolumeSugar);
+hold on;
+plot(tradingVolumeSpice);
+title('Trading Volume');
+xlabel('Time');
+ylabel('Volume');
+legend('Sugar', 'Spice');
+grid on;

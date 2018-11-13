@@ -40,6 +40,7 @@ writeSimulationUntil fileName tMax ss0 = do
             = hPutStrLn fileHdl ("[" ++ show aid ++ ", " ++ 
                                  show age ++ ", " ++
                                  show sug ++ ", " ++
+                                 show spi ++ ", " ++ 
                                  show met ++ ", " ++ 
                                  show vis ++ ", " ++
                                  show gen ++ ", {" ++
@@ -49,6 +50,7 @@ writeSimulationUntil fileName tMax ss0 = do
             vis = sugObsVision ao
             age = sugObsAge ao
             sug = sugObsSugLvl ao
+            spi = sugObsSpiLvl ao
             met = sugObsSugMetab ao
             gen = case sugObsGender ao of
                     Male   -> 0 :: Int
@@ -57,4 +59,4 @@ writeSimulationUntil fileName tMax ss0 = do
             trades = "{[" ++ concatMap tradeInfoToString (sugObsTrades ao) ++ "]}"
     
     tradeInfoToString :: TradeInfo -> String
-    tradeInfoToString (TradeInfo price _) = show price ++ ", "
+    tradeInfoToString (TradeInfo price sugar spice _) = show price ++ ", " ++ show sugar ++ ", " ++ show spice ++ ","

@@ -11,7 +11,8 @@ import SugarScape.Simulation
 
 data Output = Pure Time 
             | Export Time
-            | Visual Int AgentVis SiteVis deriving (Eq, Show)
+            | Visual Int AgentVis SiteVis
+            deriving (Eq, Show)
 
 main :: IO ()
 main = do
@@ -19,7 +20,7 @@ main = do
 
   let sugParams = mkParamsFigureIV_3
       output    = Export 1000 -- Export 1000 -- Visual 0 Default Resource
-      rngSeed   = Just 42                   -- Nothing -- Just 42
+      rngSeed   = Just 42                    -- Nothing -- Just 42
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams
 

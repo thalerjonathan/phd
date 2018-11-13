@@ -45,9 +45,6 @@ module SugarScape.Model
   , mkParamsAnimationII_6
   , mkParamsAnimationII_7
   , mkParamsAnimationII_8
-  , mkParamsTerracing
-  , mkParamsCarryingCapacity
-  , mkParamsWealthDistr
 
   , mkParamsAnimationIII_1
   , mkParamsFigureIII_3
@@ -271,7 +268,9 @@ data PolutionFormation = NoPolution
                        deriving (Show, Eq)
 
 data SugarScapeParams = SugarScapeParams 
-  { sgAgentCount           :: Int
+  { sgParamsName           :: String
+
+  , sgAgentCount           :: Int
   , sgAgentDistribution    :: AgentDistribution
   , spSugarRegrow          :: Regrow 
   , spSugarEndowmentRange  :: (Int, Int)
@@ -285,10 +284,10 @@ data SugarScapeParams = SugarScapeParams
   -- Chapter III params
   , spSexRuleActive        :: Bool
   , spGenderRatio          :: Double        -- percentage of female agents in population
-  , spFertStartRangeWoman  :: (Int, Int)
-  , spFertStartRangeMen    :: (Int, Int)
-  , spFertEndRangeWoman    :: (Int, Int)
-  , spFertEndRangeMen      :: (Int, Int)
+  , spFertStartRangeFemale :: (Int, Int)
+  , spFertStartRangeMale   :: (Int, Int)
+  , spFertEndRangeFemale   :: (Int, Int)
+  , spFertEndRangeMale     :: (Int, Int)
   
   , spInheritance          :: Bool           -- inheritance rule I on / off
   
@@ -303,11 +302,47 @@ data SugarScapeParams = SugarScapeParams
   , spSpiceMetabolismRange :: (Int, Int)
 
   , spTradingEnabled       :: Bool            -- trading rule T on / off
-  }
+  } 
+
+instance Show SugarScapeParams where
+  show params = 
+    sgParamsName params ++
+
+    "\n\nAgent count: \t\t\t" ++ show (sgAgentCount params) ++ 
+    "\nAgent distribution: \t\t" ++ show (sgAgentDistribution params) ++
+
+    "\n\nVision range: \t\t\t" ++ show (spVisionRange params) ++
+    "\nAge age range: \t\t\t" ++ show (spAgeSpan params) ++
+
+    "\n\nSugar regrow: \t\t\t" ++ show (spSugarRegrow params) ++ 
+    "\nSugar endowment range: \t\t" ++ show (spSugarEndowmentRange params) ++
+    "\nSugar metabolism range: \t" ++ show (spSugarMetabolismRange params) ++
+
+    "\n\nSpice enabled: \t\t\t" ++ show (spSpiceEnabled params) ++
+    "\nSpice regrow: \t\t\t" ++ show (spSpiceRegrow params) ++
+    "\nSpice endowment range: \t\t" ++ show (spSpiceEndowmentRange params) ++
+    "\nSpice metabolism range: \t" ++ show (spSpiceMetabolismRange params) ++
+
+    "\n\nPolution formation: \t\t" ++ show (spPolutionFormation params) ++
+    "\nPolution diffusion: \t\t" ++ show (spPolutionDiffusion params) ++
+
+    "\n\nFemale gender ratio: \t\t" ++ show (spGenderRatio params) ++
+    "\nFertility start-range female: \t" ++ show (spFertStartRangeFemale params) ++
+    "\nFertility start-range male: \t" ++ show (spFertStartRangeMale params) ++
+    "\nFertility end-range female: \t" ++ show (spFertEndRangeFemale params) ++
+    "\nFertility send-range male: \t" ++ show (spFertEndRangeMale params) ++
+
+    "\n\nR rule active (replace): \t" ++ show (spReplaceAgents params) ++
+    "\nS rule active (mating): \t" ++ show (spSexRuleActive params) ++
+    "\nI rule active (inheritance): \t" ++ show (spInheritance params) ++
+    "\nK rule active (culture): \t" ++ show (spCulturalProcess params) ++
+    "\nC rule active (combat): \t" ++ show (spCombat params) ++
+    "\nT rule active (trading): \t" ++ show (spTradingEnabled params)
 
 mkSugarScapeParams :: SugarScapeParams
 mkSugarScapeParams = SugarScapeParams {
-    sgAgentCount           = 0
+    sgParamsName           = "Default"
+  , sgAgentCount           = 0
   , spSugarRegrow          = Immediate
   , sgAgentDistribution    = Scatter
   , spSugarEndowmentRange  = (0, 0)
@@ -319,10 +354,10 @@ mkSugarScapeParams = SugarScapeParams {
   , spPolutionDiffusion    = Nothing
   , spSexRuleActive        = False
   , spGenderRatio          = 0
-  , spFertStartRangeWoman  = (0, 0)
-  , spFertStartRangeMen    = (0, 0)
-  , spFertEndRangeWoman    = (0, 0)
-  , spFertEndRangeMen      = (0, 0)
+  , spFertStartRangeFemale = (0, 0)
+  , spFertStartRangeMale   = (0, 0)
+  , spFertEndRangeFemale   = (0, 0)
+  , spFertEndRangeMale     = (0, 0)
   , spInheritance          = False
   , spCulturalProcess      = Nothing
   , spCombat               = Nothing
@@ -339,7 +374,8 @@ mkSugarScapeParams = SugarScapeParams {
 -- Social Evolution with immediate regrow, page 27
 mkParamsAnimationII_1 :: SugarScapeParams 
 mkParamsAnimationII_1 = mkSugarScapeParams {
-    sgAgentCount           = 400     -- page 28
+    sgParamsName           = "Animation II-1"
+  , sgAgentCount           = 400     -- page 28
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Immediate -- regrow to max immediately
   , spSugarEndowmentRange  = (5, 25) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
@@ -348,41 +384,38 @@ mkParamsAnimationII_1 = mkSugarScapeParams {
   , spReplaceAgents        = False   -- no replacing of died agents
   , spAgeSpan              = Forever  -- agents dont die of age in this case
   }
--- terracing phenomenon as described on page 28
-mkParamsTerracing :: SugarScapeParams 
-mkParamsTerracing = mkParamsAnimationII_1
 
 -- Social Evolution with regrow rate of 1, page 29
 mkParamsAnimationII_2 :: SugarScapeParams
 mkParamsAnimationII_2 = mkParamsAnimationII_1 {
-    spSugarRegrow = Rate 1       -- regrow by 1 unit per step
+    sgParamsName  = "Animation II-2"
+  , spSugarRegrow = Rate 1       -- regrow by 1 unit per step
   }
--- carrying capacity property as described on page 30
-mkParamsCarryingCapacity :: SugarScapeParams
-mkParamsCarryingCapacity = mkParamsAnimationII_2
 
 -- Wealth Distribution page 34
 mkParamsAnimationII_3 :: SugarScapeParams
 mkParamsAnimationII_3 = mkParamsAnimationII_2 {
-    sgAgentCount    = 250           -- page 33
+    sgParamsName    = "Animation II-3"
+  , sgAgentCount    = 250           -- page 33
   , spReplaceAgents = True          -- page 33
   , spAgeSpan       = Range 60 100  -- page 33
   }
 -- wealth distribution as described on page 32-37
 mkParamsAnimationII_4 :: SugarScapeParams
-mkParamsAnimationII_4 = mkParamsAnimationII_3 -- same as G_1, M, R_60,100 => same as Animiation II-3
-
+mkParamsAnimationII_4 = mkParamsAnimationII_3 {
+    sgParamsName = "Animation II-4" -- same as G_1, M, R_60,100 => same as Animiation II-3
+  }
+   
 mkParamsAnimationII_5 :: SugarScapeParams
-mkParamsAnimationII_5 = mkParamsAnimationII_4
-
--- wealth distribution as described on page 32-37
-mkParamsWealthDistr :: SugarScapeParams
-mkParamsWealthDistr = mkParamsAnimationII_3 -- same as G_1, M, R_60,100 => same as Animiation II-3
+mkParamsAnimationII_5 = mkParamsAnimationII_4 {
+    sgParamsName = "Animation II-5" -- same as Animiation II-4
+  }
 
 -- Migration as described on page 42 and 43 in Animation II-6
 mkParamsAnimationII_6 :: SugarScapeParams
 mkParamsAnimationII_6 = mkParamsAnimationII_2 {
-    sgAgentCount        = 300              -- 300 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
+    sgParamsName        = "Animation II-6"
+  , sgAgentCount        = 300              -- 300 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
   , sgAgentDistribution = Corner (20, 20)
   , spSugarRegrow       = Rate 0.5              -- 0.5 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
   , spVisionRange       = (1, 10)          -- increase vision to 10, see page 42, we suggest to to 15 to make the waves really prominent
@@ -391,13 +424,15 @@ mkParamsAnimationII_6 = mkParamsAnimationII_2 {
 -- Seasonal Migration as described on page 44 and 45 in Animation II-7
 mkParamsAnimationII_7 :: SugarScapeParams
 mkParamsAnimationII_7 = mkParamsAnimationII_1 {
-    spSugarRegrow  = Season 1 8 50 
+    sgParamsName  = "Animation II-7"
+  , spSugarRegrow = Season 1 8 50 
   }
 
 -- Polution as described on page 45 to 50 in Animation II-8
 mkParamsAnimationII_8 :: SugarScapeParams
 mkParamsAnimationII_8 = mkParamsAnimationII_2 {
-    spPolutionFormation = Polute 1 1
+    sgParamsName        = "Animation II-8"
+  , spPolutionFormation = Polute 1 1
   , spPolutionDiffusion = Just 1
   }
 ------------------------------------------------------------------------------------------------------------------------
@@ -408,66 +443,81 @@ mkParamsAnimationII_8 = mkParamsAnimationII_2 {
 -- page 57
 mkParamsAnimationIII_1 :: SugarScapeParams
 mkParamsAnimationIII_1 = mkParamsAnimationII_2 {
-    spSugarEndowmentRange = (50, 100)
-  , spReplaceAgents       = False          -- agents are NOT replaced...
-  , spAgeSpan             = Range 60 100   -- ... but can die of age!
-  , spSexRuleActive       = True           -- agents reproduce
-  , spGenderRatio         = 0.5            -- equal ratio of gender
-  , spFertStartRangeWoman = (12, 15)
-  , spFertStartRangeMen   = (12, 15)
-  , spFertEndRangeWoman   = (40, 50)
-  , spFertEndRangeMen     = (50, 60)
+    sgParamsName           = "Animation III-1"
+  , spSugarEndowmentRange  = (50, 100)
+  , spReplaceAgents        = False          -- agents are NOT replaced...
+  , spAgeSpan              = Range 60 100   -- ... but can die of age!
+  , spSexRuleActive        = True           -- agents reproduce
+  , spGenderRatio          = 0.5            -- equal ratio of gender
+  , spFertStartRangeFemale = (12, 15)
+  , spFertStartRangeMale   = (12, 15)
+  , spFertEndRangeFemale   = (40, 50)
+  , spFertEndRangeMale     = (50, 60)
   }
 
 -- page 64, same as mkParamsAnimationIII_1 but with changed fertiliy ranges
 mkParamsFigureIII_3 :: SugarScapeParams
 mkParamsFigureIII_3 = mkParamsAnimationIII_1 {
-    spFertEndRangeWoman = (30, 40)
-  , spFertEndRangeMen   = (40, 50)
+    sgParamsName         = "Figure III-3"
+  , spFertEndRangeFemale = (30, 40)
+  , spFertEndRangeMale   = (40, 50)
   }
 
 -- page 65, same as mkParamsAnimationIII_1 but with changed intiial endowment (=> lower requirements for child-bearing wealth)
 mkParamsFigureIII_4 :: SugarScapeParams
 mkParamsFigureIII_4 = mkParamsAnimationIII_1 {
-    spSugarEndowmentRange = (10, 40)
+    sgParamsName          = "Figure III-4"
+  , spSugarEndowmentRange = (10, 40)
   }
 
 -- Page 67, includes the inheritance rule
 mkParamsFigureIII_7 :: SugarScapeParams
 mkParamsFigureIII_7 = mkParamsAnimationIII_1 {
-    spInheritance = True                          -- same as first animation but with inheritance on
+    sgParamsName  = "Figure III-7"
+  , spInheritance = True  -- same as Animation III-1 but with inheritance on
   }
 
 mkParamsAnimationIII_4 :: SugarScapeParams
-mkParamsAnimationIII_4 = mkParamsFigureIII_7
+mkParamsAnimationIII_4 = mkParamsFigureIII_7 {
+    sgParamsName = "Animation III-4"
+  }
 
 -- cultural process, page 73
 mkParamsAnimationIII_6 :: SugarScapeParams
 mkParamsAnimationIII_6 = mkParamsAnimationII_2 {
-    spCulturalProcess = Just 10
+    sgParamsName      = "Animation III-6"
+  , spCulturalProcess = Just 10
   }
 
 mkParamsAnimationIII_7 :: SugarScapeParams
-mkParamsAnimationIII_7 = mkParamsAnimationIII_6
+mkParamsAnimationIII_7 = mkParamsAnimationIII_6 {
+    sgParamsName = "Animation III-7"
+  }
 
 mkParamsFigureIII_8 :: SugarScapeParams
-mkParamsFigureIII_8 = mkParamsAnimationIII_6
+mkParamsFigureIII_8 = mkParamsAnimationIII_6 {
+    sgParamsName = "Animation III-8"
+  }
 
 -- combat, page 82
 mkParamsAnimationIII_9 :: SugarScapeParams
 mkParamsAnimationIII_9 = mkParamsAnimationII_2 {
-    sgAgentDistribution = CombatCorners
+    sgParamsName        = "Animation III-9"
+  , sgAgentDistribution = CombatCorners
   , spCombat            = Just (1 / 0)
   , spCulturalProcess   = Just 10 
   }
 
 mkParamsAnimationIII_10 :: SugarScapeParams
-mkParamsAnimationIII_10 = mkParamsAnimationIII_9
+mkParamsAnimationIII_10 = mkParamsAnimationIII_9 {
+    sgParamsName = "Animation III-10"
+  }
 
 -- reward equal to a fixed value page 86 / 87
 mkParamsAnimationIII_11 :: SugarScapeParams
 mkParamsAnimationIII_11 = mkParamsAnimationII_2 {
-    sgAgentDistribution = CombatCorners
+    sgParamsName        = "Animation III-11"
+  , sgAgentDistribution = CombatCorners
   , spCombat            = Just 2
   , spReplaceAgents     = True     
   , spAgeSpan           = Range 60 100 
@@ -475,7 +525,8 @@ mkParamsAnimationIII_11 = mkParamsAnimationII_2 {
 
 mkParamsAnimationIII_14 :: SugarScapeParams
 mkParamsAnimationIII_14 = mkParamsAnimationII_2 {
-    sgAgentDistribution = CombatCorners
+    sgParamsName        = "Animation III-14"
+  , sgAgentDistribution = CombatCorners
   , spCombat            = Just (1 / 0)
   , spCulturalProcess   = Just 10
   }
@@ -483,7 +534,8 @@ mkParamsAnimationIII_14 = mkParamsAnimationII_2 {
 -- proto-history page 92/93
 mkParamsAnimationIII_15 :: SugarScapeParams
 mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
-   spCulturalProcess = Just 10
+    sgParamsName      = "Animation III-15"
+  , spCulturalProcess = Just 10
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -492,7 +544,8 @@ mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
 -- see page 99
 mkParamsAnimationIV_1 :: SugarScapeParams
 mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
-    spVisionRange          = (1, 10) -- book says 1-10
+    sgParamsName           = "Animation IV-1"
+  , spVisionRange          = (1, 10) -- book says 1-10 !!
   
   , spSugarMetabolismRange = (1, 5)  -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
   , spSpiceMetabolismRange = (1, 5)   -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
@@ -505,7 +558,8 @@ mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
 -- see page 108
 mkParamsFigureIV_3 :: SugarScapeParams
 mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
-    sgAgentCount           = 200     -- 200 only !
+    sgParamsName           = "Figure IV-3"
+  , sgAgentCount           = 200     -- 200 only !
   , spVisionRange          = (1, 5)
 
   , spSugarMetabolismRange = (1, 5)  -- 1-5 !
@@ -518,17 +572,22 @@ mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
   }
 
 mkParamsFigureIV_4 :: SugarScapeParams
-mkParamsFigureIV_4 = mkParamsFigureIV_3
+mkParamsFigureIV_4 = mkParamsFigureIV_3 {
+    sgParamsName = "Figure IV-4"
+  }
 
 mkParamsFigureIV_5 :: SugarScapeParams
-mkParamsFigureIV_5 = mkParamsFigureIV_3
+mkParamsFigureIV_5 = mkParamsFigureIV_3 {
+    sgParamsName = "Figure IV-5"
+  }
 
 -- see page 111 and 112
 -- NOTE: we need to compare the carrying capacity with / without trade to one which has spice in it,
 -- otherwise this will be not really comparable
 mkCarryingCapacityWithSpice :: SugarScapeParams
 mkCarryingCapacityWithSpice = mkParamsAnimationII_2 {
-    spSpiceMetabolismRange = (1, 4)     -- add spice 
+    sgParamsName           = "Carrying Capacity With Spice"
+  , spSpiceMetabolismRange = (1, 4)     -- add spice 
   , spSpiceEndowmentRange  = (5, 25)    -- add spice
   , spSpiceEnabled         = True       -- enable spice
   , spSpiceRegrow          = Rate 1     -- enable regrow
@@ -536,19 +595,24 @@ mkCarryingCapacityWithSpice = mkParamsAnimationII_2 {
 
 mkParamsFigureIV_6 :: SugarScapeParams
 mkParamsFigureIV_6 = mkCarryingCapacityWithSpice {
-    spTradingEnabled = True       -- enable trading
+    sgParamsName     = "Figure IV-6"
+  , spTradingEnabled = True       -- enable trading
   }
 
 -- see page 117 and 118
 mkParamsFigureIV_7 :: SugarScapeParams
 mkParamsFigureIV_7 = mkParamsFigureIV_3 {
-    spVisionRange  = (1, 1)
+    sgParamsName  = "Figure IV-7"
+  , spVisionRange = (1, 1)
   }
 
 mkParamsFigureIV_8 :: SugarScapeParams
-mkParamsFigureIV_8 = mkParamsFigureIV_7
+mkParamsFigureIV_8 = mkParamsFigureIV_7 {
+    sgParamsName = "Figure IV-8"
+  }
 
 mkParamsFigureIV_9 :: SugarScapeParams
 mkParamsFigureIV_9 = mkParamsFigureIV_3 {
-    spVisionRange  = (1, 15)
+    sgParamsName  = "Figure IV-9"
+  , spVisionRange = (1, 15)
   }

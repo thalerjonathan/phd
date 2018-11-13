@@ -154,7 +154,7 @@ handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
         then do -- MRS cross-over, turn offer down
           ao <- agentObservableM
           return (sendEventTo traderId (TradingReply $ Refuse MRSCrossover) ao)
-        else do  
+        else do
           -- all good, transact and accept offer
           transactTradeWealth myId sugEx spiEx
 

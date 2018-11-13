@@ -14,16 +14,19 @@ data Output = Pure Time
             | Visual Int AgentVis SiteVis
             deriving (Eq, Show)
 
--- TODO: test carrying capacity with / without TRADE again (bad configuration)
 -- TODO: implement optargs
 
 main :: IO ()
 main = do
-  hSetBuffering stdout LineBuffering
+  hSetBuffering stdout NoBuffering
 
   let sugParams = mkParamsFigureIV_9 
-      output    = Export 1000          -- Export 1000 -- Visual 0 Default Resource
-      rngSeed   = Just 42              -- Nothing -- Just 42
+      output    = Export 1000            -- Export 1000 -- Visual 0 Default Resource
+      rngSeed   = Nothing :: (Maybe Int) -- Nothing :: (Maybe Int) -- Just 42
+
+  putStrLn $ "Running Sugarscape with... \n--------------------------------------------------\n" ++ show sugParams ++ "\n--------------------------------------------------"
+  putStrLn $ "Output Type: \t\t\t" ++ show output 
+  putStrLn $ "RNG Seed: \t\t\t" ++ show rngSeed  ++ "\n--------------------------------------------------"
 
   (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams
 
@@ -31,3 +34,5 @@ main = do
     Pure   steps     -> print $ simulateUntil steps initSimState
     Export steps     -> writeSimulationUntil "export/dynamics.m" steps initSimState
     Visual sps av cv -> runGloss initSimState (0, 0, initEnv, []) sps av cv
+
+  putStrLn "\n--------------------------------------------------\n"

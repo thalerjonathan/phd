@@ -389,12 +389,12 @@ randomFertilityRange :: RandomGen g
                      -> AgentGender
                      -> Rand g (Int, Int)
 randomFertilityRange params Male = do
-  from <- getRandomR $ spFertStartRangeMen params
-  to   <- getRandomR $ spFertEndRangeMen params
+  from <- getRandomR $ spFertStartRangeMale params
+  to   <- getRandomR $ spFertEndRangeMale params
   return (from, to)
 randomFertilityRange params Female = do
-  from <- getRandomR $ spFertStartRangeWoman params
-  to   <- getRandomR $ spFertEndRangeWoman params
+  from <- getRandomR $ spFertStartRangeFemale params
+  to   <- getRandomR $ spFertEndRangeFemale params
   return (from, to)
 
 randomAgentAge :: RandomGen g

@@ -4,6 +4,7 @@ module SugarScape.ExportRunner
 
 import System.IO
 import System.Random
+import Text.Printf
 
 import SugarScape.Common
 import SugarScape.Model
@@ -26,8 +27,18 @@ writeSimulationUntil fileName tMax ss0 = do
                             -> Handle
                             -> IO ()
     writeSimulationUntilAux ss fileHdl 
-        | t >= tMax = return ()
+        | t > tMax = return ()
         | otherwise = do
+          let progRatio  = (fromIntegral t / fromIntegral tMax) :: Double
+              percentage = 100 * progRatio
+              
+              maxBar     = 40 :: Int
+              barElems   = floor (progRatio * fromIntegral maxBar)
+              barSpace   = maxBar - barElems
+              progBar    = "|" ++ replicate barElems '=' ++ replicate barSpace ' ' ++ "|"
+           
+          putStr $ "\r" ++ progBar ++ printf " %.2f" percentage ++ "%"
+
           hPutStrLn fileHdl ("{ " ++ show t ++ ",")
           mapM_ writeAgentObservable aobs
           hPutStrLn fileHdl "}"

@@ -6,15 +6,15 @@ for t = 1 : length(dynamics)
   ms = [];
   
   for ai = 2 : length(dynamics{t})
-    agentMet = dynamics{t}{ai}(5){1};
-    agentVis = dynamics{t}{ai}(6){1};
-    
+    agentVis = dynamics{t}{ai}(5){1};
+    agentMet = dynamics{t}{ai}(6){1};
+
     vs(end+1,:) = agentVis;
     ms(end+1,:) = agentMet;
   endfor
   
-  meanVision(end+1,:) = mean (vs);
-  meanMetab(end+1,:) = mean (ms);
+  meanVision(end+1,:) = mean(vs);
+  meanMetab(end+1,:) = mean(ms);
 endfor 
 
 % needed for octave on Fedora, otherwise only black output
@@ -27,5 +27,5 @@ plot(meanMetab, "linewidth", 2, "color", 'blue');
 title ('Average Mean and Vision');
 xlabel('Time');
 ylabel('Average');
-legend('Mean', 'Vision');
+legend('Metabolism', 'Vision');
 grid on;

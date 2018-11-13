@@ -18,8 +18,6 @@ import SugarScape.Discrete
 import SugarScape.Model
 import SugarScape.Random
 
-import Debug.Trace as DBG
-
 agentTrade :: RandomGen g
            => SugarScapeParams               -- parameters of the current sugarscape scenario
            -> AgentId                        -- the id of the agent 
@@ -55,7 +53,7 @@ tradingRound myId globalHdl tradeInfos = do
       return (ao, Just globalHdl)
     else do
       potentialTraders' <- lift $ lift $ lift $ fisherYatesShuffleM potentialTraders
-      DBG.trace ("\n\nAgent " ++ show myId ++ ": starts trading round with " ++ show potentialTraders') tradeWith myId globalHdl tradeInfos False potentialTraders'
+      tradeWith myId globalHdl tradeInfos False potentialTraders'
 
 tradeWith :: RandomGen g
           => AgentId
@@ -65,13 +63,11 @@ tradeWith :: RandomGen g
           -> [SugEnvSiteOccupier]
           -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 tradeWith myId globalHdl tradeInfos tradeOccured []       -- iterated through all potential traders => trading round has finished
-  | tradeOccured = DBG.trace ("Agent " ++ show myId ++ ": trading round finished, trade occured, try another trading round...") 
-                    tradingRound myId globalHdl tradeInfos -- if we have traded with at least one agent, try another round
+  | tradeOccured = tradingRound myId globalHdl tradeInfos -- if we have traded with at least one agent, try another round
   | otherwise    = do
     ao <- fmap (observableTrades tradeInfos) agentObservableM
-    -- NOTE: at this point we need to add the trades to the observable output
-    DBG.trace ("Agent " ++ show myId ++ ": trading round finished, no more trade occured, finished with trading in this step, tradings total in this timestep: " ++ show tradeInfos) 
-      return (ao, Just globalHdl) -- no trading has occured, quit trading and switch back to globalHandler
+    -- NOTE: at this point we add the trades to the observable output because finished with trading in this time-step
+    return (ao, Just globalHdl) -- no trading has occured, quit trading and switch back to globalHandler
 
 tradeWith myId globalHdl tradeInfos tradeOccured (trader : ts) = do -- trade with next one
   myState <- get
@@ -93,26 +89,11 @@ tradeWith myId globalHdl tradeInfos tradeOccured (trader : ts) = do -- trade wit
 
   -- NOTE: check if it makes this agent better off: does it increase the agents welfare?
   if myWfAfter <= myWfBefore
-    then DBG.trace ("Agent " ++ show myId ++ 
-                    ": myMrsBefore = " ++ show myMrsBefore ++ 
-                    ", traderMrsBefore = " ++ show traderMrsBefore ++
-                    ", (sugEx, spiEx) = " ++ show (sugEx, spiEx) ++
-                    ", myWfBefore = " ++ show myWfBefore ++
-                    ", myWfAfter = " ++ show myWfAfter ++
-                    ", myMrsAfter = " ++ show myMrsAfter ++
-                    ", a trade with " ++ show (sugEnvOccId trader) ++
-                    " NOT better off, continue with next trader...") tradeWith myId globalHdl tradeInfos tradeOccured ts -- not better off, continue with next trader
+    then tradeWith myId globalHdl tradeInfos tradeOccured ts -- not better off, continue with next trader
     else do
       let evtHandler = tradingHandler myId globalHdl tradeInfos tradeOccured ts (price, sugEx, spiEx) 
       ao <- agentObservableM
-      DBG.trace ("Agent " ++ show myId ++ 
-                ": myMrsBefore = " ++ show myMrsBefore ++ 
-                ", traderMrsBefore = " ++ show traderMrsBefore ++
-                ", (sugEx, spiEx) = " ++ show (sugEx, spiEx) ++
-                ", myWfBefore = " ++ show myWfBefore ++
-                ", myWfAfter = " ++ show myWfAfter ++
-                ", myMrsAfter = " ++ show myMrsAfter ++
-                ", TRADES with " ++ show (sugEnvOccId trader)) return (sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter) ao, Just evtHandler)
+      return (sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter) ao, Just evtHandler)
 
 tradingHandler :: RandomGen g
                => AgentId
@@ -167,39 +148,18 @@ handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
   if myWfAfter <= myWfBefore
     then do -- not better off, turn offer down
       ao <- agentObservableM
-      DBG.trace ("Agent " ++ show myId ++ 
-                ": myMrsBefore = " ++ show myMrsBefore ++ 
-                ", traderMrsBefore = " ++ show traderMrsBefore ++
-                ", (sugEx, spiEx) = " ++ show (sugEx, spiEx) ++
-                ", myWfBefore = " ++ show myWfBefore ++
-                ", myWfAfter = " ++ show myWfAfter ++
-                ", myMrsAfter = " ++ show myMrsAfter ++
-                ", turns down trading offer from " ++ show traderId ++ ", not better off.") return (sendEventTo traderId (TradingReply $ Refuse NoWelfareIncrease) ao)
+      return (sendEventTo traderId (TradingReply $ Refuse NoWelfareIncrease) ao)
     else
       if mrsCrossover myMrsBefore traderMrsBefore myMrsAfter traderMrsAfter
         then do -- MRS cross-over, turn offer down
           ao <- agentObservableM
-          DBG.trace ("Agent " ++ show myId ++ 
-                ": myMrsBefore = " ++ show myMrsBefore ++ 
-                ", traderMrsBefore = " ++ show traderMrsBefore ++
-                ", (sugEx, spiEx) = " ++ show (sugEx, spiEx) ++
-                ", myWfBefore = " ++ show myWfBefore ++
-                ", myWfAfter = " ++ show myWfAfter ++
-                ", myMrsAfter = " ++ show myMrsAfter ++
-                ", turns down trading offer from " ++ show traderId ++ ", MRS crossover.") return (sendEventTo traderId (TradingReply $ Refuse MRSCrossover) ao)
+          return (sendEventTo traderId (TradingReply $ Refuse MRSCrossover) ao)
         else do  
           -- all good, transact and accept offer
           transactTradeWealth myId sugEx spiEx
 
           ao <- agentObservableM
-          DBG.trace ("Agent " ++ show myId ++ 
-                ": myMrsBefore = " ++ show myMrsBefore ++ 
-                ", traderMrsBefore = " ++ show traderMrsBefore ++
-                ", (sugEx, spiEx) = " ++ show (sugEx, spiEx) ++
-                ", myWfBefore = " ++ show myWfBefore ++
-                ", myWfAfter = " ++ show myWfAfter ++
-                ", myMrsAfter = " ++ show myMrsAfter ++
-                ", ACCEPT trading offer from " ++ show traderId) return (sendEventTo traderId (TradingReply Accept) ao)
+          return (sendEventTo traderId (TradingReply Accept) ao)
 
 mrsCrossover :: Double
              -> Double

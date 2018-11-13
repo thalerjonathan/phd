@@ -71,6 +71,7 @@ module SugarScape.Model
   , mkParamsFigureIV_9
   , mkParamsFigureIV_10
   , mkParamsFigureIV_11
+  , mkParamsFigureIV_14
   ) where
 
 import Control.Monad.Random
@@ -628,5 +629,34 @@ mkParamsFigureIV_10 = mkParamsFigureIV_3 {
   }
 
 mkParamsFigureIV_11 :: SugarScapeParams
-mkParamsFigureIV_11 = mkParamsFigureIV_10
+mkParamsFigureIV_11 = mkParamsFigureIV_10 {
+    sgParamsName = "Figure IV-10"
+  }
 
+-- see page 123
+mkParamsFigureIV_14 :: SugarScapeParams
+mkParamsFigureIV_14 = mkParamsFigureIV_3 {
+    sgParamsName           = "Figure IV-14"
+  , sgAgentCount           = 400
+  , spAgeSpan              = Range 60 100
+
+  , spVisionRange          = (1, 6)
+
+  , spSugarMetabolismRange = (1, 4)  -- 1-5 !
+  , spSpiceMetabolismRange = (1, 4)  -- 1-5 !
+
+  , spSugarEndowmentRange  = (5, 25)        -- not specified in book but 25-50 leads to extinction because agents not engaing in mating because cant gather enough wealth
+  , spSpiceEndowmentRange  = (5, 25)        -- not specified in book but 25-50 leads to extinction because agents not engaing in mating because cant gather enough wealth
+
+  , spFertStartRangeFemale = (12, 15)
+  , spFertStartRangeMale   = (12, 15)
+  , spFertEndRangeFemale   = (35, 45)
+  , spFertEndRangeMale     = (45, 55)
+  , spSexRuleActive        = True
+  , spGenderRatio          = 0.5
+  }
+
+-- NOTE: we didn't implement
+--  Effect of Culturally Varying Preferences, page 124 - 126
+--  Externalities and Price Disequilibrium: The effect of Pollution, page 126 - 118
+--  On The Evolution of Foresight page 129 / 130

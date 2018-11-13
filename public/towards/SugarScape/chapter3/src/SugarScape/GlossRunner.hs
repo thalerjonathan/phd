@@ -2,26 +2,28 @@ module SugarScape.GlossRunner
   ( runGloss
   ) where
 
-import            Data.IORef
+import Data.IORef
 
-import            Control.Monad.Random
+import Control.Monad.Random
 import qualified  Graphics.Gloss as GLO
-import            Graphics.Gloss.Interface.IO.Animate
-import            Graphics.Gloss.Interface.IO.Simulate
+import Graphics.Gloss.Interface.IO.Animate
+import Graphics.Gloss.Interface.IO.Simulate
 
-import            SugarScape.Renderer
-import            SugarScape.Simulation
+import SugarScape.Model
+import SugarScape.Renderer
+import SugarScape.Simulation
 
 runGloss :: RandomGen g
-         => SimulationState g
+         => SugarScapeParams
+         -> SimulationState g
          -> SimStepOut
          -> Int
          -> AgentVis
          -> SiteVis
          -> IO ()
-runGloss initSimState initOut stepsPerSec av cv = do
+runGloss params initSimState initOut stepsPerSec av cv = do
   let winSize  = (800, 800)
-      winTitle = "SugarScape"
+      winTitle = "SugarScape " ++ sgParamsName params
       
   -- intiialize IORef which holds last simulation state
   ssRef <- newIORef initSimState

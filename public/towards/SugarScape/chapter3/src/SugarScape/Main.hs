@@ -20,8 +20,8 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let sugParams = mkParamsFigureIV_6 
-      output    = Export 1000            -- Export 1000 -- Visual 0 Default Resource
+  let sugParams = mkParamsFigureIV_14 
+      output    = Visual 0 Default Resource            -- Export 1000 -- Visual 0 Default Resource
       rngSeed   = Nothing :: (Maybe Int) -- Nothing :: (Maybe Int) -- Just 42
 
   putStrLn $ "Running Sugarscape with... \n--------------------------------------------------\n" ++ show sugParams ++ "\n--------------------------------------------------"
@@ -33,6 +33,6 @@ main = do
   case output of 
     Pure   steps     -> print $ simulateUntil steps initSimState
     Export steps     -> writeSimulationUntil "export/dynamics.m" steps initSimState
-    Visual sps av cv -> runGloss initSimState (0, 0, initEnv, []) sps av cv
+    Visual sps av cv -> runGloss sugParams initSimState (0, 0, initEnv, []) sps av cv
 
   putStrLn "\n--------------------------------------------------\n"

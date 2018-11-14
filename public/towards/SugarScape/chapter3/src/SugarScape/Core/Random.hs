@@ -1,4 +1,4 @@
-module SugarScape.Random
+module SugarScape.Core.Random
   ( randomBoolM
   , randomExpM
   , randomElemM
@@ -10,11 +10,11 @@ module SugarScape.Random
   , rngSplits
   ) where
 
-import            System.Random
+import System.Random
 
-import            Control.Monad.Random
-import            Control.Monad.State.Strict
-import qualified  Data.Map as Map
+import Control.Monad.Random
+import Control.Monad.State.Strict
+import qualified Data.Map as Map
 
 randomBoolM :: MonadRandom m => Double -> m Bool
 randomBoolM p = getRandomR (0.0, 1.0) >>= (\r -> return $ p >= r)

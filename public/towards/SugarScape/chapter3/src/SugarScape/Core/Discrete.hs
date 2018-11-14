@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Discrete 
+module SugarScape.Core.Discrete 
   ( Discrete2dDimension
   , Discrete2dCoord
   , Discrete2dNeighbourhood

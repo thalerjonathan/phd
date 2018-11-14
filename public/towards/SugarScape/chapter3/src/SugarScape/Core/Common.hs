@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Common 
+module SugarScape.Core.Common 
   ( Time
   , DTime
   , AgentId

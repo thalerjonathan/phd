@@ -10,17 +10,17 @@ import Control.Monad.State.Strict
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Common
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Utils
+import SugarScape.Core.Common
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Utils
 
 -- Here rule R is implemented, see page 32/33 "when an agent dies it is replaced by an agent 
 -- of agent 0 having random genetic attributes, random position on the sugarscape..."
 -- Also rule I is implemented, see page 67...
 -- => will happen if agent starves to death (spice or sugar) or dies from age
 agentDies :: RandomGen g
-          => SugarScapeParams
+          => SugarScapeScenario
           -> AgentId
           -> SugarScapeAgent g
           -> AgentAction g (SugAgentOut g)
@@ -31,7 +31,7 @@ agentDies params myId asf = do
   inheritance params myId ao'
 
 birthNewAgent :: RandomGen g
-              => SugarScapeParams
+              => SugarScapeScenario
               -> SugarScapeAgent g
               -> SugAgentOut g
               -> AgentAction g (SugAgentOut g)
@@ -66,7 +66,7 @@ birthNewAgent params asf ao
         (return (coord, c))
 
 inheritance :: RandomGen g
-            => SugarScapeParams
+            => SugarScapeScenario
             -> AgentId
             -> SugAgentOut g
             -> AgentAction g (SugAgentOut g)

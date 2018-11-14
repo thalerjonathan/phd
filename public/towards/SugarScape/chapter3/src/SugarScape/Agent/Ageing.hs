@@ -7,7 +7,7 @@ module SugarScape.Agent.Ageing
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
-import SugarScape.Model
+import SugarScape.Core.Model
 
 agentAgeing :: MonadState SugAgentState m
             => m ()

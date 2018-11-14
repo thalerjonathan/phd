@@ -1,4 +1,4 @@
-module SugarScape.Utils 
+module SugarScape.Core.Utils 
   ( ifThenElse
   , ifThenElseM
   , orM

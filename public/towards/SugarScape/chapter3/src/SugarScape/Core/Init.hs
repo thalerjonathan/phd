@@ -1,4 +1,4 @@
-module SugarScape.Init 
+module SugarScape.Core.Init 
   ( createSugarScape
   ) where
 
@@ -7,15 +7,15 @@ import Control.Monad.Random
 import Data.Char
 import Data.List
 
-import SugarScape.Agent
+import SugarScape.Agent.Agent
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Random
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Random
 
 createSugarScape :: RandomGen g
-                 => SugarScapeParams
+                 => SugarScapeScenario
                  -> Rand g ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment)
 createSugarScape params = do
   ras <- agentDistribution params (sgAgentDistribution params)
@@ -39,7 +39,7 @@ createSugarScape params = do
   return (as, env)
 
 agentDistribution :: RandomGen g
-                  => SugarScapeParams
+                  => SugarScapeScenario
                   -> AgentDistribution
                   -> Rand g [(SugAgentDef g, SugAgentState)]
 agentDistribution params CombatCorners = do
@@ -112,14 +112,14 @@ parseEnvSpec = zipWith parseEnvSpecLine
           | isNumber su && isNumber sp = (digitToInt su, digitToInt sp)
           | otherwise  = error "bad character in environment specification"
 
-createSites :: SugarScapeParams
+createSites :: SugarScapeScenario
             -> [(Discrete2dCoord, Int, Int)]
             -> [(Discrete2dCoord, (AgentId, SugAgentState))]
             -> [(Discrete2dCoord, SugEnvSite)]
 createSites params siteSpecs occupations 
   = map (initRandomSite params occupations) siteSpecs
  
-initRandomSite :: SugarScapeParams
+initRandomSite :: SugarScapeScenario
                -> [(Discrete2dCoord, (AgentId, SugAgentState))] 
                -> (Discrete2dCoord, Int, Int) 
                -> (Discrete2dCoord, SugEnvSite)

@@ -1,4 +1,4 @@
-module SugarScape.Renderer 
+module SugarScape.Visual.Renderer 
   ( AgentObservable
   , AgentVis (..)
   , SiteVis (..)
@@ -12,10 +12,10 @@ import Graphics.Gloss as GLO
 
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Common
-import SugarScape.Common
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Simulation
+import SugarScape.Core.Common
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Simulation
 
 data AgentVis = Default 
               | Gender 

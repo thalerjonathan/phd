@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Agent 
+module SugarScape.Agent.Agent 
   ( agentMsf
   ) where
 
@@ -19,8 +19,8 @@ import SugarScape.Agent.Move
 import SugarScape.Agent.Polution
 import SugarScape.Agent.Trading
 import SugarScape.Agent.Utils
-import SugarScape.Model
-import SugarScape.Utils
+import SugarScape.Core.Model
+import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 agentMsf :: RandomGen g => SugarScapeAgent g
@@ -35,7 +35,7 @@ agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
 -- MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 generalEventHandler :: RandomGen g 
-                    => SugarScapeParams
+                    => SugarScapeScenario
                     -> AgentId 
                     -> EventHandler g
 generalEventHandler params myId =
@@ -67,7 +67,7 @@ generalEventHandler params myId =
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
 handleTimeStep :: RandomGen g 
-               => SugarScapeParams
+               => SugarScapeScenario
                -> AgentId
                -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 handleTimeStep params myId = do
@@ -99,7 +99,7 @@ handleTimeStep params myId = do
       return (ao, mhdl))
 
 agentContAfterMating :: RandomGen g 
-                     => SugarScapeParams
+                     => SugarScapeScenario
                      -> AgentId
                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterMating params myId = do

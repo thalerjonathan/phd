@@ -56,10 +56,10 @@ import Data.List
 
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Discrete
-import SugarScape.Model
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
 
-type SugarScapeAgent g = SugarScapeParams -> AgentId -> SugAgentState -> SugAgentMSF g
+type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
 
 type EventHandler g = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
@@ -81,14 +81,14 @@ sugObservableFromState as = SugAgentObservable
   , sugObsTrades     = []
   }
 
-selectSiteMeasureFunc :: SugarScapeParams -> SugAgentState -> SiteMeasureFunc
+selectSiteMeasureFunc :: SugarScapeScenario -> SugAgentState -> SiteMeasureFunc
 selectSiteMeasureFunc params as
   | spSpiceEnabled params = sugarSpiceSiteMeasure as
   | otherwise             = sugarSiteMeasure
 
 -- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
 -- polution level will be 0 anyway if polution / diffusion is turned off
-combatSiteMeasure :: SugarScapeParams -> Double -> SiteMeasureFunc
+combatSiteMeasure :: SugarScapeScenario -> Double -> SiteMeasureFunc
 combatSiteMeasure _params combatReward site = combatWealth + sug + spi
   where
     victim       = fromJust $ sugEnvSiteOccupier site
@@ -289,7 +289,7 @@ agentCellOnCoord = do
   return (coord, cell)
 
 randomAgent :: RandomGen g  
-            => SugarScapeParams
+            => SugarScapeScenario
             -> (AgentId, Discrete2dCoord)
             -> SugarScapeAgent g
             -> (SugAgentState -> SugAgentState)
@@ -335,7 +335,7 @@ randomAgent params (agentId, coord) asf f = do
 
   return (adef, s')
 
-changeToRedTribe :: SugarScapeParams
+changeToRedTribe :: SugarScapeScenario
                  -> SugAgentState
                  -> SugAgentState
 changeToRedTribe params s = s { sugAgTribe      = tagToTribe redTag
@@ -345,7 +345,7 @@ changeToRedTribe params s = s { sugAgTribe      = tagToTribe redTag
               Nothing -> replicate 10 True -- cultural process is deactivated => select default of 10 to generate different Red tribe
               Just n  -> replicate n True
 
-changeToBlueTribe :: SugarScapeParams
+changeToBlueTribe :: SugarScapeScenario
                   -> SugAgentState
                   -> SugAgentState
 changeToBlueTribe params s = s { sugAgTribe     = tagToTribe blueTag
@@ -366,7 +366,7 @@ tagToTribe tag
     n     = length tag
 
 randomCultureTag :: RandomGen g
-                 => SugarScapeParams
+                 => SugarScapeScenario
                  -> Rand g CultureTag
 randomCultureTag params = 
   case spCulturalProcess params of 
@@ -385,7 +385,7 @@ randomGender p = do
     else return Female
 
 randomFertilityRange :: RandomGen g
-                     => SugarScapeParams 
+                     => SugarScapeScenario 
                      -> AgentGender
                      -> Rand g (Int, Int)
 randomFertilityRange params Male = do

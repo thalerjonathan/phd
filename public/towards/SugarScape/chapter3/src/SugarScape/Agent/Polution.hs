@@ -7,11 +7,11 @@ import Control.Monad.Random
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Utils
-import SugarScape.Discrete
-import SugarScape.Model
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
 
 agentPolute :: RandomGen g
-            => SugarScapeParams
+            => SugarScapeScenario
             -> Double
             -> Double
             -> AgentAction g ()

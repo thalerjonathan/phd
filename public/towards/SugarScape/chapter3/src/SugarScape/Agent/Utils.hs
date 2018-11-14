@@ -16,8 +16,7 @@ import Data.MonadicStreamFunction
 import Data.MonadicStreamFunction.InternalCore
 
 import SugarScape.Agent.Interface
-import SugarScape.Model
-
+import SugarScape.Core.Model
 
 -- this is a simplified version of switch WITH DIFFERENT SEMANTICS:
 -- at the time of the switching the new MSF is NOT activated but only in the next step!

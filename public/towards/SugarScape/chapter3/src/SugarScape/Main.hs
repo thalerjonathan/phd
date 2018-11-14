@@ -1,48 +1,123 @@
 module Main where
 
+import Data.Char
+import Data.List
 import System.IO
 
-import SugarScape.Common
-import SugarScape.ExportRunner
-import SugarScape.GlossRunner
-import SugarScape.Model
-import SugarScape.Renderer
-import SugarScape.Simulation
+import Options.Applicative
 
-data Output = Console Time 
-            | File Time
-            | Visual Int AgentVis SiteVis
-            deriving (Eq, Show)
+import SugarScape.Export.ExportRunner
+import SugarScape.Visual.GlossRunner
+import SugarScape.Visual.Renderer
+import SugarScape.Core.Model
+import SugarScape.Core.Simulation
 
--- TODO: implement optargs
+data Output = Console Int                  -- steps
+            | File Int String              -- steps, filename
+            | Visual Int AgentVis SiteVis  -- render-freq, agent vis, site-vis
+
+data Params = Params 
+  { paramScenario :: String
+  , paramOutput   :: Output
+  , paramRngSeed  :: Maybe Int
+  }
+
+instance Show Output where
+  show (Console steps)     = "CONSOLE " ++ show steps ++ 
+                              " (print output after " ++ show steps ++ 
+                              " steps to console)"
+  show (File steps file)   = "FILE " ++ show steps ++ " " ++ show file ++ 
+                              " (write output of " ++ show steps ++ " steps to file " ++ show file ++ ")"
+  show (Visual freq av sv) = "VISUAL "  ++ show freq ++ " " ++ show av ++ " " ++ show sv ++
+                              " (render " ++ show freq ++ 
+                              " steps per second, Agent-Visualisation: " ++ show av ++ 
+                              ", Site-Visualisation: " ++ show sv ++ ")"
+
+parseParams :: Parser Params
+parseParams 
+  = Params 
+    <$> strOption
+      (  long "scenario"
+      <> short 's'
+      <> metavar "SCENARIO"
+      <> help "SugarScape scenario to run e.g. \"Animation II-2\"" )
+    <*> parseOutput
+    <*> option auto
+      (  long "rng"
+      <> help "Fixing rng seed"
+      <> value Nothing
+      <> metavar "INT" )
+
+parseOutput :: Parser Output
+parseOutput = fileOut  <|> 
+              consoleOut -- <|> 
+              -- visualOut
+
+consoleOut :: Parser Output
+consoleOut = Console <$> option auto
+              (  long "consolesteps"
+              <> help "Print output to console after number of steps"
+              <> value 1000
+              <> metavar "INT" )
+
+fileOut :: Parser Output
+fileOut = File 
+        <$> option auto
+          (  long "filesteps"
+          <> help "Write each step to output file"
+          <> value 1000
+          <> metavar "INT" )
+        <*> strOption
+          (  long "fileout"
+          <> value "export/dynamics.m"
+          <> metavar "OUTPUTFILE"
+          <> help "Output file" )
 
 main :: IO ()
 main = do
-  hSetBuffering stdout NoBuffering
+    hSetBuffering stdout NoBuffering
+    params <- execParser opts
+    runSugarscape params
+  where
+    opts = info (parseParams <**> helper)
+      ( fullDesc
+     <> progDesc "Print a greeting for TARGET"
+     <> header "hello - a test for optparse-applicative" )
 
-  let sugParams = mkParamsFigureIV_14 
-      output    = File 1000              -- File 1000 -- Visual 0 Default Resource
-      rngSeed   = Nothing :: (Maybe Int) -- Nothing :: (Maybe Int) -- Just 42
+findScenario :: String 
+             -> [SugarScapeScenario]
+             -> Maybe SugarScapeScenario
+findScenario name0 
+    = find (\s -> strToLower (sgScenarioName s) == name)
+  where
+    strToLower = map toLower
+    name       = strToLower name0
 
-  putStrLn $ "Running Sugarscape with... \n--------------------------------------------------\n" ++ show sugParams ++ "\n--------------------------------------------------"
-  putStrLn $ "Output Type: \t\t\t" ++ show output 
-  putStrLn $ "RNG Seed: \t\t\t" ++ show rngSeed  ++ "\n--------------------------------------------------"
+runSugarscape :: Params -> IO ()
+runSugarscape params = do
+  let scenarioName = paramScenario params
+      ms           = findScenario scenarioName sugarScapeScenarios
 
-  (initSimState, initEnv) <- initSimulationOpt rngSeed sugParams
+  case ms of
+    Nothing -> putStrLn $ "Couldn't find scenario " ++ show scenarioName ++ ", exit."
+    Just scenario -> do
+      let output    = paramOutput params
+          rngSeed   = paramRngSeed params
 
-  case output of 
-    Console steps    -> print $ simulateUntil steps initSimState
-    File   steps     -> writeSimulationUntil "export/dynamics.m" steps initSimState
-    Visual sps av cv -> runGloss sugParams initSimState (0, 0, initEnv, []) sps av cv
+      putStrLn "Running Sugarscape with... " 
+      putStrLn "--------------------------------------------------"
+      print scenario
+      putStrLn "--------------------------------------------------"
 
-  putStrLn "\n--------------------------------------------------\n"
+      putStrLn $ "Output Type: \t\t\t" ++ show output
+      putStrLn $ "RNG Seed: \t\t\t" ++ maybe "N/A - using default global random number initialisation" show rngSeed
+      putStrLn "--------------------------------------------------"
 
-{-
-Usage sugarscape --scenario STRING [--output Visual | File | Console]
-                                   [--outfile STRING] 
-                                   [--agentvis Default | Gender | Culture | Tribe | Welfare ]
-                                   [--sitevis Resource | Polution ]
-                                   [--renderfreq INT] 
-                                   [--steps INT] 
-                                   [--rng INT]
--}
+      (initSimState, initEnv) <- initSimulationOpt rngSeed scenario
+
+      case output of 
+        Console steps     -> print $ simulateUntil steps initSimState
+        File steps file   -> writeSimulationUntil file steps initSimState
+        Visual freq av cv -> runGloss scenario initSimState (0, 0, initEnv, []) freq av cv
+
+      putStrLn "\n--------------------------------------------------\n"

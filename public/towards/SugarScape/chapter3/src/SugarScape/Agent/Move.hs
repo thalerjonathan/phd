@@ -12,13 +12,13 @@ import Control.Monad.State.Strict
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Random
-import SugarScape.Utils
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Random
+import SugarScape.Core.Utils
 
 agentMove :: RandomGen g
-          => SugarScapeParams
+          => SugarScapeScenario
           -> AgentId
           -> AgentAction g (Double, SugAgentOut g)
 agentMove params myId 
@@ -26,7 +26,7 @@ agentMove params myId
   | otherwise                   = agentCombat params myId
 
 runAgentNonCombat :: RandomGen g
-                  => SugarScapeParams
+                  => SugarScapeScenario
                   -> AgentId
                   -> AgentAction g (Double, SugAgentOut g)
 runAgentNonCombat params myId = do
@@ -35,7 +35,7 @@ runAgentNonCombat params myId = do
   return (harvest, ao)
 
 agentNonCombat :: RandomGen g
-               => SugarScapeParams
+               => SugarScapeScenario
                -> AgentId
                -> AgentAction g Double
 agentNonCombat params myId = do
@@ -62,7 +62,7 @@ agentNonCombat params myId = do
         agentHarvestSite params myId cellCoord)
 
 agentCombat :: RandomGen g
-            => SugarScapeParams
+            => SugarScapeScenario
             -> AgentId
             -> AgentAction g (Double, SugAgentOut g)
 agentCombat params myId = do
@@ -168,7 +168,7 @@ agentMoveTo myId cellCoord = do
   envLift $ changeCellAtM cellCoord co 
 
 agentHarvestSite :: RandomGen g
-                 => SugarScapeParams
+                 => SugarScapeScenario
                  -> AgentId
                  -> Discrete2dCoord 
                  -> AgentAction g Double

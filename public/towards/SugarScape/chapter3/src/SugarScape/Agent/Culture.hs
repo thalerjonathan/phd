@@ -12,12 +12,12 @@ import Control.Monad.Random
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Utils
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Utils
 
 agentCultureProcess :: RandomGen g
-                    => SugarScapeParams               -- parameters of the current sugarscape scenario
+                    => SugarScapeScenario               -- parameters of the current sugarscape scenario
                     -> AgentId                        -- the id of the agent 
                     -> AgentAction g (SugAgentOut g)
 agentCultureProcess params _myId 

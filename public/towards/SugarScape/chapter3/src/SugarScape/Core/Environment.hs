@@ -1,11 +1,11 @@
-module SugarScape.Environment 
+module SugarScape.Core.Environment 
   ( SugEnvBehaviour
   , sugEnvBehaviour
   ) where
 
-import SugarScape.Common
-import SugarScape.Discrete
-import SugarScape.Model
+import SugarScape.Core.Common
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
 
 type RegrowToMaxFunc = SugEnvSite -> SugEnvSite
 type RegrowByRateFunc = Double -> SugEnvSite -> SugEnvSite
@@ -15,7 +15,7 @@ type RegrowByRateFunc = Double -> SugEnvSite -> SugEnvSite
 -- or access of absstate 
 type SugEnvBehaviour = Time -> SugEnvironment -> SugEnvironment
 
-sugEnvBehaviour :: SugarScapeParams 
+sugEnvBehaviour :: SugarScapeScenario 
                 -> Time
                 -> SugEnvironment
                 -> SugEnvironment

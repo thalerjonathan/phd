@@ -8,11 +8,11 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
-import SugarScape.Common 
-import SugarScape.Model
+import SugarScape.Core.Common 
+import SugarScape.Core.Model
 
 agentMetabolism :: RandomGen g
-                => SugarScapeParams
+                => SugarScapeScenario
                 -> AgentId
                 -> AgentAction g Int
 agentMetabolism params myId
@@ -47,7 +47,7 @@ agentMetabolism params myId
     return sugarMetab
 
 starvedToDeath :: MonadState SugAgentState m
-               => SugarScapeParams
+               => SugarScapeScenario
                -> m Bool
 starvedToDeath params 
   | spSpiceEnabled params = do

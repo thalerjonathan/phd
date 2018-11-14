@@ -29,7 +29,7 @@ import Data.Tuple
 import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
 
-import SugarScape.Common
+import SugarScape.Core.Common
 
 data ABSEvent e = TimeStep 
                 | DomainEvent (AgentId, e) 

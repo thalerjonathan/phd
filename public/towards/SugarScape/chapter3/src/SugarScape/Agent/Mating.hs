@@ -17,14 +17,14 @@ import Data.MonadicStreamFunction
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Common
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Random
-import SugarScape.Utils
+import SugarScape.Core.Common
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Random
+import SugarScape.Core.Utils
 
 agentMating :: RandomGen g
-            => SugarScapeParams               -- parameters of the current sugarscape scenario
+            => SugarScapeScenario               -- parameters of the current sugarscape scenario
             -> AgentId                        -- the id of the agent 
             -> SugarScapeAgent g              -- the top-level MSF of the agent, to be used for birthing children
             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
@@ -52,7 +52,7 @@ agentMating params myId amsf0 cont0
         mateWith params myId amsf0 cont0 ocsShuff
 
 mateWith :: RandomGen g
-         => SugarScapeParams
+         => SugarScapeScenario
          -> AgentId 
          -> SugarScapeAgent g
          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
@@ -90,7 +90,7 @@ mateWith params myId amsf cont ((coord, site) : ns) =
     cont
 
 matingHandler :: RandomGen g
-              => SugarScapeParams
+              => SugarScapeScenario
               -> AgentId 
               -> SugarScapeAgent g
               -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))

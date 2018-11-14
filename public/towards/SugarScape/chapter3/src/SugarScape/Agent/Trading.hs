@@ -14,12 +14,12 @@ import Data.MonadicStreamFunction
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils 
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Random
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Random
 
 agentTrade :: RandomGen g
-           => SugarScapeParams               -- parameters of the current sugarscape scenario
+           => SugarScapeScenario               -- parameters of the current sugarscape scenario
            -> AgentId                        -- the id of the agent 
            -> EventHandler g                 -- global event handler to switch back into after trading has finished
            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))

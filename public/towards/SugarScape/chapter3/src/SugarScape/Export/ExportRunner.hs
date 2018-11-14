@@ -1,4 +1,4 @@
-module SugarScape.ExportRunner
+module SugarScape.Export.ExportRunner
   ( writeSimulationUntil
   ) where
 
@@ -6,9 +6,9 @@ import System.IO
 import System.Random
 import Text.Printf
 
-import SugarScape.Common
-import SugarScape.Model
-import SugarScape.Simulation
+import SugarScape.Core.Common
+import SugarScape.Core.Model
+import SugarScape.Core.Simulation
 
 writeSimulationUntil :: RandomGen g
                      => String

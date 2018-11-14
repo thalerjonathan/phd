@@ -1,4 +1,4 @@
-module SugarScape.Simulation
+module SugarScape.Core.Simulation
   ( SimulationState (..)
   , SimStepOut
   , AgentObservable
@@ -30,11 +30,11 @@ import Data.MonadicStreamFunction.InternalCore
 import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
 import SugarScape.Agent.Interface
-import SugarScape.Common
-import SugarScape.Environment
-import SugarScape.Model
-import SugarScape.Init
-import SugarScape.Random
+import SugarScape.Core.Common
+import SugarScape.Core.Environment
+import SugarScape.Core.Model
+import SugarScape.Core.Init
+import SugarScape.Core.Random
 
 type AgentMap g = Map.IntMap (SugAgentMSF g, SugAgentObservable)
 type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
@@ -57,20 +57,20 @@ data SimulationState g = SimulationState
 sugarScapeTimeDelta :: DTime
 sugarScapeTimeDelta = 1
 
-initSimulation :: SugarScapeParams
+initSimulation :: SugarScapeScenario
                -> IO (SimulationState StdGen, SugEnvironment)
 initSimulation params = do
   g0 <- newStdGen
   return $ initSimulationRng g0 params
 
 initSimulationOpt :: Maybe Int
-                  -> SugarScapeParams
+                  -> SugarScapeScenario
                   -> IO (SimulationState StdGen, SugEnvironment)
 initSimulationOpt Nothing     params = initSimulation params
 initSimulationOpt (Just seed) params = return $ initSimulationSeed seed params
 
 initSimulationSeed :: Int
-                   -> SugarScapeParams
+                   -> SugarScapeScenario
                    -> (SimulationState StdGen, SugEnvironment)
 initSimulationSeed seed = initSimulationRng g0
   where
@@ -78,7 +78,7 @@ initSimulationSeed seed = initSimulationRng g0
 
 initSimulationRng :: RandomGen g
                   => g
-                  -> SugarScapeParams
+                  -> SugarScapeScenario
                   -> (SimulationState g, SugEnvironment)
 initSimulationRng g0 params = (initSimState, initEnv)
   where

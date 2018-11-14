@@ -10,6 +10,7 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
 import SugarScape.Agent.Common
+import SugarScape.Agent.Credit
 import SugarScape.Agent.Culture
 import SugarScape.Agent.Dying
 import SugarScape.Agent.Interface
@@ -64,6 +65,9 @@ generalEventHandler params myId =
         (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
           ao <- arrM (uncurry3 (handleTradingOffer myId)) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
+        (DomainEvent (sender, CreditOffer sugar spice)) -> do
+          ao <- arrM (uncurry3 (handleCreditOffer myId)) -< (sender, sugar, spice)
+          returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
@@ -106,6 +110,8 @@ agentContAfterMating :: RandomGen g
 agentContAfterMating params myId = do
   aoCulture       <- agentCultureProcess params myId
   (aoTrade, mhdl) <- agentTrade params myId (generalEventHandler params myId)
+
+  -- TODO: do credit here
 
   let ao = aoCulture `agentOutMergeRightObs` aoTrade
   return (ao, mhdl)

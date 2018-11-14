@@ -12,6 +12,8 @@ module SugarScape.Core.Model
 
   , TradingRefuse (..)
   , TradingReply (..)
+  , CreditRefuse (..)
+  , CreditReply (..)
   , SugEvent (..)
   
   , SugAgentMonad
@@ -108,9 +110,18 @@ data TradingRefuse = NoWelfareIncrease  -- refuse trade because no increase in w
                    | MRSCrossover       -- refuse trade because MRS cross-over
                    deriving (Show, Eq)
 
-data TradingReply = Accept         
-                  | Refuse TradingRefuse 
+data TradingReply = AcceptTrade        
+                  | RefuseTrade TradingRefuse 
                   deriving (Show, Eq)
+
+data CreditRefuse = NotFertileAge
+                  | EnoughWealth
+                  | NotCreditWorthy
+                  deriving (Show, Eq)
+
+data CreditReply = AcceptCredit
+                 | RefuseCredit CreditRefuse
+                 deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
               | MatingReply (Maybe (Double, Double, Int, Int, CultureTag)) -- in case of acceptance: Just share of sugar, spice, metab, vision
@@ -125,6 +136,9 @@ data SugEvent = MatingRequest AgentGender
 
               | TradingOffer Double Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
               | TradingReply TradingReply
+
+              | CreditOffer Double Double
+              | CreditReply CreditReply
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

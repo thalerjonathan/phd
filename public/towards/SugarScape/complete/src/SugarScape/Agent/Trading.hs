@@ -117,10 +117,10 @@ tradingHandler myId globalHdl0 tradeInfos tradeOccured traders (price, sugEx, sp
                        -> AgentId
                        -> TradingReply
                        -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-    handleTradingReply globalHdl _ (Refuse _) =  
+    handleTradingReply globalHdl _ (RefuseTrade _) =  
       -- the sender refuses the trading-offer, continue with the next trader
       tradeWith myId globalHdl tradeInfos tradeOccured traders
-    handleTradingReply globalHdl traderId Accept = do -- the sender accepts the trading-offer
+    handleTradingReply globalHdl traderId AcceptTrade = do -- the sender accepts the trading-offer
       -- NOTE: at this point the trade-partner agent is better off as well, MRS won't cross over and the other agent has already transacted
       let tradeInfos' = TradeInfo price sugEx spiEx traderId : tradeInfos
 
@@ -149,18 +149,18 @@ handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
   if myWfAfter <= myWfBefore
     then do -- not better off, turn offer down
       ao <- agentObservableM
-      return (sendEventTo traderId (TradingReply $ Refuse NoWelfareIncrease) ao)
+      return (sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease) ao)
     else
       if mrsCrossover myMrsBefore traderMrsBefore myMrsAfter traderMrsAfter
         then do -- MRS cross-over, turn offer down
           ao <- agentObservableM
-          return (sendEventTo traderId (TradingReply $ Refuse MRSCrossover) ao)
+          return (sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) ao)
         else do
           -- all good, transact and accept offer
           transactTradeWealth myId sugEx spiEx
 
           ao <- agentObservableM
-          return (sendEventTo traderId (TradingReply Accept) ao)
+          return (sendEventTo traderId (TradingReply AcceptTrade) ao)
 
 mrsCrossover :: Double
              -> Double

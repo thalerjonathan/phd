@@ -15,6 +15,7 @@ import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
+import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 agentMove :: RandomGen g

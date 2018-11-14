@@ -6,6 +6,7 @@ module SugarScape.Core.Environment
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
 type RegrowToMaxFunc = SugEnvSite -> SugEnvSite
 type RegrowByRateFunc = Double -> SugEnvSite -> SugEnvSite

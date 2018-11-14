@@ -20,6 +20,7 @@ import SugarScape.Agent.Polution
 import SugarScape.Agent.Trading
 import SugarScape.Agent.Utils
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------

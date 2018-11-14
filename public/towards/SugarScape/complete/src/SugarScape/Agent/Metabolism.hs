@@ -10,6 +10,7 @@ import Control.Monad.State.Strict
 import SugarScape.Agent.Common
 import SugarScape.Core.Common 
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
 agentMetabolism :: RandomGen g
                 => SugarScapeScenario

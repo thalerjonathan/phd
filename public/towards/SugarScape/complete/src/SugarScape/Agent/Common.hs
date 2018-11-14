@@ -58,6 +58,7 @@ import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out

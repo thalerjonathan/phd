@@ -35,6 +35,7 @@ import SugarScape.Core.Environment
 import SugarScape.Core.Model
 import SugarScape.Core.Init
 import SugarScape.Core.Random
+import SugarScape.Core.Scenario
 
 type AgentMap g = Map.IntMap (SugAgentMSF g, SugAgentObservable)
 type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event

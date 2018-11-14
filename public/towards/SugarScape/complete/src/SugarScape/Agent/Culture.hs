@@ -14,6 +14,7 @@ import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 agentCultureProcess :: RandomGen g

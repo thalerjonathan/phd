@@ -68,6 +68,7 @@ executable sugarscape
                 , SugarScape.Core.Init
                 , SugarScape.Core.Model
                 , SugarScape.Core.Random
+                , SugarScape.Core.Scenario
                 , SugarScape.Core.Simulation
                 , SugarScape.Core.Utils
                 , SugarScape.Export.ExportRunner

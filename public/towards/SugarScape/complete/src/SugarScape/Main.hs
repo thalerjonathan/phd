@@ -9,7 +9,7 @@ import Options.Applicative
 import SugarScape.Export.ExportRunner
 import SugarScape.Visual.GlossRunner
 import SugarScape.Visual.Renderer
-import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
 
 data Output = Console Int                  -- steps

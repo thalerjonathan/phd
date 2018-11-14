@@ -9,7 +9,7 @@ import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 import Graphics.Gloss.Interface.IO.Simulate
 
-import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
 import SugarScape.Visual.Renderer
 

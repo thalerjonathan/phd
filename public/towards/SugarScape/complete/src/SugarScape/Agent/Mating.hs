@@ -3,6 +3,7 @@
 module SugarScape.Agent.Mating 
   ( agentMating
 
+  , isAgentFertile
   , handleMatingRequest
   , handleMatingTx
   ) where
@@ -21,6 +22,7 @@ import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
+import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 agentMating :: RandomGen g

@@ -13,6 +13,7 @@ import SugarScape.Agent.Utils
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 -- Here rule R is implemented, see page 32/33 "when an agent dies it is replaced by an agent 

@@ -9,6 +9,7 @@ import SugarScape.Agent.Common
 import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
 agentPolute :: RandomGen g
             => SugarScapeScenario

@@ -16,12 +16,6 @@ data Output = Console Int                  -- steps
             | File Int String              -- steps, filename
             | Visual Int AgentVis SiteVis  -- render-freq, agent vis, site-vis
 
-data Params = Params 
-  { paramScenario :: String
-  , paramOutput   :: Output
-  , paramRngSeed  :: Maybe Int
-  }
-
 instance Show Output where
   show (Console steps)     = "CONSOLE " ++ show steps ++ 
                               " (print output after " ++ show steps ++ 
@@ -33,9 +27,64 @@ instance Show Output where
                               " steps per second, Agent-Visualisation: " ++ show av ++ 
                               ", Site-Visualisation: " ++ show sv ++ ")"
 
-parseParams :: Parser Params
-parseParams 
-  = Params 
+data Options = Options 
+  { optScenario :: String
+  , optOutput   :: Output
+  , optRngSeed  :: Maybe Int
+  }
+
+main :: IO ()
+main = do
+    hSetBuffering stdout NoBuffering
+    o <- execParser opts
+    runSugarscape o
+  where
+    opts = info (parseOptions <**> helper)
+      ( fullDesc
+     <> progDesc "Print a greeting for TARGET"
+     <> header "hello - a test for optparse-applicative" )
+
+runSugarscape :: Options -> IO ()
+runSugarscape opts = do
+  let scenarioName = optScenario opts
+      ms           = findScenario scenarioName sugarScapeScenarios
+
+  case ms of
+    Nothing -> putStrLn $ "Couldn't find scenario " ++ show scenarioName ++ ", exit."
+    Just scenario -> do
+      let output    = optOutput opts
+          rngSeed   = optRngSeed opts
+
+      putStrLn "Running Sugarscape with... " 
+      putStrLn "--------------------------------------------------"
+      print scenario
+      putStrLn "--------------------------------------------------"
+
+      putStrLn $ "Output Type: \t\t\t" ++ show output
+      putStrLn $ "RNG Seed: \t\t\t" ++ maybe "N/A - using default global random number initialisation" show rngSeed
+      putStrLn "--------------------------------------------------"
+
+      (initSimState, initEnv) <- initSimulationOpt rngSeed scenario
+
+      case output of 
+        Console steps     -> print $ simulateUntil steps initSimState
+        File steps file   -> writeSimulationUntil file steps initSimState
+        Visual freq av cv -> runGloss scenario initSimState (0, 0, initEnv, []) freq av cv
+
+      putStrLn "\n--------------------------------------------------\n"
+
+findScenario :: String 
+             -> [SugarScapeScenario]
+             -> Maybe SugarScapeScenario
+findScenario name0 
+    = find (\s -> strToLower (sgScenarioName s) == name)
+  where
+    strToLower = map toLower
+    name       = strToLower name0
+
+parseOptions :: Parser Options
+parseOptions 
+  = Options 
     <$> strOption
       (  long "scenario"
       <> short 's'
@@ -72,52 +121,3 @@ fileOut = File
           <> value "export/dynamics.m"
           <> metavar "OUTPUTFILE"
           <> help "Output file" )
-
-main :: IO ()
-main = do
-    hSetBuffering stdout NoBuffering
-    params <- execParser opts
-    runSugarscape params
-  where
-    opts = info (parseParams <**> helper)
-      ( fullDesc
-     <> progDesc "Print a greeting for TARGET"
-     <> header "hello - a test for optparse-applicative" )
-
-findScenario :: String 
-             -> [SugarScapeScenario]
-             -> Maybe SugarScapeScenario
-findScenario name0 
-    = find (\s -> strToLower (sgScenarioName s) == name)
-  where
-    strToLower = map toLower
-    name       = strToLower name0
-
-runSugarscape :: Params -> IO ()
-runSugarscape params = do
-  let scenarioName = paramScenario params
-      ms           = findScenario scenarioName sugarScapeScenarios
-
-  case ms of
-    Nothing -> putStrLn $ "Couldn't find scenario " ++ show scenarioName ++ ", exit."
-    Just scenario -> do
-      let output    = paramOutput params
-          rngSeed   = paramRngSeed params
-
-      putStrLn "Running Sugarscape with... " 
-      putStrLn "--------------------------------------------------"
-      print scenario
-      putStrLn "--------------------------------------------------"
-
-      putStrLn $ "Output Type: \t\t\t" ++ show output
-      putStrLn $ "RNG Seed: \t\t\t" ++ maybe "N/A - using default global random number initialisation" show rngSeed
-      putStrLn "--------------------------------------------------"
-
-      (initSimState, initEnv) <- initSimulationOpt rngSeed scenario
-
-      case output of 
-        Console steps     -> print $ simulateUntil steps initSimState
-        File steps file   -> writeSimulationUntil file steps initSimState
-        Visual freq av cv -> runGloss scenario initSimState (0, 0, initEnv, []) freq av cv
-
-      putStrLn "\n--------------------------------------------------\n"

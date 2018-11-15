@@ -105,7 +105,7 @@ data SugarScapeScenario = SugarScapeScenario
 
   , spTradingEnabled       :: Bool            -- trading rule T on / off
   
-  , spCreditEnabled        :: Maybe (Double, Double)    -- credit rule I on / off
+  , spCreditEnabled        :: Maybe (Time, Double)    -- credit rule I on / off with duration of d years and rate of r percent
   } 
 
 instance Show SugarScapeScenario where

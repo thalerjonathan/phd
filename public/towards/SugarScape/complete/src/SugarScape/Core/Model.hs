@@ -3,6 +3,7 @@ module SugarScape.Core.Model
   , CultureTag
   , AgentTribe (..)
   , TradeInfo (..)
+  , Credit (..)
   
   , SugAgentState (..)
   , SugAgentObservable (..)
@@ -37,6 +38,7 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Interface
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -46,6 +48,7 @@ data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
 data AgentTribe  = Blue | Red deriving (Show, Eq)
 data TradeInfo   = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
+data Credit      = Credit Time AgentId Double Double deriving (Show, Eq)
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -68,7 +71,9 @@ data SugAgentState = SugAgentState
   , sugAgInitSpiEndow :: !Double
   , sugAgSpiceMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
   
-  , sugAgCredits      :: 
+  , sugAgLenders      :: [Credit]
+  , sugAgBorrowers    :: [Credit]
+  , sugAgNetIncome    :: Double            -- net income of sugar and spice in the most recent step
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
@@ -141,6 +146,8 @@ data SugEvent = MatingRequest AgentGender
 
               | CreditOffer Double Double
               | CreditReply CreditReply
+              | CreditPayback Double Double
+              | CreditInherit [AgentId]
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

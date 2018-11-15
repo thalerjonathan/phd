@@ -2,7 +2,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Credit
   ( agentCredit
+
   , handleCreditOffer
+  , handleCreditPayback
+  , handleCreditInherit
   ) where
 
 import Data.Maybe
@@ -13,7 +16,8 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
-import SugarScape.Agent.Utils 
+import SugarScape.Agent.Utils
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
@@ -29,14 +33,61 @@ agentCredit :: RandomGen g
 agentCredit params myId cont
   | isNothing $ spCreditEnabled params = cont
   | otherwise = do
-    offerLending params myId cont -- TODO: handle ao
-    -- checkCredits params myId globalHdl -- TODO: handle ao
+    aoDebt         <- checkCredits params myId
+    (aoLend, mhdl) <- offerLending params myId cont
 
-_checkCredits :: RandomGen g
+    let ao = aoDebt `agentOutMergeRightObs` aoLend
+    return (ao, mhdl)
+
+checkCredits :: RandomGen g
              => SugarScapeScenario
              -> AgentId
              -> AgentAction g (SugAgentOut g)
-_checkCredits _params _myId = undefined
+checkCredits params _myId = do
+    cs <- agentProperty sugAgLenders
+
+    ret <- mapM checkCredit cs
+    let (aos, mcs, debts) = unzip3 ret
+        cs'               = catMaybes mcs
+        debtSum           = sum debts
+
+    -- reduce the net-income by the debts payed back from credits
+    updateAgentState (\s -> s { sugAgLenders   = cs'
+                              , sugAgNetIncome = sugAgNetIncome s - debtSum})
+
+    ao0 <- agentObservableM
+    return $ foldr agentOutMergeRightObs ao0 aos
+  where
+    checkCredit :: RandomGen g
+                => Credit
+                -> AgentAction g (SugAgentOut g, Maybe Credit, Double) 
+    checkCredit c@(Credit dueDate lender sugarFace spiceFace) = do
+      t  <- absStateLift getSimTime
+      ao <- agentObservableM
+
+      if dueDate < t
+        then return (ao, Just c, 0) -- credit not yet due
+        else do
+          let rate   = (snd . fromJust $ spCreditEnabled params) / 100
+              sugPay = sugarFace + (sugarFace * rate)  -- payback the original face-value + a given percentage (interest)
+              spiPay = spiceFace + (spiceFace * rate)  -- payback the original face-value + a given percentage (interest)
+
+          sugLvl <- agentProperty sugAgSugarLevel
+          spiLvl <- agentProperty sugAgSpiceLevel
+          
+          if sugLvl >= sugPay && spiLvl >= spiPay
+            then do -- own enough wealth to pay back the credit fully
+              let ao' = sendEventTo lender (CreditPayback sugPay spiPay) ao
+              return (ao', Nothing, sugPay + spiPay)
+            else do -- not enough wealth, just pay back half of wealth and issue new credit for the remaining face value(s)
+              let dueDate' = t + (fst . fromJust $ spCreditEnabled params)
+                  sugPay'  = sugLvl / 2
+                  spiPay'  = spiLvl / 2
+                  c'       = Credit dueDate' lender (sugarFace - sugPay') (spiceFace - spiPay')
+              
+                  ao' = sendEventTo lender (CreditPayback sugPay' spiPay') ao
+
+              return (ao', Just c', sugPay' + spiPay')
 
 offerLending :: RandomGen g
              => SugarScapeScenario               -- parameters of the current sugarscape scenario
@@ -110,27 +161,55 @@ lendingToHandler params myId cont0 ns (sug, spi) =
       DBG.trace ("Agent " ++ show myId ++ ": borrower " ++ show borrowerId ++ " accepts credit of " ++ show (sug, spi)) lendTo params myId cont ns
 
 handleCreditOffer :: RandomGen g
-                  => AgentId
+                  => SugarScapeScenario
+                  -> AgentId
                   -> AgentId
                   -> Double
                   -> Double
                   -> AgentAction g (SugAgentOut g)
-handleCreditOffer myId lender sugar spice = do
+handleCreditOffer params myId lender sugarFace spiceFace = do
   pb <- potentialBorrower
   case pb of
     Just reason -> do
       ao <- agentObservableM
-      DBG.trace ("Agent " ++ show myId ++ ": refusing credit offer " ++ show (sugar, spice) ++ " from " ++ show lender ++ " because " ++ show reason) return (sendEventTo lender (CreditReply $ RefuseCredit reason) ao)
-      
+      DBG.trace ("Agent " ++ show myId ++ ": refusing credit offer " ++ show (sugarFace, spiceFace) ++ " from " ++ show lender ++ " because " ++ show reason) return (sendEventTo lender (CreditReply $ RefuseCredit reason) ao)
+
     Nothing -> do
       -- the borrower accepts the credit-offer, increase wealth of borrower
-      updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sugar
-                                , sugAgSpiceLevel = sugAgSpiceLevel s + spice })
+      updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sugarFace
+                                , sugAgSpiceLevel = sugAgSpiceLevel s + spiceFace })
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
       updateSiteWithOccupier myId
 
+      -- add a new credit to the borrowers obligations
+      t <- absStateLift getSimTime
+      let dueDate = t + (fst . fromJust $ spCreditEnabled params)
+      updateAgentState (\s -> s { sugAgLenders = Credit dueDate lender sugarFace spiceFace : sugAgLenders s })
+
       ao <- agentObservableM
-      DBG.trace ("Agent " ++ show myId ++ ": accepts credit offer " ++ show (sugar, spice) ++ " from " ++ show lender) return (sendEventTo lender (CreditReply AcceptCredit) ao)
+      DBG.trace ("Agent " ++ show myId ++ ": accepts credit offer " ++ show (sugarFace, spiceFace) ++ " from " ++ show lender) return (sendEventTo lender (CreditReply AcceptCredit) ao)
+
+handleCreditPayback :: RandomGen g
+                    => AgentId
+                    -> AgentId
+                    -> Double
+                    -> Double
+                    -> AgentAction g (SugAgentOut g)
+handleCreditPayback _myId _borrower _sugar _spice = do
+  -- TODO: we know that its fully paid back if sugar and spice equals face
+  -- TODO: attention, there could be more than 1 credit to the same borrower
+  ao <- agentObservableM
+  return ao
+
+handleCreditInherit :: RandomGen g
+                    => AgentId
+                    -> AgentId
+                    -> [AgentId]
+                    -> AgentAction g (SugAgentOut g)
+handleCreditInherit _myId _lender _children = do
+  -- TODO: handle credit-inheritance: remove the credit and split it amongst all children
+  ao <- agentObservableM
+  return ao
 
 potentialLender :: MonadState SugAgentState m => m (Maybe (Double, Double))
 potentialLender = do
@@ -148,6 +227,7 @@ potentialLender = do
           initSugLvl <- agentProperty sugAgInitSugEndow
           initSpiLvl <- agentProperty sugAgInitSpiEndow
 
+          -- TODO: handle spice on/off
           -- check if this agent has wealth excess
           if sugLvl > initSugLvl && spiLvl > initSpiLvl
             then return $ Just (sugLvl - initSugLvl, spiLvl - initSpiLvl) -- lend excess wealth
@@ -167,8 +247,14 @@ potentialBorrower = do
       initSugLvl <- agentProperty sugAgInitSugEndow
       initSpiLvl <- agentProperty sugAgInitSpiEndow
 
+      -- TODO: handle spice on/off
       if sugLvl > initSugLvl && spiLvl > initSpiLvl
         then return $ Just EnoughWealth -- agent has already enough wealth
-        else return Nothing -- TODO check if credit-worthy if not, send NotCreditWorthy, credit worthyness: has the agent had a net income in the most recent time-step?
+        else do
+          netInc <- agentProperty sugAgNetIncome
+
+          if netInc <= 0
+            then return $ Just NotCreditWorthy -- not creditworthy: has the agent had a net income in the most recent time-step?
+            else return Nothing                    
 
     else return $ Just NotFertileAge -- agent is not child-bearing age 

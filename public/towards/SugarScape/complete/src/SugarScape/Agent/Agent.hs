@@ -66,8 +66,14 @@ generalEventHandler params myId =
         (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
           ao <- arrM (uncurry3 (handleTradingOffer myId)) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CreditOffer sugar spice)) -> do
-          ao <- arrM (uncurry3 (handleCreditOffer myId)) -< (sender, sugar, spice)
+        (DomainEvent (sender, CreditOffer sugarFace spiceFace)) -> do
+          ao <- arrM (uncurry3 (handleCreditOffer params myId)) -< (sender, sugarFace, spiceFace)
+          returnA -< (ao, Nothing)
+        (DomainEvent (sender, CreditPayback sugar spice)) -> do
+          ao <- arrM (uncurry3 (handleCreditPayback myId)) -< (sender, sugar, spice)
+          returnA -< (ao, Nothing)
+        (DomainEvent (sender, CreditInherit children)) -> do
+          ao <- arrM (uncurry (handleCreditInherit myId)) -< (sender, children)
           returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
@@ -81,6 +87,9 @@ handleTimeStep params myId = do
   
   (harvestAmount, aoMove) <- agentMove params myId
   metabAmount             <- agentMetabolism params myId
+  -- initialize net-income to gathering minus metabolism, might adjusted later during credit-handling
+  updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - fromIntegral metabAmount})
+  -- compute polution and diffusion
   agentPolute params harvestAmount (fromIntegral metabAmount)
 
   -- NOTE: ordering is important to replicate the dynamics

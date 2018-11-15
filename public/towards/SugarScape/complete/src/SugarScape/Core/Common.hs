@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module SugarScape.Core.Common 
+module SugarScape.Core.Common
   ( Time
   , DTime
   , AgentId
@@ -26,7 +26,7 @@ data ABSState = ABSState
   } deriving (Show, Eq)
 
 getSimTime :: MonadState ABSState m
-            => m Time
+           => m Time
 getSimTime = gets absTime
 
 nextAgentId :: MonadState ABSState m

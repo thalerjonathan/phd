@@ -77,6 +77,8 @@ inheritance params _myId ao
     sugLvl   <- agentProperty sugAgSugarLevel
     children <- agentProperty sugAgChildren
 
+    -- TODO: send CreditInherit to all borrowers 
+
     -- only inherit in case 
     -- 1. there is sugar left (performance optimisation) (sugLvl is 0 in case the agent starved to death=
     -- 2. there are actually children

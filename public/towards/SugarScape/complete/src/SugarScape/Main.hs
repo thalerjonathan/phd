@@ -37,7 +37,7 @@ data Options = Options
   }
 
 -- clear & stack exec -- sugarscape -s "Figure IV-14" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape -s "Figure IV-14" --freq 0 --ac Default --sc Resource -r 42
+-- clear & stack exec -- sugarscape -s "Figure IV-14" -v 0 --ac Default --sc Resource -r 42
 
 main :: IO ()
 main = do
@@ -65,8 +65,8 @@ runSugarscape opts = do
       print scenario
       putStrLn "--------------------------------------------------"
 
-      putStrLn $ "Output Type: \t\t\t" ++ show output
       putStrLn $ "RNG Seed: \t\t\t" ++ maybe "N/A - using default global random number initialisation" show rngSeed
+      putStrLn $ "Output Type: \t\t\t" ++ show output
       putStrLn "--------------------------------------------------"
 
       (initSimState, initEnv) <- initSimulationOpt rngSeed scenario
@@ -93,14 +93,14 @@ parseOptions
     <$> strOption
       (  long "scenario"
       <> short 's'
-      <> metavar "STRING"
+      <> metavar "String"
       <> help "SugarScape scenario to run e.g. \"Animation II-2\"" )
     <*> parseOutput
     <*> optional (option auto  
       ( long "rng" 
       <> short 'r'
       <> help "Fixing rng seed" 
-      <> metavar "INT"))
+      <> metavar "Int"))
 
 parseOutput :: Parser Output
 parseOutput = fileOut    <|> 
@@ -109,22 +109,22 @@ parseOutput = fileOut    <|>
 
 consoleOut :: Parser Output
 consoleOut = Console <$> option auto
-              (  long "consolesteps"
+              (  long "consoleout"
               <> short 'c'
               <> help "Print output to console after number of steps"
               <> value 1000
-              <> metavar "INT" )
+              <> metavar "Int" )
 
 fileOut :: Parser Output
 fileOut = File 
         <$> option auto
-          (  long "filesteps"
+          (  long "fileout"
           <> short 'f'
           <> help "Write each step to output file"
           <> value 1000
-          <> metavar "INT" )
+          <> metavar "Int" )
         <*> strOption
-          (  long "fileout"
+          (  long "output"
           <> short 'o'
           <> value "export/dynamics.m"
           <> metavar "String"
@@ -133,10 +133,11 @@ fileOut = File
 visualOut :: Parser Output
 visualOut = Visual 
          <$> option auto
-           (  long "freq"
-           <> help "Steps calculated per second"
+           (  long "visual"
+           <> short 'v'
+           <> help "Visual steps calculated per second without upper limit of steps calculated in total (infinitely running)"
            <> value 0
-           <> metavar "INT" )
+           <> metavar "Int" )
         <*> option auto
            (  long "ac"
            <> help "Coloring of agents"

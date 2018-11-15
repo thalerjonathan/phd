@@ -109,7 +109,7 @@ data SugarScapeScenario = SugarScapeScenario
 
 instance Show SugarScapeScenario where
   show params = 
-    sgScenarioName params ++
+    "Scenario: \t\t\t" ++ sgScenarioName params ++
 
     "\n\nAgent count: \t\t\t" ++ show (sgAgentCount params) ++ 
     "\nAgent distribution: \t\t" ++ show (sgAgentDistribution params) ++
@@ -141,7 +141,7 @@ instance Show SugarScapeScenario where
     "\nK rule active (culture): \t" ++ show (spCulturalProcess params) ++
     "\nC rule active (combat): \t" ++ show (spCombat params) ++
     "\nT rule active (trading): \t" ++ show (spTradingEnabled params) ++
-    "\nL rule active (credits): \t" ++ show (spTradingEnabled params)
+    "\nL rule active (credits): \t" ++ show (spCreditEnabled params)
 
 sugarScapeScenarios :: [SugarScapeScenario]
 sugarScapeScenarios = [

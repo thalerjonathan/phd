@@ -67,6 +67,8 @@ data SugAgentState = SugAgentState
   , sugAgSpiceLevel   :: !Double            -- floating point because regrow-rate can be set to floating point values
   , sugAgInitSpiEndow :: !Double
   , sugAgSpiceMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
+  
+  , sugAgCredits      :: 
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable

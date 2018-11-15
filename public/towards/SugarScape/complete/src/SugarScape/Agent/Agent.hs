@@ -25,6 +25,7 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: maybe add a reader for AgentId and SugarScapeScenario?
 agentMsf :: RandomGen g => SugarScapeAgent g
 agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
   (s', ao) <- runStateS (generalEventHandler params aid) -< (s, evt)
@@ -108,10 +109,28 @@ agentContAfterMating :: RandomGen g
                      -> AgentId
                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterMating params myId = do
-  aoCulture       <- agentCultureProcess params myId
-  (aoTrade, mhdl) <- agentTrade params myId (generalEventHandler params myId)
+    aoCulture       <- agentCultureProcess params myId
+    (aoTrade, mhdl) <- agentTrade params myId cont
 
-  -- TODO: do credit here
+    let ao = aoCulture `agentOutMergeRightObs` aoTrade
+    return (ao, mhdl)
+  where
+    cont = agentContAfterTrading params myId
 
-  let ao = aoCulture `agentOutMergeRightObs` aoTrade
-  return (ao, mhdl)
+agentContAfterTrading :: RandomGen g 
+                      => SugarScapeScenario
+                      -> AgentId
+                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+agentContAfterTrading params myId = do
+    (aoCredit, mhdl) <- agentCredit params myId cont
+    return (aoCredit, mhdl)
+  where
+    cont = defaultCont params myId
+
+defaultCont :: RandomGen g 
+            => SugarScapeScenario
+            -> AgentId
+            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+defaultCont params myId = do
+  ao <- agentObservableM
+  return (ao, Just $ generalEventHandler params myId)

@@ -10,6 +10,9 @@ import SugarScape.Core.Common
 import SugarScape.Core.Model
 import SugarScape.Core.Simulation
 
+progressBarLength :: Int
+progressBarLength = 40
+
 writeSimulationUntil :: RandomGen g
                      => String
                      -> Time
@@ -26,25 +29,33 @@ writeSimulationUntil fileName tMax ss0 = do
                             => SimulationState g
                             -> Handle
                             -> IO ()
-    writeSimulationUntilAux ss fileHdl 
-        | t > tMax = return ()
-        | otherwise = do
+    writeSimulationUntilAux ss fileHdl = do
+        let  (ss', (t, _, _, aobs)) = simulationStep ss
+        
+        printProgress t
+
+        hPutStrLn fileHdl ("{ " ++ show t ++ ",")
+        mapM_ writeAgentObservable aobs
+        hPutStrLn fileHdl "}"
+
+        hFlush fileHdl
+
+        if t >= tMax
+          then return ()
+          else writeSimulationUntilAux ss' fileHdl
+
+      where
+        printProgress :: Time -> IO () 
+        printProgress t = do
           let progRatio  = (fromIntegral t / fromIntegral tMax) :: Double
               percentage = 100 * progRatio
-              
-              maxBar     = 40 :: Int
-              barElems   = floor (progRatio * fromIntegral maxBar)
-              barSpace   = maxBar - barElems
+            
+              barElems   = floor (progRatio * fromIntegral progressBarLength)
+              barSpace   = progressBarLength - barElems
               progBar    = "|" ++ replicate barElems '=' ++ replicate barSpace ' ' ++ "|"
-           
-          putStr $ "\r" ++ progBar ++ printf " %.2f" percentage ++ "%"
-
-          hPutStrLn fileHdl ("{ " ++ show t ++ ",")
-          mapM_ writeAgentObservable aobs
-          hPutStrLn fileHdl "}"
-          writeSimulationUntilAux ss' fileHdl
-      where
-        (ss', (t, _, _, aobs)) = simulationStep ss
+          
+          putStr $ "\r" ++ progBar ++ printf " %.1f" percentage ++ "%"
+          
 
         writeAgentObservable :: AgentObservable SugAgentObservable -> IO ()
         writeAgentObservable (aid, ao) 

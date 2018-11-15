@@ -1,7 +1,7 @@
 module SugarScape.Visual.Renderer 
   ( AgentObservable
-  , AgentVis (..)
-  , SiteVis (..)
+  , AgentColoring (..)
+  , SiteColoring (..)
 
   , renderSugarScapeFrame
   ) where
@@ -17,16 +17,16 @@ import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Simulation
 
-data AgentVis = Default 
-              | Gender 
-              | Culture
-              | Tribe
-              | Welfare
-              deriving (Eq, Show)
+data AgentColoring = Default 
+                   | Gender 
+                   | Culture
+                   | Tribe
+                   | Welfare
+                   deriving (Eq, Show, Read)
 
-data SiteVis = Resource
-             | Polution 
-             deriving (Eq, Show)
+data SiteColoring = Resource
+                  | Polution 
+                  deriving (Eq, Show, Read)
 
 type SugEnvironmentRenderer = EnvRendererDisc2d SugEnvSite
 type SugarScapeAgentRenderer = AgentRendererDisc2d SugAgentObservable
@@ -39,8 +39,8 @@ renderSugarScapeFrame :: (Int, Int)
                       -> Int
                       -> SugEnvironment
                       -> [AgentObservable SugAgentObservable]
-                      -> AgentVis
-                      -> SiteVis
+                      -> AgentColoring
+                      -> SiteColoring
                       -> GLO.Picture
 renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, stepsTxt, asCntTxt, maxIdTxt])
@@ -64,7 +64,7 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     halfWSizeX = fromIntegral wx / 2.0 
     halfWSizeY = fromIntegral wy / 2.0 
 
-renderEnvSite :: SiteVis -> SugEnvironmentRenderer
+renderEnvSite :: SiteColoring -> SugEnvironmentRenderer
 renderEnvSite Resource r@(rw, _rh) w _t (coord, site) 
     | null pics' = Nothing
     | otherwise  = Just $ GLO.Pictures pics'
@@ -94,7 +94,7 @@ renderEnvSite Polution r@(rw, rh) w _t (coord, site) = Just polLvlSquare
     polColor     = if polLvl == 0 then GLO.white else GLO.makeColor 0 polRatio 0 1
     polLvlSquare = GLO.color polColor $ GLO.translate x y $ GLO.rectangleSolid rw rh
 
-sugarscapeAgentRenderer :: AgentVis -> SugarScapeAgentRenderer
+sugarscapeAgentRenderer :: AgentColoring -> SugarScapeAgentRenderer
 sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s) 
     = GLO.Pictures [circ, txt]
   where
@@ -106,7 +106,7 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
     circ   = GLO.color col $ GLO.translate x y $ GLO.ThickCircle 0 rw
     txt    = GLO.color GLO.white $ GLO.translate (x - (rw * 0.4)) (y - (rh * 0.1)) $ GLO.scale 0.04 0.04 $ GLO.Text (show aid)
 
-    agentColor :: AgentVis -> GLO.Color
+    agentColor :: AgentColoring -> GLO.Color
     agentColor Gender  = genderColor (sugObsGender s)
     agentColor Culture = cultureColor (sugObsTribe s)
     agentColor Tribe   = cultureColor (sugObsTribe s)

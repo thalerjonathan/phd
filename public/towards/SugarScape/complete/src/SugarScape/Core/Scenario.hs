@@ -477,7 +477,7 @@ mkParamsFigureIV_11 = mkParamsFigureIV_10 {
 -- see page 123
 mkParamsFigureIV_14 :: SugarScapeScenario
 mkParamsFigureIV_14 = mkParamsFigureIV_3 {
-    sgScenarioName           = "Figure IV-14"
+    sgScenarioName         = "Figure IV-14"
   , sgAgentCount           = 400
   , spAgeSpan              = Range 60 100
 

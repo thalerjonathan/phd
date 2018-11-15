@@ -12,9 +12,9 @@ import SugarScape.Visual.Renderer
 import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
 
-data Output = Console Int                  -- steps
-            | File Int String              -- steps, filename
-            | Visual Int AgentVis SiteVis  -- render-freq, agent vis, site-vis
+data Output = Console Int      -- steps
+            | File Int String  -- steps, filename
+            | Visual Int AgentColoring SiteColoring  -- render-freq, agent vis, site-vis
 
 instance Show Output where
   show (Console steps)     = "CONSOLE " ++ show steps ++ 
@@ -22,16 +22,22 @@ instance Show Output where
                               " steps to console)"
   show (File steps file)   = "FILE " ++ show steps ++ " " ++ show file ++ 
                               " (write output of " ++ show steps ++ " steps to file " ++ show file ++ ")"
-  show (Visual freq av sv) = "VISUAL "  ++ show freq ++ " " ++ show av ++ " " ++ show sv ++
+  show (Visual 0 ac sc) = "VISUAL MAX " ++ show ac ++ " " ++ show sc ++
+                              " (render as many steps per second possible, Agent-Coloring: " ++ show ac ++ 
+                              ", Site-Coloring: " ++ show sc ++ ")"
+  show (Visual freq ac sc) = "VISUAL "  ++ show freq ++ " " ++ show ac ++ " " ++ show sc ++
                               " (render " ++ show freq ++ 
-                              " steps per second, Agent-Visualisation: " ++ show av ++ 
-                              ", Site-Visualisation: " ++ show sv ++ ")"
+                              " steps per second, Agent-Coloring: " ++ show ac ++ 
+                              ", Site-Coloring: " ++ show sc ++ ")"
 
 data Options = Options 
   { optScenario :: String
   , optOutput   :: Output
   , optRngSeed  :: Maybe Int
   }
+
+-- clear & stack exec -- sugarscape -s "Figure IV-14" -f 1000 -o export/dynamics.m -r 42
+-- clear & stack exec -- sugarscape -s "Figure IV-14" --freq 0 --ac Default --sc Resource -r 42
 
 main :: IO ()
 main = do
@@ -41,8 +47,7 @@ main = do
   where
     opts = info (parseOptions <**> helper)
       ( fullDesc
-     <> progDesc "Print a greeting for TARGET"
-     <> header "hello - a test for optparse-applicative" )
+     <> progDesc "Full implementation of the famous SugarScape model by J. Epstein and R. Axtell.")
 
 runSugarscape :: Options -> IO ()
 runSugarscape opts = do
@@ -88,23 +93,24 @@ parseOptions
     <$> strOption
       (  long "scenario"
       <> short 's'
-      <> metavar "SCENARIO"
+      <> metavar "STRING"
       <> help "SugarScape scenario to run e.g. \"Animation II-2\"" )
     <*> parseOutput
-    <*> option auto
-      (  long "rng"
-      <> help "Fixing rng seed"
-      <> value Nothing
-      <> metavar "INT" )
+    <*> optional (option auto  
+      ( long "rng" 
+      <> short 'r'
+      <> help "Fixing rng seed" 
+      <> metavar "INT"))
 
 parseOutput :: Parser Output
-parseOutput = fileOut  <|> 
-              consoleOut -- <|> 
-              -- visualOut
+parseOutput = fileOut    <|> 
+              consoleOut <|> 
+              visualOut
 
 consoleOut :: Parser Output
 consoleOut = Console <$> option auto
               (  long "consolesteps"
+              <> short 'c'
               <> help "Print output to console after number of steps"
               <> value 1000
               <> metavar "INT" )
@@ -113,11 +119,31 @@ fileOut :: Parser Output
 fileOut = File 
         <$> option auto
           (  long "filesteps"
+          <> short 'f'
           <> help "Write each step to output file"
           <> value 1000
           <> metavar "INT" )
         <*> strOption
           (  long "fileout"
+          <> short 'o'
           <> value "export/dynamics.m"
-          <> metavar "OUTPUTFILE"
+          <> metavar "String"
           <> help "Output file" )
+      
+visualOut :: Parser Output
+visualOut = Visual 
+         <$> option auto
+           (  long "freq"
+           <> help "Steps calculated per second"
+           <> value 0
+           <> metavar "INT" )
+        <*> option auto
+           (  long "ac"
+           <> help "Coloring of agents"
+           <> value Default
+           <> metavar "Default | Gender | Culture | Tribe | Welfare" )
+        <*> option auto
+           (  long "sc"
+           <> help "Coloring of sites"
+           <> value Resource
+           <> metavar "Resource | Polution" )

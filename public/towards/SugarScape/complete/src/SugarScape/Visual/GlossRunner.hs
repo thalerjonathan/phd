@@ -18,8 +18,8 @@ runGloss :: RandomGen g
          -> SimulationState g
          -> SimStepOut
          -> Int
-         -> AgentVis
-         -> SiteVis
+         -> AgentColoring
+         -> SiteColoring
          -> IO ()
 runGloss params initSimState initOut stepsPerSec av cv = do
   let winSize  = (800, 800)
@@ -49,8 +49,8 @@ displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow winTitle winSize = GLO.InWindow winTitle winSize (0, 0)
 
 modelToPicture :: (Int, Int)
-               -> AgentVis
-               -> SiteVis
+               -> AgentColoring
+               -> SiteColoring
                -> SimStepOut
                -> IO GLO.Picture
 modelToPicture winSize av cv (t, steps, env, as) 
@@ -72,8 +72,8 @@ renderStep ssRef _ _ _ = do
 renderStepAnimate :: RandomGen g
                   => (Int, Int)
                   -> IORef (SimulationState g)
-                  -> AgentVis
-                  -> SiteVis
+                  -> AgentColoring
+                  -> SiteColoring
                   -> Float
                   -> IO GLO.Picture
 renderStepAnimate winSize ssRef av cv _ = do

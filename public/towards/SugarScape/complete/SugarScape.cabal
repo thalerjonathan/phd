@@ -118,26 +118,28 @@ Test-Suite sugarscape-test
                       , StatsUtils
                       , Runner
                       
-                      , SugarScape.Agent
+                      , SugarScape.Agent.Agent
                       , SugarScape.Agent.Ageing
                       , SugarScape.Agent.Common
                       , SugarScape.Agent.Culture
                       , SugarScape.Agent.Dying                
                       , SugarScape.Agent.Interface
+                      , SugarScape.Agent.Loan
                       , SugarScape.Agent.Mating
                       , SugarScape.Agent.Metabolism
                       , SugarScape.Agent.Move
                       , SugarScape.Agent.Polution
                       , SugarScape.Agent.Trading
                       , SugarScape.Agent.Utils
-                      , SugarScape.Common 
-                      , SugarScape.Discrete
-                      , SugarScape.Environment
-                      , SugarScape.Init
-                      , SugarScape.Model
-                      , SugarScape.Random
-                      , SugarScape.Simulation
-                      , SugarScape.Utils
+                      , SugarScape.Core.Common 
+                      , SugarScape.Core.Discrete
+                      , SugarScape.Core.Environment
+                      , SugarScape.Core.Init
+                      , SugarScape.Core.Model
+                      , SugarScape.Core.Random
+                      , SugarScape.Core.Scenario
+                      , SugarScape.Core.Simulation
+                      , SugarScape.Core.Utils
 
   hs-source-dirs:       src/
                       , src/test

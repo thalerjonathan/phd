@@ -8,12 +8,13 @@ import Data.Maybe
 import Control.Monad.Random
 import Control.Parallel.Strategies
 import Test.Tasty
-import Test.Tasty.HUnit      as Unit
+import Test.Tasty.HUnit as Unit
 
-import SugarScape.Discrete
-import SugarScape.Model
-import SugarScape.Random
-import SugarScape.Simulation
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Random
+import SugarScape.Core.Scenario
+import SugarScape.Core.Simulation
 -- need this import for Arbitrary instance of SugEnvironment but Haskell thinks its unused => turn off unused import :(
 -- import Agent
 -- import Environment
@@ -220,7 +221,7 @@ prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less tha
     tTestGini     = tTest "gini wealth distr" gs expGini 0.05
 
 genPopulationWealthStats :: RandomGen g 
-                          => SugarScapeParams
+                          => SugarScapeScenario
                           -> Int
                           -> g
                           -> (Double, Double, Double)

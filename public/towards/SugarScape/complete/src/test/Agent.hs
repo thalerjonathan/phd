@@ -11,9 +11,10 @@ import Test.Tasty.QuickCheck as QC
 import SugarScape.Agent.Ageing
 import SugarScape.Agent.Common
 import SugarScape.Agent.Metabolism 
-import SugarScape.Common
-import SugarScape.Discrete
-import SugarScape.Model
+import SugarScape.Core.Common
+import SugarScape.Core.Discrete
+import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
 import Runner
 
@@ -41,6 +42,9 @@ instance Arbitrary SugAgentState where
     , sugAgSpiceLevel   = randSugarEndowment
     , sugAgSpiceMetab   = randSugarMetab
     , sugAgInitSpiEndow = randSugarEndowment
+    , sugAgBorrowed     = []
+    , sugAgLent         = []
+    , sugAgNetIncome    = 0
     }
 
 agentTests :: RandomGen g 
@@ -68,7 +72,7 @@ prop_agent_starved g0 asInit sugLvl
     absState0 = defaultAbsState
     env0      = emptyEnvironment
 
-    (starved, as', absState', env', _) = runAgentMonad (starvedToDeath mkSugarScapeParams) as0 absState0 env0 g0
+    (starved, as', absState', env', _) = runAgentMonad (starvedToDeath mkSugarScapeScenario) as0 absState0 env0 g0
     asUnchanged       = as0 == as'
     absStateUnchanged = absState0 == absState'
     envUnchanged      = env0 == env'

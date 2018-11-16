@@ -6,9 +6,10 @@ module Environment
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import SugarScape.Discrete
-import SugarScape.Environment
-import SugarScape.Model
+import SugarScape.Core.Discrete
+import SugarScape.Core.Environment
+import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
 import Runner
 
@@ -62,7 +63,7 @@ prop_env_regrow_rate (Positive rate) env0
     = all posSugarLevel cs'    &&
       all levelLTESugarMax cs'
   where
-    params = mkSugarScapeParams { spSugarRegrow = Rate rate }
+    params = mkSugarScapeScenario { spSugarRegrow = Rate rate }
     env'   = sugEnvBehaviour params 0 env0
     cs'    = allCells env'
 
@@ -73,7 +74,7 @@ prop_env_regrow_rate_full :: Positive Double
 prop_env_regrow_rate_full (Positive rate) env0 
     = all posSugarLevel cs' && all fullSugarLevel cs'
   where
-    params = mkSugarScapeParams { spSugarRegrow = Rate rate }
+    params = mkSugarScapeScenario { spSugarRegrow = Rate rate }
     steps  = ceiling ((fromIntegral maxSugarCapacitySite / rate) :: Double)
     env'   = runSugEnvSteps steps 0 env0 (sugEnvBehaviour params)
     cs'    = allCells env'
@@ -85,7 +86,7 @@ prop_env_regrow_full :: Discrete2d SugEnvSite
 prop_env_regrow_full env0 
     = all fullSugarLevel cs && all posSugarLevel cs 
   where
-    params = mkSugarScapeParams { spSugarRegrow = Immediate }
+    params = mkSugarScapeScenario { spSugarRegrow = Immediate }
     env'   = sugEnvBehaviour params 0 env0
     cs     = allCells env'
 

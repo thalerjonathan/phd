@@ -11,10 +11,10 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Interface
-import SugarScape.Common
-import SugarScape.Environment
-import SugarScape.Model
-import SugarScape.Simulation
+import SugarScape.Core.Common
+import SugarScape.Core.Environment
+import SugarScape.Core.Model
+import SugarScape.Core.Simulation
 
 runAgentSFTimeSteps :: RandomGen g
                     => Int

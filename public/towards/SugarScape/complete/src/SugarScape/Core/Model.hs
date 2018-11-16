@@ -71,9 +71,9 @@ data SugAgentState = SugAgentState
   , sugAgInitSpiEndow :: !Double
   , sugAgSpiceMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
   
-  , sugAgLenders      :: [Credit]
-  , sugAgBorrowers    :: [Credit]
-  , sugAgNetIncome    :: Double            -- net income of sugar and spice in the most recent step
+  , sugAgLenders      :: ![Credit]
+  , sugAgBorrowers    :: ![Credit]
+  , sugAgNetIncome    :: !Double            -- net income of sugar and spice in the most recent step
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable

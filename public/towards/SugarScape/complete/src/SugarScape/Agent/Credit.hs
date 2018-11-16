@@ -222,26 +222,32 @@ handleCreditPayback :: RandomGen g
                     -> Double
                     -> AgentAction g (SugAgentOut g)
 handleCreditPayback params myId borrower dueDate sugarFace spiceFace sugarBack spiceBack = do
-    cs <- processBorrower <$> agentProperty sugAgBorrowers
+    t <- absStateLift getSimTime
+    let newDueDate = t + (fst . fromJust $ spCreditEnabled params)
+
+    cs <- processBorrower newDueDate <$> agentProperty sugAgBorrowers
 
     DBG.trace ("Agent " ++ show myId ++ ": received credit payback of " ++ show (sugarBack, spiceBack) ++ " from " ++ show borrower)
       updateAgentState (\s -> s { sugAgBorrowers  = cs
-                              , sugAgSugarLevel = sugAgSugarLevel s + sugarBack
-                              , sugAgSpiceLevel = sugAgSpiceLevel s + spiceBack})
+                                , sugAgSugarLevel = sugAgSugarLevel s + sugarBack
+                                , sugAgSpiceLevel = sugAgSpiceLevel s + spiceBack})
     -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
     updateSiteWithOccupier myId
 
     agentObservableM
   where
-    processBorrower :: [Credit]
+    processBorrower :: Time
                     -> [Credit]
-    processBorrower cs 
+                    -> [Credit]
+    processBorrower newDueDate cs 
         -- NOTE: we know that its fully paid back if sugar and spice equals face
         -- NOTE: attention, there could be more than 1 credit to the same borrower
         | isNothing mxid = error "Couldn't find credit for borrower payback in lenders credit, exit"
         | otherwise = if fullyPaidBack c
-                        then cs'
-                        else c' : cs'
+                        then DBG.trace ("Agent " ++ show myId ++ ": received FULL credit payback of " ++ show (sugarBack, spiceBack) ++ 
+                                        " from " ++ show borrower) cs'
+                        else DBG.trace("Agent " ++ show myId ++ ": received PARTIAL credit payback of " ++ show (sugarBack, spiceBack) ++ 
+                              " from " ++ show borrower) (c' : cs')
       where
         mxid = findIndex findCredit cs 
         idx  = fromJust mxid
@@ -254,10 +260,7 @@ handleCreditPayback params myId borrower dueDate sugarFace spiceFace sugarBack s
           = sugarFace' == sugarBack && spiceFace' == spiceBack
 
         newCredit :: Credit
-        newCredit = Credit dueDate' borrower (sugarFace - sugarBack) (spiceFace - spiceBack)
-          where
-            -- dueDate == current simulation time
-            dueDate' = dueDate + (fst . fromJust $ spCreditEnabled params)
+        newCredit = Credit newDueDate borrower (sugarFace - sugarBack) (spiceFace - spiceBack)
 
         -- this should be uniuqe, only one one credit per step issued per borrower
         findCredit :: Credit -> Bool

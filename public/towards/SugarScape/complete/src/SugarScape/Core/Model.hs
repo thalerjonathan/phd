@@ -44,11 +44,13 @@ import SugarScape.Core.Discrete
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data AgentGender = Male | Female deriving (Show, Eq)
-type CultureTag  = [Bool]
-data AgentTribe  = Blue | Red deriving (Show, Eq)
-data TradeInfo   = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
-data Loan      = Loan Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
+data AgentGender  = Male | Female deriving (Show, Eq)
+type CultureTag   = [Bool]
+data AgentTribe   = Blue | Red deriving (Show, Eq)
+data TradeInfo    = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
+data Loan         = Loan Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
+type ImmuneSystem = [Bool]
+type Disesase     = [Bool]
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -74,6 +76,10 @@ data SugAgentState = SugAgentState
   , sugAgBorrowed     :: ![Loan]    -- contains the Loans the agent has borrowed from the lenders
   , sugAgLent         :: ![Loan]    -- contains the Loans the agent has lent out to borrowers
   , sugAgNetIncome    :: !Double            -- net income of sugar and spice in the most recent step
+
+  -- Chapter V properties
+  , sugAgImmuneSystem :: !ImmuneSystem
+  , sugAgDiseases     :: [Disesase]
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
@@ -91,7 +97,7 @@ data SugAgentObservable = SugAgentObservable
   -- Chapter IV properties
   , sugObsSpiLvl     :: !Double
   , sugObsSpiMetab   :: !Int
-  , sugObsTrades     :: [TradeInfo]
+  , sugObsTrades     :: ![TradeInfo]
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 

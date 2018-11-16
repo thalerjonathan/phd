@@ -54,6 +54,7 @@ executable sugarscape
                 , SugarScape.Agent.Ageing
                 , SugarScape.Agent.Common
                 , SugarScape.Agent.Culture
+                , SugarScape.Agent.Disease
                 , SugarScape.Agent.Dying                
                 , SugarScape.Agent.Interface
                 , SugarScape.Agent.Loan
@@ -122,6 +123,7 @@ Test-Suite sugarscape-test
                       , SugarScape.Agent.Ageing
                       , SugarScape.Agent.Common
                       , SugarScape.Agent.Culture
+                      , SugarScape.Agent.Disease
                       , SugarScape.Agent.Dying                
                       , SugarScape.Agent.Interface
                       , SugarScape.Agent.Loan

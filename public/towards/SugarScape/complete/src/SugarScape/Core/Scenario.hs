@@ -46,6 +46,9 @@ module SugarScape.Core.Scenario
   , mkParamsFigureIV_11
   , mkParamsFigureIV_14
   , mkParamsAnimationIV_5
+
+  , mkParamsAnimationV_1
+  , mkParamsAnimationV_2
   ) where
 
 import SugarScape.Core.Common
@@ -106,6 +109,9 @@ data SugarScapeScenario = SugarScapeScenario
   , spTradingEnabled       :: Bool            -- trading rule T on / off
   
   , spLoansEnabled         :: Maybe (Time, Double)    -- loan rule L on / off with duration of d years and rate of r percent
+
+  -- Chapter V params
+  , spDiseasesEnabled      :: Maybe (Int, Int)   -- diseases E rule on / off
   } 
 
 instance Show SugarScapeScenario where
@@ -142,7 +148,8 @@ instance Show SugarScapeScenario where
     "\nK rule active (culture): \t" ++ show (spCulturalProcess params) ++
     "\nC rule active (combat): \t" ++ show (spCombat params) ++
     "\nT rule active (trading): \t" ++ show (spTradingEnabled params) ++
-    "\nL rule active (loans): \t\t" ++ show (spLoansEnabled params)
+    "\nL rule active (loans): \t\t" ++ show (spLoansEnabled params) ++
+    "\nE rule active (disease): \t" ++ show (spDiseasesEnabled params)
 
 sugarScapeScenarios :: [SugarScapeScenario]
 sugarScapeScenarios = [
@@ -182,6 +189,9 @@ sugarScapeScenarios = [
   , mkParamsFigureIV_11
   , mkParamsFigureIV_14
   , mkParamsAnimationIV_5
+
+  , mkParamsAnimationV_1
+  , mkParamsAnimationV_2
   ]
 
 mkSugarScapeScenario :: SugarScapeScenario
@@ -212,6 +222,7 @@ mkSugarScapeScenario = SugarScapeScenario {
   , spSpiceMetabolismRange = (0, 0)
   , spTradingEnabled       = False
   , spLoansEnabled         = Nothing
+  , spDiseasesEnabled      = Nothing
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -525,4 +536,34 @@ mkParamsAnimationIV_5 = mkParamsAnimationII_2 {
   
   --, spInheritance  = True          -- enable inheritance (credits are inherited as well!)
   , spLoansEnabled = Just (10, 10) -- enable credits with duration = 10 and rate r = 10
+  }
+
+------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER V: Disease Processes
+------------------------------------------------------------------------------------------------------------------------
+-- last chapter
+mkParamsAnimationV_1 :: SugarScapeScenario
+mkParamsAnimationV_1 = mkParamsAnimationII_2 {
+    sgScenarioName = "Animation V-1"
+  , sgAgentCount           = 400
+  , spSugarEndowmentRange  = (50, 100)
+
+  , spSexRuleActive        = True
+  , spGenderRatio          = 0.5
+  , spFertStartRangeFemale = (12, 15)
+  , spFertStartRangeMale   = (12, 15)
+  , spFertEndRangeFemale   = (40, 50)
+  , spFertEndRangeMale     = (50, 60)
+  
+  , spSpiceEnabled         = False
+  , spSpiceRegrow          = Immediate
+  , spSpiceEndowmentRange  = (0, 0)
+  , spSpiceMetabolismRange = (0, 0)
+  
+  , spDiseasesEnabled      = Just (10, 5) -- enable diseases
+  }
+
+mkParamsAnimationV_2 :: SugarScapeScenario
+mkParamsAnimationV_2 = mkParamsAnimationV_1 {
+    sgScenarioName = "Animation V-2"
   }

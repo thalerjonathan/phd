@@ -328,6 +328,8 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgBorrowed     = []
   , sugAgLent         = []
   , sugAgNetIncome    = 0
+  , sugAgImmuneSystem = [] -- TODO: initialise
+  , sugAgDiseases     = [] -- TODO: initialise
   }
 
   let s'   = f s

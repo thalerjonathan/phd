@@ -11,6 +11,7 @@ import Data.MonadicStreamFunction
 import SugarScape.Agent.Ageing
 import SugarScape.Agent.Common
 import SugarScape.Agent.Culture
+import SugarScape.Agent.Disease
 import SugarScape.Agent.Dying
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Loan
@@ -134,8 +135,16 @@ agentContAfterTrading :: RandomGen g
                       -> AgentId
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterTrading params myId = do
-    (aoLoan, mhdl) <- agentLoan params myId cont
-    return (aoLoan, mhdl)
+  (aoLoan, mhdl) <- agentLoan params myId (agentContAfterLoan params myId)
+  return (aoLoan, mhdl)
+
+agentContAfterLoan :: RandomGen g 
+                   => SugarScapeScenario
+                   -> AgentId
+                   -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+agentContAfterLoan params myId = do
+    (aoDisease, mhdl) <- agentDisease params myId cont
+    return (aoDisease, mhdl)
   where
     cont = defaultCont params myId
 

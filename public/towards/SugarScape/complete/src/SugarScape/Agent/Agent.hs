@@ -69,8 +69,8 @@ generalEventHandler params myId =
         (DomainEvent (sender, CreditOffer sugarFace spiceFace)) -> do
           ao <- arrM (uncurry3 (handleCreditOffer params myId)) -< (sender, sugarFace, spiceFace)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CreditPayback sugar spice)) -> do
-          ao <- arrM (uncurry3 (handleCreditPayback myId)) -< (sender, sugar, spice)
+        (DomainEvent (sender, CreditPayback dueDate sugarFace spiceFace sugarBack spiceBack)) -> do
+          ao <- arrM (uncurry6 (handleCreditPayback params myId)) -< (sender, dueDate, sugarFace, spiceFace, sugarBack, spiceBack)
           returnA -< (ao, Nothing)
         (DomainEvent (sender, CreditInherit children)) -> do
           ao <- arrM (uncurry (handleCreditInherit myId)) -< (sender, children)

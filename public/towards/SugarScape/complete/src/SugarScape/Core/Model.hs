@@ -48,7 +48,7 @@ data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
 data AgentTribe  = Blue | Red deriving (Show, Eq)
 data TradeInfo   = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
-data Credit      = Credit Time AgentId Double Double deriving (Show, Eq)
+data Credit      = Credit Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -146,7 +146,7 @@ data SugEvent = MatingRequest AgentGender
 
               | CreditOffer Double Double
               | CreditReply CreditReply
-              | CreditPayback Double Double
+              | CreditPayback Time Double Double Double Double -- due date, sugarFace, spiceFace, sugarBack, spiceBack
               | CreditInherit [AgentId]
               deriving (Show, Eq)
 

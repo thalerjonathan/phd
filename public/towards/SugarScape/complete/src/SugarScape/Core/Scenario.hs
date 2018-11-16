@@ -105,7 +105,7 @@ data SugarScapeScenario = SugarScapeScenario
 
   , spTradingEnabled       :: Bool            -- trading rule T on / off
   
-  , spCreditEnabled        :: Maybe (Time, Double)    -- credit rule I on / off with duration of d years and rate of r percent
+  , spLoansEnabled         :: Maybe (Time, Double)    -- loan rule L on / off with duration of d years and rate of r percent
   } 
 
 instance Show SugarScapeScenario where
@@ -142,7 +142,7 @@ instance Show SugarScapeScenario where
     "\nK rule active (culture): \t" ++ show (spCulturalProcess params) ++
     "\nC rule active (combat): \t" ++ show (spCombat params) ++
     "\nT rule active (trading): \t" ++ show (spTradingEnabled params) ++
-    "\nL rule active (credits): \t" ++ show (spCreditEnabled params)
+    "\nL rule active (loans): \t\t" ++ show (spLoansEnabled params)
 
 sugarScapeScenarios :: [SugarScapeScenario]
 sugarScapeScenarios = [
@@ -186,7 +186,7 @@ sugarScapeScenarios = [
 
 mkSugarScapeScenario :: SugarScapeScenario
 mkSugarScapeScenario = SugarScapeScenario {
-    sgScenarioName           = "Default"
+    sgScenarioName         = "Default"
   , sgAgentCount           = 0
   , spSugarRegrow          = Immediate
   , sgAgentDistribution    = Scatter
@@ -211,7 +211,7 @@ mkSugarScapeScenario = SugarScapeScenario {
   , spSpiceEndowmentRange  = (0, 0)
   , spSpiceMetabolismRange = (0, 0)
   , spTradingEnabled       = False
-  , spCreditEnabled        = Nothing
+  , spLoansEnabled         = Nothing
   }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -220,7 +220,7 @@ mkSugarScapeScenario = SugarScapeScenario {
 -- Social Evolution with immediate regrow, page 27
 mkParamsAnimationII_1 :: SugarScapeScenario 
 mkParamsAnimationII_1 = mkSugarScapeScenario {
-    sgScenarioName           = "Animation II-1"
+    sgScenarioName         = "Animation II-1"
   , sgAgentCount           = 400     -- page 28
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Immediate -- regrow to max immediately
@@ -241,7 +241,7 @@ mkParamsAnimationII_2 = mkParamsAnimationII_1 {
 -- Wealth Distribution page 34
 mkParamsAnimationII_3 :: SugarScapeScenario
 mkParamsAnimationII_3 = mkParamsAnimationII_2 {
-    sgScenarioName    = "Animation II-3"
+    sgScenarioName  = "Animation II-3"
   , sgAgentCount    = 250           -- page 33
   , spReplaceAgents = True          -- page 33
   , spAgeSpan       = Range 60 100  -- page 33
@@ -260,7 +260,7 @@ mkParamsAnimationII_5 = mkParamsAnimationII_4 {
 -- Migration as described on page 42 and 43 in Animation II-6
 mkParamsAnimationII_6 :: SugarScapeScenario
 mkParamsAnimationII_6 = mkParamsAnimationII_2 {
-    sgScenarioName        = "Animation II-6"
+    sgScenarioName      = "Animation II-6"
   , sgAgentCount        = 300              -- 300 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
   , sgAgentDistribution = Corner (20, 20)
   , spSugarRegrow       = Rate 0.5              -- 0.5 otherwise no waves, see https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape
@@ -277,7 +277,7 @@ mkParamsAnimationII_7 = mkParamsAnimationII_1 {
 -- Polution as described on page 45 to 50 in Animation II-8
 mkParamsAnimationII_8 :: SugarScapeScenario
 mkParamsAnimationII_8 = mkParamsAnimationII_2 {
-    sgScenarioName        = "Animation II-8"
+    sgScenarioName      = "Animation II-8"
   , spPolutionFormation = Polute 1 1
   , spPolutionDiffusion = Just 1
   }
@@ -304,7 +304,7 @@ mkParamsAnimationIII_1 = mkParamsAnimationII_2 {
 -- page 64, same as mkParamsAnimationIII_1 but with changed fertiliy ranges
 mkParamsFigureIII_3 :: SugarScapeScenario
 mkParamsFigureIII_3 = mkParamsAnimationIII_1 {
-    sgScenarioName         = "Figure III-3"
+    sgScenarioName       = "Figure III-3"
   , spFertEndRangeFemale = (30, 40)
   , spFertEndRangeMale   = (40, 50)
   }
@@ -312,15 +312,15 @@ mkParamsFigureIII_3 = mkParamsAnimationIII_1 {
 -- page 65, same as mkParamsAnimationIII_1 but with changed intiial endowment (=> lower requirements for child-bearing wealth)
 mkParamsFigureIII_4 :: SugarScapeScenario
 mkParamsFigureIII_4 = mkParamsAnimationIII_1 {
-    sgScenarioName          = "Figure III-4"
+    sgScenarioName        = "Figure III-4"
   , spSugarEndowmentRange = (10, 40)
   }
 
 -- Page 67, includes the inheritance rule
 mkParamsFigureIII_7 :: SugarScapeScenario
 mkParamsFigureIII_7 = mkParamsAnimationIII_1 {
-    sgScenarioName  = "Figure III-7"
-  , spInheritance = True  -- same as Animation III-1 but with inheritance on
+    sgScenarioName = "Figure III-7"
+  , spInheritance  = True  -- same as Animation III-1 but with inheritance on
   }
 
 mkParamsAnimationIII_4 :: SugarScapeScenario
@@ -331,7 +331,7 @@ mkParamsAnimationIII_4 = mkParamsFigureIII_7 {
 -- cultural process, page 73
 mkParamsAnimationIII_6 :: SugarScapeScenario
 mkParamsAnimationIII_6 = mkParamsAnimationII_2 {
-    sgScenarioName      = "Animation III-6"
+    sgScenarioName    = "Animation III-6"
   , spCulturalProcess = Just 10
   }
 
@@ -348,7 +348,7 @@ mkParamsFigureIII_8 = mkParamsAnimationIII_6 {
 -- combat, page 82
 mkParamsAnimationIII_9 :: SugarScapeScenario
 mkParamsAnimationIII_9 = mkParamsAnimationII_2 {
-    sgScenarioName        = "Animation III-9"
+    sgScenarioName      = "Animation III-9"
   , sgAgentDistribution = CombatCorners
   , spCombat            = Just (1 / 0)
   , spCulturalProcess   = Just 10 
@@ -362,7 +362,7 @@ mkParamsAnimationIII_10 = mkParamsAnimationIII_9 {
 -- reward equal to a fixed value page 86 / 87
 mkParamsAnimationIII_11 :: SugarScapeScenario
 mkParamsAnimationIII_11 = mkParamsAnimationII_2 {
-    sgScenarioName        = "Animation III-11"
+    sgScenarioName      = "Animation III-11"
   , sgAgentDistribution = CombatCorners
   , spCombat            = Just 2
   , spReplaceAgents     = True     
@@ -371,7 +371,7 @@ mkParamsAnimationIII_11 = mkParamsAnimationII_2 {
 
 mkParamsAnimationIII_14 :: SugarScapeScenario
 mkParamsAnimationIII_14 = mkParamsAnimationII_2 {
-    sgScenarioName        = "Animation III-14"
+    sgScenarioName      = "Animation III-14"
   , sgAgentDistribution = CombatCorners
   , spCombat            = Just (1 / 0)
   , spCulturalProcess   = Just 10
@@ -380,7 +380,7 @@ mkParamsAnimationIII_14 = mkParamsAnimationII_2 {
 -- proto-history page 92/93
 mkParamsAnimationIII_15 :: SugarScapeScenario
 mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
-    sgScenarioName      = "Animation III-15"
+    sgScenarioName    = "Animation III-15"
   , spCulturalProcess = Just 10
   }
 
@@ -390,7 +390,7 @@ mkParamsAnimationIII_15 = mkParamsAnimationIII_1 {
 -- see page 99
 mkParamsAnimationIV_1 :: SugarScapeScenario
 mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
-    sgScenarioName           = "Animation IV-1"
+    sgScenarioName         = "Animation IV-1"
   , spVisionRange          = (1, 10) -- book says 1-10 !!
   
   , spSugarMetabolismRange = (1, 5)  -- book says 1-5 which seems strange bcs maximum level on a site is 4 => agents with 5 will always die sooner or later
@@ -404,7 +404,7 @@ mkParamsAnimationIV_1 = mkParamsAnimationII_2 {
 -- see page 108
 mkParamsFigureIV_3 :: SugarScapeScenario
 mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
-    sgScenarioName           = "Figure IV-3"
+    sgScenarioName         = "Figure IV-3"
   , sgAgentCount           = 200     -- 200 only !
   , spVisionRange          = (1, 5)
 
@@ -414,7 +414,7 @@ mkParamsFigureIV_3 = mkParamsAnimationIV_1 {
   , spSugarEndowmentRange  = (25, 50)
   , spSpiceEndowmentRange  = (25, 50)
 
-  , spTradingEnabled = True
+  , spTradingEnabled       = True
   }
 
 mkParamsFigureIV_4 :: SugarScapeScenario
@@ -441,7 +441,7 @@ mkCarryingCapacityWithSpice = mkParamsAnimationII_2 {
 
 mkParamsFigureIV_6 :: SugarScapeScenario
 mkParamsFigureIV_6 = mkCarryingCapacityWithSpice {
-    sgScenarioName     = "Figure IV-6"
+    sgScenarioName   = "Figure IV-6"
   , spTradingEnabled = True       -- enable trading
   }
 
@@ -506,25 +506,23 @@ mkParamsFigureIV_14 = mkParamsFigureIV_3 {
 
 -- page 130-133
 mkParamsAnimationIV_5 :: SugarScapeScenario
-mkParamsAnimationIV_5 = mkParamsFigureIV_3 {
-    sgScenarioName         = "Animation IV-5"
+mkParamsAnimationIV_5 = mkParamsAnimationII_2 {
+    sgScenarioName = "Animation IV-5"
   , sgAgentCount           = 400
-  , spAgeSpan              = Range 60 100
+  , spSugarEndowmentRange  = (50, 100)
 
-  , spVisionRange          = (1, 6)
-
-  , spSugarMetabolismRange = (1, 4)  
-  , spSpiceMetabolismRange = (1, 4) 
-
-  , spSugarEndowmentRange  = (5, 25)
-  , spSpiceEndowmentRange  = (5, 25)
-
-  , spFertStartRangeFemale = (12, 15)
-  , spFertStartRangeMale   = (12, 15)
-  , spFertEndRangeFemale   = (35, 45)
-  , spFertEndRangeMale     = (45, 55)
   , spSexRuleActive        = True
   , spGenderRatio          = 0.5
-
-  , spCreditEnabled        = Just (10, 10)             -- enable credits with duration = 10 and rate r = 10
+  , spFertStartRangeFemale = (12, 15)
+  , spFertStartRangeMale   = (12, 15)
+  , spFertEndRangeFemale   = (40, 50)
+  , spFertEndRangeMale     = (50, 60)
+  
+  , spSpiceEnabled         = False
+  , spSpiceRegrow          = Immediate
+  , spSpiceEndowmentRange  = (0, 0)
+  , spSpiceMetabolismRange = (0, 0)
+  
+  --, spInheritance  = True          -- enable inheritance (credits are inherited as well!)
+  , spLoansEnabled = Just (10, 10) -- enable credits with duration = 10 and rate r = 10
   }

@@ -10,10 +10,10 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
 import SugarScape.Agent.Common
-import SugarScape.Agent.Credit
 import SugarScape.Agent.Culture
 import SugarScape.Agent.Dying
 import SugarScape.Agent.Interface
+import SugarScape.Agent.Loan
 import SugarScape.Agent.Mating
 import SugarScape.Agent.Metabolism
 import SugarScape.Agent.Move
@@ -66,14 +66,17 @@ generalEventHandler params myId =
         (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
           ao <- arrM (uncurry3 (handleTradingOffer myId)) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CreditOffer sugarFace spiceFace)) -> do
-          ao <- arrM (uncurry3 (handleCreditOffer params myId)) -< (sender, sugarFace, spiceFace)
+        (DomainEvent (_, LoanOffer loan)) -> do
+          ao <- arrM (handleLoanOffer myId) -< loan
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CreditPayback dueDate sugarFace spiceFace sugarBack spiceBack)) -> do
-          ao <- arrM (uncurry6 (handleCreditPayback params myId)) -< (sender, dueDate, sugarFace, spiceFace, sugarBack, spiceBack)
+        (DomainEvent (sender, LoanPayback loan sugarBack spiceBack)) -> do
+          ao <- arrM (uncurry4 (handleLoanPayback params myId)) -< (sender, loan, sugarBack, spiceBack)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CreditInherit children)) -> do
-          ao <- arrM (uncurry (handleCreditInherit myId)) -< (sender, children)
+        (DomainEvent (sender, LoanLenderDied children)) -> do
+          ao <- arrM (uncurry (handleLoanLenderDied myId)) -< (sender, children)
+          returnA -< (ao, Nothing)
+        (DomainEvent (sender, LoanInherit loan)) -> do
+          ao <- arrM (uncurry (handleLoanInherit myId)) -< (sender, loan)
           returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
@@ -87,7 +90,7 @@ handleTimeStep params myId = do
   
   (harvestAmount, aoMove) <- agentMove params myId
   metabAmount             <- agentMetabolism params myId
-  -- initialize net-income to gathering minus metabolism, might adjusted later during credit-handling
+  -- initialize net-income to gathering minus metabolism, might adjusted later during Loan-handling
   updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - fromIntegral metabAmount})
   -- compute polution and diffusion
   agentPolute params harvestAmount (fromIntegral metabAmount)
@@ -131,8 +134,8 @@ agentContAfterTrading :: RandomGen g
                       -> AgentId
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterTrading params myId = do
-    (aoCredit, mhdl) <- agentCredit params myId cont
-    return (aoCredit, mhdl)
+    (aoLoan, mhdl) <- agentLoan params myId cont
+    return (aoLoan, mhdl)
   where
     cont = defaultCont params myId
 

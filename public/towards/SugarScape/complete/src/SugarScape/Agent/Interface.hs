@@ -17,6 +17,7 @@ module SugarScape.Agent.Interface
   , agentOutMergeRightObs
   
   , sendEventTo
+  , sendEvents
   , broadcastEvent
 
   , isDead
@@ -69,6 +70,13 @@ broadcastEvent rs e ao = ao'
     es     = aoEvents ao
     esSend = map (swap . (,) e) rs 
     ao'    = ao { aoEvents = es ++ esSend } 
+
+sendEvents :: [(AgentId, e)]
+           -> AgentOut m e o
+           -> AgentOut m e o
+sendEvents es ao 
+  -- important: respect ordering!
+  = ao { aoEvents = aoEvents ao ++ es } 
 
 sendEventTo :: AgentId
             -> e

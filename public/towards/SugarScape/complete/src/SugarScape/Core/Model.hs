@@ -3,7 +3,7 @@ module SugarScape.Core.Model
   , CultureTag
   , AgentTribe (..)
   , TradeInfo (..)
-  , Credit (..)
+  , Loan (..)
   
   , SugAgentState (..)
   , SugAgentObservable (..)
@@ -13,8 +13,8 @@ module SugarScape.Core.Model
 
   , TradingRefuse (..)
   , TradingReply (..)
-  , CreditRefuse (..)
-  , CreditReply (..)
+  , LoanRefuse (..)
+  , LoanReply (..)
   , SugEvent (..)
   
   , SugAgentMonad
@@ -48,7 +48,7 @@ data AgentGender = Male | Female deriving (Show, Eq)
 type CultureTag  = [Bool]
 data AgentTribe  = Blue | Red deriving (Show, Eq)
 data TradeInfo   = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
-data Credit      = Credit Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
+data Loan      = Loan Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -71,8 +71,8 @@ data SugAgentState = SugAgentState
   , sugAgInitSpiEndow :: !Double
   , sugAgSpiceMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
   
-  , sugAgLenders      :: ![Credit]
-  , sugAgBorrowers    :: ![Credit]
+  , sugAgBorrowed     :: ![Loan]    -- contains the Loans the agent has borrowed from the lenders
+  , sugAgLent         :: ![Loan]    -- contains the Loans the agent has lent out to borrowers
   , sugAgNetIncome    :: !Double            -- net income of sugar and spice in the most recent step
   } deriving (Show, Eq)
 
@@ -121,13 +121,13 @@ data TradingReply = AcceptTrade
                   | RefuseTrade TradingRefuse 
                   deriving (Show, Eq)
 
-data CreditRefuse = NotFertileAge
+data LoanRefuse = NotFertileAge
                   | EnoughWealth
-                  | NotCreditWorthy
+                  | NotLoanWorthy
                   deriving (Show, Eq)
 
-data CreditReply = AcceptCredit
-                 | RefuseCredit CreditRefuse
+data LoanReply = AcceptLoan
+                 | RefuseLoan LoanRefuse
                  deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
@@ -144,10 +144,11 @@ data SugEvent = MatingRequest AgentGender
               | TradingOffer Double Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
               | TradingReply TradingReply
 
-              | CreditOffer Double Double
-              | CreditReply CreditReply
-              | CreditPayback Time Double Double Double Double -- due date, sugarFace, spiceFace, sugarBack, spiceBack
-              | CreditInherit [AgentId]
+              | LoanOffer Loan
+              | LoanReply LoanReply
+              | LoanPayback Loan Double Double --  sugarBack, spiceBack
+              | LoanLenderDied [AgentId]
+              | LoanInherit Loan
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

@@ -325,8 +325,8 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgSpiceLevel   = initSpice
   , sugAgInitSpiEndow = initSpice
   , sugAgSpiceMetab   = randSpiceMetab
-  , sugAgLenders      = []
-  , sugAgBorrowers    = []
+  , sugAgBorrowed     = []
+  , sugAgLent         = []
   , sugAgNetIncome    = 0
   }
 

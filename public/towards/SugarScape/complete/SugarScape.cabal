@@ -53,10 +53,10 @@ executable sugarscape
   other-modules:  SugarScape.Agent.Agent
                 , SugarScape.Agent.Ageing
                 , SugarScape.Agent.Common
-                , SugarScape.Agent.Credit
                 , SugarScape.Agent.Culture
                 , SugarScape.Agent.Dying                
                 , SugarScape.Agent.Interface
+                , SugarScape.Agent.Loan
                 , SugarScape.Agent.Mating
                 , SugarScape.Agent.Metabolism
                 , SugarScape.Agent.Move

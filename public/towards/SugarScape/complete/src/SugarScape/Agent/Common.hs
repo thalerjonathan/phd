@@ -7,6 +7,8 @@ module SugarScape.Agent.Common
 
   , SiteMeasureFunc
 
+  , filterNeighbourIds
+
   , sugObservableFromState
   , selectBestSites
   , selectSiteMeasureFunc
@@ -58,7 +60,10 @@ import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
+import SugarScape.Core.Random
 import SugarScape.Core.Scenario
+
+-- TODO: clean up this mess: many functions belong to more specific modules
 
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
@@ -80,6 +85,7 @@ sugObservableFromState as = SugAgentObservable
   , sugObsSpiLvl     = sugAgSpiceLevel as
   , sugObsSpiMetab   = sugAgSpiceMetab as
   , sugObsTrades     = []
+  , sugObsDiseases   = sugAgDiseases as
   }
 
 selectSiteMeasureFunc :: SugarScapeScenario -> SugAgentState -> SiteMeasureFunc
@@ -252,6 +258,10 @@ occupier aid as = SugEnvSiteOccupier {
   , sugEnvOccMRS         = mrsState as
   }
 
+filterNeighbourIds :: [Discrete2dCell SugEnvSite]
+                   -> [AgentId]
+filterNeighbourIds ns = map (siteOccupier . snd) $ filter (siteOccupied . snd) ns
+
 occupierM :: MonadState SugAgentState m
           => AgentId 
           -> m SugEnvSiteOccupier
@@ -289,7 +299,7 @@ agentCellOnCoord = do
   cell  <- envLift $ cellAtM coord
   return (coord, cell)
 
-randomAgent :: RandomGen g  
+randomAgent :: RandomGen g
             => SugarScapeScenario
             -> (AgentId, Discrete2dCoord)
             -> SugarScapeAgent g
@@ -305,6 +315,8 @@ randomAgent params (agentId, coord) asf f = do
   randCultureTag     <- randomCultureTag params
   randSpiceEndowment <- getRandomR $ spSpiceEndowmentRange params
   randSpiceMetab     <- getRandomR $ spSpiceMetabolismRange params
+  randImmuneSystem   <- randomImmuneSystem params
+  randDiseases       <- randomDiseases params
 
   let initSugar = fromIntegral randSugarEndowment
       initSpice = fromIntegral randSpiceEndowment
@@ -328,8 +340,9 @@ randomAgent params (agentId, coord) asf f = do
   , sugAgBorrowed     = []
   , sugAgLent         = []
   , sugAgNetIncome    = 0
-  , sugAgImmuneSystem = [] -- TODO: initialise
-  , sugAgDiseases     = [] -- TODO: initialise
+  , sugAgImmuneSystem = randImmuneSystem
+  , sugAgImSysGeno    = randImmuneSystem
+  , sugAgDiseases     = randDiseases
   }
 
   let s'   = f s
@@ -340,6 +353,25 @@ randomAgent params (agentId, coord) asf f = do
   }
 
   return (adef, s')
+
+randomDiseases :: RandomGen g
+               => SugarScapeScenario
+               -> Rand g [Disease]
+randomDiseases params = 
+  case spDiseasesEnabled params of 
+    Nothing -> return []
+    Just (_, _, _, n, masterList) -> 
+      randomElemsM n masterList
+
+randomImmuneSystem :: RandomGen g
+                   => SugarScapeScenario
+                   -> Rand g ImmuneSystem
+randomImmuneSystem params = 
+  case spDiseasesEnabled params of 
+    Nothing -> return []
+    Just (n, _, _, _, _)  -> do
+      rs <- getRandoms
+      return $ take n rs
 
 changeToRedTribe :: SugarScapeScenario
                  -> SugAgentState

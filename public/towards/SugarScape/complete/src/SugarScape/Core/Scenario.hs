@@ -52,6 +52,7 @@ module SugarScape.Core.Scenario
   ) where
 
 import SugarScape.Core.Common
+import SugarScape.Core.Model
 import SugarScape.Core.Discrete
 
 data AgentAgeSpan = Forever 
@@ -111,7 +112,9 @@ data SugarScapeScenario = SugarScapeScenario
   , spLoansEnabled         :: Maybe (Time, Double)    -- loan rule L on / off with duration of d years and rate of r percent
 
   -- Chapter V params
-  , spDiseasesEnabled      :: Maybe (Int, Int)   -- diseases E rule on / off
+  , spDiseasesEnabled      :: Maybe (Int, Int, Int, Int, [Disease])   -- diseases E rule on / off: immune system length, 
+                                                                      -- number of diseases, length of diseases, 
+                                                                      -- number of diseases an agent initially receives, master-list of diseases
   } 
 
 instance Show SugarScapeScenario where
@@ -541,10 +544,10 @@ mkParamsAnimationIV_5 = mkParamsAnimationII_2 {
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER V: Disease Processes
 ------------------------------------------------------------------------------------------------------------------------
--- last chapter
+-- see page 147
 mkParamsAnimationV_1 :: SugarScapeScenario
 mkParamsAnimationV_1 = mkParamsAnimationII_2 {
-    sgScenarioName = "Animation V-1"
+    sgScenarioName         = "Animation V-1"
   , sgAgentCount           = 400
   , spSugarEndowmentRange  = (50, 100)
 
@@ -560,10 +563,13 @@ mkParamsAnimationV_1 = mkParamsAnimationII_2 {
   , spSpiceEndowmentRange  = (0, 0)
   , spSpiceMetabolismRange = (0, 0)
   
-  , spDiseasesEnabled      = Just (10, 5) -- enable diseases
+  , spDiseasesEnabled      = Just (50, 10, 10, 4, []) -- enable diseases: length 50 immune system, 10 diseases of length 10, each agent receives 4
   }
 
+-- see page 147
 mkParamsAnimationV_2 :: SugarScapeScenario
 mkParamsAnimationV_2 = mkParamsAnimationV_1 {
-    sgScenarioName = "Animation V-2"
+    sgScenarioName    = "Animation V-2"
+
+  , spDiseasesEnabled = Just (50, 25, 10, 10, []) -- enable diseases: length 50 immune system, 25 diseases of length 10, each agent receives 10
   }

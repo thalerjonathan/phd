@@ -115,26 +115,30 @@ matingHandler params myId amsf0 cont0 ns freeSites =
                       => SugarScapeAgent g
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
                       -> AgentId
-                      -> Maybe (Double, Double, Int, Int, CultureTag)
+                      -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
     handleMatingReply amsf cont _ Nothing =  -- the sender refuse the mating-request
       mateWith params myId amsf cont ns
-    handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag)) = do -- the sender accepts the mating-request
+    handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
       mySpiLvl  <- agentProperty sugAgSpiceLevel
       myMetab   <- agentProperty sugAgSugarMetab
       myVision  <- agentProperty sugAgVision
       myCultTag <- agentProperty sugAgCultureTag
+      myImSysGe <- agentProperty sugAgImSysGeno
 
       childMetab   <- randLift $ randomElemM [myMetab, otherMetab]
       childVision  <- randLift $ randomElemM [myVision, otherVision]
-      childCultTag <- randLift $ crossOverCulture myCultTag otherCultureTag
-
-      let updateChildState s = s { sugAgSugarLevel = (mySugLvl / 2) + otherSugShare + (mySpiLvl / 2) + otherSpiShare
-                                 , sugAgSugarMetab = childMetab
-                                 , sugAgVision     = childVision
-                                 , sugAgCultureTag = childCultTag
-                                 , sugAgTribe      = tagToTribe childCultTag }
+      childCultTag <- randLift $ crossOver myCultTag otherCultureTag
+      childImmSys  <- randLift $ crossOver myImSysGe otherImSysGe
+        
+      let updateChildState s = s { sugAgSugarLevel   = (mySugLvl / 2) + otherSugShare + (mySpiLvl / 2) + otherSpiShare
+                                 , sugAgSugarMetab   = childMetab
+                                 , sugAgVision       = childVision
+                                 , sugAgCultureTag   = childCultTag
+                                 , sugAgTribe        = tagToTribe childCultTag
+                                 , sugAgImmuneSystem = childImmSys
+                                 , sugAgImSysGeno    = childImmSys }
 
       childId                 <- absStateLift nextAgentId
       (childCoord, childSite) <- randLift $ randomElemM freeSites
@@ -163,11 +167,11 @@ matingHandler params myId amsf0 cont0 ns freeSites =
 
       return (ao'', Nothing)
 
-crossOverCulture :: MonadRandom m 
-                 => CultureTag 
-                 -> CultureTag
-                 -> m CultureTag
-crossOverCulture = zipWithM selectTag
+crossOver :: MonadRandom m 
+          => [Bool]
+          -> [Bool]
+          -> m [Bool]
+crossOver = zipWithM selectTag
   where
     selectTag :: MonadRandom m 
               => Bool
@@ -220,12 +224,14 @@ handleMatingRequest _myId sender otherGender = do
   acc <- if not accept
       then return Nothing
       else do
-        sugLvl <- agentProperty sugAgSugarLevel
-        spiLvl <- agentProperty sugAgSpiceLevel
-        metab  <- agentProperty sugAgSugarMetab
-        vision <- agentProperty sugAgVision
-        culTag <- agentProperty sugAgCultureTag
-        return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag)
+        sugLvl  <- agentProperty sugAgSugarLevel
+        spiLvl  <- agentProperty sugAgSpiceLevel
+        metab   <- agentProperty sugAgSugarMetab
+        vision  <- agentProperty sugAgVision
+        culTag  <- agentProperty sugAgCultureTag
+        imSysGe <- agentProperty sugAgImSysGeno
+
+        return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
   return $ sendEventTo sender (MatingReply acc) ao
 

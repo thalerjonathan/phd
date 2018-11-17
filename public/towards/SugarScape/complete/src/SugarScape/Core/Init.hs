@@ -17,9 +17,11 @@ import SugarScape.Core.Scenario
 
 createSugarScape :: RandomGen g
                  => SugarScapeScenario
-                 -> Rand g ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment)
+                 -> Rand g ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment, SugarScapeScenario)
 createSugarScape params = do
-  ras <- agentDistribution params (sgAgentDistribution params)
+  params' <- generateDiseaseMasterList params
+
+  ras <- agentDistribution params' (sgAgentDistribution params')
 
   let as             = map (\(ad, _) -> (adId ad, adInitObs ad, adSf ad)) ras
       occupations    = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
@@ -30,15 +32,28 @@ createSugarScape params = do
       sugSpiceSpecs  = parseEnvSpec sugarSpecs spiceSpecs
       sugSpiceCoords = specToCoords sugSpiceSpecs sugarscapeDimensions
 
-      sites          = createSites params sugSpiceCoords occupations
+      sites          = createSites params' sugSpiceCoords occupations
       env            = createDiscrete2d
                         sugarscapeDimensions
                         neumann
                         WrapBoth
                         sites
 
-  return (as, env)
+  return (as, env, params')
 
+generateDiseaseMasterList :: RandomGen g
+                          => SugarScapeScenario
+                          -> Rand g SugarScapeScenario
+generateDiseaseMasterList params = 
+  case spDiseasesEnabled params of 
+    Nothing -> return params
+    Just (isl, dl, dc, ad, _) -> do
+      ml <- mapM (\_ -> do
+              rn <- getRandomR (1, dl)
+              take rn <$> getRandoms) [1..dc]
+
+      return params { spDiseasesEnabled = Just (isl, dl, dc, ad, ml)}
+    
 agentDistribution :: RandomGen g
                   => SugarScapeScenario
                   -> AgentDistribution

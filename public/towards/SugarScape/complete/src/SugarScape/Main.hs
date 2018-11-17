@@ -37,7 +37,7 @@ data Options = Options
   }
 
 -- clear & stack exec -- sugarscape -s "Animation V-1" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape -s "Animation V-1" -v 0 --ac Default --sc Resource -r 42
+-- clear & stack exec -- sugarscape -s "Animation V-1" -v 0 --ac Disease --sc Resource -r 42
 
 main :: IO ()
 main = do
@@ -60,21 +60,21 @@ runSugarscape opts = do
       let output    = optOutput opts
           rngSeed   = optRngSeed opts
 
+      (initSimState, initEnv, scenario') <- initSimulationOpt rngSeed scenario
+
       putStrLn "Running Sugarscape with... " 
       putStrLn "--------------------------------------------------"
-      print scenario
+      print scenario'
       putStrLn "--------------------------------------------------"
 
       putStrLn $ "RNG Seed: \t\t\t" ++ maybe "N/A - using default global random number initialisation" show rngSeed
       putStrLn $ "Output Type: \t\t\t" ++ show output
       putStrLn "--------------------------------------------------"
 
-      (initSimState, initEnv) <- initSimulationOpt rngSeed scenario
-
       case output of 
         Console steps     -> print $ simulateUntil steps initSimState
         File steps file   -> writeSimulationUntil file steps initSimState
-        Visual freq av cv -> runGloss scenario initSimState (0, 0, initEnv, []) freq av cv
+        Visual freq av cv -> runGloss scenario' initSimState (0, 0, initEnv, []) freq av cv
 
       putStrLn "\n--------------------------------------------------\n"
 
@@ -94,7 +94,7 @@ parseOptions
       (  long "scenario"
       <> short 's'
       <> metavar "String"
-      <> help "SugarScape scenario to run e.g. \"Animation II-2\"" )
+      <> help "SugarScape scenario to run e.g. \"Animation II-2\"")
     <*> parseOutput
     <*> optional (option auto  
       ( long "rng" 
@@ -113,7 +113,7 @@ consoleOut = Console <$> option auto
               <> short 'c'
               <> help "Print output to console after number of steps"
               <> value 1000
-              <> metavar "Int" )
+              <> metavar "Int")
 
 fileOut :: Parser Output
 fileOut = File 
@@ -128,7 +128,7 @@ fileOut = File
           <> short 'o'
           <> value "export/dynamics.m"
           <> metavar "String"
-          <> help "Output file" )
+          <> help "Output file")
       
 visualOut :: Parser Output
 visualOut = Visual 
@@ -142,9 +142,9 @@ visualOut = Visual
            (  long "ac"
            <> help "Coloring of agents"
            <> value Default
-           <> metavar "Default | Gender | Culture | Tribe | Welfare" )
+           <> metavar "Default | Gender | Culture | Tribe | Welfare | Disease")
         <*> option auto
            (  long "sc"
            <> help "Coloring of sites"
            <> value Resource
-           <> metavar "Resource | Polution" )
+           <> metavar "Resource | Polution")

@@ -2,6 +2,7 @@ module SugarScape.Core.Random
   ( randomBoolM
   , randomExpM
   , randomElemM
+  , randomElemsM
   , randomShuffleM
   , fisherYatesShuffle
   , fisherYatesShuffleM
@@ -28,6 +29,9 @@ randomElemM as = do
   let len = length as
   idx <- getRandomR (0, len - 1) 
   return (as !! idx)
+
+randomElemsM :: MonadRandom m => Int -> [a] -> m [a]
+randomElemsM n as = mapM (const $ randomElemM as) [1..n]
 
 -- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
 avoidM :: (Random a, Eq a, MonadRandom m) => a -> m a

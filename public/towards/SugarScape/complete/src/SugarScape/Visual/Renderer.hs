@@ -22,6 +22,7 @@ data AgentColoring = Default
                    | Culture
                    | Tribe
                    | Welfare
+                   | Disease
                    deriving (Eq, Show, Read)
 
 data SiteColoring = Resource
@@ -111,6 +112,7 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
     agentColor Culture = cultureColor (sugObsTribe s)
     agentColor Tribe   = cultureColor (sugObsTribe s)
     agentColor Welfare = welfareColor s
+    agentColor Disease = diseaseColor (sugObsDiseases s)
     agentColor _       = mateBlue
     
     genderColor :: AgentGender -> GLO.Color
@@ -131,6 +133,11 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
         w1  = sugObsSugLvl obs
         w2  = sugObsSpiLvl obs
         m   = mrs w1 w2 m1 m2
+
+    diseaseColor :: [Disease] -> GLO.Color
+    diseaseColor ds 
+        | null ds   = mateBlue
+        | otherwise = mateRed
 
 mateBlue :: GLO.Color
 mateBlue = GLO.makeColor 0.0 0.0 0.9 1.0

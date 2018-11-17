@@ -47,8 +47,8 @@ generalEventHandler params myId =
   continueWithAfter 
     (proc evt -> 
       case evt of 
-        TimeStep -> 
-          constM (handleTimeStep params myId) -< ()
+        Tick -> 
+          constM (handleTick params myId) -< ()
         (DomainEvent (sender, MatingRequest otherGender)) -> do
           ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)
           returnA -< (ao, Nothing)
@@ -79,14 +79,17 @@ generalEventHandler params myId =
         (DomainEvent (sender, LoanInherit loan)) -> do
           ao <- arrM (uncurry (handleLoanInherit myId)) -< (sender, loan)
           returnA -< (ao, Nothing)
+        (DomainEvent (_, DiseaseTransmit disease)) -> do
+          ao <- arrM handleDiseaseTransmit -< disease
+          returnA -< (ao, Nothing)
         _        -> 
           returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
-handleTimeStep :: RandomGen g 
-               => SugarScapeScenario
-               -> AgentId
-               -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-handleTimeStep params myId = do
+handleTick :: RandomGen g 
+           => SugarScapeScenario
+           -> AgentId
+           -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+handleTick params myId = do
   agentAgeing
   
   (harvestAmount, aoMove) <- agentMove params myId
@@ -143,7 +146,7 @@ agentContAfterLoan :: RandomGen g
                    -> AgentId
                    -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterLoan params myId = do
-    (aoDisease, mhdl) <- agentDisease params myId cont
+    (aoDisease, mhdl) <- agentDisease params cont
     return (aoDisease, mhdl)
   where
     cont = defaultCont params myId

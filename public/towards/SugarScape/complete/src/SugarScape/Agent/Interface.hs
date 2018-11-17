@@ -32,9 +32,9 @@ import Data.MonadicStreamFunction
 
 import SugarScape.Core.Common
 
-data ABSEvent e = TimeStep 
+data ABSEvent e = Tick 
                 | DomainEvent (AgentId, e) 
-                  deriving (Show, Eq) -- sender, event 
+                deriving (Show, Eq) -- sender, event 
 
 type AgentT m       = StateT ABSState m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double in SugarScape (we switch MSFs which would resert time anyway)

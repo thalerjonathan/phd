@@ -4,6 +4,8 @@ module SugarScape.Core.Model
   , AgentTribe (..)
   , TradeInfo (..)
   , Loan (..)
+  , ImmuneSystem
+  , Disease
   
   , SugAgentState (..)
   , SugAgentObservable (..)
@@ -50,7 +52,7 @@ data AgentTribe   = Blue | Red deriving (Show, Eq)
 data TradeInfo    = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
 data Loan         = Loan Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
 type ImmuneSystem = [Bool]
-type Disesase     = [Bool]
+type Disease      = [Bool]
 
 data SugAgentState = SugAgentState 
   { sugAgCoord        :: !Discrete2dCoord
@@ -79,7 +81,8 @@ data SugAgentState = SugAgentState
 
   -- Chapter V properties
   , sugAgImmuneSystem :: !ImmuneSystem
-  , sugAgDiseases     :: [Disesase]
+  , sugAgImSysGeno    :: !ImmuneSystem   -- the initial immunesystem this agent was born with, will inherit it (the genotype) to its children 
+  , sugAgDiseases     :: ![Disease]
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
@@ -98,6 +101,9 @@ data SugAgentObservable = SugAgentObservable
   , sugObsSpiLvl     :: !Double
   , sugObsSpiMetab   :: !Int
   , sugObsTrades     :: ![TradeInfo]
+
+  -- Chapter V properties
+  , sugObsDiseases   :: ![Disease]
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
@@ -137,7 +143,7 @@ data LoanReply = AcceptLoan
                  deriving (Show, Eq)
 
 data SugEvent = MatingRequest AgentGender
-              | MatingReply (Maybe (Double, Double, Int, Int, CultureTag)) -- in case of acceptance: Just share of sugar, spice, metab, vision
+              | MatingReply (Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)) -- in case of acceptance: Just share of sugar, spice, metab, vision
               | MatingTx AgentId
               | MatingContinue
 
@@ -155,6 +161,8 @@ data SugEvent = MatingRequest AgentGender
               | LoanPayback Loan Double Double --  sugarBack, spiceBack
               | LoanLenderDied [AgentId]
               | LoanInherit Loan
+
+              | DiseaseTransmit Disease
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

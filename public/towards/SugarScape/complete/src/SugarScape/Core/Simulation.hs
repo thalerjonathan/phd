@@ -59,20 +59,20 @@ sugarScapeTimeDelta :: DTime
 sugarScapeTimeDelta = 1
 
 initSimulation :: SugarScapeScenario
-               -> IO (SimulationState StdGen, SugEnvironment)
+               -> IO (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
 initSimulation params = do
   g0 <- newStdGen
   return $ initSimulationRng g0 params
 
 initSimulationOpt :: Maybe Int
                   -> SugarScapeScenario
-                  -> IO (SimulationState StdGen, SugEnvironment)
+                  -> IO (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
 initSimulationOpt Nothing     params = initSimulation params
 initSimulationOpt (Just seed) params = return $ initSimulationSeed seed params
 
 initSimulationSeed :: Int
                    -> SugarScapeScenario
-                   -> (SimulationState StdGen, SugEnvironment)
+                   -> (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
 initSimulationSeed seed = initSimulationRng g0
   where
     g0 = mkStdGen seed
@@ -80,16 +80,16 @@ initSimulationSeed seed = initSimulationRng g0
 initSimulationRng :: RandomGen g
                   => g
                   -> SugarScapeScenario
-                  -> (SimulationState g, SugEnvironment)
-initSimulationRng g0 params = (initSimState, initEnv)
+                  -> (SimulationState g, SugEnvironment, SugarScapeScenario)
+initSimulationRng g0 params = (initSimState, initEnv, params')
   where
     -- initial agents and environment data
-    ((initAs, initEnv), g') = runRand (createSugarScape params) g0
+    ((initAs, initEnv, params'), g') = runRand (createSugarScape params) g0
     -- initial agent map
     agentMap        = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
     (initAis, _, _) = unzip3 initAs
     -- initial simulation state
-    initSimState = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvBehaviour params) g' 0
+    initSimState = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvBehaviour params') g' 0
 
 simulateUntil :: RandomGen g
               => Time
@@ -127,8 +127,8 @@ simulationStep ss0 = (ssFinal, sao)
     ais0 = Map.keys am0
     g0   = simRng ss0
     (aisShuffled, gShuff) = fisherYatesShuffle g0 ais0
-    -- schedule TimeStep messages in random order by generating event-list from shuffled agent-ids
-    el = zip aisShuffled (repeat TimeStep)
+    -- schedule Tick messages in random order by generating event-list from shuffled agent-ids
+    el = zip aisShuffled (repeat Tick)
     -- process all events
     ssSteps = processEvents el (ss0 { simRng = gShuff })
     -- run the environment

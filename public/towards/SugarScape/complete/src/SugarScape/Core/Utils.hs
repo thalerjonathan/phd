@@ -4,17 +4,24 @@ module SugarScape.Core.Utils
   , orM
   , andM
 
-  , flipBoolAtIdx
-  
   , uncurry3
   , uncurry4
   , uncurry5
   , uncurry6
 
+  , flipBoolAtIdx
+
   , removeElemByIdx
+  , findFirstDiffIdx
+  , findMinWithIdx
+  , hammingDistances
   ) where
 
 import Control.Monad
+import Data.List
+import Data.Maybe
+
+import Data.List.Split
 
 -------------------------------------------------------------------------------
 -- MONADIC UTILITIES
@@ -47,14 +54,6 @@ andM :: Monad m
      -> m Bool
 andM = liftM2 (&&) 
 
-flipBoolAtIdx :: Int -> [Bool] -> [Bool]
-flipBoolAtIdx idx bs = front ++ (flippedElem : backNoElem)
-  where
-    (front, back) = splitAt idx bs  -- NOTE: back includes the element with the index
-    elemAtIdx     = bs !! idx
-    flippedElem   = not elemAtIdx
-    backNoElem    = tail back
-
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c
 
@@ -71,3 +70,35 @@ removeElemByIdx :: Int -> [a] -> [a]
 removeElemByIdx idx xs = pre ++ tail re
   where
     (pre, re) = splitAt idx xs
+
+findMinWithIdx :: (Ord a) => [a] -> (a, Int)
+findMinWithIdx as = (minA, minAIdx)
+  where
+    minA = minimum as
+    minAIdx = fromJust $ elemIndex minA as
+
+findFirstDiffIdx :: (Eq a) => [a] -> [a] -> Int
+findFirstDiffIdx as bs = firstNotEqualIdx
+  where
+    notEquals = zipWith (/=) as bs
+    firstNotEqualIdx = fromJust $ elemIndex True notEquals
+
+flipBoolAtIdx :: Int -> [Bool] -> [Bool]
+flipBoolAtIdx idx bs = front ++ (flippedElem : backNoElem)
+  where
+    (front, back) = splitAt idx bs  -- NOTE: back includes the element with the index
+    elemAtIdx     = bs !! idx
+    flippedElem   = not elemAtIdx
+    backNoElem    = tail back
+
+hammingDistances :: [Bool] -> [Bool] -> [Int]
+hammingDistances i d = map (`hammingDistanceAux` d) isubs
+  where
+    dLen  = length d
+    isubs = Data.List.Split.divvy dLen 1 i
+
+    -- NOTE: both must have the same length
+    hammingDistanceAux :: [Bool] -> [Bool] -> Int
+    hammingDistanceAux as bs = length $ filter (==False) equals
+      where
+        equals = zipWith (==) as bs

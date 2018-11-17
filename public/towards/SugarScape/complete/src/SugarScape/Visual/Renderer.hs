@@ -136,8 +136,8 @@ sugarscapeAgentRenderer av r@(rw, rh) w _t (aid, s)
 
     diseaseColor :: [Disease] -> GLO.Color
     diseaseColor ds 
-        | null ds   = mateBlue
-        | otherwise = mateRed
+      | null ds   = mateBlue
+      | otherwise = mateRed
 
 mateBlue :: GLO.Color
 mateBlue = GLO.makeColor 0.0 0.0 0.9 1.0

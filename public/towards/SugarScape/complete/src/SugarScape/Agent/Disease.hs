@@ -2,7 +2,6 @@
 module SugarScape.Agent.Disease
   ( agentDisease
 
-  , isSick
   , handleDiseaseTransmit
   ) where
 
@@ -30,13 +29,10 @@ agentDisease params cont
     -- pass a random disease to each neighbour
     aoTrans <- transmitDisease
     -- imunise agent in each step
-    immuniseAgent
+    immuniseAgent 
     -- merge continuation out
     (aoCont, mhdl) <- cont
     return (aoTrans `agentOutMergeRightObs` aoCont, mhdl)
-
-isSick :: MonadState SugAgentState m => m Bool
-isSick = (not . null) <$> agentProperty sugAgDiseases
 
 transmitDisease :: RandomGen g
                 => AgentAction g (SugAgentOut g)
@@ -51,7 +47,7 @@ transmitDisease = do
       rds <- randLift $ randomElemsM (length ns) ds
       ao  <- agentObservableM
 
-      let evts = map (\(nid, d) -> (nid, DiseaseTransmit d)) (zip ns rds)
+      let evts = zipWith (\nid d -> (nid, DiseaseTransmit d)) ns rds
 
       return $ sendEvents evts ao
 
@@ -60,28 +56,33 @@ immuniseAgent = do
     is <- agentProperty sugAgImmuneSystem
     ds <- agentProperty sugAgDiseases
 
-    let (is', ds') = foldr immunise (is, []) ds
+    let (is', ds') = foldr (immunise is) (is, []) ds
 
     updateAgentState (\s -> s { sugAgImmuneSystem = is'
                               , sugAgDiseases     = ds' })
   where
-    immunise :: Disease 
+    -- NOTE: we are calculating and flipping always from the
+    -- same initial immunesystem, otherwise wouldn't work bcs
+    -- if one disease sees change of previous one it could
+    -- undo it
+    immunise :: ImmuneSystem
+             -> Disease 
              -> (ImmuneSystem, [Disease]) 
              -> (ImmuneSystem, [Disease])
-    immunise disease (imSys, accDis) 
-        | minHam == 0 = (imSys, accDis)
-        | otherwise   = (imSys', disease : accDis)
+    immunise isRef ds (is, accDis) 
+        | minHam == 0 = (is, accDis)
+        | otherwise   = (is', ds : accDis)
       where
-        dLen = length disease
+        dLen = length ds
 
-        hd = hammingDistances imSys disease
+        hd = hammingDistances isRef ds
         (minHam, minHamIdx) = findMinWithIdx hd
 
-        minSubImmSys = take dLen (drop minHamIdx imSys)
+        minSubImmSys = take dLen (drop minHamIdx isRef)
 
-        tagIdx    = findFirstDiffIdx minSubImmSys disease
+        tagIdx    = findFirstDiffIdx minSubImmSys ds
         globalIdx = minHamIdx + tagIdx
-        imSys'    = flipBoolAtIdx globalIdx imSys 
+        is'       = flipBoolAtIdx globalIdx isRef 
 
 handleDiseaseTransmit :: RandomGen g
                       => Disease
@@ -93,7 +94,12 @@ handleDiseaseTransmit disease = do
       md = fst $ findMinWithIdx hd
 
   if 0 == md
-    then agentObservableM -- substring of this disease found in immune system => immune!
+    then agentObservableM -- substring of this disease found in immune system => immune, ignore disease!
     else do
-      updateAgentState (\s -> s { sugAgDiseases = disease : sugAgDiseases s })
-      agentObservableM
+      ds <- agentProperty sugAgDiseases
+
+      if disease `elem` ds
+        then agentObservableM -- already got that disease, ignore
+        else do
+          updateAgentState (\s -> s { sugAgDiseases = disease : ds })
+          agentObservableM

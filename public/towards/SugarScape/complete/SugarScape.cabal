@@ -156,6 +156,7 @@ Test-Suite sugarscape-test
                       , MonadRandom
                       , parallel
                       , random
+                      , split
                       , statistics
                       , tasty
                       , tasty-hunit

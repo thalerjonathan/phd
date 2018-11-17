@@ -113,7 +113,7 @@ data SugarScapeScenario = SugarScapeScenario
 
   -- Chapter V params
   , spDiseasesEnabled      :: Maybe (Int, Int, Int, Int, [Disease])   -- diseases E rule on / off: immune system length, 
-                                                                      -- number of diseases, length of diseases, 
+                                                                      -- number of diseases, random length of diseases (page 150), 
                                                                       -- number of diseases an agent initially receives, master-list of diseases
   } 
 
@@ -547,29 +547,13 @@ mkParamsAnimationIV_5 = mkParamsAnimationII_2 {
 -- see page 147
 mkParamsAnimationV_1 :: SugarScapeScenario
 mkParamsAnimationV_1 = mkParamsAnimationII_2 {
-    sgScenarioName         = "Animation V-1"
-  , sgAgentCount           = 400
-  , spSugarEndowmentRange  = (50, 100)
-
-  , spSexRuleActive        = True
-  , spGenderRatio          = 0.5
-  , spFertStartRangeFemale = (12, 15)
-  , spFertStartRangeMale   = (12, 15)
-  , spFertEndRangeFemale   = (40, 50)
-  , spFertEndRangeMale     = (50, 60)
-  
-  , spSpiceEnabled         = False
-  , spSpiceRegrow          = Immediate
-  , spSpiceEndowmentRange  = (0, 0)
-  , spSpiceMetabolismRange = (0, 0)
-  
-  , spDiseasesEnabled      = Just (50, 10, 10, 4, []) -- enable diseases: length 50 immune system, 10 diseases of length 10, each agent receives 4
+    sgScenarioName    = "Animation V-1"
+  , spDiseasesEnabled = Just (50, 10, 10, 4, []) -- enable diseases: length 50 immune system, 10 diseases of random length 10, each agent receives 4
   }
 
 -- see page 147
 mkParamsAnimationV_2 :: SugarScapeScenario
 mkParamsAnimationV_2 = mkParamsAnimationV_1 {
     sgScenarioName    = "Animation V-2"
-
-  , spDiseasesEnabled = Just (50, 25, 10, 10, []) -- enable diseases: length 50 immune system, 25 diseases of length 10, each agent receives 10
+  , spDiseasesEnabled = Just (50, 25, 10, 10, []) -- enable diseases: length 50 immune system, 25 diseases of random length 10, each agent receives 10
   }

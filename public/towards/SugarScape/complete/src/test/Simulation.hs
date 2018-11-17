@@ -27,13 +27,39 @@ simTests :: RandomGen g
          -> TestTree 
 simTests g = testGroup 
               "Simulation Tests" 
-              [ Unit.testCase "Trading Dynamics" $ prop_trading_dynamics g
-              -- Unit.testCase "Cultural Dynamics" $ prop_culture_dynamics g 
-              -- Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g
-              -- Unit.testCase "Terracing" $ prop_terracing g,
-              -- Unit.testCase "Carrying Capacity" $ prop_carrying_cap g ,
-              -- Unit.testCase "Wealth Distribution" $ prop_wealth_dist g 
+              [ Unit.testCase "Disease Dynamics All Recover" $ prop_disease_dynamics_allrecover g,
+                Unit.testCase "Disease Dynamics Minority Recover" $ prop_disease_dynamics_minorityrecover g,
+                Unit.testCase "Trading Dynamics" $ prop_trading_dynamics g,
+                Unit.testCase "Cultural Dynamics" $ prop_culture_dynamics g,
+                Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g,
+                Unit.testCase "Terracing" $ prop_terracing g,
+                Unit.testCase "Carrying Capacity" $ prop_carrying_cap g,
+                Unit.testCase "Wealth Distribution" $ prop_wealth_dist g 
               ]
+
+prop_disease_dynamics_allrecover ::  RandomGen g => g -> IO ()
+prop_disease_dynamics_allrecover g0 = 
+    assertBool "Population should have recovered fully from diseases but still infected left" (infected == 0)
+  where
+    steps  = 100 
+    params = mkParamsAnimationV_1
+
+    (simState, _, _) = initSimulationRng g0 params
+    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+    
+prop_disease_dynamics_minorityrecover ::  RandomGen g => g -> IO ()
+prop_disease_dynamics_minorityrecover g0 = 
+    assertBool "Population should have recovered fully from diseases but still infected left" (infected >= infectedMajority)
+  where
+    steps  = 1000
+    params = mkParamsAnimationV_2
+
+    (simState, _, _) = initSimulationRng g0 params
+    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+    n                = fromIntegral $ length aos :: Double
+    infectedMajority = ceiling $ n / 2
 
 prop_trading_dynamics ::  RandomGen g => g -> IO ()
 prop_trading_dynamics g0 = do
@@ -45,7 +71,7 @@ prop_trading_dynamics g0 = do
     tradingPricesStdLimit = 0.05
     params   = mkParamsFigureIV_3
 
-    (simState, _)    = initSimulationRng g0 params
+    (simState, _, _) = initSimulationRng g0 params
     (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
     trades           = concatMap (sugObsTrades . snd) aos
     tradingPricesStd = std $ map tradingPrice trades
@@ -66,10 +92,10 @@ prop_culture_dynamics g0 = do
     ratioEqual    = 0.45 -- ... or each hill has a different culture
     params   = mkParamsAnimationIII_6
 
-    tagLength      = fromJust $ spCulturalProcess params
-    (simState, _)  = initSimulationRng g0 params
-    (_, _, _, aos) = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    agentCultTags  = map (sugObsCultureTag . snd) aos
+    tagLength        = fromJust $ spCulturalProcess params
+    (simState, _, _) = initSimulationRng g0 params
+    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    agentCultTags    = map (sugObsCultureTag . snd) aos
 
     zeroRatio      = zeroCultureRatio agentCultTags
     -- we don't care who is dominating: zeros or ones, it just has to come to a (near) equilibrium
@@ -131,8 +157,8 @@ prop_terracing g0 = assertBool
         = trace ("terraceRatio = " ++ show terraceRatio ++ " terraceNumbers = " ++  show terraceNumbers ++ " staticRatio = " ++ show staticRatio ++ " staticNumbers = " ++ show staticNumbers) 
             (terraceRatio, staticRatio)
       where
-        (simState, _) = initSimulationRng g sugParams
-        sos           = simulateUntil steps simState
+        (simState, _, _) = initSimulationRng g sugParams
+        sos              = simulateUntil steps simState
 
         ((_, _, _, aosStable) : sos') = drop staticAfter sos
         (_, _, envFinal, aosFinal)    = last sos
@@ -191,13 +217,13 @@ prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confid
         = trace ("popSizeVariance = " ++ show popSizeVariance ++ " popSizeMean = " ++ show popSizeMean ++ " popSizeMedian = " ++ show popSizeMedian) 
             (popSizeVariance, popSizeMean, popSizeMedian)
       where
-        (simState, _)   = initSimulationRng g sugParams
-        sos             = simulateUntil steps simState
-        sos'            = drop stableAfter sos
-        popSizes        = map (\(_, _, _, aos) -> fromIntegral $ length aos) sos'
-        popSizeVariance = std popSizes
-        popSizeMean     = mean popSizes
-        popSizeMedian   = median popSizes
+        (simState, _, _) = initSimulationRng g sugParams
+        sos              = simulateUntil steps simState
+        sos'             = drop stableAfter sos
+        popSizes         = map (\(_, _, _, aos) -> fromIntegral $ length aos) sos'
+        popSizeVariance  = std popSizes
+        popSizeMean      = mean popSizes
+        popSizeMedian    = median popSizes
 
 prop_wealth_dist :: RandomGen g => g -> IO ()
 prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less than " ++ show expSkew) $ pass tTestSkew && pass tTestKurt && pass tTestGini
@@ -229,9 +255,9 @@ genPopulationWealthStats params steps g
     = trace ("skewness = " ++ show skew ++ ", kurtosis = " ++ show kurt ++ " gini = " ++ show gini) 
         (skew, kurt, gini)
   where
-    (simState, _)  = initSimulationRng g params
-    (_, _, _, aos) = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    agentWealths   = map (sugObsSugLvl . snd) aos
+    (simState, _, _) = initSimulationRng g params
+    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    agentWealths     = map (sugObsSugLvl . snd) aos
 
     skew = skewness agentWealths
     kurt = kurtosis agentWealths

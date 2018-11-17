@@ -45,6 +45,9 @@ instance Arbitrary SugAgentState where
     , sugAgBorrowed     = []
     , sugAgLent         = []
     , sugAgNetIncome    = 0
+    , sugAgImmuneSystem = []
+    , sugAgImSysGeno    = []
+    , sugAgDiseases     = []
     }
 
 agentTests :: RandomGen g 

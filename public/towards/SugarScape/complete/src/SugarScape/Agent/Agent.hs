@@ -32,12 +32,6 @@ agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
   (s', ao) <- runStateS (generalEventHandler params aid) -< (s, evt)
   returnA -< (ao, s'))
 
--- SugAgentMonad g  = StateT SugEnvironment (Rand g)
--- SugAgentMonadT g = StateT ABSState (StateT SugEnvironment (Rand g))
--- AgentMSF m e o =  MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
--- SugAgentMSF g  = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
--- MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
-
 generalEventHandler :: RandomGen g 
                     => SugarScapeScenario
                     -> AgentId 
@@ -55,8 +49,8 @@ generalEventHandler params myId =
         (DomainEvent (sender, MatingTx childId)) -> do
           ao <- arrM (uncurry (handleMatingTx myId)) -< (sender, childId)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, Inherit share)) -> do
-          ao <- arrM (uncurry (handleInheritance myId)) -< (sender, share)
+        (DomainEvent (_, Inherit share)) -> do
+          ao <- arrM (handleInheritance myId) -< share
           returnA -< (ao, Nothing)
         (DomainEvent (sender, CulturalProcess tag)) -> do
           ao <- arrM (uncurry (handleCulturalProcess myId)) -< (sender, tag)
@@ -105,17 +99,13 @@ handleTick params myId = do
   ifThenElseM
     (starvedToDeath params `orM` dieOfAge)
     (do
-      aoDie <- agentDies params myId agentMsf
+      aoDie <- agentDies params agentMsf
       let ao = aoMove `agentOutMergeRightObs` aoDie
       return (ao, Nothing))
     (do 
       let cont = agentContAfterMating params myId
-
-      (aoMating, mhdl) <- agentMating 
-                            params 
-                            myId 
-                            agentMsf
-                            cont
+      
+      (aoMating, mhdl) <- agentMating params myId agentMsf cont
 
       let ao = aoMove `agentOutMergeRightObs` aoMating
       return (ao, mhdl))

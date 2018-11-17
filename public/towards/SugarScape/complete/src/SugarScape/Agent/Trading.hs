@@ -197,4 +197,3 @@ transactTradeWealth myId sugEx spiEx = do
 
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteWithOccupier myId
- 

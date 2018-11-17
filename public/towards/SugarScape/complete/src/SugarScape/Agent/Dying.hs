@@ -23,14 +23,13 @@ import SugarScape.Core.Utils
 -- => will happen if agent starves to death (spice or sugar) or dies from age
 agentDies :: RandomGen g
           => SugarScapeScenario
-          -> AgentId
           -> SugarScapeAgent g
           -> AgentAction g (SugAgentOut g)
-agentDies params myId asf = do
+agentDies params asf = do
   unoccupyPosition
-  ao  <- fmap kill agentObservableM
+  ao  <- kill <$> agentObservableM
   ao' <- birthNewAgent params asf ao
-  inheritance params myId ao'
+  inheritance params ao'
 
 birthNewAgent :: RandomGen g
               => SugarScapeScenario
@@ -40,7 +39,7 @@ birthNewAgent :: RandomGen g
 birthNewAgent params asf ao
   | not $ spReplaceAgents params = return ao
   | otherwise = do
-    newAid              <- lift nextAgentId
+    newAid              <- absStateLift nextAgentId
     myTribe             <- agentProperty sugAgTribe
     (newCoord, newCell) <- findUnoccpiedRandomPosition
     (newA, newAState)   <- randLift $ randomAgent params (newAid, newCoord) asf 
@@ -51,6 +50,7 @@ birthNewAgent params asf ao
     -- need to occupy the cell to prevent other agents occupying it
     let occ      = occupier newAid newAState
         newCell' = newCell { sugEnvSiteOccupier = Just occ }
+        
     envLift $ changeCellAtM newCoord newCell' 
 
     return $ newAgent newA ao
@@ -69,10 +69,9 @@ birthNewAgent params asf ao
 
 inheritance :: RandomGen g
             => SugarScapeScenario
-            -> AgentId
             -> SugAgentOut g
             -> AgentAction g (SugAgentOut g)
-inheritance params _myId ao0
+inheritance params ao0
     | not $ spInheritance params = return ao0
     | otherwise = do
       sugLvl   <- agentProperty sugAgSugarLevel
@@ -124,10 +123,9 @@ inheritance params _myId ao0
 
 handleInheritance :: RandomGen g
                   => AgentId
-                  -> AgentId
                   -> Double
                   -> AgentAction g (SugAgentOut g)
-handleInheritance myId _parent share = do
+handleInheritance myId share = do
   updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + share })
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteWithOccupier myId

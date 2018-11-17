@@ -4,6 +4,7 @@ module SugarScape.Agent.Move
   , handleKilledInCombat
   ) where
 
+import Data.List
 import Data.Maybe
 
 import Control.Monad.Random
@@ -69,7 +70,6 @@ agentCombat :: RandomGen g
 agentCombat params myId = do
     let combatReward = fromJust $ spCombat params
 
-    -- lookout in 4 directions as far as vision perimts
     myTribe  <- agentProperty sugAgTribe
     mySugLvl <- agentProperty sugAgSugarLevel
     mySpiLvl <- agentProperty sugAgSpiceLevel
@@ -202,3 +202,65 @@ agentHarvestSite params myId siteCoord = do
   envLift $ changeCellAtM siteCoord siteHarvested
 
   return harvestAmount
+
+type SiteMeasureFunc = SugEnvSite -> Double
+
+-- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
+-- polution level will be 0 anyway if polution / diffusion is turned off
+sugarSiteMeasure :: SiteMeasureFunc
+sugarSiteMeasure site = sug / (1 + pol)
+  where
+    sug = sugEnvSiteSugarLevel site
+    pol = sugEnvSitePolutionLevel site
+
+selectBestSites :: SiteMeasureFunc
+                -> Discrete2dCoord
+                -> [(Discrete2dCoord, SugEnvSite)]
+                -> [(Discrete2dCoord, SugEnvSite)]
+selectBestSites measureFunc refCoord cs = bestShortestdistanceManhattanCells
+  where
+    cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
+    bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
+    bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
+
+    shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattanDisc2d refCoord (fst c1)) (distanceManhattanDisc2d refCoord (fst c2))) bestCells
+    shortestdistanceManhattan = distanceManhattanDisc2d refCoord (fst $ head shortestdistanceManhattanBestCells)
+    bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d refCoord) . fst) shortestdistanceManhattanBestCells
+      
+selectSiteMeasureFunc :: SugarScapeScenario -> SugAgentState -> SiteMeasureFunc
+selectSiteMeasureFunc params as
+  | spSpiceEnabled params = sugarSpiceSiteMeasure as
+  | otherwise             = sugarSiteMeasure
+
+-- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
+-- polution level will be 0 anyway if polution / diffusion is turned off
+combatSiteMeasure :: SugarScapeScenario -> Double -> SiteMeasureFunc
+combatSiteMeasure _params combatReward site = combatWealth + sug + spi
+  where
+    victim       = fromJust $ sugEnvSiteOccupier site
+    victimWealth = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
+    combatWealth = min victimWealth combatReward
+
+    pol          = sugEnvSitePolutionLevel site
+    sug          = sugEnvSiteSugarLevel site / (1 + pol)
+    spi          = sugEnvSiteSpiceLevel site / (1 + pol)
+
+-- See page 97, The Agent Welfare Function and Appendix C (Example makes it quite clear)
+-- The agent welfare function itself computes whether the agent requires more 
+-- sugar or more spice, depending on the respective metabolisms. 
+-- Now we apply this welfare function to compute a measure for the site which means
+-- we compute the potential welfare when the agent is on that site, thus we
+-- add the sites sugar / spice to the respective parts of the equation.
+-- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
+-- polution level will be 0 anyway if polution / diffusion is turned off
+sugarSpiceSiteMeasure :: SugAgentState -> SiteMeasureFunc
+sugarSpiceSiteMeasure as site = agentWelfareChange sug spi w1 w2 m1 m2
+  where
+    m1 = fromIntegral $ sugAgSugarMetab as
+    m2 = fromIntegral $ sugAgSpiceMetab as
+    w1 = sugAgSugarLevel as
+    w2 = sugAgSpiceLevel as
+
+    pol = sugEnvSitePolutionLevel site
+    sug = sugEnvSiteSugarLevel site / (1 + pol)
+    spi = sugEnvSiteSpiceLevel site / (1 + pol)

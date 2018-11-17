@@ -2,17 +2,10 @@
 module SugarScape.Agent.Common
   ( SugarScapeAgent
   , AgentAction
-  
   , EventHandler
 
-  , SiteMeasureFunc
-
-  , filterNeighbourIds
-
-  , sugObservableFromState
-  , selectBestSites
-  , selectSiteMeasureFunc
-  , combatSiteMeasure
+  , neighbourAgentIds
+  
   , agentWelfare
   , agentWelfareM
   , agentWelfareState
@@ -23,8 +16,6 @@ module SugarScape.Agent.Common
   , mrsM
   , mrsState
   , mrsStateChange
-  
-  , unoccupiedNeighbourhoodOfNeighbours
 
   , occupier
   , occupierM
@@ -54,7 +45,6 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 import Data.Maybe
 import Data.MonadicStreamFunction
-import Data.List
 
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
@@ -63,14 +53,17 @@ import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 
--- TODO: clean up this mess: many functions belong to more specific modules
-
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
+type EventHandler g    = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
-type EventHandler g = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
-
-type SiteMeasureFunc = SugEnvSite -> Double
+neighbourAgentIds :: AgentAction g [AgentId]
+neighbourAgentIds = do
+    coord <- agentProperty sugAgCoord
+    filterNeighbourIds <$> (envLift $ neighboursM coord False)
+  where
+    filterNeighbourIds :: [Discrete2dCell SugEnvSite] -> [AgentId]
+    filterNeighbourIds ns = map (siteOccupier . snd) $ filter (siteOccupied . snd) ns
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState as = SugAgentObservable
@@ -87,44 +80,6 @@ sugObservableFromState as = SugAgentObservable
   , sugObsTrades     = []
   , sugObsDiseases   = sugAgDiseases as
   }
-
-selectSiteMeasureFunc :: SugarScapeScenario -> SugAgentState -> SiteMeasureFunc
-selectSiteMeasureFunc params as
-  | spSpiceEnabled params = sugarSpiceSiteMeasure as
-  | otherwise             = sugarSiteMeasure
-
--- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
--- polution level will be 0 anyway if polution / diffusion is turned off
-combatSiteMeasure :: SugarScapeScenario -> Double -> SiteMeasureFunc
-combatSiteMeasure _params combatReward site = combatWealth + sug + spi
-  where
-    victim       = fromJust $ sugEnvSiteOccupier site
-    victimWealth = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
-    combatWealth = min victimWealth combatReward
-
-    pol          = sugEnvSitePolutionLevel site
-    sug          = sugEnvSiteSugarLevel site / (1 + pol)
-    spi          = sugEnvSiteSpiceLevel site / (1 + pol)
-
--- See page 97, The Agent Welfare Function and Appendix C (Example makes it quite clear)
--- The agent welfare function itself computes whether the agent requires more 
--- sugar or more spice, depending on the respective metabolisms. 
--- Now we apply this welfare function to compute a measure for the site which means
--- we compute the potential welfare when the agent is on that site, thus we
--- add the sites sugar / spice to the respective parts of the equation.
--- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
--- polution level will be 0 anyway if polution / diffusion is turned off
-sugarSpiceSiteMeasure :: SugAgentState -> SiteMeasureFunc
-sugarSpiceSiteMeasure as site = agentWelfareChange sug spi w1 w2 m1 m2
-  where
-    m1 = fromIntegral $ sugAgSugarMetab as
-    m2 = fromIntegral $ sugAgSpiceMetab as
-    w1 = sugAgSugarLevel as
-    w2 = sugAgSpiceLevel as
-
-    pol = sugEnvSitePolutionLevel site
-    sug = sugEnvSiteSugarLevel site / (1 + pol)
-    spi = sugEnvSiteSpiceLevel site / (1 + pol)
 
 -- default welfare function, not incorporating change to sugar / spice
 agentWelfare :: Double  -- ^ sugar-wealth of agent
@@ -213,40 +168,6 @@ agentWelfareChangeM :: MonadState SugAgentState m
 agentWelfareChangeM sugarChange spiceChange 
   = state (\s -> (agentWelfareChangeState s sugarChange spiceChange, s))
 
--- NOTE: includes polution unconditionally for better maintainability (lower number of functions and cases)
--- polution level will be 0 anyway if polution / diffusion is turned off
-sugarSiteMeasure :: SiteMeasureFunc
-sugarSiteMeasure site = sug / (1 + pol)
-  where
-    sug = sugEnvSiteSugarLevel site
-    pol = sugEnvSitePolutionLevel site
-
-selectBestSites :: SiteMeasureFunc
-                -> Discrete2dCoord
-                -> [(Discrete2dCoord, SugEnvSite)]
-                -> [(Discrete2dCoord, SugEnvSite)]
-selectBestSites measureFunc refCoord cs = bestShortestdistanceManhattanCells
-  where
-    cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
-    bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
-    bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
-
-    shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattanDisc2d refCoord (fst c1)) (distanceManhattanDisc2d refCoord (fst c2))) bestCells
-    shortestdistanceManhattan = distanceManhattanDisc2d refCoord (fst $ head shortestdistanceManhattanBestCells)
-    bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d refCoord) . fst) shortestdistanceManhattanBestCells
-
-unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord 
-                                    -> SugEnvironment
-                                    -> [(Discrete2dCoord, SugEnvSite)]
-unoccupiedNeighbourhoodOfNeighbours coord e 
-    = filter (isNothing . sugEnvSiteOccupier . snd) nncsUnique
-  where
-    ncs = neighbours coord False e
-    -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-    nncsDupl = foldr (\(coord', _) acc -> neighbours coord' False e ++ acc) ncs ncs
-    -- NOTE: the nncs are not unique, remove duplicates
-    nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
-
 occupier :: AgentId
          -> SugAgentState
          -> SugEnvSiteOccupier
@@ -258,9 +179,7 @@ occupier aid as = SugEnvSiteOccupier {
   , sugEnvOccMRS         = mrsState as
   }
 
-filterNeighbourIds :: [Discrete2dCell SugEnvSite]
-                   -> [AgentId]
-filterNeighbourIds ns = map (siteOccupier . snd) $ filter (siteOccupied . snd) ns
+
 
 occupierM :: MonadState SugAgentState m
           => AgentId 

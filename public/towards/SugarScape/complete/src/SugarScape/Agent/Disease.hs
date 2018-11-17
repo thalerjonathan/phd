@@ -13,7 +13,6 @@ import Control.Monad.State.Strict
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
@@ -37,17 +36,16 @@ agentDisease params cont
 transmitDisease :: RandomGen g
                 => AgentAction g (SugAgentOut g)
 transmitDisease = do
-  myCoord <- agentProperty sugAgCoord
-  ns      <- filterNeighbourIds <$> envLift (neighboursM myCoord False)
-  ds      <- agentProperty sugAgDiseases
+  nids <- neighbourAgentIds
+  ds   <- agentProperty sugAgDiseases
 
-  if null ds || null ns
+  if null ds || null nids
     then agentObservableM -- no diseases or no neighbours
     else do
-      rds <- randLift $ randomElemsM (length ns) ds
+      rds <- randLift $ randomElemsM (length nids) ds
       ao  <- agentObservableM
 
-      let evts = zipWith (\nid d -> (nid, DiseaseTransmit d)) ns rds
+      let evts = zipWith (\nid d -> (nid, DiseaseTransmit d)) nids rds
 
       return $ sendEvents evts ao
 

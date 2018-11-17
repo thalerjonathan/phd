@@ -12,7 +12,6 @@ import Control.Monad.Random
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
-import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
@@ -24,19 +23,16 @@ agentCultureProcess :: RandomGen g
 agentCultureProcess params _myId 
   | isNothing $ spCulturalProcess params = agentObservableM
   | otherwise = do
-    -- simply broadcast to all neighbours, they compute and flip their tags themselves
-    coord <- agentProperty sugAgCoord
-    ns    <- envLift $ neighboursM coord False
-
-    let neighbourIds = map (siteOccupier . snd) $ filter (siteOccupied . snd) ns
+    nids <- neighbourAgentIds
 
     -- no neighbours, ignore cultural process
-    if null neighbourIds
+    if null nids
       then agentObservableM
       else do
         ao         <- agentObservableM
         cultureTag <- agentProperty sugAgCultureTag
-        return $ broadcastEvent neighbourIds (CulturalProcess cultureTag) ao
+        -- simply broadcast to all neighbours, they compute and flip their tags themselves
+        return $ broadcastEvent nids (CulturalProcess cultureTag) ao
 
 handleCulturalProcess :: RandomGen g
                       => AgentId

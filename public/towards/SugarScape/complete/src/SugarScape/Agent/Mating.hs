@@ -31,9 +31,9 @@ agentMating :: RandomGen g
             -> SugarScapeAgent g              -- the top-level MSF of the agent, to be used for birthing children
             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentMating params myId amsf0 cont0
-  | not $ spSexRuleActive params = cont0
-  | otherwise                    = do
+agentMating params myId amsf cont
+  | not $ spSexRuleActive params = cont
+  | otherwise = do
     coord   <- agentProperty sugAgCoord
     ns      <- envLift $ neighboursM coord False
     fertile <- isAgentFertile
@@ -47,11 +47,11 @@ agentMating params myId amsf0 cont0
     -- the switch will occur back to mainHandler from where we are coming anyway
     -- thus carrying out this extra check is a performance optimisation
     if null ocs || not fertile
-      then cont0
+      then cont
       else do
         -- shuffle ocs bcs selecting agents at random according to the book
         ocsShuff <- randLift $ fisherYatesShuffleM ocs
-        mateWith params myId amsf0 cont0 ocsShuff
+        mateWith params myId amsf cont ocsShuff
 
 mateWith :: RandomGen g
          => SugarScapeScenario
@@ -60,9 +60,7 @@ mateWith :: RandomGen g
          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
          -> [(Discrete2dCoord, SugEnvSite)]
          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-mateWith _ _myId _ cont [] = 
-  -- mating finished, continue with agent-behaviour where it left before starting mating
-  cont 
+mateWith _ _ _ cont [] = cont -- mating finished, continue with agent-behaviour where it left before starting mating
 mateWith params myId amsf cont ((coord, site) : ns) =
   -- check fertility again because might not be fertile because of previous matings
   ifThenElseM
@@ -159,7 +157,7 @@ matingHandler params myId amsf0 cont0 ns freeSites =
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao0 <- fmap (newAgent childDef) agentObservableM
+      ao0 <- (newAgent childDef) <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
       let ao' = sendEventTo sender (MatingTx childId) ao0
       -- THEN continue with mating-requests to the remaining neighbours
@@ -248,7 +246,6 @@ handleMatingTx myId _sender childId = do
   updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2
                             , sugAgSpiceLevel = spiLvl / 2
                             , sugAgChildren   = childId : sugAgChildren s})
-
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteWithOccupier myId
 

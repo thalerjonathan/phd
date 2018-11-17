@@ -29,7 +29,6 @@ agentMetabolism params myId
 
     updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel'
                                 , sugAgSpiceLevel = spiceLevel' })
-
     -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
     updateSiteWithOccupier myId
 
@@ -40,8 +39,8 @@ agentMetabolism params myId
     sugarLevel <- agentProperty sugAgSugarLevel
 
     let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+    
     updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
-
     -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
     updateSiteWithOccupier myId
 

@@ -179,8 +179,6 @@ occupier aid as = SugEnvSiteOccupier {
   , sugEnvOccMRS         = mrsState as
   }
 
-
-
 occupierM :: MonadState SugAgentState m
           => AgentId 
           -> m SugEnvSiteOccupier

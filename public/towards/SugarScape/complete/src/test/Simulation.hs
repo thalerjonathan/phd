@@ -138,7 +138,7 @@ prop_terracing g0 = assertBool
     expTerraceRatio = 0.45 :: Double
     expStaticRatio  = 0.99 :: Double
 
-    (rngs, _)   = rngSplits g0 runs
+    (rngs, _)   = rngSplits runs g0
     sugParams   = mkParamsAnimationII_1
 
     ret         = parMap rpar genPopulationTerracingStats rngs
@@ -200,7 +200,7 @@ prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confid
     _maxVariance = 4 :: Double
     expMean     = 204 :: Double
 
-    (rngs, _)   = rngSplits g0 runs
+    (rngs, _)   = rngSplits runs g0
     sugParams   = mkParamsAnimationII_2
 
     ret         = parMap rpar genPopulationSizeStats rngs
@@ -235,7 +235,7 @@ prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less tha
     expKurt   = 2.0 :: Double
     expGini   = 0.48 :: Double
 
-    (rngs, _) = rngSplits g0 runs
+    (rngs, _) = rngSplits runs g0
     sugParams = mkParamsAnimationII_3
 
     ret       = parMap rpar (genPopulationWealthStats sugParams steps) rngs

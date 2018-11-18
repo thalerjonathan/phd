@@ -59,35 +59,43 @@ sugarScapeTimeDelta :: DTime
 sugarScapeTimeDelta = 1
 
 initSimulation :: SugarScapeScenario
-               -> IO (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
+               -> IO ( SimulationState StdGen
+                     , SimStepOut
+                     , SugarScapeScenario)
 initSimulation params = do
   g0 <- newStdGen
   return $ initSimulationRng g0 params
 
 initSimulationOpt :: Maybe Int
                   -> SugarScapeScenario
-                  -> IO (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
+                  -> IO ( SimulationState StdGen
+                        , SimStepOut
+                        , SugarScapeScenario)
 initSimulationOpt Nothing     params = initSimulation params
 initSimulationOpt (Just seed) params = return $ initSimulationSeed seed params
 
 initSimulationSeed :: Int
                    -> SugarScapeScenario
-                   -> (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
+                   -> ( SimulationState StdGen
+                      , SimStepOut
+                      , SugarScapeScenario)
 initSimulationSeed seed = initSimulationRng g0
   where
     g0 = mkStdGen seed
 
-initSimulationRng :: RandomGen g
-                  => g
+initSimulationRng :: StdGen
                   -> SugarScapeScenario
-                  -> (SimulationState g, SugEnvironment, SugarScapeScenario)
-initSimulationRng g0 params = (initSimState, initEnv, params')
+                  -> ( SimulationState StdGen
+                     , SimStepOut
+                     , SugarScapeScenario)
+initSimulationRng g0 params = (initSimState, initOut, params')
   where
     -- initial agents and environment data
     ((initAs, initEnv, params'), g') = runRand (createSugarScape params) g0
     -- initial agent map
     agentMap        = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
-    (initAis, _, _) = unzip3 initAs
+    (initAis, initObs, _) = unzip3 initAs
+    initOut = (0, 0, initEnv, zip initAis initObs)
     -- initial simulation state
     initSimState = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvBehaviour params') g' 0
 

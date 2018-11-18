@@ -60,21 +60,22 @@ runSugarscape opts = do
       let output    = optOutput opts
           rngSeed   = optRngSeed opts
 
-      (initSimState, initEnv, scenario') <- initSimulationOpt rngSeed scenario
+      (initSimState, initOut, scenario') <- initSimulationOpt rngSeed scenario
 
       putStrLn "Running Sugarscape with... " 
       putStrLn "--------------------------------------------------"
       print scenario'
       putStrLn "--------------------------------------------------"
 
-      putStrLn $ "RNG Seed: \t\t\t" ++ maybe "N/A - using default global random number initialisation" show rngSeed
+      putStrLn $ "RNG Seed: \t\t\t" ++ maybe 
+                 "N/A - using default global random number initialisation" show rngSeed
       putStrLn $ "Output Type: \t\t\t" ++ show output
       putStrLn "--------------------------------------------------"
 
       case output of 
         Console steps     -> print $ simulateUntil steps initSimState
         File steps file   -> writeSimulationUntil file steps initSimState
-        Visual freq av cv -> runGloss scenario' initSimState (0, 0, initEnv, []) freq av cv
+        Visual freq av cv -> runGloss scenario' initSimState initOut freq av cv
 
       putStrLn "\n--------------------------------------------------\n"
 

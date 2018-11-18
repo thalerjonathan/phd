@@ -73,7 +73,7 @@ type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAg
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
 type EventHandler g    = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
-absCtxLift :: ReaderT ABSCtx (ReaderT SugEnvironment (RandT g STM)) a -> AgentAction g a
+absCtxLift :: ReaderT (ABSCtx SugEvent) (ReaderT SugEnvironment (RandT g STM))  a -> AgentAction g a
 absCtxLift = lift 
 
 envLift :: ReaderT SugEnvironment (RandT g STM) a -> AgentAction g a

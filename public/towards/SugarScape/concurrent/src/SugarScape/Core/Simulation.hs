@@ -10,8 +10,6 @@ module SugarScape.Core.Simulation
 
   , simulationStep
 
-  , mkSimState
-
   , simulateUntil
   , simulateUntilLast
 
@@ -21,17 +19,14 @@ module SugarScape.Core.Simulation
   , runEnv
   ) where
 
-import Data.Maybe
+import Control.Concurrent.MVar
 import System.Random
 
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.STM
-import Control.Monad.State.Strict
 import Data.MonadicStreamFunction.InternalCore
-import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
-import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Environment
 import SugarScape.Core.Model
@@ -39,21 +34,19 @@ import SugarScape.Core.Init
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 
-type AgentMap g = Map.IntMap (SugAgentMSF g, SugAgentObservable)
-type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
-
-type AgentObservable o = (AgentId, o)
-type SimStepOut        = (Time, Int, SugEnvironment, [AgentObservable SugAgentObservable])
+type AgentObservable o    = (AgentId, o)
+type SugarScapeObservable = AgentObservable SugAgentObservable
+type SimStepOut           = (Time, SugEnvironment, [SugarScapeObservable])
 
 -- NOTE: strictness on those fields, otherwise space-leak 
 -- (memory consumption increases throughout run-time and execution gets slower and slower)
 data SimulationState g = SimulationState 
-  { simAgentMap :: !(AgentMap g)
-  , simAbsCtx   :: !ABSCtx 
-  , simEnvState :: !SugEnvironment
-  , simEnvBeh   :: SugEnvBehaviour
-  , simRng      :: !g
-  , simSteps    :: !Int
+  { simStAbsCtx   :: !(ABSCtx SugEvent)
+  , simStEnv      :: !SugEnvironment
+  , simStEnvBeh   :: SugEnvBehaviour
+  , simStRng      :: !g
+  , simStTickVars :: [MVar DTime]
+  , simStOutVars  :: [MVar SugarScapeObservable]
   }
 
 -- sugarscape is stepped with a time-delta of 1.0
@@ -61,69 +54,91 @@ sugarScapeTimeDelta :: DTime
 sugarScapeTimeDelta = 1
 
 initSimulation :: SugarScapeScenario
-               -> IO (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
+               -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
 initSimulation params = do
   g0 <- newStdGen
-  return $ initSimulationRng g0 params
+  initSimulationRng g0 params
 
 initSimulationOpt :: Maybe Int
                   -> SugarScapeScenario
-                  -> IO (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
+                  -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
 initSimulationOpt Nothing     params = initSimulation params
-initSimulationOpt (Just seed) params = return $ initSimulationSeed seed params
+initSimulationOpt (Just seed) params = initSimulationSeed seed params
 
 initSimulationSeed :: Int
                    -> SugarScapeScenario
-                   -> (SimulationState StdGen, SugEnvironment, SugarScapeScenario)
+                   -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
 initSimulationSeed seed = initSimulationRng g0
   where
     g0 = mkStdGen seed
 
-initSimulationRng :: RandomGen g
-                  => g
+initSimulationRng :: StdGen
                   -> SugarScapeScenario
-                  -> (SimulationState g, SugEnvironment, SugarScapeScenario)
-initSimulationRng g0 params = (initSimState, initEnv, params')
-  where
-    -- initial agents and environment data
-    ((initAs, initEnv, params'), g') = runRand (createSugarScape params) g0
-    -- initial agent map
-    agentMap        = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
-    (initAis, _, _) = unzip3 initAs
-    -- initial simulation state
-    initSimState = mkSimState agentMap (mkabsCtx $ maximum initAis) initEnv (sugEnvBehaviour params') g' 0
+                  -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
+initSimulationRng g0 params = do
+  -- initial agents and environment data
+  ((initAs, initEnv, params'), g) <- atomically $ runRandT (createSugarScape params) g0
+
+  let (rngs, g')            = rngSplits (length initAs) g
+      (initAis, initObs, _) = unzip3 initAs
+      initOut               = (0, initEnv, zip initAis initObs)
+      initEnvBeh            = sugEnvBehaviour params
+
+  absCtx <- atomically $ mkAbsCtx $ maximum initAis
+
+  (tickVars, outVars) <- unzip <$> zipWithM (\(aid, _, asf) ga -> 
+              createAgentThread aid asf ga initEnv absCtx) initAs rngs
+
+  let initSimState = mkSimState absCtx initEnv initEnvBeh g' tickVars outVars
+
+  return (initSimState, initOut, params')
+
+createAgentThread :: RandomGen g
+                  => AgentId
+                  -> SugAgentMSF g
+                  -> StdGen
+                  -> SugEnvironment
+                  -> ABSCtx SugEvent
+                  -> IO (MVar DTime, MVar SugarScapeObservable)
+createAgentThread _aid _asf _g _env _ctx = do 
+  tickVar <- newEmptyMVar
+  outVar  <- newEmptyMVar
+
+  return (tickVar, outVar)
 
 simulateUntil :: RandomGen g
               => Time
               -> SimulationState g
-              -> [SimStepOut]
+              -> IO [SimStepOut]
 simulateUntil tMax ss0 = simulateUntilAux ss0 []
   where
     simulateUntilAux :: RandomGen g
                      => SimulationState g
                      -> [SimStepOut]
-                     -> [SimStepOut]
-    simulateUntilAux ss acc
-        | t < tMax  = simulateUntilAux ss' acc'
-        | otherwise = reverse acc'
-      where
-        (ss', so@(t, _, _, _)) = simulationStep ss
-        acc' = so : acc
+                     -> IO [SimStepOut]
+    simulateUntilAux ss acc = do
+      (ss', so@(t, _, _)) <- simulationStep ss 
+      let acc' = so : acc
 
+      if t > tMax 
+        then return $ reverse acc'
+        else simulateUntilAux ss' acc'
+      
 simulateUntilLast :: RandomGen g
                   => Time
                   -> SimulationState g
-                  -> SimStepOut
-simulateUntilLast tMax ss
-    | t < tMax  = simulateUntilLast tMax ss'
-    | otherwise = so
-  where
-    (ss', so@(t, _, _, _)) = simulationStep ss
+                  -> IO SimStepOut
+simulateUntilLast tMax ss = do
+  (ss', so@(t, _, _)) <- simulationStep ss 
+
+  if t > tMax 
+    then return so
+    else simulateUntilLast tMax ss'
 
 simulationStep :: RandomGen g
                => SimulationState g
-               -> (SimulationState g, SimStepOut)
-simulationStep ss0 = (ssFinal, sao)
+               -> IO (SimulationState g, SimStepOut)
+simulationStep _ss0 = undefined {- (ssFinal, sao)
   where
     am0  = simAgentMap ss0
     ais0 = Map.keys am0
@@ -203,19 +218,19 @@ simulationStep ss0 = (ssFinal, sao)
                  , simEnvState = env'
                  , simRng      = g'
                  , simSteps    = steps + 1 }
+-}
 
-runEnv :: SimulationState g
-       -> SugEnvironment
-runEnv ss = eb t env
+runEnv :: SimulationState g -> IO ()
+runEnv ss = atomically $ envBeh t env
   where
-    eb  = simEnvBeh ss 
-    env = simEnvState ss
-    t   = absTime $ simabsCtx ss
+    env    = simStEnv ss
+    envBeh = simStEnvBeh ss
+    t      = absCtxTime $ simStAbsCtx ss
 
 runAgentSF :: RandomGen g
            => SugAgentMSF g
            -> ABSEvent SugEvent
-           -> ABSCtx
+           -> ABSCtx SugEvent
            -> SugEnvironment
            -> g
            -> IO (SugAgentOut g, SugAgentMSF g, g)
@@ -228,18 +243,18 @@ runAgentSF sf evt absCtx env g = do
     ((out, sf'), g') <- atomically sfSTM
     return (out, sf', g') 
  
-mkSimState :: AgentMap g
-           -> ABSCtx
+mkSimState :: ABSCtx SugEvent
            -> SugEnvironment
            -> SugEnvBehaviour
            -> g
-           -> Int
+           -> [MVar DTime]
+           -> [MVar SugarScapeObservable]
            -> SimulationState g
-mkSimState am absCtx env eb g steps = SimulationState 
-  { simAgentMap = am
-  , simAbsCtx   = absCtx 
-  , simEnvState = env
-  , simEnvBeh   = eb
-  , simRng      = g
-  , simSteps    = steps
+mkSimState absCtx env envBeh g tickVars outVars = SimulationState 
+  { simStAbsCtx   = absCtx
+  , simStEnv      = env
+  , simStEnvBeh   = envBeh
+  , simStRng      = g
+  , simStTickVars = tickVars
+  , simStOutVars  = outVars
   }

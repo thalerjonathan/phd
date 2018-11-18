@@ -170,7 +170,7 @@ data SugEvent = MatingRequest AgentGender
 type SugEnvironment = Discrete2d SugEnvSite
 
 type SugAgentMonad g  = ReaderT SugEnvironment (RandT g STM)
-type SugAgentMonadT g = AgentT (SugAgentMonad g)
+type SugAgentMonadT g = AgentT (SugAgentMonad g) SugEvent
 
 type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentDef g = AgentDef (SugAgentMonad g) SugEvent SugAgentObservable

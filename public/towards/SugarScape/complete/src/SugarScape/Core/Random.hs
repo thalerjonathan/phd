@@ -82,11 +82,11 @@ fisherYatesShuffleM l = do
         j <- getRandomR (0, i)
         return ((Map.insert j x . Map.insert i (m Map.! j)) m)
 
-rngSplits :: RandomGen g => g -> Int -> ([g], g)
-rngSplits g0 n0 = rngSplitsAux g0 n0 []
+rngSplits :: RandomGen g => Int -> g -> ([g], g)
+rngSplits n0 g0  = rngSplitsAux n0 g0 []
   where
-    rngSplitsAux :: RandomGen g => g -> Int -> [g] -> ([g], g)
-    rngSplitsAux g 0 acc = (acc, g)
-    rngSplitsAux g n acc = rngSplitsAux g'' (n - 1) (g' : acc)
+    rngSplitsAux :: RandomGen g => Int -> g -> [g] -> ([g], g)
+    rngSplitsAux 0 g acc = (acc, g)
+    rngSplitsAux n g acc = rngSplitsAux (n - 1) g'' (g' : acc)
       where
         (g', g'') = split g

@@ -12,7 +12,7 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
-import SugarScape.Agent.Utils
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
@@ -52,7 +52,7 @@ agentNonCombat params myId = do
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
-        selfCell <- envLift $ cellAtM coord
+        selfCell <- envRun $ cellAt coord
         myState  <- get
 
         let uoc' = (coord, selfCell) : uoc
@@ -121,7 +121,7 @@ agentCombat params myId = do
                       -> AgentAction g [(Discrete2dCoord, SugEnvSite)]
     filterRetaliation _ _ _ _ [] acc = return acc
     filterRetaliation myTribe myWealth myVis combatReward (site@(sc, ss) : sites) acc = do
-      futureSites <- envLift $ neighboursInNeumannDistanceM sc myVis False
+      futureSites <- envRun $ neighboursInNeumannDistance sc myVis False
 
       let victim        = fromJust $ sugEnvSiteOccupier ss
           victimWealth  = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
@@ -152,7 +152,7 @@ agentLookout :: RandomGen g
 agentLookout = do
   vis   <- agentProperty sugAgVision
   coord <- agentProperty sugAgCoord
-  envLift $ neighboursInNeumannDistanceM coord vis False
+  envRun $ neighboursInNeumannDistance coord vis False
 
 agentMoveTo :: RandomGen g
              => AgentId
@@ -164,9 +164,9 @@ agentMoveTo myId cellCoord = do
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
   occ  <- occupierM myId
-  cell <- envLift $ cellAtM cellCoord
+  cell <- envRun $ cellAt cellCoord
   let co = cell { sugEnvSiteOccupier = Just occ }
-  envLift $ changeCellAtM cellCoord co 
+  envRun $ changeCellAt cellCoord co 
 
 agentHarvestSite :: RandomGen g
                  => SugarScapeScenario
@@ -174,7 +174,7 @@ agentHarvestSite :: RandomGen g
                  -> Discrete2dCoord 
                  -> AgentAction g Double
 agentHarvestSite params myId siteCoord = do
-  site   <- envLift $ cellAtM siteCoord
+  site   <- envRun $ cellAt siteCoord
   sugLvl <- agentProperty sugAgSugarLevel
   
   let sugLvlSite = sugEnvSiteSugarLevel site
@@ -199,7 +199,7 @@ agentHarvestSite params myId siteCoord = do
   let siteHarvested = site { sugEnvSiteSugarLevel = 0
                            , sugEnvSiteSpiceLevel = 0
                            , sugEnvSiteOccupier   = Just occ }
-  envLift $ changeCellAtM siteCoord siteHarvested
+  envRun $ changeCellAt siteCoord siteHarvested
 
   return harvestAmount
 

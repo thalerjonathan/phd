@@ -3,6 +3,9 @@ module SugarScape.Core.Environment
   , sugEnvBehaviour
   ) where
 
+import Control.Monad
+import Control.Monad.STM
+
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
@@ -11,41 +14,32 @@ import SugarScape.Core.Scenario
 type RegrowToMaxFunc = SugEnvSite -> SugEnvSite
 type RegrowByRateFunc = Double -> SugEnvSite -> SugEnvSite
 
--- NOTE: the environment behaviour is a pure comuptation, 
--- because there is no need for any monadic behaviour 
--- or access of absstate 
-type SugEnvBehaviour = Time -> SugEnvironment -> SugEnvironment
+-- NOTE: environment is a STM computation because environment is stored in TArray
+type SugEnvBehaviour = Time -> SugEnvironment -> STM ()
 
-sugEnvBehaviour :: SugarScapeScenario 
-                -> Time
-                -> SugEnvironment
-                -> SugEnvironment
-sugEnvBehaviour params t env = env'''
-  where
-    env'   = regrow (spSugarRegrow params) regrowSugarToMax regrowSugarWithRate t env
-    env''  = regrow (spSpiceRegrow params) regrowSpiceToMax regrowSpiceWithRate t env'
-    env''' = polutionDiffusion (spPolutionDiffusion params) t env''
+sugEnvBehaviour :: SugarScapeScenario -> SugEnvBehaviour
+sugEnvBehaviour params t env = do
+  regrow (spSugarRegrow params) regrowSugarToMax regrowSugarWithRate t env
+  regrow (spSpiceRegrow params) regrowSpiceToMax regrowSpiceWithRate t env
+  polutionDiffusion (spPolutionDiffusion params) t env
 
-polutionDiffusion :: Maybe Int
-                  -> Time
-                  -> SugEnvironment
-                  -> SugEnvironment
-polutionDiffusion Nothing _ env = env
+polutionDiffusion :: Maybe Int -> SugEnvBehaviour
+polutionDiffusion Nothing _ _ = return ()
 polutionDiffusion (Just d) t env
-    | not timeForDiffusion = env
-    | otherwise = env'
+    | not timeForDiffusion = return ()
+    | otherwise = do
+      cs <- allCellsWithCoords env
+      fs <- mapM (\(coord, _) -> do
+              ncs <- neighbourCells coord True env
+              let flux = sum (map sugEnvSitePolutionLevel ncs) / fromIntegral (length ncs)
+              return flux) cs
+
+      zipWithM_ (\(coord, c) flux -> do
+                let c' = c { sugEnvSitePolutionLevel = flux }
+                changeCellAt coord c' env) cs fs
   where
     timeForDiffusion = 0 == mod t d
 
-    cs = allCellsWithCoords env
-    fs = map (\(coord, _) -> do
-          let ncs  = neighbourCells coord True env
-          let flux = sum (map sugEnvSitePolutionLevel ncs) / fromIntegral (length ncs)
-          flux) cs
-
-    env' = foldr (\((coord, c), flux) acc -> do
-            let c' = c { sugEnvSitePolutionLevel = flux }
-            changeCellAt coord c' acc) env (zip cs fs)
 
 regrowSugarWithRate :: RegrowByRateFunc
 regrowSugarWithRate rate c 
@@ -70,9 +64,7 @@ regrowSpiceToMax c = c { sugEnvSiteSpiceLevel = sugEnvSiteSpiceCapacity c}
 regrow :: Regrow 
        -> RegrowToMaxFunc
        -> RegrowByRateFunc
-       -> Time
-       -> SugEnvironment
-       -> SugEnvironment
+       -> SugEnvBehaviour
 regrow Immediate maxFun _ _    = updateCells maxFun
 regrow (Rate rate) _ rateFun _ = updateCells $ rateFun rate
 regrow (Season summerRate winterRate seasonDuration) _ rateFun t
@@ -82,9 +74,7 @@ regrowBySeason :: RegrowByRateFunc
                -> Time
                -> Double
                -> Double
-               -> Time
-               -> SugEnvironment
-               -> SugEnvironment
+               -> SugEnvBehaviour
 regrowBySeason rateFun t summerRate winterRate seasonDuration 
     = updateCellsWithCoords (\((_, y), c) -> 
         if y <= half

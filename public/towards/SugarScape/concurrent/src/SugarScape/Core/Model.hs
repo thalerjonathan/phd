@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Core.Model 
   ( AgentGender (..)
   , CultureTag
@@ -35,9 +36,10 @@ module SugarScape.Core.Model
   
   , envSpec
   ) where
-
+  
 import Control.Monad.Random
-import Control.Monad.State.Strict
+import Control.Monad.Reader
+import Control.Monad.STM
 
 import SugarScape.Agent.Interface
 import SugarScape.Core.Common
@@ -174,25 +176,6 @@ type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentDef g = AgentDef (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentOut g = AgentOut (SugAgentMonad g) SugEvent SugAgentObservable
 ------------------------------------------------------------------------------------------------------------------------
-
-getSimTime :: MonadReader ABSState m => m Time
-getSimTime = reader absTime
-
-nextAgentId :: MonadReader ABSState m
-            => m AgentId
-nextAgentId = do
-  aid <- gets absNextId
-  modify (\s -> s { absNextId = aid + 1 })
-  return aid
-
-  aidVar <- reader absNextId
-
-  aid <- lift $ lift $ readTVar aidVar
-  _   <- lift $ lift $ writeTVar aidVar (aid + 1)
-
-  return aid
-
-  
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SUGARSCAPE PARAMETRS

@@ -4,7 +4,19 @@ module SugarScape.Agent.Common
   , AgentAction
   , EventHandler
 
+  , absCtxLift
+  , envLift
+  , randLift
+  , stmLift
+  , envRun
+
   , neighbourAgentIds
+  , getSimTime
+  , nextAgentId
+
+  , broadcastEvent
+  , sendEventTo
+  , sendEvents
   
   , agentWelfare
   , agentWelfareM
@@ -41,13 +53,17 @@ module SugarScape.Agent.Common
   , changeToBlueTribe
   ) where
 
-import Control.Monad.Random
-import Control.Monad.State.Strict
 import Data.Maybe
+
+import Control.Concurrent.STM.TVar
+import Control.Monad.Random
+import Control.Monad.Reader
+import Control.Monad.State.Strict
+import Control.Monad.STM
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Interface
-import SugarScape.Agent.Utils
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
@@ -57,13 +73,59 @@ type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAg
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
 type EventHandler g    = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
+absCtxLift :: ReaderT ABSCtx (ReaderT SugEnvironment (RandT g STM)) a -> AgentAction g a
+absCtxLift = lift 
+
+envLift :: ReaderT SugEnvironment (RandT g STM) a -> AgentAction g a
+envLift = lift . lift
+
+randLift :: RandT g STM a -> AgentAction g a
+randLift = lift . lift . lift
+
+stmLift :: STM a -> AgentAction g a
+stmLift = lift . lift . lift . lift
+
+envRun :: (SugEnvironment -> STM a) 
+       -> AgentAction g a
+envRun f = do
+  env <- envLift ask 
+  stmLift (f env)
+
+-- TODO: implement
+broadcastEvent :: [AgentId]
+               -> e
+               -> AgentOut m e o
+               -> AgentOut m e o
+broadcastEvent _rs _e ao = ao
+
+-- TODO: implement
+sendEvents :: [(AgentId, e)]
+           -> AgentOut m e o
+           -> AgentOut m e o
+sendEvents _es ao = ao 
+
+-- TODO: implement
+sendEventTo :: AgentId
+            -> e
+            -> AgentOut m e o
+            -> AgentOut m e o
+sendEventTo _receiver _e ao = ao 
+
 neighbourAgentIds :: AgentAction g [AgentId]
 neighbourAgentIds = do
     coord <- agentProperty sugAgCoord
-    filterNeighbourIds <$> (envLift $ neighboursM coord False)
+    filterNeighbourIds <$> envRun (neighbours coord False)
   where
     filterNeighbourIds :: [Discrete2dCell SugEnvSite] -> [AgentId]
     filterNeighbourIds ns = map (siteOccupier . snd) $ filter (siteOccupied . snd) ns
+
+getSimTime :: AgentAction g Time
+getSimTime = absCtxLift $ reader absCtxTime
+
+nextAgentId :: AgentAction g AgentId
+nextAgentId = do
+  aidVar <- absCtxLift $ reader absCtxIdVar
+  stmLift $ stateTVar aidVar (\i -> (i+1, i))
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState as = SugAgentObservable
@@ -104,9 +166,7 @@ mrs :: Double  -- ^ sugar-wealth of agent
 mrs w1 w2 m1 m2 = (w2 / m2) / (w1 / m1)
 
 mrsM :: MonadState SugAgentState m => m Double
-mrsM = do
-  s <- get
-  return $ mrsState s
+mrsM = mrsState <$> get
 
 mrsStateChange :: SugAgentState 
                -> Double
@@ -198,7 +258,7 @@ unoccupyPosition :: RandomGen g
 unoccupyPosition = do
   (coord, cell) <- agentCellOnCoord
   let cell' = cell { sugEnvSiteOccupier = Nothing }
-  envLift $ changeCellAtM coord cell'
+  envRun $ changeCellAt coord cell'
 
 updateSiteWithOccupier :: RandomGen g
                        => AgentId
@@ -207,21 +267,21 @@ updateSiteWithOccupier aid = do
   (coord, cell) <- agentCellOnCoord
   occ           <- occupierM aid
   let cell' = cell { sugEnvSiteOccupier = Just occ }
-  envLift $ changeCellAtM coord cell'
+  envRun $ changeCellAt coord cell'
 
 agentCellOnCoord :: RandomGen g
                 => AgentAction g (Discrete2dCoord, SugEnvSite)
 agentCellOnCoord = do
   coord <- agentProperty sugAgCoord
-  cell  <- envLift $ cellAtM coord
+  cell  <- envRun $ cellAt coord
   return (coord, cell)
 
-randomAgent :: RandomGen g
+randomAgent :: MonadRandom m
             => SugarScapeScenario
             -> (AgentId, Discrete2dCoord)
             -> SugarScapeAgent g
             -> (SugAgentState -> SugAgentState)
-            -> Rand g (SugAgentDef g, SugAgentState)
+            -> m (SugAgentDef g, SugAgentState)
 randomAgent params (agentId, coord) asf f = do
   randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
   randVision         <- getRandomR $ spVisionRange params
@@ -271,24 +331,23 @@ randomAgent params (agentId, coord) asf f = do
 
   return (adef, s')
 
-randomDiseases :: RandomGen g
+randomDiseases :: MonadRandom m
                => SugarScapeScenario
-               -> Rand g [Disease]
+               -> m [Disease]
 randomDiseases params = 
   case spDiseasesEnabled params of 
     Nothing -> return []
     Just (_, _, _, n, masterList) -> 
       randomElemsM n masterList
 
-randomImmuneSystem :: RandomGen g
+randomImmuneSystem :: MonadRandom m
                    => SugarScapeScenario
-                   -> Rand g ImmuneSystem
+                   -> m ImmuneSystem
 randomImmuneSystem params = 
   case spDiseasesEnabled params of 
     Nothing -> return []
-    Just (n, _, _, _, _)  -> do
-      rs <- getRandoms
-      return $ take n rs
+    Just (n, _, _, _, _)  -> 
+      take n <$> getRandoms
 
 changeToRedTribe :: SugarScapeScenario
                  -> SugAgentState
@@ -320,29 +379,28 @@ tagToTribe tag
     ones  = n - zeros  
     n     = length tag
 
-randomCultureTag :: RandomGen g
+randomCultureTag :: MonadRandom m
                  => SugarScapeScenario
-                 -> Rand g CultureTag
+                 -> m CultureTag
 randomCultureTag params = 
   case spCulturalProcess params of 
     Nothing -> return []
-    Just n  -> do
-      rs <- getRandoms
-      return $ take n rs
+    Just n  -> 
+      take n <$> getRandoms
 
-randomGender :: RandomGen g
+randomGender :: MonadRandom m
              => Double
-             -> Rand g AgentGender
+             -> m AgentGender
 randomGender p = do
   r <- getRandom
   if r >= p
     then return Male
     else return Female
 
-randomFertilityRange :: RandomGen g
+randomFertilityRange :: MonadRandom m
                      => SugarScapeScenario 
                      -> AgentGender
-                     -> Rand g (Int, Int)
+                     -> m (Int, Int)
 randomFertilityRange params Male = do
   from <- getRandomR $ spFertStartRangeMale params
   to   <- getRandomR $ spFertEndRangeMale params
@@ -352,9 +410,9 @@ randomFertilityRange params Female = do
   to   <- getRandomR $ spFertEndRangeFemale params
   return (from, to)
 
-randomAgentAge :: RandomGen g
+randomAgentAge :: MonadRandom m
                => AgentAgeSpan 
-               -> Rand g (Maybe Int)
+               -> m (Maybe Int)
 randomAgentAge Forever         = return Nothing
 randomAgentAge (Range from to) = do
   randMaxAge <- getRandomR (from, to)

@@ -39,7 +39,7 @@ birthNewAgent :: RandomGen g
 birthNewAgent params asf ao
   | not $ spReplaceAgents params = return ao
   | otherwise = do
-    newAid              <- absStateLift nextAgentId
+    newAid              <- nextAgentId
     myTribe             <- agentProperty sugAgTribe
     (newCoord, newCell) <- findUnoccpiedRandomPosition
     (newA, newAState)   <- randLift $ randomAgent params (newAid, newCoord) asf 
@@ -51,7 +51,7 @@ birthNewAgent params asf ao
     let occ      = occupier newAid newAState
         newCell' = newCell { sugEnvSiteOccupier = Just occ }
         
-    envLift $ changeCellAtM newCoord newCell' 
+    envRun $ changeCellAt newCoord newCell' 
 
     return $ newAgent newA ao
   where
@@ -60,8 +60,8 @@ birthNewAgent params asf ao
     findUnoccpiedRandomPosition :: RandomGen g
                                 => AgentAction g (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
-      e          <- envLift get
-      (c, coord) <- randLift $ randomCell e -- TODO: replace by randomCellM
+      env        <- envLift ask
+      (c, coord) <- randLift $ randomCell env 
       ifThenElse
         (siteOccupied c) 
         findUnoccpiedRandomPosition

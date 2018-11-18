@@ -6,7 +6,6 @@ module SugarScape.Agent.Polution
 import Control.Monad.Random
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario

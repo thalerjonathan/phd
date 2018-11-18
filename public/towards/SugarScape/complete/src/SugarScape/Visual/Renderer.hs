@@ -10,7 +10,6 @@ import Data.Maybe
 
 import Graphics.Gloss as GLO
 
-import SugarScape.Agent.Interface
 import SugarScape.Agent.Common
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete

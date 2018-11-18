@@ -12,37 +12,25 @@ module SugarScape.Core.Discrete
   , createDiscrete2d
 
   , dimensionsDisc2d
-  , dimensionsDisc2dM
 
   , allCells
   , allCellsWithCoords
-  , allCellsWithCoordsM
   , updateCells
-  , updateCellsM
   , updateCellsWithCoords
-  , updateCellsWithCoordsM
   , updateCellAt
   , changeCellAt
-  , changeCellAtM
   , cellsAroundRadius
-  , cellsAroundRadiusM
   , cellsAroundRect
   , cellsAt
   , cellAt
-  , cellAtM
-  , randomCell
-  , randomCellM
-  , randomCellWithinRect
 
   , neighbours
-  , neighboursM
   , neighbourCells
-  , neighbourCellsM
 
+  , randomCell
+  
   , neighboursInNeumannDistance
-  , neighboursInNeumannDistanceM
   , neighboursCellsInNeumannDistance
-  , neighboursCellsInNeumannDistanceM
 
   , distanceManhattanDisc2d
   , distanceEuclideanDisc2d
@@ -56,152 +44,190 @@ module SugarScape.Core.Discrete
   , wrapDisc2dEnv
   ) where
 
-import Data.Array.MArray
 import Control.Concurrent.STM
+import Control.Monad.Random
+import Data.Array.MArray
 
-type Discrete2dDimension        = (Int, Int)
-type Discrete2dCoord            = Discrete2dDimension
-type Discrete2dNeighbourhood    = [Discrete2dCoord]
-type Discrete2dCell c           = (Discrete2dCoord, c)
+type Discrete2dDimension     = (Int, Int)
+type Discrete2dCoord         = Discrete2dDimension
+type Discrete2dNeighbourhood = [Discrete2dCoord]
+type Discrete2dCell c        = (Discrete2dCoord, c)
 
 data EnvironmentWrapping 
   = ClipToMax 
   | WrapHorizontal 
   | WrapVertical 
-  | WrapBoth deriving (Show, Read, Eq)
+  | WrapBoth
+  deriving (Show, Read, Eq)
 
 data Discrete2d c = Discrete2d 
-  { envDisc2dDims           :: Discrete2dDimension
-  , envDisc2dNeighbourhood  :: Discrete2dNeighbourhood
-  , envDisc2dWrapping       :: EnvironmentWrapping
-  , envDisc2dCells          :: TArray Discrete2dCoord c
-  } deriving (Show, Read, Eq)
+  { envDisc2dDims          :: Discrete2dDimension
+  , envDisc2dNeighbourhood :: Discrete2dNeighbourhood
+  , envDisc2dWrapping      :: EnvironmentWrapping
+  , envDisc2dCells         :: TArray Discrete2dCoord c
+  }
 
 createDiscrete2d :: Discrete2dDimension
                  -> Discrete2dNeighbourhood
                  -> EnvironmentWrapping
                  -> [Discrete2dCell c]
-                 -> STM Discrete2d c
+                 -> STM (Discrete2d c)
 createDiscrete2d d@(xLimit, yLimit) n w cs = do
   arr <- newArray_ ((0, 0), (xLimit - 1, yLimit - 1))
 
   mapM_ (\(i, c) -> writeArray arr i c) cs
 
-    Discrete2d {
-      envDisc2dDims          = d
-    , envDisc2dNeighbourhood = n
-    , envDisc2dWrapping      = w
-    , envDisc2dCells         = arr
-    }
+  return $ Discrete2d {
+    envDisc2dDims          = d
+  , envDisc2dNeighbourhood = n
+  , envDisc2dWrapping      = w
+  , envDisc2dCells         = arr
+  }
 
 dimensionsDisc2d :: Discrete2d c -> Discrete2dDimension
 dimensionsDisc2d = envDisc2dDims
 
-dimensionsDisc2dM :: MonadState (Discrete2d c) m
-                  => m Discrete2dDimension
-dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
+allCells :: Discrete2d c -> STM [c]
+allCells e = getElems $ envDisc2dCells e
 
-allCells :: Discrete2d c -> [c]
-allCells e = elems $ envDisc2dCells e
+allCellsWithCoords :: Discrete2d c -> STM [Discrete2dCell c]
+allCellsWithCoords e = getAssocs $ envDisc2dCells e
 
-allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
-allCellsWithCoords e = assocs $ envDisc2dCells e
-
-allCellsWithCoordsM :: MonadState (Discrete2d c) m
-                    => m [Discrete2dCell c]
-allCellsWithCoordsM = state (\e -> (allCellsWithCoords e, e))
-
-updateCellsM :: MonadState (Discrete2d c) m
-             => (c -> c) 
-             -> m ()
-updateCellsM f = state (\e -> ((), updateCells f e))
-
-updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
-updateCells f e = e { envDisc2dCells = ec' }
+{- this doesn't work because mapArray creates a new array
+updateCells :: (c -> c) 
+            -> Discrete2d c 
+            -> STM (Discrete2d c)
+updateCells f e = do
+    ec' <- mapArray f ec
+    return $ e { envDisc2dCells = ec' }
   where
     ec = envDisc2dCells e
-    ec' = amap f ec
-
-updateCellsWithCoordsM :: MonadState (Discrete2d c) m
-                       => (Discrete2dCell c -> c) 
-                       -> m ()
-updateCellsWithCoordsM f = state (\e -> ((), updateCellsWithCoords f e))
+-}
+updateCells :: (c -> c) 
+            -> Discrete2d c 
+            -> STM ()
+updateCells f e = do
+    cs <- allCellsWithCoords e
+  
+    mapM_ (\(coord, c) -> do
+      let c' = f c
+      writeArray arr coord c') cs
+  where
+    arr = envDisc2dCells e
 
 updateCellsWithCoords :: (Discrete2dCell c -> c) 
-                      -> Discrete2d c 
-                      -> Discrete2d c
-updateCellsWithCoords f e = e'
-  where
-    ecs = allCellsWithCoords e
-    cs = map f ecs
-    ecCoords = map fst ecs
-    e' = foldr (\(coord, c) accEnv -> changeCellAt coord c accEnv) e (zip ecCoords cs)
+                         -> Discrete2d c 
+                         -> STM ()
+updateCellsWithCoords f e = do
+  ecs <- allCellsWithCoords e
+  
+  let cs       = map f ecs
+      ecCoords = map fst ecs
 
+  mapM_ (\(coord, c) -> changeCellAt coord c e) (zip ecCoords cs)
+     
 updateCellAt :: Discrete2dCoord 
              -> (c -> c) 
              -> Discrete2d c 
-             -> Discrete2d c
-updateCellAt coord f e = e { envDisc2dCells = arr' }
-  where
-    arr = envDisc2dCells e
-    c = arr ! coord
-    c' = f c
-    arr' = arr // [(coord, c')]
-
-changeCellAt :: Discrete2dCoord -> c -> Discrete2d c -> Discrete2d c
-changeCellAt coord c e = e { envDisc2dCells = arr' }
-  where
-    arr = envDisc2dCells e
-    arr' = arr // [(coord, c)]
-
-changeCellAtM :: MonadState (Discrete2d c) m
-              => Discrete2dCoord 
-              -> c 
-              -> m ()
-changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
+             -> STM ()
+updateCellAt coord f e = do
+  let arr = envDisc2dCells e
+  c <- readArray arr coord
+  let c' = f c
+  writeArray arr coord c'
+  
+changeCellAt :: Discrete2dCoord 
+             -> c 
+             -> Discrete2d c 
+             -> STM ()
+changeCellAt coord c e = do
+  let arr = envDisc2dCells e
+  writeArray arr coord c
 
 cellsAroundRadius :: Discrete2dCoord 
                   -> Double 
                   -> Discrete2d c 
-                  -> [Discrete2dCell c]
-cellsAroundRadius  pos r e = 
-    filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs
-  where
-    ecs = allCellsWithCoords e
-    -- TODO: does not yet wrap around boundaries
-
-cellsAroundRadiusM :: MonadState (Discrete2d c) m
-                   => Discrete2dCoord 
-                   -> Double 
-                   -> m [Discrete2dCell c]
-cellsAroundRadiusM pos r = state (\e -> (cellsAroundRadius pos r e, e))
+                  -> STM [Discrete2dCell c]
+cellsAroundRadius  pos r e = do
+  ecs <- allCellsWithCoords e
+  -- TODO: does not yet wrap around boundaries
+  return $ filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs
 
 cellsAroundRect :: Discrete2dCoord 
                 -> Int 
                 -> Discrete2d c 
-                -> [Discrete2dCell c]
-cellsAroundRect (cx, cy) r e = zip wrappedCs cells
+                -> STM [Discrete2dCell c]
+cellsAroundRect (cx, cy) r e = do
+    cells <- cellsAt wrappedCs e
+    return $ zip wrappedCs cells
   where
     cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
     l = envDisc2dDims e
     w = envDisc2dWrapping e
     wrappedCs = wrapCells l w cs
-    cells = cellsAt wrappedCs e
 
-cellsAt :: [Discrete2dCoord] -> Discrete2d c -> [c]
-cellsAt cs e = map (arr !) cs
+cellsAt :: [Discrete2dCoord] 
+        -> Discrete2d c 
+        -> STM [c]
+cellsAt cs e = do
+  let arr = envDisc2dCells e
+  mapM (readArray arr) cs
+
+cellAt :: Discrete2dCoord 
+       -> Discrete2d c 
+       -> STM c
+cellAt coord e = do
+  let arr = envDisc2dCells e
+  readArray arr coord
+
+  -- NOTE: this function does only work for neumann-neighbourhood, it ignores
+--       the environments neighbourhood. also it does not include the coord itself
+neighboursInNeumannDistance :: Discrete2dCoord 
+                            -> Int 
+                            -> Bool 
+                            -> Discrete2d c 
+                            -> STM [Discrete2dCell c]
+neighboursInNeumannDistance coord dist ic e = do
+    cells <- cellsAt wrappedNs e
+    return $ zip wrappedNs cells
   where
-    arr = envDisc2dCells e
+    n = neumann
+    coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
+    l = envDisc2dDims e
+    w = envDisc2dWrapping e
+    ns = neighbourhoodOf coord ic coordDeltas
+    wrappedNs = wrapNeighbourhood l w ns
 
-cellAt :: Discrete2dCoord -> Discrete2d c -> c
-cellAt coord e = arr ! coord
+neighboursCellsInNeumannDistance :: Discrete2dCoord 
+                                 -> Int 
+                                 -> Bool 
+                                 -> Discrete2d c 
+                                 -> STM [c]
+neighboursCellsInNeumannDistance coord dist ic e = do
+  ns <- neighboursInNeumannDistance coord dist ic e
+  return $ map snd ns
+
+neighbours :: Discrete2dCoord 
+           -> Bool 
+           -> Discrete2d c 
+           -> STM [Discrete2dCell c]
+neighbours coord ic e = do
+    cells <- cellsAt wrappedNs e
+    return $ zip wrappedNs cells
   where
-    arr = envDisc2dCells e
-
-cellAtM :: MonadState (Discrete2d c) m
-        => Discrete2dCoord 
-        -> m c
-cellAtM coord = state (\e -> (cellAt coord e, e))
+    n = envDisc2dNeighbourhood e
+    l = envDisc2dDims e
+    w = envDisc2dWrapping e
+    ns = neighbourhoodOf coord ic n
+    wrappedNs = wrapNeighbourhood l w ns
+    
+neighbourCells :: Discrete2dCoord 
+               -> Bool 
+               -> Discrete2d c 
+               -> STM [c]
+neighbourCells coord ic e = do
+  ns <- neighbours coord ic e
+  return $ map snd ns 
 
 randomCell :: MonadRandom m
            => Discrete2d c 
@@ -216,97 +242,6 @@ randomCell e = do
       randCell  = cellAt randCoord e
 
   return (randCell, randCoord)
-
-randomCellM :: (MonadRandom m, MonadState (Discrete2d c) m)
-            => m (c, Discrete2dCoord)
-randomCellM = do
-  (maxX, maxY) <- dimensionsDisc2dM
-  randX        <- getRandomR (0, maxX - 1) 
-  randY        <- getRandomR (0, maxY - 1)
-  randCell     <- cellAtM (randX, randY)
-
-  return (randCell, (randX, randY))
-
-randomCellWithinRect :: MonadRandom m 
-                     => Discrete2dCoord 
-                     -> Int 
-                     -> Discrete2d c
-                     -> m (c, Discrete2dCoord)
-randomCellWithinRect (x, y) r e =  do
-  randX <- getRandomR (-r, r)
-  randY <- getRandomR (-r, r)
-  
-  let randCoord = (x + randX, y + randY)
-  let randCoordWrapped = wrapDisc2d (envDisc2dDims e) (envDisc2dWrapping e) randCoord
-  let randCell = cellAt randCoordWrapped e
-
-  return (randCell, randCoordWrapped)
-
--- NOTE: this function does only work for neumann-neighbourhood, it ignores
---       the environments neighbourhood. also it does not include the coord itself
-neighboursInNeumannDistance :: Discrete2dCoord 
-                            -> Int 
-                            -> Bool 
-                            -> Discrete2d c 
-                            -> [Discrete2dCell c]
-neighboursInNeumannDistance coord dist ic e = zip wrappedNs cells
-  where
-    n = neumann
-    coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
-    ns = neighbourhoodOf coord ic coordDeltas
-    wrappedNs = wrapNeighbourhood l w ns
-    cells = cellsAt wrappedNs e
-
-neighboursInNeumannDistanceM :: MonadState (Discrete2d c) m
-                             => Discrete2dCoord 
-                             -> Int 
-                             -> Bool 
-                             -> m [Discrete2dCell c]
-neighboursInNeumannDistanceM coord dist ic = 
-  state (\e -> (neighboursInNeumannDistance coord dist ic e, e))
-
-neighboursCellsInNeumannDistance :: Discrete2dCoord 
-                                 -> Int 
-                                 -> Bool 
-                                 -> Discrete2d c 
-                                 -> [c]
-neighboursCellsInNeumannDistance coord dist ic e = 
-  map snd (neighboursInNeumannDistance coord dist ic e)
-
-neighboursCellsInNeumannDistanceM :: MonadState (Discrete2d c) m
-                                  => Discrete2dCoord 
-                                  -> Int 
-                                  -> Bool 
-                                  -> m [c]
-neighboursCellsInNeumannDistanceM coord dist ic = 
-  state (\e -> (neighboursCellsInNeumannDistance coord dist ic e, e))
-
-neighbours :: Discrete2dCoord -> Bool -> Discrete2d c -> [Discrete2dCell c]
-neighbours coord ic e = zip wrappedNs cells
-  where
-    n = envDisc2dNeighbourhood e
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
-    ns = neighbourhoodOf coord ic n
-    wrappedNs = wrapNeighbourhood l w ns
-    cells = cellsAt wrappedNs e
-
-neighboursM :: MonadState (Discrete2d c) m
-            => Discrete2dCoord 
-            -> Bool 
-            -> m [Discrete2dCell c]
-neighboursM coord ic = state (\e -> (neighbours coord ic e, e))
-
-neighbourCells :: Discrete2dCoord -> Bool -> Discrete2d c -> [c]
-neighbourCells coord ic e = map snd (neighbours coord ic e)
-
-neighbourCellsM :: MonadState (Discrete2d c) m
-                => Discrete2dCoord 
-                -> Bool 
-                -> m [c]
-neighbourCellsM coord ic = state (\e -> (neighbourCells coord ic e, e))
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

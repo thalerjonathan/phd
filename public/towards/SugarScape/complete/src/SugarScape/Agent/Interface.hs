@@ -1,14 +1,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts  #-}
 module SugarScape.Agent.Interface
-  ( AgentId
-  , ABSEvent (..)
+  ( ABSEvent (..)
 
-  , ABSState (..)
-  
-  , AgentMSF
   , AgentT
-  
+  , AgentMSF
+
   , AgentDef (..)
   , AgentOut (..)
 
@@ -62,6 +59,29 @@ agentOut o = AgentOut
   , aoEvents     = []
   }
 
+agentOutMergeLeftObs :: AgentOut m e o
+                     -> AgentOut m e o
+                     -> AgentOut m e o
+agentOutMergeLeftObs aoLeft  
+    = mergeAgentOut (aoObservable aoLeft) aoLeft  
+
+agentOutMergeRightObs :: AgentOut m e o
+                      -> AgentOut m e o
+                      -> AgentOut m e o
+agentOutMergeRightObs aoLeft aoRight 
+    = mergeAgentOut (aoObservable aoRight) aoLeft aoRight 
+
+mergeAgentOut :: o
+              -> AgentOut m e o
+              -> AgentOut m e o
+              -> AgentOut m e o
+mergeAgentOut o aoLeft aoRight = AgentOut 
+  { aoKill       = aoKill aoLeft || aoKill aoRight
+  , aoCreate     = aoCreate aoLeft ++ aoCreate aoRight
+  , aoObservable = o
+  , aoEvents     = aoEvents aoLeft ++ aoEvents aoRight
+  }
+
 broadcastEvent :: [AgentId]
                -> e
                -> AgentOut m e o
@@ -100,26 +120,3 @@ newAgent :: AgentDef m e o
          -> AgentOut m e o
 newAgent adef ao 
   = ao { aoCreate = adef : aoCreate ao }
-
-agentOutMergeLeftObs :: AgentOut m e o
-                     -> AgentOut m e o
-                     -> AgentOut m e o
-agentOutMergeLeftObs aoLeft  
-    = mergeAgentOut (aoObservable aoLeft) aoLeft  
-
-agentOutMergeRightObs :: AgentOut m e o
-                      -> AgentOut m e o
-                      -> AgentOut m e o
-agentOutMergeRightObs aoLeft aoRight 
-    = mergeAgentOut (aoObservable aoRight) aoLeft aoRight 
-
-mergeAgentOut :: o
-              -> AgentOut m e o
-              -> AgentOut m e o
-              -> AgentOut m e o
-mergeAgentOut o aoLeft aoRight = AgentOut 
-  { aoKill       = aoKill aoLeft || aoKill aoRight
-  , aoCreate     = aoCreate aoLeft ++ aoCreate aoRight
-  , aoObservable = o
-  , aoEvents     = aoEvents aoLeft ++ aoEvents aoRight
-  }

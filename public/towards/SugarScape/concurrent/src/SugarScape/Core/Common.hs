@@ -4,35 +4,33 @@ module SugarScape.Core.Common
   , DTime
   , AgentId
 
-  , ABSContext (..)
-
-  , nextAgentId
-  , getSimTime
-
-  , mkAbsContext
-  , defaultAbsContext
+  , ABSCtx (..)
+  
+  , mkAbsCtx
+  , defaultAbsCtx
   ) where
 
-import Control.Monad.State.Strict
 import Control.Concurrent.STM.TVar
+import Control.Monad.STM
 
 type Time  = Int
 type DTime = Int
 
 type AgentId = Int
 
-data ABSContext = ABSContext
-  { absNextId :: TVar AgentId
-  , absTime   :: !Time
-  } deriving (Show, Eq)
+data ABSCtx = ABSCtx
+  { absCtxIdVar :: TVar AgentId  -- holds the NEXT agent-id 
+  , absCtxTime  :: !Time
+  }
 
-defaultAbsContext :: STM ABSContext
-defaultAbsContext = mkAbsContext 0 
+defaultAbsCtx :: STM ABSCtx
+defaultAbsCtx = mkAbsCtx 0 
 
-mkAbsContext :: AgentId -> STM ABSState
-mkAbsContext initId = do
-  aidVar <- newTVar initId + 1
-  return ABSState 
-    { absNextId = aidVar
-    , absTime   = 0
+mkAbsCtx :: AgentId -> STM ABSCtx
+mkAbsCtx initId = do
+  aidVar <- newTVar (initId + 1)
+
+  return ABSCtx 
+    { absCtxIdVar = aidVar
+    , absCtxTime  = 0
     }

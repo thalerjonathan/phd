@@ -64,9 +64,9 @@ fisherYatesShuffle gen0 l = toElems $ foldl fisherYatesStep (initial (head l) ge
       where
         (j, gen') = randomR (0, i) gen
 
-fisherYatesShuffleM :: RandomGen g 
+fisherYatesShuffleM :: MonadRandom m
                     => [a] 
-                    -> Rand g [a]
+                    -> m [a]
 fisherYatesShuffleM [] = return []
 fisherYatesShuffleM l = do
     lMap <- foldM fisherYatesStep (Map.singleton 0 (head l)) (numerate (tail l))
@@ -74,10 +74,10 @@ fisherYatesShuffleM l = do
   where
     numerate = zip [1..]
 
-    fisherYatesStep :: RandomGen g 
+    fisherYatesStep :: MonadRandom m
                     => Map.Map Int a 
                     -> (Int, a) 
-                    -> Rand g (Map.Map Int a)
+                    -> m (Map.Map Int a)
     fisherYatesStep m (i, x) = do
         j <- getRandomR (0, i)
         return ((Map.insert j x . Map.insert i (m Map.! j)) m)

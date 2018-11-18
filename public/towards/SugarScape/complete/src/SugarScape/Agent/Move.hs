@@ -12,7 +12,7 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
-import SugarScape.Agent.Utils
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random

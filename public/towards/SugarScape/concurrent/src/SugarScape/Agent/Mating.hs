@@ -35,7 +35,7 @@ agentMating params myId amsf cont
   | not $ spSexRuleActive params = cont
   | otherwise = do
     coord   <- agentProperty sugAgCoord
-    ns      <- envLift $ neighboursM coord False
+    ns      <- envRun $ neighbours coord False
     fertile <- isAgentFertile
 
     let ocs = filter (siteOccupied . snd) ns
@@ -68,8 +68,8 @@ mateWith params myId amsf cont ((coord, site) : ns) =
     (do
       myCoord <- agentProperty sugAgCoord
       -- always query again bcs might have changed since previous iteration
-      mySites        <- envLift $ neighboursM myCoord False
-      neighbourSites <- envLift $ neighboursM coord False
+      mySites        <- envRun $ neighbours myCoord False
+      neighbourSites <- envRun $ neighbours coord False
 
       -- no need to remove duplicates, bcs there cant be one with neumann neighbourhood
       let freeSites = filter (siteUnoccupied . snd) (mySites ++ neighbourSites)
@@ -138,7 +138,7 @@ matingHandler params myId amsf0 cont0 ns freeSites =
                                  , sugAgImmuneSystem = childImmSys
                                  , sugAgImSysGeno    = childImmSys }
 
-      childId                 <- absStateLift nextAgentId
+      childId                 <- nextAgentId
       (childCoord, childSite) <- randLift $ randomElemM freeSites
       -- update new-born state with its genes and initial endowment
       (childDef, childState) <- randLift $ randomAgent params (childId, childCoord) amsf updateChildState
@@ -153,11 +153,11 @@ matingHandler params myId amsf0 cont0 ns freeSites =
       -- child occupies the site immediately to prevent others from occupying it
       let occ        = occupier childId childState
           childSite' = childSite { sugEnvSiteOccupier = Just occ }
-      envLift $ changeCellAtM childCoord childSite' 
+      envRun $ changeCellAt childCoord childSite' 
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao0 <- (newAgent childDef) <$> agentObservableM
+      ao0 <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
       let ao' = sendEventTo sender (MatingTx childId) ao0
       -- THEN continue with mating-requests to the remaining neighbours

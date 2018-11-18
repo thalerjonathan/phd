@@ -1,11 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts  #-}
 module SugarScape.Agent.Interface
-  ( AgentId
-  , ABSEvent (..)
+  ( ABSEvent (..)
 
-  , ABSState (..)
-  
   , AgentMSF
   , AgentT
   
@@ -21,9 +18,7 @@ module SugarScape.Agent.Interface
   , newAgent
   ) where
 
-import Data.Tuple
-
-import Control.Monad.State.Strict
+import Control.Monad.Reader
 import Data.MonadicStreamFunction
 
 import SugarScape.Core.Common
@@ -32,7 +27,7 @@ data ABSEvent e = Tick
                 | DomainEvent (AgentId, e)  -- sender, event 
                 deriving (Show, Eq) 
 
-type AgentT m = ReaderT ABSState m
+type AgentT m = ReaderT ABSCtx m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double 
 -- in SugarScape (we switch MSFs which would resert time anyway)
 type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
@@ -47,7 +42,6 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !Bool
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
-  , aoEvents     :: ![(AgentId, e)]   -- event receiver, (DomainEvent) event
   }
 
 agentOut :: o -> AgentOut m e o

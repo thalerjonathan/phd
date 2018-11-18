@@ -10,6 +10,7 @@ import Data.List
 import SugarScape.Agent.Agent
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random

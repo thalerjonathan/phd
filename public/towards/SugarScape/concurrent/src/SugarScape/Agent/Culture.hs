@@ -12,6 +12,7 @@ import Control.Monad.Random
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
+import SugarScape.Core.Common
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils

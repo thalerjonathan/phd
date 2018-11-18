@@ -71,7 +71,7 @@ checkBorrowedLoans params myId = do
                 => Loan
                 -> AgentAction g (SugAgentOut g, Maybe Loan, Double, Double) 
     checkLoan borrowerLoan@(Loan dueDate lender sugarFace spiceFace) = do
-      t  <- absStateLift getSimTime
+      t  <- getSimTime
       ao <- agentObservableM
 
       if dueDate /= t
@@ -125,13 +125,13 @@ offerLending params myId cont = do
     then cont
     else do
       myCoord <- agentProperty sugAgCoord
-      sites   <- envLift $ neighboursM myCoord False
+      sites   <- envRun $ neighbours myCoord False
       let ns = mapMaybe (sugEnvSiteOccupier . snd) sites
 
       if null ns
         then cont
         else do
-          t <- absStateLift getSimTime
+          t <- getSimTime
           let dueDate = t + (fst . fromJust $ spLoansEnabled params)
 
           ns' <- randLift $ fisherYatesShuffleM ns
@@ -225,7 +225,7 @@ handleLoanPayback :: RandomGen g
                   -> Double
                   -> AgentAction g (SugAgentOut g)
 handleLoanPayback params myId borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sugarBack spiceBack = do
-    t <- absStateLift getSimTime
+    t <- getSimTime
     let newDueDate = t + (fst . fromJust $ spLoansEnabled params)
 
     ls <- processBorrower newDueDate <$> agentProperty sugAgLent

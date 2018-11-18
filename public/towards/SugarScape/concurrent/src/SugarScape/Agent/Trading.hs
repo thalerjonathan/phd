@@ -14,6 +14,7 @@ import Data.MonadicStreamFunction
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils 
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
@@ -36,7 +37,7 @@ tradingRound :: RandomGen g
 tradingRound myId cont tradeInfos = do
   myCoord <- agentProperty sugAgCoord
   -- (re-)fetch neighbours from environment, to get up-to-date information
-  ns    <- envLift $ neighboursM myCoord False
+  ns    <- envRun $ neighbours myCoord False
   myMrs <- mrsM
 
   -- filter out unoccupied sites and traders with same MRS (VERY unlikely with floating point)
@@ -143,20 +144,16 @@ handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
       myMrsAfter     = mrsStateChange myState sugEx spiEx           -- agents mrs AFTER trade
 
   if myWfAfter <= myWfBefore
-    then do -- not better off, turn offer down
-      ao <- agentObservableM
-      return (sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease) ao)
+    -- not better off, turn offer down
+    then sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease) <$> agentObservableM
     else
       if mrsCrossover myMrsBefore traderMrsBefore myMrsAfter traderMrsAfter
-        then do -- MRS cross-over, turn offer down
-          ao <- agentObservableM
-          return (sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) ao)
+        -- MRS cross-over, turn offer down
+        then sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) <$> agentObservableM
         else do
           -- all good, transact and accept offer
           transactTradeWealth myId sugEx spiEx
-
-          ao <- agentObservableM
-          return (sendEventTo traderId (TradingReply AcceptTrade) ao)
+          sendEventTo traderId (TradingReply AcceptTrade) <$> agentObservableM
 
 mrsCrossover :: Double
              -> Double

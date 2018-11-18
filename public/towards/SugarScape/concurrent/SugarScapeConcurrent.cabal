@@ -93,6 +93,7 @@ executable sugarscape-concurrent
                       , parallel
                       , random
                       , split
+                      , stm
                       , transformers
                       
   -- Directories containing source files.
@@ -159,6 +160,7 @@ Test-Suite sugarscape-concurrent-test
                       , random
                       , split
                       , statistics
+                      , stm
                       , tasty
                       , tasty-hunit
                       , tasty-smallcheck

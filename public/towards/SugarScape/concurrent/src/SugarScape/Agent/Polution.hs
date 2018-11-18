@@ -6,7 +6,6 @@ module SugarScape.Agent.Polution
 import Control.Monad.Random
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Utils
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
@@ -28,4 +27,4 @@ agentPolute params s m
 
       (coord, c) <- agentCellOnCoord
       let c' = c { sugEnvSitePolutionLevel = sugEnvSitePolutionLevel c + polution }
-      envLift $ changeCellAtM coord c'
+      envRun $ changeCellAt coord c'

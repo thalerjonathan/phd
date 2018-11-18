@@ -25,6 +25,8 @@ import Data.Maybe
 import System.Random
 
 import Control.Monad.Random
+import Control.Monad.Reader
+import Control.Monad.STM
 import Control.Monad.State.Strict
 import Data.MonadicStreamFunction.InternalCore
 import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
@@ -47,7 +49,7 @@ type SimStepOut        = (Time, Int, SugEnvironment, [AgentObservable SugAgentOb
 -- (memory consumption increases throughout run-time and execution gets slower and slower)
 data SimulationState g = SimulationState 
   { simAgentMap :: !(AgentMap g)
-  , simAbsState :: !ABSState 
+  , simAbsCtx   :: !ABSCtx 
   , simEnvState :: !SugEnvironment
   , simEnvBeh   :: SugEnvBehaviour
   , simRng      :: !g
@@ -89,7 +91,7 @@ initSimulationRng g0 params = (initSimState, initEnv, params')
     agentMap        = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
     (initAis, _, _) = unzip3 initAs
     -- initial simulation state
-    initSimState = mkSimState agentMap (mkAbsState $ maximum initAis) initEnv (sugEnvBehaviour params') g' 0
+    initSimState = mkSimState agentMap (mkabsCtx $ maximum initAis) initEnv (sugEnvBehaviour params') g' 0
 
 simulateUntil :: RandomGen g
               => Time
@@ -141,16 +143,16 @@ simulationStep ss0 = (ssFinal, sao)
 
     incrementTime :: SimulationState g 
                   -> SimulationState g
-    incrementTime ss = ss { simAbsState = absState' }
+    incrementTime ss = ss { simAbsCtx = absCtx' }
       where
-        absState  = simAbsState ss
-        absState' = absState { absTime = absTime absState + sugarScapeTimeDelta }
+        absCtx  = simAbsCtx ss
+        absCtx' = absCtx { absCtxTime = absCtxTime absCtx + sugarScapeTimeDelta }
 
     simStepOutFromSimState :: SimulationState g
                            -> SimStepOut
     simStepOutFromSimState ss = (t, steps, env, aos)
       where
-        t     = absTime $ simAbsState ss
+        t     = absTime $ simAbsCtx ss
         steps = simSteps ss
         env   = simEnvState ss
         aos   = map (\(aid, (_, ao)) -> (aid, ao)) (Map.assocs $ simAgentMap ss)
@@ -165,7 +167,7 @@ simulationStep ss0 = (ssFinal, sao)
         | otherwise          = processEvents es' ss'
       where
         am       = simAgentMap ss
-        absState = simAbsState ss
+        absCtx = simAbsCtx ss
         env      = simEnvState ss
         g        = simRng ss
         steps    = simSteps ss
@@ -173,7 +175,7 @@ simulationStep ss0 = (ssFinal, sao)
         mayAgent = Map.lookup aid am
         (asf, _) = fromJust mayAgent
         
-        (ao, asf', absState', env', g') = runAgentSF asf evt absState env g
+        (ao, asf', absCtx', env', g') = runAgentSF asf evt absCtx env g
 
         -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
@@ -197,7 +199,7 @@ simulationStep ss0 = (ssFinal, sao)
         am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) am'' (aoCreate ao)
 
         ss' = ss { simAgentMap = am'''
-                 , simAbsState = absState'
+                 , simAbsCtx   = absCtx'
                  , simEnvState = env'
                  , simRng      = g'
                  , simSteps    = steps + 1 }
@@ -208,33 +210,34 @@ runEnv ss = eb t env
   where
     eb  = simEnvBeh ss 
     env = simEnvState ss
-    t   = absTime $ simAbsState ss
+    t   = absTime $ simabsCtx ss
 
 runAgentSF :: RandomGen g
            => SugAgentMSF g
            -> ABSEvent SugEvent
-           -> ABSState
+           -> ABSCtx
            -> SugEnvironment
            -> g
-           -> (SugAgentOut g, SugAgentMSF g, ABSState, SugEnvironment, g)
-runAgentSF sf evt absState env g
-    = (out, sf', absState', env', g') 
-  where
-    sfAbsState = unMSF sf evt  -- to get rid of unMSF we would need to run it all in an MSF...
-    sfEnvState = runStateT sfAbsState absState
-    sfRand     = runStateT sfEnvState env
-    ((((out, sf'), absState'), env'), g') = runRand sfRand g
+           -> IO (SugAgentOut g, SugAgentMSF g, g)
+runAgentSF sf evt absCtx env g = do
+    let sfAbsCtx   = unMSF sf evt 
+        sfEnvState = runReaderT sfAbsCtx absCtx
+        sfRand     = runReaderT sfEnvState env
+        sfSTM      = runRandT sfRand g
 
+    ((out, sf'), g') <- atomically sfSTM
+    return (out, sf', g') 
+ 
 mkSimState :: AgentMap g
-           -> ABSState
+           -> ABSCtx
            -> SugEnvironment
            -> SugEnvBehaviour
            -> g
            -> Int
            -> SimulationState g
-mkSimState am absState env eb g steps = SimulationState 
+mkSimState am absCtx env eb g steps = SimulationState 
   { simAgentMap = am
-  , simAbsState = absState 
+  , simAbsCtx   = absCtx 
   , simEnvState = env
   , simEnvBeh   = eb
   , simRng      = g

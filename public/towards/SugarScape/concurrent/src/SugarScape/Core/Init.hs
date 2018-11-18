@@ -3,6 +3,7 @@ module SugarScape.Core.Init
   ) where
 
 import Control.Monad.Random
+import Control.Monad.STM
 
 import Data.Char
 import Data.List
@@ -10,6 +11,7 @@ import Data.List
 import SugarScape.Agent.Agent
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
+import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
@@ -17,11 +19,10 @@ import SugarScape.Core.Scenario
 
 createSugarScape :: RandomGen g
                  => SugarScapeScenario
-                 -> Rand g ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment, SugarScapeScenario)
+                 -> RandT g STM ([(AgentId, SugAgentObservable, SugAgentMSF g)], SugEnvironment, SugarScapeScenario)
 createSugarScape params = do
   params' <- generateDiseaseMasterList params
-
-  ras <- agentDistribution params' (sgAgentDistribution params')
+  ras     <- agentDistribution params' (sgAgentDistribution params')
 
   let as             = map (\(ad, _) -> (adId ad, adInitObs ad, adSf ad)) ras
       occupations    = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
@@ -33,17 +34,14 @@ createSugarScape params = do
       sugSpiceCoords = specToCoords sugSpiceSpecs sugarscapeDimensions
 
       sites          = createSites params' sugSpiceCoords occupations
-      env            = createDiscrete2d
-                        sugarscapeDimensions
-                        neumann
-                        WrapBoth
-                        sites
+  
+  env <- lift $ createDiscrete2d sugarscapeDimensions neumann WrapBoth sites
 
   return (as, env, params')
 
-generateDiseaseMasterList :: RandomGen g
+generateDiseaseMasterList :: MonadRandom m
                           => SugarScapeScenario
-                          -> Rand g SugarScapeScenario
+                          -> m SugarScapeScenario
 generateDiseaseMasterList params = 
   case spDiseasesEnabled params of 
     Nothing -> return params
@@ -54,10 +52,10 @@ generateDiseaseMasterList params =
 
       return params { spDiseasesEnabled = Just (isl, dl, dc, ad, ml)}
     
-agentDistribution :: RandomGen g
+agentDistribution :: (MonadRandom m, RandomGen g)
                   => SugarScapeScenario
                   -> AgentDistribution
-                  -> Rand g [(SugAgentDef g, SugAgentState)]
+                  -> m [(SugAgentDef g, SugAgentState)]
 agentDistribution params CombatCorners = do
   let agentCount  = sgAgentCount params
       halfCount   = floor ((fromIntegral agentCount / 2) :: Double)
@@ -111,8 +109,8 @@ specToCoords specs (dimX, dimY)
             accLine' = ((x, y), su, sp) : accLine
 
 parseEnvSpec :: [String]
-               -> [String]
-               -> [[(Int, Int)]]
+             -> [String]
+             -> [[(Int, Int)]]
 parseEnvSpec = zipWith parseEnvSpecLine
   where
     parseEnvSpecLine :: String 
@@ -158,11 +156,11 @@ initRandomSite params os (coord, sugar, spice)
     , sugEnvSitePolutionLevel = 0
     }
 
-randomCoords :: RandomGen g
+randomCoords :: MonadRandom m
              => Discrete2dDimension 
              -> Discrete2dDimension 
              -> Int 
-             -> Rand g [Discrete2dCoord]
+             -> m[Discrete2dCoord]
 randomCoords (minX, minY) (maxX, maxY) n
     | n > maxCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
     | otherwise        = do

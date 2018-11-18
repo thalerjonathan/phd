@@ -5,12 +5,11 @@ module SugarScape.Agent.Dying
   ) where
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
+import Control.Monad.Reader
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Loan
 import SugarScape.Agent.Interface
-import SugarScape.Agent.Utils
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
@@ -60,8 +59,9 @@ birthNewAgent params asf ao
     findUnoccpiedRandomPosition :: RandomGen g
                                 => AgentAction g (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
-      env        <- envLift ask
-      (c, coord) <- randLift $ randomCell env 
+      env           <- envLift ask
+      (cstm, coord) <- randLift $ randomCell env
+      c             <- stmLift cstm
       ifThenElse
         (siteOccupied c) 
         findUnoccpiedRandomPosition

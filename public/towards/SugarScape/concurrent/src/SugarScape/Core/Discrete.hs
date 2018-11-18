@@ -231,7 +231,7 @@ neighbourCells coord ic e = do
 
 randomCell :: MonadRandom m
            => Discrete2d c 
-           -> m (c, Discrete2dCoord)
+           -> m (STM c, Discrete2dCoord)
 randomCell e = do
   let (maxX, maxY) = envDisc2dDims e
 

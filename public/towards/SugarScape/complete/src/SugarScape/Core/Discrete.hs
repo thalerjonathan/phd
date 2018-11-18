@@ -7,11 +7,6 @@ module SugarScape.Core.Discrete
 
   , Discrete2d (..)
 
-  , SingleOccupantCell
-  , SingleOccupantDiscrete2d
-  , MultiOccupantCell
-  , MultiOccupantDiscrete2d
-
   , EnvironmentWrapping (..)
   
   , createDiscrete2d
@@ -59,9 +54,6 @@ module SugarScape.Core.Discrete
   , wrapNeighbourhood
   , wrapDisc2d
   , wrapDisc2dEnv
-
-  , randomNeighbourCell
-  , randomNeighbour
   ) where
 
 import Data.Array.IArray
@@ -72,12 +64,6 @@ type Discrete2dDimension        = (Int, Int)
 type Discrete2dCoord            = Discrete2dDimension
 type Discrete2dNeighbourhood    = [Discrete2dCoord]
 type Discrete2dCell c           = (Discrete2dCoord, c)
-
-type SingleOccupantCell c       = Maybe c
-type SingleOccupantDiscrete2d c = Discrete2d (SingleOccupantCell c)
-
-type MultiOccupantCell c        = [c]
-type MultiOccupantDiscrete2d c  = Discrete2d (MultiOccupantCell c)
 
 data EnvironmentWrapping 
   = ClipToMax 
@@ -404,31 +390,4 @@ bottomDelta :: Discrete2dCoord
 bottomDelta       = ( 0,  1)
 bottomRightDelta :: Discrete2dCoord
 bottomRightDelta  = ( 1,  1)
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- UTILITIES
--------------------------------------------------------------------------------
-randomNeighbourCell :: MonadRandom m
-                    => Discrete2dCoord 
-                    -> Bool 
-                    -> Discrete2d c 
-                    -> m c
-randomNeighbourCell pos ic e = 
-  randomNeighbour pos ic e >>= (\(_, c) -> return c)
-
-randomNeighbour :: MonadRandom m
-                => Discrete2dCoord 
-                -> Bool 
-                -> Discrete2d c 
-                -> m (Discrete2dCell c)
-randomNeighbour pos ic e = randomElemM ncc
-  where
-    ncc = neighbours pos ic e
-
-randomElemM :: MonadRandom m => [a] -> m a
-randomElemM as = do
-  let len = length as
-  idx <- getRandomR (0, len - 1) 
-  return (as !! idx)
 -------------------------------------------------------------------------------

@@ -13,9 +13,8 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
 import SugarScape.Visual.Renderer
 
-runGloss :: RandomGen g
-         => SugarScapeScenario
-         -> SimulationState g
+runGloss :: SugarScapeScenario
+         -> SimulationState StdGen
          -> SimTickOut
          -> Int
          -> AgentColoring
@@ -56,8 +55,7 @@ modelToPicture :: (Int, Int)
 modelToPicture winSize av cv (t, env, as) 
   = return $ renderSugarScapeFrame winSize t env as av cv
 
-renderStep :: RandomGen g
-           => IORef (SimulationState g)
+renderStep :: IORef (SimulationState StdGen)
            -> ViewPort
            -> Float
            -> SimTickOut
@@ -69,9 +67,8 @@ renderStep ssRef _ _ _ = do
   
   return out
 
-renderStepAnimate :: RandomGen g
-                  => (Int, Int)
-                  -> IORef (SimulationState g)
+renderStepAnimate :: (Int, Int)
+                  -> IORef (SimulationState StdGen)
                   -> AgentColoring
                   -> SiteColoring
                   -> Float

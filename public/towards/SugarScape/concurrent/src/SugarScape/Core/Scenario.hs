@@ -521,7 +521,7 @@ mkParamsFigureIV_14 = mkParamsFigureIV_3 {
 -- page 130-133
 mkParamsAnimationIV_5 :: SugarScapeScenario
 mkParamsAnimationIV_5 = mkParamsAnimationII_2 {
-    sgScenarioName = "Animation IV-5"
+    sgScenarioName         = "Animation IV-5"
   , sgAgentCount           = 400
   , spSugarEndowmentRange  = (50, 100)
 

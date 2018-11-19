@@ -2,7 +2,7 @@ module Main where
 
 import Data.Char
 import Data.List
-import System.IO
+--import System.IO
 
 import Options.Applicative
 
@@ -37,7 +37,7 @@ data Options = Options
 
 main :: IO ()
 main = do
-    hSetBuffering stdout NoBuffering
+    --hSetBuffering stdout NoBuffering
     o <- execParser opts
     runSugarscape o
   where

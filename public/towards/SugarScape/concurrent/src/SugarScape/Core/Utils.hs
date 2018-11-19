@@ -4,8 +4,9 @@ module SugarScape.Core.Utils
   , orM
   , andM
 
-  , untilM
-  
+  , whileM
+  , whileMFeedback
+
   , uncurry3
   , uncurry4
   , uncurry5
@@ -56,16 +57,30 @@ andM :: Monad m
      -> m Bool
 andM = liftM2 (&&) 
 
-untilM :: Monad m
+whileM :: Monad m
        => m Bool
        -> m a
-       -> m a
-untilM p f = do
-  ret <- p
-  a   <- f
+       -> m ()
+whileM f act = do
+  ret <- f
   if ret 
-    then return a
-    else untilM p f
+    then do
+      _ <- act
+      whileM f act
+    else return ()
+
+whileMFeedback :: Monad m
+               => a
+               -> m Bool
+               -> m a
+               -> m a
+whileMFeedback a0 p f = do
+  ret <- p
+  if not ret
+    then return a0
+    else do
+      a <- f
+      whileMFeedback a p f
 
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c

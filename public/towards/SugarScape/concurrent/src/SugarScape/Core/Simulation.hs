@@ -97,14 +97,12 @@ initSimulationRng g0 params = do
 
   return (initSimState, initOut, params')
 
-simulateUntil :: RandomGen g
-              => Time
-              -> SimulationState g
+simulateUntil :: Time
+              -> SimulationState StdGen
               -> IO [SimTickOut]
 simulateUntil tMax ss0 = simulateUntilAux ss0 []
   where
-    simulateUntilAux :: RandomGen g
-                     => SimulationState g
+    simulateUntilAux :: SimulationState StdGen
                      -> [SimTickOut]
                      -> IO [SimTickOut]
     simulateUntilAux ss acc = do
@@ -115,9 +113,8 @@ simulateUntil tMax ss0 = simulateUntilAux ss0 []
         then return $ reverse acc'
         else simulateUntilAux ss' acc'
       
-simulateUntilLast :: RandomGen g
-                  => Time
-                  -> SimulationState g
+simulateUntilLast :: Time
+                  -> SimulationState StdGen
                   -> IO SimTickOut
 simulateUntilLast tMax ss = do
   (ss', so@(t, _, _)) <- simulationTick ss 
@@ -126,19 +123,20 @@ simulateUntilLast tMax ss = do
     then return so
     else simulateUntilLast tMax ss'
 
-simulationTick :: RandomGen g
-               => SimulationState g
-               -> IO (SimulationState g, SimTickOut)
+simulationTick :: SimulationState StdGen
+               -> IO (SimulationState StdGen, SimTickOut)
 simulationTick ss0 = do
     let tickVars = simStTickVars ss0
         outVars  = simStOutVars ss0
         g        = simStRng ss0
 
     -- agents are blocking at that point
-
+    --putStrLn "Sending agents next Tick..."
     -- send next tick to agents, they block on their mvar => will unblock them and all agents start working
     -- NOTE: no need to shuffle, concurrency will introduce randomness endogenously ;)
     mapM_ (`putMVar` sugarScapeTimeDelta) tickVars
+    
+    --putStrLn "Waiting for agents signal back..."
     -- wait for agents to finish
     aos <- mapM takeMVar outVars  
 
@@ -147,9 +145,6 @@ simulationTick ss0 = do
     -- run the environment
     runEnv ss0
 
-    -- construct output for this tick
-    let out = simTickOutFromSimState ss0 aos
-
     -- remove tick and out vars of killed agents
     let (_, tickVars', outVars') = unzip3 $ filter (\((_, ao), _, _) -> not $ isDead ao) (zip3 aos tickVars outVars)
 
@@ -157,7 +152,7 @@ simulationTick ss0 = do
     let newAdefs = concatMap (aoCreate . snd) aos
     let (rngs, g') = rngSplits (length newAdefs) g
 
-    (newTickVars, newOutVars, newAobs) <- unzip <$> zipWithM (\ad ga -> do
+    (newTickVars, newOutVars, newAobs) <- unzip3 <$> zipWithM (\ad ga -> do
       let aid  = adId ad
           asf  = adSf ad
           aobs = adInitObs ad
@@ -165,7 +160,9 @@ simulationTick ss0 = do
       (tv, ov) <- createAgentThread aid asf ga (simStEnv ss0) (simStAbsCtx ss0)
       return (tv, ov, (aid, aobs))) newAdefs rngs
 
-    -- TODO: also add new agents observables to out
+    -- construct output for this tick and also add new agents observables to out
+    let (tOut, evtOut, aobs) = simTickOutFromSimState ss0 aos
+        out' = (tOut, evtOut, aobs ++ newAobs)
 
     -- update changed tick and out variables and rng
     let ss = ss0 { simStTickVars = tickVars' ++ newTickVars
@@ -173,7 +170,7 @@ simulationTick ss0 = do
                  , simStRng      = g' }
     -- increment time in simulation state
     let ss' = incrementTime ss
-    return (ss', out)
+    return (ss', out')
 
   where
     incrementTime :: SimulationState g 
@@ -218,14 +215,18 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                 -> TQueue (ABSEvent SugEvent)
                 -> IO ()
     agentThread asf g tickVar outVar q = do
+      --putStrLn $ "Agent " ++ show aid0 ++ ": waiting for next Tick..."
       -- wait for main-thread to send next tick time
       t <- takeMVar tickVar 
+      --putStrLn $ "Agent " ++ show aid0 ++ ": received next Tick."
       -- next tick has arrived, write it to my queue
       writeTick t q
-
+      -- get all queues, won't change until agents are finished with this tick
       allQs <- allAgentQueues ctx0
-      
-      (mao, asf', g') <- trackSTM $ agentProcessMessages Nothing asf g q allQs
+
+      -- while there are messages in ANY agent check this agents
+      -- messages and process them if there are any (busy waiting...)
+      (mao, asf', g') <- processWhileMessages Nothing asf g q allQs
       -- because we posted a Tick message (writeTick) to our queue, we will
       -- always return a Just with an AgentOut, thus this is safe!
       let ao = fromJust mao
@@ -243,28 +244,38 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
         -- agent is dead, remove queue and terminate thread
         else removeAgentQueue aid0 ctx0
 
-    agentProcessMessages :: Maybe (SugAgentOut StdGen)
+    -- TODO: busy waiting, can we do better?
+    processWhileMessages :: Maybe (SugAgentOut StdGen)
                          -> SugAgentMSF StdGen
                          -> StdGen
                          -> TQueue (ABSEvent SugEvent)
                          -> [TQueue (ABSEvent SugEvent)]
-                         -> STM (Maybe (SugAgentOut StdGen), SugAgentMSF StdGen, StdGen)
-    agentProcessMessages mao asf g q allQs = do
-      flag <- allQueuesEmpty allQs
-      -- check for messages until ALL queues are empty
-      if flag
-        -- all empty, return unchanged
+                         -> IO (Maybe (SugAgentOut StdGen), SugAgentMSF StdGen, StdGen)
+    processWhileMessages mao asf g q allQs = do
+      ret <- allQueuesEmpty allQs
+      if ret
         then return (mao, asf, g)
         else do
-          -- check this agents queue
-          mmsg <- tryReadTQueue q 
-          case mmsg of
-            -- no message, continue with checking
-            Nothing  -> agentProcessMessages mao asf g q allQs 
-            -- message found, run agent 
-            Just evt -> do
-              (ao, asf', g') <- runAgentMSF asf evt ctx0 env g
-              agentProcessMessages (Just ao) asf' g' q allQs
+          (mao', asf', g') <- trackSTM $ agentProcessMessages mao asf g q
+          processWhileMessages mao' asf' g' q allQs
+
+    agentProcessMessages :: Maybe (SugAgentOut StdGen)
+                         -> SugAgentMSF StdGen
+                         -> StdGen
+                         -> TQueue (ABSEvent SugEvent)
+                         -> STM (Maybe (SugAgentOut StdGen), SugAgentMSF StdGen, StdGen)
+    agentProcessMessages mao asf g q = do
+      -- TODO: does it work if we check queue in here?
+
+      -- check this agents queue
+      mmsg <- tryReadTQueue q 
+      case mmsg of
+        -- no message, continue with checking
+        Nothing  -> return (mao, asf, g)
+        -- message found, run agent 
+        Just evt -> do
+          (ao, asf', g') <- runAgentMSF asf evt ctx0 env g
+          agentProcessMessages (Just ao) asf' g' q 
 
     allAgentQueues :: ABSCtx SugEvent
                    -> IO [TQueue (ABSEvent SugEvent)]
@@ -290,9 +301,9 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
     writeTick :: DTime -> TQueue (ABSEvent SugEvent) -> IO ()
     writeTick dt q = trackSTM $ writeTQueue q (Tick dt)
 
-    allQueuesEmpty :: [TQueue (ABSEvent SugEvent)] -> STM Bool
-    allQueuesEmpty 
-      = foldM (\flag q -> (&&) flag <$> isEmptyTQueue q) True
+    allQueuesEmpty :: [TQueue (ABSEvent SugEvent)] -> IO Bool
+    allQueuesEmpty allQs 
+      = trackSTM $ foldM (\flag q -> (&&) flag <$> isEmptyTQueue q) True allQs
 
 runAgentMSF :: SugAgentMSF StdGen
             -> ABSEvent SugEvent

@@ -13,10 +13,9 @@ import SugarScape.Core.Simulation
 progressBarLength :: Int
 progressBarLength = 40
 
-writeSimulationUntil :: RandomGen g
-                     => String
+writeSimulationUntil :: String
                      -> Time
-                     -> SimulationState g
+                     -> SimulationState StdGen
                      -> IO ()
 writeSimulationUntil fileName tMax ss0 = do
     fileHdl <- openFile fileName WriteMode
@@ -25,8 +24,7 @@ writeSimulationUntil fileName tMax ss0 = do
     hPutStrLn fileHdl "};"
     hClose fileHdl
   where
-    writeSimulationUntilAux :: RandomGen g
-                            => SimulationState g
+    writeSimulationUntilAux :: SimulationState StdGen
                             -> Handle
                             -> IO ()
     writeSimulationUntilAux ss fileHdl = do

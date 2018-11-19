@@ -140,6 +140,7 @@ simulationTick ss0 = do
 
     -- wait until all agents have consumed their messages, which will
     -- leave them blocking on their queue because of retry
+    -- TODO: this busy waiting causes a lot of retries, can we do it in a more clever way without causing (that many) retries?
     whileM (notM $ allQueuesEmpty allQs) (return ())
 
     -- notify agents that this tick has finished: send TickEnd which will

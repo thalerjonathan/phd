@@ -163,7 +163,9 @@ matingHandler params myId amsf0 cont0 ns freeSites =
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
       sendEventTo myId sender (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
-      sendEventTo myId myId MatingContinue -- TODO: does a self-send result in a retry? 
+      sendEventTo myId myId MatingContinue 
+      
+      -- TODO: does a self-send result in a retry? 
 
       return (ao, Nothing)
 

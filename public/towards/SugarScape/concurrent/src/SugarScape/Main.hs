@@ -35,6 +35,13 @@ data Options = Options
 -- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -f 1000 -o export/dynamics.m -r 42
 -- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -v 0 --ac Disease --sc Resource -r 42
 
+-- TODO
+-- check if self-messaging works: does it result in a retry if a thread enqueues a message to the tqueue it has read before?
+-- fix bug with continuations
+-- remove unsafePerformIO for reading Environment in Renderer and Tests
+-- fix space leak 
+-- remove busy waiting in main-thread with cleverer technique, results in loads of retries
+
 main :: IO ()
 main = do
     --hSetBuffering stdout NoBuffering

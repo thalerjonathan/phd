@@ -162,6 +162,7 @@ Test-Suite sugarscape-concurrent-test
                       , split
                       , statistics
                       , stm
+                      , stm-stats
                       , tasty
                       , tasty-hunit
                       , tasty-smallcheck

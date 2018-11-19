@@ -55,12 +55,14 @@ module SugarScape.Agent.Common
 
 import Data.Maybe
 
+import Control.Concurrent.STM.TQueue
 import Control.Concurrent.STM.TVar
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Control.Monad.STM
 import Data.MonadicStreamFunction
+import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
 import SugarScape.Agent.Interface
 import SugarScape.Core.Common
@@ -73,7 +75,7 @@ type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAg
 type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
 type EventHandler g    = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
-absCtxLift :: ReaderT (ABSCtx SugEvent) (ReaderT SugEnvironment (RandT g STM))  a -> AgentAction g a
+absCtxLift :: ReaderT (ABSCtx SugEvent) (ReaderT SugEnvironment (RandT g STM)) a -> AgentAction g a
 absCtxLift = lift 
 
 envLift :: ReaderT SugEnvironment (RandT g STM) a -> AgentAction g a
@@ -91,25 +93,31 @@ envRun f = do
   env <- envLift ask 
   stmLift (f env)
 
--- TODO: implement
-broadcastEvent :: [AgentId]
-               -> e
-               -> AgentOut m e o
-               -> AgentOut m e o
-broadcastEvent _rs _e ao = ao
+broadcastEvent :: AgentId
+               -> [AgentId]
+               -> SugEvent
+               -> AgentAction g ()
+broadcastEvent myId rs e
+  = mapM_ (\rid -> sendEventTo myId rid e) rs
 
--- TODO: implement
-sendEvents :: [(AgentId, e)]
-           -> AgentOut m e o
-           -> AgentOut m e o
-sendEvents _es ao = ao 
+sendEvents :: AgentId
+           -> [(AgentId, SugEvent)]
+           -> AgentAction g ()
+sendEvents myId
+  = mapM_ (uncurry $ sendEventTo myId)
 
--- TODO: implement
 sendEventTo :: AgentId
-            -> e
-            -> AgentOut m e o
-            -> AgentOut m e o
-sendEventTo _receiver _e ao = ao 
+            -> AgentId
+            -> SugEvent
+            -> AgentAction g ()
+sendEventTo myId receiverId e = do
+  msgQsVar <- absCtxMsgQueues <$> absCtxLift ask 
+  msgQs    <- stmLift $ readTVar msgQsVar
+
+  let mq = Map.lookup receiverId msgQs
+  case mq of
+    Nothing -> return () -- not found, ignore (maybe already dead)
+    Just q  -> stmLift $ writeTQueue q (DomainEvent (myId, e)) 
 
 neighbourAgentIds :: AgentAction g [AgentId]
 neighbourAgentIds = do

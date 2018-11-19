@@ -85,7 +85,9 @@ mateWith params myId amsf cont ((coord, site) : ns) =
           myGender <- agentProperty sugAgGender
           ao       <- agentObservableM
 
-          return (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
+          sendEventTo myId matingPartnerId (MatingRequest myGender)
+
+          return (ao, Just evtHandler))
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
     cont
 
@@ -157,13 +159,13 @@ matingHandler params myId amsf0 cont0 ns freeSites =
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao0 <- newAgent childDef <$> agentObservableM
+      ao <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      let ao' = sendEventTo sender (MatingTx childId) ao0
+      sendEventTo myId sender (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
-      let ao'' = sendEventTo myId MatingContinue ao'
+      sendEventTo myId myId MatingContinue -- TODO: no need for sending to self, will result into retry! 
 
-      return (ao'', Nothing)
+      return (ao, Nothing)
 
 crossOver :: MonadRandom m 
           => [Bool]
@@ -209,14 +211,13 @@ isAgentFertileWealth = do
   
   return $ sugLvl >= initSugLvl && spiLvl >= initSpiLvl
 
-handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
+handleMatingRequest :: RandomGen g
                     => AgentId
                     -> AgentId
                     -> AgentGender
-                    -> m (SugAgentOut g)
-handleMatingRequest _myId sender otherGender = do
+                    -> AgentAction g (SugAgentOut g)
+handleMatingRequest myId sender otherGender = do
   accept <- acceptMatingRequest otherGender
-  ao     <- agentObservableM
 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
   acc <- if not accept
@@ -231,7 +232,8 @@ handleMatingRequest _myId sender otherGender = do
 
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
-  return $ sendEventTo sender (MatingReply acc) ao
+  sendEventTo myId sender (MatingReply acc)
+  agentObservableM
 
 handleMatingTx :: RandomGen g
                => AgentId

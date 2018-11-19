@@ -88,8 +88,8 @@ handleTick :: RandomGen g
 handleTick params myId dt = do
   agentAgeing dt
   
-  (harvestAmount, aoMove) <- agentMove params myId
-  metabAmount             <- agentMetabolism params myId
+  harvestAmount <- agentMove params myId
+  metabAmount   <- agentMetabolism params myId
   -- initialize net-income to gathering minus metabolism, might adjusted later during Loan-handling
   updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - fromIntegral metabAmount})
   -- compute polution and diffusion
@@ -101,16 +101,11 @@ handleTick params myId dt = do
   ifThenElseM
     (starvedToDeath params `orM` dieOfAge)
     (do
-      aoDie <- agentDies params agentMsf
-      let ao = aoMove `agentOutMergeRightObs` aoDie
-      return (ao, Nothing))
+      aoDie <- agentDies params myId agentMsf
+      return (aoDie, Nothing))
     (do 
       let cont = agentContAfterMating params myId
-      
-      (aoMating, mhdl) <- agentMating params myId agentMsf cont
-
-      let ao = aoMove `agentOutMergeRightObs` aoMating
-      return (ao, mhdl))
+      agentMating params myId agentMsf cont)
 
 agentContAfterMating :: RandomGen g 
                      => SugarScapeScenario
@@ -138,7 +133,7 @@ agentContAfterLoan :: RandomGen g
                    -> AgentId
                    -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterLoan params myId = do
-    (aoDisease, mhdl) <- agentDisease params cont
+    (aoDisease, mhdl) <- agentDisease params myId cont
     return (aoDisease, mhdl)
   where
     cont = defaultCont params myId

@@ -19,7 +19,7 @@ agentCultureProcess :: RandomGen g
                     => SugarScapeScenario               -- parameters of the current sugarscape scenario
                     -> AgentId                        -- the id of the agent 
                     -> AgentAction g (SugAgentOut g)
-agentCultureProcess params _myId 
+agentCultureProcess params myId 
   | isNothing $ spCulturalProcess params = agentObservableM
   | otherwise = do
     nids <- neighbourAgentIds
@@ -31,7 +31,8 @@ agentCultureProcess params _myId
         ao         <- agentObservableM
         cultureTag <- agentProperty sugAgCultureTag
         -- simply broadcast to all neighbours, they compute and flip their tags themselves
-        return $ broadcastEvent nids (CulturalProcess cultureTag) ao
+        broadcastEvent myId nids (CulturalProcess cultureTag)
+        return ao
 
 handleCulturalProcess :: RandomGen g
                       => AgentId

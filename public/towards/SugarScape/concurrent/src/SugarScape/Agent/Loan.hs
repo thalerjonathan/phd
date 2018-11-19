@@ -59,8 +59,8 @@ checkBorrowedLoans params myId = do
         spiDebtSum = sum spiDebts
 
     -- reduce the net-income by the debts payed back from Loans
-    updateAgentState (\s -> s { sugAgBorrowed    = cs'
-                              , sugAgNetIncome  = sugAgNetIncome s  - (sugDebtSum + spiDebtSum)})
+    updateAgentState (\s -> s { sugAgBorrowed  = cs'
+                              , sugAgNetIncome = sugAgNetIncome s  - (sugDebtSum + spiDebtSum)})
     -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
     updateSiteWithOccupier myId
 
@@ -92,9 +92,9 @@ checkBorrowedLoans params myId = do
               -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
               updateSiteWithOccupier myId
 
-              let ao' = sendEventTo lender (LoanPayback borrowerLoan sugPay spiPay) ao
+              sendEventTo myId lender (LoanPayback borrowerLoan sugPay spiPay)
               DBG.trace ("Agent " ++ show myId ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pay FULLY back to lender " ++ show lender)
-                          return (ao', Nothing, sugPay, spiPay)
+                          return (ao, Nothing, sugPay, spiPay)
             else do -- not enough wealth, just pay back half of wealth and issue new Loan for the remaining face value(s)
               let dueDate' = t + (fst . fromJust $ spLoansEnabled params)
                   -- prevent negative values in facevalues: if agent has enough sugar/spice but not the other 
@@ -103,7 +103,7 @@ checkBorrowedLoans params myId = do
                   spiPay' = min spiceFace spiLvl / 2  
                   c'      = Loan dueDate' lender (sugarFace - sugPay') (spiceFace - spiPay')
               
-                  ao' = sendEventTo lender (LoanPayback borrowerLoan sugPay' spiPay') ao
+              sendEventTo myId lender (LoanPayback borrowerLoan sugPay' spiPay')
 
               -- NOTE: need to adjust wealth already here otherwise could pay more back than this agent has
               updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - sugPay'
@@ -112,7 +112,7 @@ checkBorrowedLoans params myId = do
               updateSiteWithOccupier myId
 
               DBG.trace ("Agent " ++ show myId ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pays PARTIALLY back with half of its wealth " ++ show (sugPay', spiPay') ++ " to lender " ++ show lender) 
-                return (ao', Just c', sugPay', spiPay')
+                return (ao, Just c', sugPay', spiPay')
 
 offerLending :: RandomGen g
              => SugarScapeScenario               -- parameters of the current sugarscape scenario
@@ -154,7 +154,9 @@ lendTo myId cont dueDate (neighbour : ns) = do
           evtHandler   = lendingToHandler myId cont dueDate ns borrowerLoan
           
       ao <- agentObservableM
-      return (sendEventTo borrowerId (LoanOffer borrowerLoan) ao, Just evtHandler)
+
+      sendEventTo myId borrowerId (LoanOffer borrowerLoan)
+      return (ao, Just evtHandler)
 
 lendingToHandler :: RandomGen g
                  => AgentId
@@ -200,8 +202,8 @@ handleLoanOffer myId borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
   pb <- potentialBorrower
   case pb of
     Just reason -> do
-      ao <- agentObservableM
-      return (sendEventTo lender (LoanReply $ RefuseLoan reason) ao)
+      sendEventTo myId lender (LoanReply $ RefuseLoan reason)
+      agentObservableM
 
     Nothing -> do
       -- the borrower accepts the Loan-offer, increase wealth of borrower
@@ -212,9 +214,10 @@ handleLoanOffer myId borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
       updateSiteWithOccupier myId
 
-      ao <- agentObservableM
+      sendEventTo myId lender (LoanReply AcceptLoan)
+      
       DBG.trace ("Agent " ++ show myId ++ ": borrowing " ++ show borrowerLoan ++ " from " ++ show lender)
-        return (sendEventTo lender (LoanReply AcceptLoan) ao)
+        agentObservableM
 
 handleLoanPayback :: RandomGen g
                   => SugarScapeScenario

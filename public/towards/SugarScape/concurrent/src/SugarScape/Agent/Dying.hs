@@ -10,7 +10,7 @@ import Control.Monad.Reader
 import SugarScape.Agent.Common
 import SugarScape.Agent.Loan
 import SugarScape.Agent.Interface
-import SugarScape.Core.Common
+import SugarScape.Core.Common 
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
@@ -22,13 +22,14 @@ import SugarScape.Core.Utils
 -- => will happen if agent starves to death (spice or sugar) or dies from age
 agentDies :: RandomGen g
           => SugarScapeScenario
+          -> AgentId
           -> SugarScapeAgent g
           -> AgentAction g (SugAgentOut g)
-agentDies params asf = do
+agentDies params myId asf = do
   unoccupyPosition
   ao  <- kill <$> agentObservableM
   ao' <- birthNewAgent params asf ao
-  inheritance params ao'
+  inheritance params myId ao'
 
 birthNewAgent :: RandomGen g
               => SugarScapeScenario
@@ -69,9 +70,10 @@ birthNewAgent params asf ao
 
 inheritance :: RandomGen g
             => SugarScapeScenario
+            -> AgentId
             -> SugAgentOut g
             -> AgentAction g (SugAgentOut g)
-inheritance params ao0
+inheritance params myId ao0
     | not $ spInheritance params = return ao0
     | otherwise = do
       sugLvl   <- agentProperty sugAgSugarLevel
@@ -79,9 +81,9 @@ inheritance params ao0
 
       ls <- agentProperty sugAgLent
       -- children inherit all loans
-      let ao  = inheritLoans ls children ao0
+      inheritLoans ls children
       -- notify borrowers that lender has died and will be inherited by children
-          ao' = notifyBorrowers ls children ao
+      notifyBorrowers ls children
 
       -- only inherit in case 
       -- 1. there is sugar left (performance optimisation) (sugLvl is 0 in case the agent starved to death)
@@ -89,21 +91,20 @@ inheritance params ao0
       if sugLvl > 0 && not (null children)
         then do
           let share = sugLvl / fromIntegral (length children)
-          return $ broadcastEvent children (Inherit share) ao'
-        else return ao'
+          broadcastEvent myId children (Inherit share)
+          agentObservableM
+        else agentObservableM
   where
     inheritLoans :: RandomGen g 
                  => [Loan]
                  -> [AgentId] 
-                 -> SugAgentOut g
-                 -> SugAgentOut g
-    inheritLoans ls children ao
-        = foldr inheritLoan ao ls
+                 -> AgentAction g ()
+    inheritLoans ls children 
+        = mapM_ inheritLoan ls
       where
         inheritLoan :: Loan
-                    -> SugAgentOut g
-                    -> SugAgentOut g
-        inheritLoan l = sendEvents loanMsgs
+                    -> AgentAction g ()
+        inheritLoan l = sendEvents myId loanMsgs
           where
             newLoans = splitLoanLent (length children) l
             loanMsgs = map (\(c, l') -> (c, LoanInherit l')) (zip children newLoans)
@@ -111,10 +112,9 @@ inheritance params ao0
     notifyBorrowers :: RandomGen g 
                     => [Loan]
                     -> [AgentId] 
-                    -> SugAgentOut g
-                    -> SugAgentOut g
+                    -> AgentAction g ()
     notifyBorrowers ls children
-        = broadcastEvent borrowerIds (LoanLenderDied children)
+        = broadcastEvent myId borrowerIds (LoanLenderDied children)
       where
         borrowerIds = map loanAgentId ls
 

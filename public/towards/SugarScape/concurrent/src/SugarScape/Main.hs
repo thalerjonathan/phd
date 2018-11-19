@@ -32,8 +32,8 @@ data Options = Options
   , optRngSeed  :: Maybe Int
   }
 
--- clear & stack exec -- sugarscape-concurrent -s "Animation V-1" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape-concurrent -s "Animation V-1" -v 0 --ac Disease --sc Resource -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -f 1000 -o export/dynamics.m -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -v 0 --ac Disease --sc Resource -r 42
 
 main :: IO ()
 main = do

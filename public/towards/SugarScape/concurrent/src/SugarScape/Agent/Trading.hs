@@ -90,7 +90,8 @@ tradeWith myId cont tradeInfos tradeOccured (trader : ts) = do -- trade with nex
     else do
       let evtHandler = tradingHandler myId cont tradeInfos tradeOccured ts (price, sugEx, spiEx) 
       ao <- agentObservableM
-      return (sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter) ao, Just evtHandler)
+      sendEventTo myId (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter)
+      return (ao, Just evtHandler)
 
 tradingHandler :: RandomGen g
                => AgentId
@@ -144,15 +145,16 @@ handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
 
   if myWfAfter <= myWfBefore
     -- not better off, turn offer down
-    then sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease) <$> agentObservableM
+    then sendEventTo myId traderId (TradingReply $ RefuseTrade NoWelfareIncrease) >> agentObservableM
     else
       if mrsCrossover myMrsBefore traderMrsBefore myMrsAfter traderMrsAfter
         -- MRS cross-over, turn offer down
-        then sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) <$> agentObservableM
+        then sendEventTo myId traderId (TradingReply $ RefuseTrade MRSCrossover) >> agentObservableM
         else do
           -- all good, transact and accept offer
           transactTradeWealth myId sugEx spiEx
-          sendEventTo traderId (TradingReply AcceptTrade) <$> agentObservableM
+          sendEventTo myId traderId (TradingReply AcceptTrade)
+          agentObservableM 
 
 mrsCrossover :: Double
              -> Double

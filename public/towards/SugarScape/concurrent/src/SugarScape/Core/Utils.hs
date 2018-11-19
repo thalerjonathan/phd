@@ -3,6 +3,7 @@ module SugarScape.Core.Utils
   , ifThenElseM
   , orM
   , andM
+  , notM
 
   , whileM
   , whileMFeedback
@@ -56,6 +57,11 @@ andM :: Monad m
      -> m Bool
      -> m Bool
 andM = liftM2 (&&) 
+
+notM :: Monad m
+     => m Bool
+     -> m Bool
+notM = liftM not
 
 whileM :: Monad m
        => m Bool

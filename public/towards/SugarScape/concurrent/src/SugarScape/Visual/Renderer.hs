@@ -7,10 +7,11 @@ module SugarScape.Visual.Renderer
   ) where
 
 import Data.Maybe
+import System.IO.Unsafe
 
+import Control.Monad.STM
 import Graphics.Gloss as GLO
 
-import SugarScape.Agent.Interface
 import SugarScape.Agent.Common
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
@@ -37,20 +38,20 @@ polBlackCap = 50
 
 renderSugarScapeFrame :: (Int, Int) 
                       -> Time 
-                      -> Int
                       -> SugEnvironment
                       -> [AgentObservable SugAgentObservable]
                       -> AgentColoring
                       -> SiteColoring
                       -> GLO.Picture
-renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
-    = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, stepsTxt, asCntTxt, maxIdTxt])
+renderSugarScapeFrame wSize@(wx, wy) t e ss av cv
+    = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, asCntTxt, maxIdTxt])
   where
     (dx, dy)   = dimensionsDisc2d e
     siteWidth  = fromIntegral wx / fromIntegral dx
     siteHeight = fromIntegral wy / fromIntegral dy
 
-    sites = allCellsWithCoords e
+    -- TODO: provide a safe implementation
+    sites = unsafePerformIO $ atomically $ allCellsWithCoords e
 
     agentPics = map (sugarscapeAgentRenderer av (siteWidth, siteHeight) wSize t) ss
     envPics   = mapMaybe (renderEnvSite cv (siteWidth, siteHeight) wSize t) sites
@@ -58,7 +59,6 @@ renderSugarScapeFrame wSize@(wx, wy) t steps e ss av cv
     maxId = if null ss then 0 else maximum $ map fst ss
 
     timeTxt  = GLO.color GLO.black $ GLO.translate (-halfWSizeX) halfWSizeY $ GLO.scale 0.1 0.1 $ GLO.Text ("t = " ++ show t)
-    stepsTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 20) $ GLO.scale 0.1 0.1 $ GLO.Text ("event count = " ++ show steps)
     asCntTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 40) $ GLO.scale 0.1 0.1 $ GLO.Text ("number of agents = " ++ show (length ss))
     maxIdTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY + 60) $ GLO.scale 0.1 0.1 $ GLO.Text ("total agents created = " ++ show maxId)
 

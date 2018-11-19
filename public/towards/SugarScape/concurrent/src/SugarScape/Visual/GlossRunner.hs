@@ -16,7 +16,7 @@ import SugarScape.Visual.Renderer
 runGloss :: RandomGen g
          => SugarScapeScenario
          -> SimulationState g
-         -> SimStepOut
+         -> SimTickOut
          -> Int
          -> AgentColoring
          -> SiteColoring
@@ -51,20 +51,20 @@ displayGlossWindow winTitle winSize = GLO.InWindow winTitle winSize (0, 0)
 modelToPicture :: (Int, Int)
                -> AgentColoring
                -> SiteColoring
-               -> SimStepOut
+               -> SimTickOut
                -> IO GLO.Picture
-modelToPicture winSize av cv (t, steps, env, as) 
-  = return $ renderSugarScapeFrame winSize t steps env as av cv
+modelToPicture winSize av cv (t, env, as) 
+  = return $ renderSugarScapeFrame winSize t env as av cv
 
 renderStep :: RandomGen g
            => IORef (SimulationState g)
            -> ViewPort
            -> Float
-           -> SimStepOut
-           -> IO SimStepOut
+           -> SimTickOut
+           -> IO SimTickOut
 renderStep ssRef _ _ _ = do
   ss <- readIORef ssRef
-  let (ss', out) = simulationStep ss
+  (ss', out) <- simulationTick ss
   writeIORef ssRef ss'
   
   return out
@@ -78,7 +78,7 @@ renderStepAnimate :: RandomGen g
                   -> IO GLO.Picture
 renderStepAnimate winSize ssRef av cv _ = do
   ss <- readIORef ssRef
-  let (ss', out) = simulationStep ss
+  (ss', out) <- simulationTick ss
   writeIORef ssRef ss'
 
   modelToPicture winSize av cv out

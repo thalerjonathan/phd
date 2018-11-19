@@ -12,14 +12,10 @@ import SugarScape.Visual.Renderer
 import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
 
-data Output = Console Int      -- steps
-            | File Int String  -- steps, filename
+data Output = File Int String  -- steps, filename
             | Visual Int AgentColoring SiteColoring  -- render-freq, agent vis, site-vis
 
 instance Show Output where
-  show (Console steps)     = "CONSOLE " ++ show steps ++ 
-                              " (print output after " ++ show steps ++ 
-                              " steps to console)"
   show (File steps file)   = "FILE " ++ show steps ++ " " ++ show file ++ 
                               " (write output of " ++ show steps ++ " steps to file " ++ show file ++ ")"
   show (Visual 0 ac sc) = "VISUAL MAX " ++ show ac ++ " " ++ show sc ++
@@ -36,8 +32,8 @@ data Options = Options
   , optRngSeed  :: Maybe Int
   }
 
--- clear & stack exec -- sugarscape -s "Animation V-1" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape -s "Animation V-1" -v 0 --ac Disease --sc Resource -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Animation V-1" -f 1000 -o export/dynamics.m -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Animation V-1" -v 0 --ac Disease --sc Resource -r 42
 
 main :: IO ()
 main = do
@@ -60,7 +56,7 @@ runSugarscape opts = do
       let output    = optOutput opts
           rngSeed   = optRngSeed opts
 
-      (initSimState, initEnv, scenario') <- initSimulationOpt rngSeed scenario
+      (initSimState, initOut, scenario') <- initSimulationOpt rngSeed scenario
 
       putStrLn "Running Sugarscape with... " 
       putStrLn "--------------------------------------------------"
@@ -72,9 +68,8 @@ runSugarscape opts = do
       putStrLn "--------------------------------------------------"
 
       case output of 
-        Console steps     -> print $ simulateUntil steps initSimState
         File steps file   -> writeSimulationUntil file steps initSimState
-        Visual freq av cv -> runGloss scenario' initSimState (0, 0, initEnv, []) freq av cv
+        Visual freq av cv -> runGloss scenario' initSimState initOut freq av cv
 
       putStrLn "\n--------------------------------------------------\n"
 
@@ -104,16 +99,7 @@ parseOptions
 
 parseOutput :: Parser Output
 parseOutput = fileOut    <|> 
-              consoleOut <|> 
               visualOut
-
-consoleOut :: Parser Output
-consoleOut = Console <$> option auto
-              (  long "consoleout"
-              <> short 'c'
-              <> help "Print output to console after number of steps"
-              <> value 1000
-              <> metavar "Int")
 
 fileOut :: Parser Output
 fileOut = File 

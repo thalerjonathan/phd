@@ -7,6 +7,8 @@ module SugarScape.Agent.Interface
   , AgentDef (..)
   , AgentOut (..)
 
+  , observable
+  
   , agentOut
   , agentOutMergeLeftObs
   , agentOutMergeRightObs
@@ -50,6 +52,9 @@ isDead = aoKill
 
 kill :: AgentOut m e o -> AgentOut m e o
 kill ao = ao { aoKill = True }
+
+observable :: AgentOut m e o -> o
+observable = aoObservable
 
 newAgent :: AgentDef m e o
          -> AgentOut m e o 

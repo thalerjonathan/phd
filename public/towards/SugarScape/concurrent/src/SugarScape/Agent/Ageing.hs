@@ -7,10 +7,13 @@ module SugarScape.Agent.Ageing
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
+import SugarScape.Core.Common
 import SugarScape.Core.Model
 
-agentAgeing :: MonadState SugAgentState m => m ()
-agentAgeing = updateAgentState (\s' -> s' { sugAgAge = sugAgAge s' + 1 })
+agentAgeing :: MonadState SugAgentState m
+            => DTime
+            -> m ()
+agentAgeing dt = updateAgentState (\s' -> s' { sugAgAge = sugAgAge s' + dt })
 
 dieOfAge :: MonadState SugAgentState m => m Bool
 dieOfAge = do

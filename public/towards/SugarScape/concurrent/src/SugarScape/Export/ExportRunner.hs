@@ -30,7 +30,7 @@ writeSimulationUntil fileName tMax ss0 = do
                             -> Handle
                             -> IO ()
     writeSimulationUntilAux ss fileHdl = do
-        (ss', (t, _, _, aobs)) <- simulationStep ss
+        (ss', (t, _, aobs)) <- simulationTick ss
         
         printProgress t
 

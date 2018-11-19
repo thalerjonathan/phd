@@ -1,6 +1,6 @@
 module SugarScape.Core.Simulation
   ( SimulationState (..)
-  , SimStepOut
+  , SimTickOut
   , AgentObservable
 
   , initSimulation
@@ -8,25 +8,29 @@ module SugarScape.Core.Simulation
   , initSimulationRng
   , initSimulationSeed
 
-  , simulationStep
+  , simulationTick
 
   , simulateUntil
   , simulateUntilLast
 
-  , sugarScapeTimeDelta
-
-  , runAgentSF
+  , runAgentMSF
   , runEnv
   ) where
 
-import Control.Concurrent.MVar
+import Data.Maybe
+import Control.Concurrent
 import System.Random
 
+import Control.Concurrent.STM.TVar
+import Control.Concurrent.STM.TQueue
+import Control.Concurrent.STM.Stats
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.STM
 import Data.MonadicStreamFunction.InternalCore
+import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
+import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Environment
 import SugarScape.Core.Model
@@ -36,7 +40,7 @@ import SugarScape.Core.Scenario
 
 type AgentObservable o    = (AgentId, o)
 type SugarScapeObservable = AgentObservable SugAgentObservable
-type SimStepOut           = (Time, SugEnvironment, [SugarScapeObservable])
+type SimTickOut           = (Time, SugEnvironment, [SugarScapeObservable])
 
 -- NOTE: strictness on those fields, otherwise space-leak 
 -- (memory consumption increases throughout run-time and execution gets slower and slower)
@@ -46,7 +50,7 @@ data SimulationState g = SimulationState
   , simStEnvBeh   :: SugEnvBehaviour
   , simStRng      :: !g
   , simStTickVars :: [MVar DTime]
-  , simStOutVars  :: [MVar SugarScapeObservable]
+  , simStOutVars  :: [MVar (AgentId, SugAgentOut g)]
   }
 
 -- sugarscape is stepped with a time-delta of 1.0
@@ -54,27 +58,27 @@ sugarScapeTimeDelta :: DTime
 sugarScapeTimeDelta = 1
 
 initSimulation :: SugarScapeScenario
-               -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
+               -> IO (SimulationState StdGen, SimTickOut, SugarScapeScenario)
 initSimulation params = do
   g0 <- newStdGen
   initSimulationRng g0 params
 
 initSimulationOpt :: Maybe Int
                   -> SugarScapeScenario
-                  -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
+                  -> IO (SimulationState StdGen, SimTickOut, SugarScapeScenario)
 initSimulationOpt Nothing     params = initSimulation params
 initSimulationOpt (Just seed) params = initSimulationSeed seed params
 
 initSimulationSeed :: Int
                    -> SugarScapeScenario
-                   -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
+                   -> IO (SimulationState StdGen, SimTickOut, SugarScapeScenario)
 initSimulationSeed seed = initSimulationRng g0
   where
     g0 = mkStdGen seed
 
 initSimulationRng :: StdGen
                   -> SugarScapeScenario
-                  -> IO (SimulationState StdGen, SimStepOut, SugarScapeScenario)
+                  -> IO (SimulationState StdGen, SimTickOut, SugarScapeScenario)
 initSimulationRng g0 params = do
   -- initial agents and environment data
   ((initAs, initEnv, params'), g) <- atomically $ runRandT (createSugarScape params) g0
@@ -93,31 +97,18 @@ initSimulationRng g0 params = do
 
   return (initSimState, initOut, params')
 
-createAgentThread :: RandomGen g
-                  => AgentId
-                  -> SugAgentMSF g
-                  -> StdGen
-                  -> SugEnvironment
-                  -> ABSCtx SugEvent
-                  -> IO (MVar DTime, MVar SugarScapeObservable)
-createAgentThread _aid _asf _g _env _ctx = do 
-  tickVar <- newEmptyMVar
-  outVar  <- newEmptyMVar
-
-  return (tickVar, outVar)
-
 simulateUntil :: RandomGen g
               => Time
               -> SimulationState g
-              -> IO [SimStepOut]
+              -> IO [SimTickOut]
 simulateUntil tMax ss0 = simulateUntilAux ss0 []
   where
     simulateUntilAux :: RandomGen g
                      => SimulationState g
-                     -> [SimStepOut]
-                     -> IO [SimStepOut]
+                     -> [SimTickOut]
+                     -> IO [SimTickOut]
     simulateUntilAux ss acc = do
-      (ss', so@(t, _, _)) <- simulationStep ss 
+      (ss', so@(t, _, _)) <- simulationTick ss 
       let acc' = so : acc
 
       if t > tMax 
@@ -127,128 +118,210 @@ simulateUntil tMax ss0 = simulateUntilAux ss0 []
 simulateUntilLast :: RandomGen g
                   => Time
                   -> SimulationState g
-                  -> IO SimStepOut
+                  -> IO SimTickOut
 simulateUntilLast tMax ss = do
-  (ss', so@(t, _, _)) <- simulationStep ss 
+  (ss', so@(t, _, _)) <- simulationTick ss 
 
   if t > tMax 
     then return so
     else simulateUntilLast tMax ss'
 
-simulationStep :: RandomGen g
+simulationTick :: RandomGen g
                => SimulationState g
-               -> IO (SimulationState g, SimStepOut)
-simulationStep _ss0 = undefined {- (ssFinal, sao)
-  where
-    am0  = simAgentMap ss0
-    ais0 = Map.keys am0
-    g0   = simRng ss0
-    (aisShuffled, gShuff) = fisherYatesShuffle g0 ais0
-    -- schedule Tick messages in random order by generating event-list from shuffled agent-ids
-    el = zip aisShuffled (repeat Tick)
-    -- process all events
-    ssSteps = processEvents el (ss0 { simRng = gShuff })
+               -> IO (SimulationState g, SimTickOut)
+simulationTick ss0 = do
+    let tickVars = simStTickVars ss0
+        outVars  = simStOutVars ss0
+        g        = simStRng ss0
+
+    -- agents are blocking at that point
+
+    -- send next tick to agents, they block on their mvar => will unblock them and all agents start working
+    -- NOTE: no need to shuffle, concurrency will introduce randomness endogenously ;)
+    mapM_ (`putMVar` sugarScapeTimeDelta) tickVars
+    -- wait for agents to finish
+    aos <- mapM takeMVar outVars  
+
+    -- agents have finished at that point and are blocking again
+
     -- run the environment
-    envFinal = runEnv ssSteps
-    ssSteps' = incrementTime ssSteps
-    ssFinal  = ssSteps' { simEnvState = envFinal }
+    runEnv ss0
 
-    -- produce final output of this step
-    sao = simStepOutFromSimState ssFinal
+    -- construct output for this tick
+    let out = simTickOutFromSimState ss0 aos
 
+    -- remove tick and out vars of killed agents
+    let (_, tickVars', outVars') = unzip3 $ filter (\((_, ao), _, _) -> not $ isDead ao) (zip3 aos tickVars outVars)
+
+    -- spawn new agents
+    let newAdefs = concatMap (aoCreate . snd) aos
+    let (rngs, g') = rngSplits (length newAdefs) g
+
+    (newTickVars, newOutVars, newAobs) <- unzip <$> zipWithM (\ad ga -> do
+      let aid  = adId ad
+          asf  = adSf ad
+          aobs = adInitObs ad
+
+      (tv, ov) <- createAgentThread aid asf ga (simStEnv ss0) (simStAbsCtx ss0)
+      return (tv, ov, (aid, aobs))) newAdefs rngs
+
+    -- TODO: also add new agents observables to out
+
+    -- update changed tick and out variables and rng
+    let ss = ss0 { simStTickVars = tickVars' ++ newTickVars
+                 , simStOutVars  = outVars'  ++ newOutVars
+                 , simStRng      = g' }
+    -- increment time in simulation state
+    let ss' = incrementTime ss
+    return (ss', out)
+
+  where
     incrementTime :: SimulationState g 
                   -> SimulationState g
-    incrementTime ss = ss { simAbsCtx = absCtx' }
+    incrementTime ss = ss { simStAbsCtx = absCtx' }
       where
-        absCtx  = simAbsCtx ss
+        absCtx  = simStAbsCtx ss
         absCtx' = absCtx { absCtxTime = absCtxTime absCtx + sugarScapeTimeDelta }
 
-    simStepOutFromSimState :: SimulationState g
-                           -> SimStepOut
-    simStepOutFromSimState ss = (t, steps, env, aos)
+    simTickOutFromSimState :: SimulationState g
+                           -> [(AgentId, SugAgentOut g)]
+                           -> SimTickOut
+    simTickOutFromSimState ss aos = (t, env, aobs)
       where
-        t     = absTime $ simAbsCtx ss
-        steps = simSteps ss
-        env   = simEnvState ss
-        aos   = map (\(aid, (_, ao)) -> (aid, ao)) (Map.assocs $ simAgentMap ss)
+        t     = absCtxTime $ simStAbsCtx ss
+        env   = simStEnv ss
+        aobs   = map (\(aid, ao) -> (aid, observable ao)) aos
 
-    processEvents :: RandomGen g
-                  => EventList
-                  -> SimulationState g 
-                  -> SimulationState g
-    processEvents [] ss         = ss
-    processEvents ((aid, evt) : es) ss 
-        | isNothing mayAgent = processEvents es ss
-        | otherwise          = processEvents es' ss'
-      where
-        am       = simAgentMap ss
-        absCtx = simAbsCtx ss
-        env      = simEnvState ss
-        g        = simRng ss
-        steps    = simSteps ss
+createAgentThread :: AgentId
+                  -> SugAgentMSF StdGen
+                  -> StdGen
+                  -> SugEnvironment
+                  -> ABSCtx SugEvent
+                  -> IO (MVar DTime, MVar (AgentId, SugAgentOut StdGen))
+createAgentThread aid0 asf0 g0 env ctx0 = do 
+    -- mvar for synchronising upon next tick sent by main thread
+    tickVar <- newEmptyMVar 
+    -- mvar for sending agent-out to main thread
+    outVar <- newEmptyMVar
+    -- message queue of this agent for receiving messages from others
+    q <- atomically newTQueue
+    -- add this queue to the map of all agent message queues
+    insertAgentQueue aid0 q ctx0
+    -- start thread
+    _ <- forkIO $ agentThread asf0 g0 tickVar outVar q
+    return (tickVar, outVar)
+  where
+    agentThread :: SugAgentMSF StdGen
+                -> StdGen
+                -> MVar DTime
+                -> MVar (AgentId, SugAgentOut StdGen)
+                -> TQueue (ABSEvent SugEvent)
+                -> IO ()
+    agentThread asf g tickVar outVar q = do
+      -- wait for main-thread to send next tick time
+      t <- takeMVar tickVar 
+      -- next tick has arrived, write it to my queue
+      writeTick t q
 
-        mayAgent = Map.lookup aid am
-        (asf, _) = fromJust mayAgent
+      allQs <- allAgentQueues ctx0
+      
+      (mao, asf', g') <- trackSTM $ agentProcessMessages Nothing asf g q allQs
+      -- because we posted a Tick message (writeTick) to our queue, we will
+      -- always return a Just with an AgentOut, thus this is safe!
+      let ao = fromJust mao
         
-        (ao, asf', absCtx', env', g') = runAgentSF asf evt absCtx env g
+      -- signal main-thread that this thread has finished 
+      -- by posting ping-pong counter
+      putMVar outVar (aid0, ao)
 
-        -- schedule events of the agent: will always be put infront of the list, thus processed immediately
-        -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
-        es' = map (\(receiver, domEvt) -> (receiver, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
+      -- NOTE: new agents are handled by main-thread
 
-        -- update new signalfunction and agent-observable
-        am' = Map.insert aid (asf', aoObservable ao) am
+      -- check if agent is to be removed from simulation
+      if not $ isDead ao
+        -- not dead, continue with work
+        then agentThread asf' g' tickVar outVar q
+        -- agent is dead, remove queue and terminate thread
+        else removeAgentQueue aid0 ctx0
 
-        -- agent is dead, remove from set (technically its a map) of agents
-        am'' = if isDead ao
-                then Map.delete aid am'
-                else am'
+    agentProcessMessages :: Maybe (SugAgentOut StdGen)
+                         -> SugAgentMSF StdGen
+                         -> StdGen
+                         -> TQueue (ABSEvent SugEvent)
+                         -> [TQueue (ABSEvent SugEvent)]
+                         -> STM (Maybe (SugAgentOut StdGen), SugAgentMSF StdGen, StdGen)
+    agentProcessMessages mao asf g q allQs = do
+      flag <- allQueuesEmpty allQs
+      -- check for messages until ALL queues are empty
+      if flag
+        -- all empty, return unchanged
+        then return (mao, asf, g)
+        else do
+          -- check this agents queue
+          mmsg <- tryReadTQueue q 
+          case mmsg of
+            -- no message, continue with checking
+            Nothing  -> agentProcessMessages mao asf g q allQs 
+            -- message found, run agent 
+            Just evt -> do
+              (ao, asf', g') <- runAgentMSF asf evt ctx0 env g
+              agentProcessMessages (Just ao) asf' g' q allQs
 
-        -- add newly created agents
-        -- QUESTION: should an agent who isDead be allowed to create new ones? 
-        -- ANSWER: depends on the model, we leave that to the model implementer to have a general solution
-        --         in case of SugarScape when an agent dies it wont engage in mating, which is prevented
-        --         in the agent implementation thus aoCreate will always be null in case of a isDead agent
-        --         NOTE the exception (there is always an exception) is when the R (replacement) rule is active
-        --              which replaces a dead agent by a random new-born, then aoCreate contains exactly 1 element
-        am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) am'' (aoCreate ao)
+    allAgentQueues :: ABSCtx SugEvent
+                   -> IO [TQueue (ABSEvent SugEvent)]
+    allAgentQueues ctx = do
+      let msgQsVar = absCtxMsgQueues ctx
+      Map.elems <$> readTVarIO msgQsVar
 
-        ss' = ss { simAgentMap = am'''
-                 , simAbsCtx   = absCtx'
-                 , simEnvState = env'
-                 , simRng      = g'
-                 , simSteps    = steps + 1 }
--}
+    insertAgentQueue :: AgentId
+                     -> TQueue (ABSEvent SugEvent)
+                     -> ABSCtx SugEvent
+                     -> IO ()
+    insertAgentQueue aid q ctx = do
+      let msgQsVar = absCtxMsgQueues ctx
+      trackSTM $ modifyTVar msgQsVar (Map.insert aid q)
+
+    removeAgentQueue :: AgentId
+                     -> ABSCtx SugEvent
+                     -> IO ()
+    removeAgentQueue aid ctx = do
+      let msgQsVar = absCtxMsgQueues ctx
+      trackSTM $ modifyTVar msgQsVar (Map.delete aid)
+
+    writeTick :: DTime -> TQueue (ABSEvent SugEvent) -> IO ()
+    writeTick dt q = trackSTM $ writeTQueue q (Tick dt)
+
+    allQueuesEmpty :: [TQueue (ABSEvent SugEvent)] -> STM Bool
+    allQueuesEmpty 
+      = foldM (\flag q -> (&&) flag <$> isEmptyTQueue q) True
+
+runAgentMSF :: SugAgentMSF StdGen
+            -> ABSEvent SugEvent
+            -> ABSCtx SugEvent
+            -> SugEnvironment
+            -> StdGen
+            -> STM (SugAgentOut StdGen, SugAgentMSF StdGen, StdGen)
+runAgentMSF sf evt absCtx env g = do
+  let sfAbsCtx   = unMSF sf evt 
+      sfEnvState = runReaderT sfAbsCtx absCtx
+      sfRand     = runReaderT sfEnvState env
+      sfSTM      = runRandT sfRand g
+
+  ((out, sf'), g') <- sfSTM
+  return (out, sf', g') 
 
 runEnv :: SimulationState g -> IO ()
-runEnv ss = atomically $ envBeh t env
+runEnv ss = trackSTM $ envBeh t env
   where
     env    = simStEnv ss
     envBeh = simStEnvBeh ss
     t      = absCtxTime $ simStAbsCtx ss
-
-runAgentSF :: RandomGen g
-           => SugAgentMSF g
-           -> ABSEvent SugEvent
-           -> ABSCtx SugEvent
-           -> SugEnvironment
-           -> g
-           -> IO (SugAgentOut g, SugAgentMSF g, g)
-runAgentSF sf evt absCtx env g = do
-    let sfAbsCtx   = unMSF sf evt 
-        sfEnvState = runReaderT sfAbsCtx absCtx
-        sfRand     = runReaderT sfEnvState env
-        sfSTM      = runRandT sfRand g
-
-    ((out, sf'), g') <- atomically sfSTM
-    return (out, sf', g') 
  
 mkSimState :: ABSCtx SugEvent
            -> SugEnvironment
            -> SugEnvBehaviour
            -> g
            -> [MVar DTime]
-           -> [MVar SugarScapeObservable]
+           -> [MVar (AgentId, SugAgentOut g)]
            -> SimulationState g
 mkSimState absCtx env envBeh g tickVars outVars = SimulationState 
   { simStAbsCtx   = absCtx

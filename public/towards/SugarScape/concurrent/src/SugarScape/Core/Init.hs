@@ -160,7 +160,7 @@ randomCoords :: MonadRandom m
              => Discrete2dDimension 
              -> Discrete2dDimension 
              -> Int 
-             -> m[Discrete2dCoord]
+             -> m [Discrete2dCoord]
 randomCoords (minX, minY) (maxX, maxY) n
     | n > maxCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
     | otherwise        = do

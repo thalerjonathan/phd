@@ -42,7 +42,7 @@ generalEventHandler params myId =
   continueWithAfter 
     (proc evt -> 
       case evt of 
-        Tick dt -> 
+        TickStart dt -> 
           arrM (handleTick params myId) -< dt
         (DomainEvent (sender, MatingRequest otherGender)) -> do
           ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)

@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Simulation
   ( SimulationState (..)
   , SimStepOut
@@ -134,7 +135,7 @@ simulationStep ss0 = (ssFinal, sao)
     am0  = simAgentMap ss0
     ais0 = Map.keys am0
     g0   = simRng ss0
-    (aisShuffled, gShuff) = fisherYatesShuffle g0 ais0
+    (aisShuffled, gShuff) = randomShuffle g0 ais0
     -- schedule Tick messages in random order by generating event-list from shuffled agent-ids
     el = zip aisShuffled (repeat Tick)
     -- process all events

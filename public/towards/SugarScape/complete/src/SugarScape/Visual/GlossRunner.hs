@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Visual.GlossRunner
   ( runGloss
   ) where

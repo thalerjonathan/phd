@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Core.Discrete 
   ( Discrete2dDimension
@@ -58,10 +59,10 @@ import Data.Array.IArray
 import Control.Monad.Random
 import Control.Monad.State.Strict
 
-type Discrete2dDimension        = (Int, Int)
-type Discrete2dCoord            = Discrete2dDimension
-type Discrete2dNeighbourhood    = [Discrete2dCoord]
-type Discrete2dCell c           = (Discrete2dCoord, c)
+type Discrete2dDimension     = (Int, Int)
+type Discrete2dCoord         = Discrete2dDimension
+type Discrete2dNeighbourhood = [Discrete2dCoord]
+type Discrete2dCell c        = (Discrete2dCoord, c)
 
 data EnvironmentWrapping 
   = ClipToMax 
@@ -70,10 +71,10 @@ data EnvironmentWrapping
   | WrapBoth deriving (Show, Read, Eq)
 
 data Discrete2d c = Discrete2d 
-  { envDisc2dDims           :: Discrete2dDimension
-  , envDisc2dNeighbourhood  :: Discrete2dNeighbourhood
-  , envDisc2dWrapping       :: EnvironmentWrapping
-  , envDisc2dCells          :: Array Discrete2dCoord c
+  { envDisc2dDims           :: !Discrete2dDimension
+  , envDisc2dNeighbourhood  :: !Discrete2dNeighbourhood
+  , envDisc2dWrapping       :: !EnvironmentWrapping
+  , envDisc2dCells          :: !(Array Discrete2dCoord c)
   } deriving (Show, Read, Eq)
 
 createDiscrete2d :: Discrete2dDimension

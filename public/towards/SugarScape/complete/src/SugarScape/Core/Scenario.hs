@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Scenario
   ( AgentAgeSpan (..)
 

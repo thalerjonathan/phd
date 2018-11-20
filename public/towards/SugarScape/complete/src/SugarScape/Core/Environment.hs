@@ -1,7 +1,10 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Environment 
   ( SugEnvBehaviour
   , sugEnvBehaviour
   ) where
+
+import Data.Foldable
 
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
@@ -43,7 +46,7 @@ polutionDiffusion (Just d) t env
           let flux = sum (map sugEnvSitePolutionLevel ncs) / fromIntegral (length ncs)
           flux) cs
 
-    env' = foldr (\((coord, c), flux) acc -> do
+    env' = foldr' (\((coord, c), flux) acc -> do
             let c' = c { sugEnvSitePolutionLevel = flux }
             changeCellAt coord c' acc) env (zip cs fs)
 

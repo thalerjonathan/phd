@@ -1,11 +1,13 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Random
   ( randomBoolM
   , randomExpM
   , randomElemM
   , randomElemsM
+
+  , randomShuffle
   , randomShuffleM
-  , fisherYatesShuffle
-  , fisherYatesShuffleM
+
   , avoidM
 
   , rngSplits
@@ -14,7 +16,6 @@ module SugarScape.Core.Random
 import System.Random
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 import qualified Data.Map as Map
 
 randomBoolM :: MonadRandom m => Double -> m Bool
@@ -41,19 +42,53 @@ avoidM x = do
     then avoidM x
     else return r
 
-randomShuffleM :: (MonadState g m, RandomGen g, MonadRandom m) => [a] -> m [a]
-randomShuffleM as = do
-  g <- get
-  let (as', g') = fisherYatesShuffle g as
-  put g'
-  return as'
+randomShuffleM :: MonadRandom m
+               => [a] 
+               -> m [a]
+randomShuffleM = _fisherYatesShuffleM
+
+randomShuffle :: RandomGen g => g -> [a] -> ([a], g)
+randomShuffle = _fisherYatesShuffle
+
+rngSplits :: RandomGen g => Int -> g -> ([g], g)
+rngSplits n0 g0  = rngSplitsAux n0 g0 []
+  where
+    rngSplitsAux :: RandomGen g => Int -> g -> [g] -> ([g], g)
+    rngSplitsAux 0 g acc = (acc, g)
+    rngSplitsAux n g acc = rngSplitsAux (n - 1) g'' (g' : acc)
+      where
+        (g', g'') = split g
+
+----------------------------------------------------------------------
+{-}
+naiveShufle :: RandomGen g => g -> [a] -> ([a], g)
+naiveShufle g xs 
+    | n < 2     = (xs, g)
+    | otherwise = (xs!!i : xs', g'')
+  where
+    n          = length xs
+    (i, g')    = randomR (0, n - 1) g
+    (xs', g'') = naiveShufle g' (take i xs ++ drop (i+1) xs) -- NOTE: cant use strict!
+
+naiveShufleM :: MonadRandom m
+             => [a] 
+             -> m [a]
+naiveShufleM xs 
+    | n < 2     = return xs
+    | otherwise = do
+      i <- getRandomR (0, n - 1) 
+      xs' <- naiveShufleM (take i xs ++ drop (i+1) xs)
+      return $ xs!!i : xs'
+  where
+    n = length xs
+-}
 
 -- Taken from https://wiki.haskell.org/Random_shuffle
 -- | Randomly shuffle a list without the IO Monad
---   /O(N)/
-fisherYatesShuffle :: RandomGen g => g -> [a] -> ([a], g)
-fisherYatesShuffle gen0 [] = ([], gen0)
-fisherYatesShuffle gen0 l = toElems $ foldl fisherYatesStep (initial (head l) gen0) (numerate (tail l))
+--   /O(N log N)/
+_fisherYatesShuffle :: RandomGen g => g -> [a] -> ([a], g)
+_fisherYatesShuffle gen0 [] = ([], gen0)
+_fisherYatesShuffle gen0 l = toElems $ foldl fisherYatesStep (initial (head l) gen0) (numerate (tail l))
   where
     toElems (x, y) = (Map.elems x, y)
     numerate = zip [1..]
@@ -64,11 +99,11 @@ fisherYatesShuffle gen0 l = toElems $ foldl fisherYatesStep (initial (head l) ge
       where
         (j, gen') = randomR (0, i) gen
 
-fisherYatesShuffleM :: MonadRandom m
+_fisherYatesShuffleM :: MonadRandom m
                     => [a] 
                     -> m [a]
-fisherYatesShuffleM [] = return []
-fisherYatesShuffleM l = do
+_fisherYatesShuffleM [] = return []
+_fisherYatesShuffleM l = do
     lMap <- foldM fisherYatesStep (Map.singleton 0 (head l)) (numerate (tail l))
     return $ Map.elems lMap
   where
@@ -81,12 +116,3 @@ fisherYatesShuffleM l = do
     fisherYatesStep m (i, x) = do
         j <- getRandomR (0, i)
         return ((Map.insert j x . Map.insert i (m Map.! j)) m)
-
-rngSplits :: RandomGen g => Int -> g -> ([g], g)
-rngSplits n0 g0  = rngSplitsAux n0 g0 []
-  where
-    rngSplitsAux :: RandomGen g => Int -> g -> [g] -> ([g], g)
-    rngSplitsAux 0 g acc = (acc, g)
-    rngSplitsAux n g acc = rngSplitsAux (n - 1) g'' (g' : acc)
-      where
-        (g', g'') = split g

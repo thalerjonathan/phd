@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Mating 
@@ -50,7 +51,7 @@ agentMating params myId amsf cont
       then cont
       else do
         -- shuffle ocs bcs selecting agents at random according to the book
-        ocsShuff <- randLift $ fisherYatesShuffleM ocs
+        ocsShuff <- randLift $ randomShuffleM ocs
         mateWith params myId amsf cont ocsShuff
 
 mateWith :: RandomGen g

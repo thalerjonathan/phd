@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Disease
   ( agentDisease

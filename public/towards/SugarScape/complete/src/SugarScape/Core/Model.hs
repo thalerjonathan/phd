@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Model 
   ( AgentGender (..)
   , CultureTag

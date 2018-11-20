@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Init 
   ( createSugarScape
   ) where
@@ -168,7 +169,7 @@ randomCoords (minX, minY) (maxX, maxY) n
     | n > maxCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
     | otherwise        = do
       let coords = [ (x, y) | x <- [minX..maxX-1], y <- [minY..maxY-1] ]
-      shuffCoords <- fisherYatesShuffleM coords
+      shuffCoords <- randomShuffleM coords
       return $ take n shuffCoords
   where
     maxCoords = (maxX - minX) * (maxY - minY)

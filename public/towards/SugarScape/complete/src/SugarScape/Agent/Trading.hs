@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Trading
@@ -49,7 +50,7 @@ tradingRound myId cont tradeInfos = do
   if null potentialTraders
     then cont -- NOTE: no need to put tradeInfos into observable, because when no potential traders tradeInfos is guaranteed to be null
     else do
-      potentialTraders' <- randLift $ fisherYatesShuffleM potentialTraders
+      potentialTraders' <- randLift $ randomShuffleM potentialTraders
       tradeWith myId cont tradeInfos False potentialTraders'
 
 tradeWith :: RandomGen g

@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Loan
@@ -134,7 +135,7 @@ offerLending params myId cont = do
           t <- absStateLift getSimTime
           let dueDate = t + (fst . fromJust $ spLoansEnabled params)
 
-          ns' <- randLift $ fisherYatesShuffleM ns
+          ns' <- randLift $ randomShuffleM ns
           lendTo myId cont dueDate ns'
 
 lendTo :: RandomGen g

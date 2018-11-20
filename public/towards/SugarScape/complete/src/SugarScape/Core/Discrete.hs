@@ -24,9 +24,7 @@ module SugarScape.Core.Discrete
   , updateCellAt
   , changeCellAt
   , changeCellAtM
-  , cellsAroundRadius
-  , cellsAroundRadiusM
-  , cellsAroundRect
+
   , cellsAt
   , cellAt
   , cellAtM
@@ -158,34 +156,6 @@ changeCellAtM :: MonadState (Discrete2d c) m
               -> c 
               -> m ()
 changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
-
-cellsAroundRadius :: Discrete2dCoord 
-                  -> Double 
-                  -> Discrete2d c 
-                  -> [Discrete2dCell c]
-cellsAroundRadius  pos r e = 
-    filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs
-  where
-    ecs = allCellsWithCoords e
-    -- TODO: does not yet wrap around boundaries
-
-cellsAroundRadiusM :: MonadState (Discrete2d c) m
-                   => Discrete2dCoord 
-                   -> Double 
-                   -> m [Discrete2dCell c]
-cellsAroundRadiusM pos r = state (\e -> (cellsAroundRadius pos r e, e))
-
-cellsAroundRect :: Discrete2dCoord 
-                -> Int 
-                -> Discrete2d c 
-                -> [Discrete2dCell c]
-cellsAroundRect (cx, cy) r e = zip wrappedCs cells
-  where
-    cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
-    wrappedCs = wrapCells l w cs
-    cells = cellsAt wrappedCs e
 
 cellsAt :: [Discrete2dCoord] -> Discrete2d c -> [c]
 cellsAt cs e = map (arr !) cs

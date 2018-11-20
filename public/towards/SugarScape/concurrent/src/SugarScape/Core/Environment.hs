@@ -4,6 +4,7 @@ module SugarScape.Core.Environment
   ) where
 
 import Control.Monad
+
 import Control.Monad.STM
 
 import SugarScape.Core.Common

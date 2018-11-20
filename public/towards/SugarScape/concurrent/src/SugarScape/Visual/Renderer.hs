@@ -46,7 +46,8 @@ renderSugarScapeFrame :: (Int, Int)
 renderSugarScapeFrame wSize@(wx, wy) t e ss av cv
     = GLO.Pictures (envPics ++ agentPics ++ [timeTxt, asCntTxt, maxIdTxt])
   where
-    (dx, dy)   = dimensionsDisc2d e
+    -- TODO: provide a safe implementation
+    (dx, dy)   = unsafePerformIO $ atomically $ dimensionsDisc2d e
     siteWidth  = fromIntegral wx / fromIntegral dx
     siteHeight = fromIntegral wy / fromIntegral dy
 

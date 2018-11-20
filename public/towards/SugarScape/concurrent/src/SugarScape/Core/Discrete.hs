@@ -19,16 +19,12 @@ module SugarScape.Core.Discrete
   , updateCellsWithCoords
   , updateCellAt
   , changeCellAt
-  , cellsAroundRadius
-  , cellsAroundRect
   , cellsAt
   , cellAt
 
   , neighbours
   , neighbourCells
 
-  , randomCell
-  
   , neighboursInNeumannDistance
   , neighboursCellsInNeumannDistance
 
@@ -41,7 +37,6 @@ module SugarScape.Core.Discrete
   , moore
   , wrapNeighbourhood
   , wrapDisc2d
-  , wrapDisc2dEnv
   ) where
 
 import Control.Concurrent.STM
@@ -61,8 +56,7 @@ data EnvironmentWrapping
   deriving (Show, Read, Eq)
 
 data Discrete2d c = Discrete2d 
-  { envDisc2dDims          :: Discrete2dDimension
-  , envDisc2dNeighbourhood :: Discrete2dNeighbourhood
+  { envDisc2dNeighbourhood :: Discrete2dNeighbourhood
   , envDisc2dWrapping      :: EnvironmentWrapping
   , envDisc2dCells         :: TArray Discrete2dCoord c
   }
@@ -72,20 +66,19 @@ createDiscrete2d :: Discrete2dDimension
                  -> EnvironmentWrapping
                  -> [Discrete2dCell c]
                  -> STM (Discrete2d c)
-createDiscrete2d d@(xLimit, yLimit) n w cs = do
+createDiscrete2d (xLimit, yLimit) n w cs = do
   arr <- newArray_ ((0, 0), (xLimit - 1, yLimit - 1))
 
-  mapM_ (\(i, c) -> writeArray arr i c) cs
+  forM_ cs (uncurry $ writeArray arr) 
 
-  return $ Discrete2d {
-    envDisc2dDims          = d
-  , envDisc2dNeighbourhood = n
+  return Discrete2d {
+    envDisc2dNeighbourhood = n
   , envDisc2dWrapping      = w
   , envDisc2dCells         = arr
   }
 
-dimensionsDisc2d :: Discrete2d c -> Discrete2dDimension
-dimensionsDisc2d = envDisc2dDims
+dimensionsDisc2d :: Discrete2d c -> STM Discrete2dDimension
+dimensionsDisc2d e = snd <$> getBounds (envDisc2dCells e)
 
 allCells :: Discrete2d c -> STM [c]
 allCells e = getElems $ envDisc2dCells e
@@ -109,15 +102,13 @@ updateCells :: (c -> c)
 updateCells f e = do
     cs <- allCellsWithCoords e
   
-    mapM_ (\(coord, c) -> do
-      let c' = f c
-      writeArray arr coord c') cs
+    mapM_ (\(coord, c) -> writeArray arr coord (f c)) cs
   where
     arr = envDisc2dCells e
 
 updateCellsWithCoords :: (Discrete2dCell c -> c) 
-                         -> Discrete2d c 
-                         -> STM ()
+                      -> Discrete2d c 
+                      -> STM ()
 updateCellsWithCoords f e = do
   ecs <- allCellsWithCoords e
   
@@ -131,11 +122,11 @@ updateCellAt :: Discrete2dCoord
              -> Discrete2d c 
              -> STM ()
 updateCellAt coord f e = do
-  let arr = envDisc2dCells e
-  c <- readArray arr coord
-  let c' = f c
-  writeArray arr coord c'
-  
+    c <- f <$> readArray arr coord
+    writeArray arr coord c
+  where
+    arr = envDisc2dCells e
+
 changeCellAt :: Discrete2dCoord 
              -> c 
              -> Discrete2d c 
@@ -143,28 +134,6 @@ changeCellAt :: Discrete2dCoord
 changeCellAt coord c e = do
   let arr = envDisc2dCells e
   writeArray arr coord c
-
-cellsAroundRadius :: Discrete2dCoord 
-                  -> Double 
-                  -> Discrete2d c 
-                  -> STM [Discrete2dCell c]
-cellsAroundRadius  pos r e = do
-  ecs <- allCellsWithCoords e
-  -- TODO: does not yet wrap around boundaries
-  return $ filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs
-
-cellsAroundRect :: Discrete2dCoord 
-                -> Int 
-                -> Discrete2d c 
-                -> STM [Discrete2dCell c]
-cellsAroundRect (cx, cy) r e = do
-    cells <- cellsAt wrappedCs e
-    return $ zip wrappedCs cells
-  where
-    cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
-    wrappedCs = wrapCells l w cs
 
 cellsAt :: [Discrete2dCoord] 
         -> Discrete2d c 
@@ -188,15 +157,17 @@ neighboursInNeumannDistance :: Discrete2dCoord
                             -> Discrete2d c 
                             -> STM [Discrete2dCell c]
 neighboursInNeumannDistance coord dist ic e = do
+    l <- dimensionsDisc2d e
+
+    let wrappedNs = wrapNeighbourhood l w ns
+
     cells <- cellsAt wrappedNs e
     return $ zip wrappedNs cells
   where
-    n = neumann
+    n           = neumann
     coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
-    ns = neighbourhoodOf coord ic coordDeltas
-    wrappedNs = wrapNeighbourhood l w ns
+    w           = envDisc2dWrapping e
+    ns          = neighbourhoodOf coord ic coordDeltas
 
 neighboursCellsInNeumannDistance :: Discrete2dCoord 
                                  -> Int 
@@ -212,14 +183,14 @@ neighbours :: Discrete2dCoord
            -> Discrete2d c 
            -> STM [Discrete2dCell c]
 neighbours coord ic e = do
+    l <- dimensionsDisc2d e
+    let wrappedNs = wrapNeighbourhood l w ns
     cells <- cellsAt wrappedNs e
     return $ zip wrappedNs cells
   where
-    n = envDisc2dNeighbourhood e
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
+    n  = envDisc2dNeighbourhood e
+    w  = envDisc2dWrapping e
     ns = neighbourhoodOf coord ic n
-    wrappedNs = wrapNeighbourhood l w ns
     
 neighbourCells :: Discrete2dCoord 
                -> Bool 
@@ -228,20 +199,6 @@ neighbourCells :: Discrete2dCoord
 neighbourCells coord ic e = do
   ns <- neighbours coord ic e
   return $ map snd ns 
-
-randomCell :: MonadRandom m
-           => Discrete2d c 
-           -> m (STM c, Discrete2dCoord)
-randomCell e = do
-  let (maxX, maxY) = envDisc2dDims e
-
-  randX <- getRandomR (0, maxX - 1) 
-  randY <- getRandomR (0, maxY - 1)
-
-  let randCoord = (randX, randY)
-      randCell  = cellAt randCoord e
-
-  return (randCell, randCoord)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -286,12 +243,6 @@ wrapNeighbourhood :: Discrete2dDimension
                   -> Discrete2dNeighbourhood 
                   -> Discrete2dNeighbourhood
 wrapNeighbourhood l w = map (wrapDisc2d l w)
-
-wrapDisc2dEnv :: Discrete2d c -> Discrete2dCoord -> Discrete2dCoord
-wrapDisc2dEnv e = wrapDisc2d d w
-  where
-    d = envDisc2dDims e
-    w = envDisc2dWrapping e
 
 wrapDisc2d :: Discrete2dDimension 
            -> EnvironmentWrapping 

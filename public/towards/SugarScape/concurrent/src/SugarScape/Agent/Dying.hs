@@ -5,7 +5,6 @@ module SugarScape.Agent.Dying
   ) where
 
 import Control.Monad.Random
-import Control.Monad.Reader
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Loan
@@ -60,13 +59,23 @@ birthNewAgent params asf ao
     findUnoccpiedRandomPosition :: RandomGen g
                                 => AgentAction g (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
-      env           <- envLift ask
-      (cstm, coord) <- randLift $ randomCell env
-      c             <- stmLift cstm
+      (coord, c) <- randomCell
       ifThenElse
         (siteOccupied c) 
         findUnoccpiedRandomPosition
         (return (coord, c))
+
+    randomCell :: RandomGen g => AgentAction g (Discrete2dCoord, SugEnvSite)
+    randomCell = do
+      (maxX, maxY) <- envRun dimensionsDisc2d
+
+      randX <- randLift $ getRandomR (0, maxX - 1) 
+      randY <- randLift $ getRandomR (0, maxY - 1)
+
+      let randCoord = (randX, randY)
+          
+      randCell <- envRun $ cellAt randCoord
+      return (randCoord, randCell)
 
 inheritance :: RandomGen g
             => SugarScapeScenario

@@ -23,7 +23,7 @@ import System.Random
 
 import Control.Concurrent.STM.TVar
 import Control.Concurrent.STM.TQueue
-import Control.Concurrent.STM.Stats
+-- import Control.Concurrent.STM.Stats
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.STM
@@ -81,14 +81,14 @@ initSimulationRng :: StdGen
                   -> IO (SimulationState StdGen, SimTickOut, SugarScapeScenario)
 initSimulationRng g0 params = do
   -- initial agents and environment data
-  ((initAs, initEnv, params'), g) <- atomically $ runRandT (createSugarScape params) g0
+  ((initAs, initEnv, params'), g) <- executeSTM $ runRandT (createSugarScape params) g0
 
   let (rngs, g')            = rngSplits (length initAs) g
       (initAis, initObs, _) = unzip3 initAs
       initOut               = (0, initEnv, zip initAis initObs)
       initEnvBeh            = sugEnvBehaviour params
 
-  absCtx <- atomically $ mkAbsCtx $ maximum initAis
+  absCtx <- executeSTM $ mkAbsCtx $ maximum initAis
 
   outVars <- zipWithM (\(aid, _, asf) ga -> 
               createAgentThread aid asf ga initEnv absCtx) initAs rngs
@@ -195,21 +195,21 @@ simulationTick ss0 = do
       Map.elems <$> readTVarIO msgQsVar
 
     writeTickStart :: DTime -> TQueue (ABSEvent SugEvent) -> IO ()
-    writeTickStart dt q = trackSTM $ writeTQueue q (TickStart dt)
+    writeTickStart dt q = executeSTM $ writeTQueue q (TickStart dt)
     
     writeTickEnd :: TQueue (ABSEvent SugEvent) -> IO ()
-    writeTickEnd q = trackSTM $ writeTQueue q TickEnd
+    writeTickEnd q = executeSTM $ writeTQueue q TickEnd
     
     allQueuesEmpty :: [TQueue (ABSEvent SugEvent)] -> IO Bool
     allQueuesEmpty allQs 
-      = trackSTM $ foldM (\flag q -> (&&) flag <$> isEmptyTQueue q) True allQs
+      = executeSTM $ foldM (\flag q -> (&&) flag <$> isEmptyTQueue q) True allQs
 
     removeAgentQueue :: AgentId
                      -> ABSCtx SugEvent
                      -> IO ()
     removeAgentQueue aid ctx = do
       let msgQsVar = absCtxMsgQueues ctx
-      trackSTM $ modifyTVar msgQsVar (Map.delete aid)
+      executeSTM $ modifyTVar msgQsVar (Map.delete aid)
 
     incrementTime :: SimulationState g 
                   -> SimulationState g
@@ -227,6 +227,9 @@ simulationTick ss0 = do
         env   = simStEnv ss
         aobs  = map (\(aid, ao) -> (aid, observable ao)) aos
 
+executeSTM :: STM a -> IO a
+executeSTM = atomically
+
 createAgentThread :: AgentId
                   -> SugAgentMSF StdGen
                   -> StdGen
@@ -237,7 +240,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
     -- mvar for sending agent-out to main thread
     outVar <- newEmptyMVar
     -- message queue of this agent for receiving messages from others (and main thread: TickStart / TickEnd)
-    q <- atomically newTQueue
+    q <- executeSTM newTQueue
     -- add this queue to the map of all agent message queues
     insertAgentQueue aid0 q ctx0
     -- start thread
@@ -279,7 +282,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                          -> IO (Maybe (SugAgentOut StdGen), SugAgentMSF StdGen, StdGen)
     processWhileMessages mao asf g q = do
       --putStrLn $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
-      ret <- trackSTM $ agentProcessNextMessage asf g q
+      ret <- executeSTM $ agentProcessNextMessage asf g q
       case ret of 
         Nothing             -> return (mao, asf, g)
         Just (ao, asf', g') -> processWhileMessages (Just ao) asf' g' q
@@ -306,7 +309,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                      -> IO ()
     insertAgentQueue aid q ctx = do
       let msgQsVar = absCtxMsgQueues ctx
-      trackSTM $ modifyTVar msgQsVar (Map.insert aid q)
+      executeSTM $ modifyTVar msgQsVar (Map.insert aid q)
 
 runAgentMSF :: SugAgentMSF StdGen
             -> ABSEvent SugEvent
@@ -324,7 +327,7 @@ runAgentMSF sf evt absCtx env g = do
   return (out, sf', g') 
 
 runEnv :: SimulationState g -> IO ()
-runEnv ss = trackSTM $ envBeh t env
+runEnv ss = executeSTM $ envBeh t env
   where
     env    = simStEnv ss
     envBeh = simStEnvBeh ss

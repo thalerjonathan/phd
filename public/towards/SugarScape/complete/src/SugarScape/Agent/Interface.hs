@@ -30,7 +30,7 @@ import Data.MonadicStreamFunction
 import SugarScape.Core.Common
 
 data ABSEvent e = Tick 
-                | DomainEvent (AgentId, e)  -- sender, event 
+                | DomainEvent !(AgentId, e)  -- sender, event 
                 deriving (Show, Eq) 
 
 type AgentT m       = StateT ABSState m

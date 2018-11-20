@@ -2,11 +2,14 @@
 module Main where
 
 import Data.Foldable
+import Data.Maybe
 
+import Control.Monad.ST
 import Data.Array.IArray
 import Data.Array.MArray
 import Data.Array.ST
-import Control.Monad.ST
+import Data.MonadicStreamFunction
+import Data.MonadicStreamFunction.InternalCore
 
 main :: IO ()
 main = testIArray -- print $ runST testMArray
@@ -58,3 +61,9 @@ updateElement coord arr = arr'
     e    = arr ! coord
     e'   = e + 1
     arr' = arr // [(coord, e')]
+
+continueWithAfter :: Monad m => MSF m a (b, Maybe (MSF m a b)) -> MSF m a b
+continueWithAfter msf = MSF $ \a -> do
+  ((b, msfCont), msf') <- unMSF msf a
+  let msfNext = fromMaybe (continueWithAfter msf') msfCont
+  return (b, msfNext)

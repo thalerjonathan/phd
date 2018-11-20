@@ -49,8 +49,8 @@ import SugarScape.Core.Discrete
 data AgentGender  = Male | Female deriving (Show, Eq)
 type CultureTag   = [Bool]
 data AgentTribe   = Blue | Red deriving (Show, Eq)
-data TradeInfo    = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
-data Loan         = Loan Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
+data TradeInfo    = TradeInfo !Double !Double !Double !AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
+data Loan         = Loan !Time !AgentId !Double !Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
 type ImmuneSystem = [Bool]
 type Disease      = [Bool]
 
@@ -130,7 +130,7 @@ data TradingRefuse = NoWelfareIncrease  -- refuse trade because no increase in w
                    deriving (Show, Eq)
 
 data TradingReply = AcceptTrade        
-                  | RefuseTrade TradingRefuse 
+                  | RefuseTrade !TradingRefuse 
                   deriving (Show, Eq)
 
 data LoanRefuse = NotFertileAge
@@ -139,30 +139,30 @@ data LoanRefuse = NotFertileAge
                   deriving (Show, Eq)
 
 data LoanReply = AcceptLoan
-                 | RefuseLoan LoanRefuse
+                 | RefuseLoan !LoanRefuse
                  deriving (Show, Eq)
 
-data SugEvent = MatingRequest AgentGender
-              | MatingReply (Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)) -- in case of acceptance: Just share of sugar, spice, metab, vision
-              | MatingTx AgentId
+data SugEvent = MatingRequest !AgentGender
+              | MatingReply !(Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)) -- in case of acceptance: Just share of sugar, spice, metab, vision
+              | MatingTx !AgentId
               | MatingContinue
 
-              | Inherit Double 
+              | Inherit !Double 
 
-              | CulturalProcess CultureTag
+              | CulturalProcess !CultureTag
 
               | KilledInCombat 
 
-              | TradingOffer Double Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
-              | TradingReply TradingReply
+              | TradingOffer !Double !Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
+              | TradingReply !TradingReply
 
-              | LoanOffer Loan
-              | LoanReply LoanReply
-              | LoanPayback Loan Double Double --  sugarBack, spiceBack
-              | LoanLenderDied [AgentId]
-              | LoanInherit Loan
+              | LoanOffer !Loan
+              | LoanReply !LoanReply
+              | LoanPayback !Loan !Double !Double --  sugarBack, spiceBack
+              | LoanLenderDied ![AgentId]
+              | LoanInherit !Loan
 
-              | DiseaseTransmit Disease
+              | DiseaseTransmit !Disease
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

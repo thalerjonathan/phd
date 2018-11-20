@@ -86,7 +86,6 @@ executable sugarscape
                       , containers
                       , dunai
                       , gloss
-                      , IfElse
                       , MonadRandom
                       , mtl
                       , optparse-applicative

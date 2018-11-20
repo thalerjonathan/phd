@@ -1,5 +1,4 @@
-{-# LANGUAGE Strict #-}
-
+-- {-# LANGUAGE Strict #-}
 module Main where
 
 import Data.Foldable
@@ -10,8 +9,9 @@ import Data.Array.ST
 import Control.Monad.ST
 
 main :: IO ()
-main = print $ runST testMArray
+main = testIArray -- print $ runST testMArray
 
+-- MARRAY IS FUCKING SLOW AND BLOWS AWAYS MEMORY LIKE HELL !!!!!!!!!!!!!!!!!!!!!!!
 testMArray :: ST s [((Int, Int), Int)]
 testMArray = do
   arr <- createMArray
@@ -47,9 +47,8 @@ testIArray = do
 
       arr = array ((0, 0), (xDim - 1, yDim - 1)) (zip coords es)
 
-  let arr' = foldr' updateElement arr coords
-  
-  print arr'
+  let i = 1000000 :: Int
+  print $ foldr' (\_ acc -> foldr' updateElement acc coords) arr [1..i]
 
 updateElement :: (Int, Int)
               -> Array (Int, Int) Int

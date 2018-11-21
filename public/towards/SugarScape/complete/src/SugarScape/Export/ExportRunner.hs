@@ -1,4 +1,3 @@
-{-# LANGUAGE Strict #-}
 module SugarScape.Export.ExportRunner
   ( writeSimulationUntil
   ) where

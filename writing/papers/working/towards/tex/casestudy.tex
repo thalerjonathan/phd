@@ -1,6 +1,8 @@
 \section{Case-Study: Pure Functional SugarScape}
 TODO
 
+TODO: also SIR is a case-study
+
 why sugarscape
 - original sugarscape sparked ABS and use of OOP, therefore 
 - quite complex model, will challenge implementation techniques
@@ -49,4 +51,17 @@ A solution is to change to an event-driven approach: SF now have an input, which
 Stateful programming (or programming that \textit{feels} stateful) comes inherently with difficulties where one can forget to update a state or mutate state where not appropriate. A pure functional approach to that is no exception and shows the same problems. In our case we ran into a bug where the trading agent saw an outdated MRS value of the trading-partner resulting into two different trading-prices which obviously must be prevented under all circumstances because it would destroy / create wealth. The origin of the bug was that MRS depends on the wealth (sugar and spice) of the agent and we simply forgot to update the MRS in the environment from which the offering agent can read it when the trading agents wealth changed (e.g. through harvesting, inheritance,...).
 
 \subsection{Performance}
-Lazyness led to space-leaks which led to awful performance. It took us quite a while to figure out what was the problem
+Haskell is notorious for its space-leaks due to laziness. Even for simple programs one can be hit by a serious space-leak where unevaluated code pieces (thunks) builds up in memory until they are needed, leading to dramatically increased memory usage for a problem which should be solved using a fraction.
+
+It is no surprise that our highly complex sugarscape implementation (TODO: what about our SIR implementation) suffered severeyl by space-leaks. In Simulation this is a severe issue, threatening the value of the whole implementation despite its other benefits: because simulations might run for a (very) long time or conceptually forever, one must make absolutely sure that the memory usage stays constant.
+
+Exactly this was violated in our sugarscape implementation where the memory usage increased linearly with about 40MByte per second! 
+Haskell allows to add so-called Strict pargmas to code-modules which forces strict evaluation of all data even if it is not used. Carefully adding this conservatively file-by file and checking for changes in memory-leaks reduced the memory consumption considerably and also led to a substantial performance increase. Now only the environment data-structure left leaking. This 
+
+We found that the crucial files / modules were: initialisation, environment data-structure handling, simulation model data-structure, simulation core. What was particularly interesting was that when we added it to our initialisation module where the whole sugarscape model is constructed (agents and environment) it led to a huge improvement of memory-leaks and performance, so it seems to be necessary and quite beneficial to force strictness / evaluation for initialisation for a smooth running simulation.
+
+Init.hs       -> Major
+Common.hs	  -> Major
+Discrete.hs	  -> Minor
+Model.hs	  -> Minor
+Simulation.hs -> Minor

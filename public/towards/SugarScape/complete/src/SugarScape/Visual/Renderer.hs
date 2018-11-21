@@ -1,4 +1,3 @@
-{-# LANGUAGE Strict #-}
 module SugarScape.Visual.Renderer 
   ( AgentObservable
   , AgentColoring (..)

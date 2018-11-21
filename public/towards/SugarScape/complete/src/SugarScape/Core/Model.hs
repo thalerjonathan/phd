@@ -1,4 +1,5 @@
-{-# LANGUAGE Strict #-}
+-- NOTE: Strict seems to be beneficial
+-- {-# LANGUAGE Strict #-}
 module SugarScape.Core.Model 
   ( AgentGender (..)
   , CultureTag
@@ -50,80 +51,80 @@ import SugarScape.Core.Discrete
 data AgentGender  = Male | Female deriving (Show, Eq)
 type CultureTag   = [Bool]
 data AgentTribe   = Blue | Red deriving (Show, Eq)
-data TradeInfo    = TradeInfo !Double !Double !Double !AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
-data Loan         = Loan !Time !AgentId !Double !Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
+data TradeInfo    = TradeInfo Double Double Double AgentId deriving (Show, Eq) -- price, sugar, spice, trade-partner
+data Loan         = Loan Time AgentId Double Double deriving (Show, Eq)  -- dueDate, borrower/lender, sugar, spice
 type ImmuneSystem = [Bool]
 type Disease      = [Bool]
 
 data SugAgentState = SugAgentState 
-  { sugAgCoord        :: !Discrete2dCoord
-  , sugAgSugarMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
-  , sugAgVision       :: !Int
-  , sugAgSugarLevel   :: !Double            -- floating point because regrow-rate can be set to floating point values
-  , sugAgAge          :: !Int
-  , sugAgMaxAge       :: !(Maybe Int)
+  { sugAgCoord        :: Discrete2dCoord
+  , sugAgSugarMetab   :: Int               -- integer because discrete, otherwise no exact replication possible
+  , sugAgVision       :: Int
+  , sugAgSugarLevel   :: Double            -- floating point because regrow-rate can be set to floating point values
+  , sugAgAge          :: Int
+  , sugAgMaxAge       :: Maybe Int
   
   -- Chapter III properties
-  , sugAgGender       :: !AgentGender
-  , sugAgFertAgeRange :: !(Int, Int)        -- from, to
-  , sugAgInitSugEndow :: !Double
-  , sugAgChildren     :: ![AgentId]         -- list of all children the agent has given birth to (together with another agent of opposing sex)
-  , sugAgCultureTag   :: !CultureTag
-  , sugAgTribe        :: !AgentTribe
+  , sugAgGender       :: AgentGender
+  , sugAgFertAgeRange :: (Int, Int)        -- from, to
+  , sugAgInitSugEndow :: Double
+  , sugAgChildren     :: [AgentId]         -- list of all children the agent has given birth to (together with another agent of opposing sex)
+  , sugAgCultureTag   :: CultureTag
+  , sugAgTribe        :: AgentTribe
   
   -- Chapter IV properties
-  , sugAgSpiceLevel   :: !Double            -- floating point because regrow-rate can be set to floating point values
-  , sugAgInitSpiEndow :: !Double
-  , sugAgSpiceMetab   :: !Int               -- integer because discrete, otherwise no exact replication possible
+  , sugAgSpiceLevel   :: Double            -- floating point because regrow-rate can be set to floating point values
+  , sugAgInitSpiEndow :: Double
+  , sugAgSpiceMetab   :: Int               -- integer because discrete, otherwise no exact replication possible
   
-  , sugAgBorrowed     :: ![Loan]    -- contains the Loans the agent has borrowed from the lenders
-  , sugAgLent         :: ![Loan]    -- contains the Loans the agent has lent out to borrowers
-  , sugAgNetIncome    :: !Double            -- net income of sugar and spice in the most recent step
+  , sugAgBorrowed     :: [Loan]    -- contains the Loans the agent has borrowed from the lenders
+  , sugAgLent         :: [Loan]    -- contains the Loans the agent has lent out to borrowers
+  , sugAgNetIncome    :: Double            -- net income of sugar and spice in the most recent step
 
   -- Chapter V properties
-  , sugAgImmuneSystem :: !ImmuneSystem
-  , sugAgImSysGeno    :: !ImmuneSystem   -- the initial immunesystem this agent was born with, will inherit it (the genotype) to its children 
-  , sugAgDiseases     :: ![Disease]
+  , sugAgImmuneSystem :: ImmuneSystem
+  , sugAgImSysGeno    :: ImmuneSystem   -- the initial immunesystem this agent was born with, will inherit it (the genotype) to its children 
+  , sugAgDiseases     :: [Disease]
   } deriving (Show, Eq)
 
 data SugAgentObservable = SugAgentObservable
-  { sugObsCoord      :: !Discrete2dCoord
-  , sugObsVision     :: !Int
-  , sugObsAge        :: !Int
-  , sugObsSugLvl     :: !Double
-  , sugObsSugMetab   :: !Int
+  { sugObsCoord      :: Discrete2dCoord
+  , sugObsVision     :: Int
+  , sugObsAge        :: Int
+  , sugObsSugLvl     :: Double
+  , sugObsSugMetab   :: Int
 
   -- Chapter III properties
-  , sugObsGender     :: !AgentGender
-  , sugObsCultureTag :: !CultureTag
-  , sugObsTribe      :: !AgentTribe
+  , sugObsGender     :: AgentGender
+  , sugObsCultureTag :: CultureTag
+  , sugObsTribe      :: AgentTribe
 
   -- Chapter IV properties
-  , sugObsSpiLvl     :: !Double
-  , sugObsSpiMetab   :: !Int
-  , sugObsTrades     :: ![TradeInfo]
+  , sugObsSpiLvl     :: Double
+  , sugObsSpiMetab   :: Int
+  , sugObsTrades     :: [TradeInfo]
 
   -- Chapter V properties
-  , sugObsDiseases   :: ![Disease]
+  , sugObsDiseases   :: [Disease]
   } deriving (Show, Eq)
 
 data SugEnvSiteOccupier = SugEnvSiteOccupier 
-  { sugEnvOccId          :: !AgentId
-  , sugEnvOccSugarWealth :: !Double
-  , sugEnvOccSpiceWealth :: !Double
-  , sugEnvOccTribe       :: !AgentTribe
-  , sugEnvOccMRS         :: !Double
+  { sugEnvOccId          :: AgentId
+  , sugEnvOccSugarWealth :: Double
+  , sugEnvOccSpiceWealth :: Double
+  , sugEnvOccTribe       :: AgentTribe
+  , sugEnvOccMRS         :: Double
   } deriving (Show, Eq)
 
 data SugEnvSite = SugEnvSite 
-  { sugEnvSiteSugarCapacity :: !Double
-  , sugEnvSiteSugarLevel    :: !Double
+  { sugEnvSiteSugarCapacity :: Double
+  , sugEnvSiteSugarLevel    :: Double
 
-  , sugEnvSiteSpiceCapacity :: !Double
-  , sugEnvSiteSpiceLevel    :: !Double
+  , sugEnvSiteSpiceCapacity :: Double
+  , sugEnvSiteSpiceLevel    :: Double
 
-  , sugEnvSitePolutionLevel :: !Double
-  , sugEnvSiteOccupier      :: !(Maybe SugEnvSiteOccupier)
+  , sugEnvSitePolutionLevel :: Double
+  , sugEnvSiteOccupier      :: Maybe SugEnvSiteOccupier
   } deriving (Show, Eq)
 
 data TradingRefuse = NoWelfareIncrease  -- refuse trade because no increase in welfare
@@ -131,7 +132,7 @@ data TradingRefuse = NoWelfareIncrease  -- refuse trade because no increase in w
                    deriving (Show, Eq)
 
 data TradingReply = AcceptTrade        
-                  | RefuseTrade !TradingRefuse 
+                  | RefuseTrade TradingRefuse 
                   deriving (Show, Eq)
 
 data LoanRefuse = NotFertileAge
@@ -140,30 +141,30 @@ data LoanRefuse = NotFertileAge
                   deriving (Show, Eq)
 
 data LoanReply = AcceptLoan
-                 | RefuseLoan !LoanRefuse
+                 | RefuseLoan LoanRefuse
                  deriving (Show, Eq)
 
-data SugEvent = MatingRequest !AgentGender
-              | MatingReply !(Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)) -- in case of acceptance: Just share of sugar, spice, metab, vision
-              | MatingTx !AgentId
+data SugEvent = MatingRequest AgentGender
+              | MatingReply (Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)) -- in case of acceptance: Just share of sugar, spice, metab, vision
+              | MatingTx AgentId
               | MatingContinue
 
-              | Inherit !Double 
+              | Inherit Double 
 
-              | CulturalProcess !CultureTag
+              | CulturalProcess CultureTag
 
               | KilledInCombat 
 
-              | TradingOffer !Double !Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
-              | TradingReply !TradingReply
+              | TradingOffer Double Double  -- offering agent sends MRS before and after trade so receiving agent can turn down if MRS cross-over
+              | TradingReply TradingReply
 
-              | LoanOffer !Loan
-              | LoanReply !LoanReply
-              | LoanPayback !Loan !Double !Double --  sugarBack, spiceBack
-              | LoanLenderDied ![AgentId]
-              | LoanInherit !Loan
+              | LoanOffer Loan
+              | LoanReply LoanReply
+              | LoanPayback Loan Double Double --  sugarBack, spiceBack
+              | LoanLenderDied [AgentId]
+              | LoanInherit Loan
 
-              | DiseaseTransmit !Disease
+              | DiseaseTransmit Disease
               deriving (Show, Eq)
 
 type SugEnvironment = Discrete2d SugEnvSite

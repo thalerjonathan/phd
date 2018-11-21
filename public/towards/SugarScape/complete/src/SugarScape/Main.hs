@@ -1,4 +1,3 @@
-{-# LANGUAGE Strict #-}
 module Main where
 
 import Data.Char

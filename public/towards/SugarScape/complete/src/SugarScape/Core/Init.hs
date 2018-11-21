@@ -1,3 +1,4 @@
+-- NOTE: if this is NOT strict, then memory builds up like HELL
 {-# LANGUAGE Strict #-}
 module SugarScape.Core.Init 
   ( createSugarScape
@@ -113,19 +114,19 @@ specToCoords specs (dimX, dimY)
             accLine' = ((x, y), su, sp) : accLine
 
 parseEnvSpec :: [String]
-               -> [String]
-               -> [[(Int, Int)]]
+             -> [String]
+             -> [[(Int, Int)]]
 parseEnvSpec = zipWith parseEnvSpecLine
   where
     parseEnvSpecLine :: String 
-                       -> String
-                       -> [(Int, Int)]
+                     -> String
+                     -> [(Int, Int)]
     parseEnvSpecLine sugLine spiceLine 
         = reverse $ zipWith parseEnvSpecAux sugLine spiceLine
       where
         parseEnvSpecAux :: Char
-                          -> Char
-                          -> (Int, Int)
+                        -> Char
+                        -> (Int, Int)
         parseEnvSpecAux su sp 
           | isNumber su && isNumber sp = (digitToInt su, digitToInt sp)
           | otherwise  = error "bad character in environment specification"

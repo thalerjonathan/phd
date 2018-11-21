@@ -1,4 +1,5 @@
-{-# LANGUAGE Strict #-}
+-- NOTE: if this is NOT strict, then memory builds up like HELL
+{-# LANGUAGE Strict           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Core.Common
   ( Time
@@ -22,16 +23,14 @@ type DTime = Int
 type AgentId = Int
 
 data ABSState = ABSState
-  { absNextId :: !AgentId
-  , absTime   :: !Time
+  { absNextId :: AgentId
+  , absTime   :: Time
   } deriving (Show, Eq)
 
-getSimTime :: MonadState ABSState m
-           => m Time
+getSimTime :: MonadState ABSState m => m Time
 getSimTime = gets absTime
 
-nextAgentId :: MonadState ABSState m
-            => m AgentId
+nextAgentId :: MonadState ABSState m => m AgentId
 nextAgentId = do
   aid <- gets absNextId
   modify (\s -> s { absNextId = aid + 1 })

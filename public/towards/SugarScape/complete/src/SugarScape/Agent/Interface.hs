@@ -1,4 +1,3 @@
-{-# LANGUAGE Strict #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts  #-}
 module SugarScape.Agent.Interface
@@ -31,7 +30,7 @@ import Data.MonadicStreamFunction
 import SugarScape.Core.Common
 
 data ABSEvent e = Tick 
-                | DomainEvent !(AgentId, e)  -- sender, event 
+                | DomainEvent (AgentId, e)  -- sender, event 
                 deriving (Show, Eq) 
 
 type AgentT m       = StateT ABSState m
@@ -40,16 +39,16 @@ type AgentT m       = StateT ABSState m
 type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
 
 data AgentDef m e o = AgentDef
-  { adId      :: !AgentId
+  { adId      :: AgentId
   , adSf      :: AgentMSF m e o
-  , adInitObs :: !o
+  , adInitObs :: o
   }
 
 data AgentOut m e o = AgentOut 
-  { aoKill       :: !Bool
-  , aoCreate     :: ![AgentDef m e o]
-  , aoObservable :: !o
-  , aoEvents     :: ![(AgentId, e)]   -- event receiver, (DomainEvent) event
+  { aoKill       :: Bool
+  , aoCreate     :: [AgentDef m e o]
+  , aoObservable :: o
+  , aoEvents     :: [(AgentId, e)]   -- event receiver, (DomainEvent) event
   }
 
 agentOut :: o -> AgentOut m e o

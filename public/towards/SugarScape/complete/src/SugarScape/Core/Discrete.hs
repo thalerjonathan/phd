@@ -58,6 +58,8 @@ module SugarScape.Core.Discrete
 
 import Data.Maybe
 
+-- TODO: there is still a bug in my implementation !!!
+
 --import Data.Array.IArray
 import qualified Data.IntMap.Strict as Map 
 import Control.Monad.Random

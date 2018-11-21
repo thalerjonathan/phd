@@ -56,7 +56,10 @@ module SugarScape.Core.Discrete
   , wrapDisc2dEnv
   ) where
 
-import Data.Array.IArray
+import Data.Maybe
+
+--import Data.Array.IArray
+import qualified Data.IntMap.Strict as Map 
 import Control.Monad.Random
 import Control.Monad.State.Strict
 
@@ -72,10 +75,10 @@ data EnvironmentWrapping
   | WrapBoth deriving (Show, Read, Eq)
 
 data Discrete2d c = Discrete2d 
-  { envDisc2dDims           :: Discrete2dDimension
-  , envDisc2dNeighbourhood  :: Discrete2dNeighbourhood
-  , envDisc2dWrapping       :: EnvironmentWrapping
-  , envDisc2dCells          :: Array Discrete2dCoord c
+  { envDisc2dDims          :: Discrete2dDimension
+  , envDisc2dNeighbourhood :: Discrete2dNeighbourhood
+  , envDisc2dWrapping      :: EnvironmentWrapping
+  , envDisc2dCells         :: Map.IntMap (Discrete2dCell c) --Array Discrete2dCoord c  
   } deriving (Show, Read, Eq)
 
 createDiscrete2d :: Discrete2dDimension
@@ -83,15 +86,22 @@ createDiscrete2d :: Discrete2dDimension
                  -> EnvironmentWrapping
                  -> [Discrete2dCell c]
                  -> Discrete2d c
-createDiscrete2d d@(xLimit, yLimit) n w cs =
+createDiscrete2d d n w cs =
     Discrete2d {
-      envDisc2dDims = d
+      envDisc2dDims          = d
     , envDisc2dNeighbourhood = n
-    , envDisc2dWrapping = w
-    , envDisc2dCells = arr
+    , envDisc2dWrapping      = w
+    , envDisc2dCells         = m
     }
   where
-    arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
+    ls = map (\(coord, c) -> (coordToIdx d coord, (coord, c))) cs
+    m  = Map.fromList ls
+    --arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
+
+coordToIdx :: Discrete2dDimension
+           -> Discrete2dCoord 
+           -> Int
+coordToIdx (xDim, _) (x, y) = (y * (xDim - 1)) + x
 
 dimensionsDisc2d :: Discrete2d c -> Discrete2dDimension
 dimensionsDisc2d = envDisc2dDims
@@ -101,10 +111,10 @@ dimensionsDisc2dM :: MonadState (Discrete2d c) m
 dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
 
 allCells :: Discrete2d c -> [c]
-allCells e = elems $ envDisc2dCells e
+allCells e = map snd $ Map.elems $ envDisc2dCells e
 
 allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
-allCellsWithCoords e = assocs $ envDisc2dCells e
+allCellsWithCoords e = Map.elems $ envDisc2dCells e
 
 allCellsWithCoordsM :: MonadState (Discrete2d c) m
                     => m [Discrete2dCell c]
@@ -116,10 +126,10 @@ updateCellsM :: MonadState (Discrete2d c) m
 updateCellsM f = state (\e -> ((), updateCells f e))
 
 updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
-updateCells f e = e { envDisc2dCells = ec' }
+updateCells f e = e { envDisc2dCells = m' }
   where
-    ec = envDisc2dCells e
-    ec' = amap f ec
+    m  = envDisc2dCells e
+    m' = Map.map (\(coord, c) -> (coord, f c)) m
 
 updateCellsWithCoordsM :: MonadState (Discrete2d c) m
                        => (Discrete2dCell c -> c) 
@@ -129,29 +139,31 @@ updateCellsWithCoordsM f = state (\e -> ((), updateCellsWithCoords f e))
 updateCellsWithCoords :: (Discrete2dCell c -> c) 
                       -> Discrete2d c 
                       -> Discrete2d c
-updateCellsWithCoords f e = e'
+updateCellsWithCoords f e = e { envDisc2dCells = m' }
   where
-    ecs = allCellsWithCoords e
-    cs = map f ecs
-    ecCoords = map fst ecs
-    e' = foldr (\(coord, c) accEnv -> changeCellAt coord c accEnv) e (zip ecCoords cs)
+    m  = envDisc2dCells e
+    m' = Map.map (\cc@(coord, _) -> (coord, f cc)) m
 
 updateCellAt :: Discrete2dCoord 
              -> (c -> c) 
              -> Discrete2d c 
              -> Discrete2d c
-updateCellAt coord f e = e { envDisc2dCells = arr' }
+updateCellAt coord f e = e { envDisc2dCells = m' }
   where
-    arr = envDisc2dCells e
-    c = arr ! coord
-    c' = f c
-    arr' = arr // [(coord, c')]
+    m      = envDisc2dCells e
+    d      = envDisc2dDims e
+    idx    = coordToIdx coord d
+    (_, c) = fromJust $ Map.lookup idx m -- should not fail if coord is within bounds
+    c'     = f c
+    m'     = Map.insert idx (coord, c') m
 
 changeCellAt :: Discrete2dCoord -> c -> Discrete2d c -> Discrete2d c
-changeCellAt coord c e = e { envDisc2dCells = arr' }
+changeCellAt coord c e = e { envDisc2dCells = m' }
   where
-    arr = envDisc2dCells e
-    arr' = arr // [(coord, c)]
+    m   = envDisc2dCells e
+    d   = envDisc2dDims e
+    idx = coordToIdx coord d
+    m'  = Map.insert idx (coord, c) m
 
 changeCellAtM :: MonadState (Discrete2d c) m
               => Discrete2dCoord 
@@ -160,14 +172,15 @@ changeCellAtM :: MonadState (Discrete2d c) m
 changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
 
 cellsAt :: [Discrete2dCoord] -> Discrete2d c -> [c]
-cellsAt cs e = map (arr !) cs
-  where
-    arr = envDisc2dCells e
+cellsAt cs e = map (`cellAt` e) cs
 
 cellAt :: Discrete2dCoord -> Discrete2d c -> c
-cellAt coord e = arr ! coord
+cellAt coord e = c
   where
-    arr = envDisc2dCells e
+    m      = envDisc2dCells e
+    d      = envDisc2dDims e
+    idx    = coordToIdx coord d
+    (_, c) = fromJust $ Map.lookup idx m
 
 cellAtM :: MonadState (Discrete2d c) m
         => Discrete2dCoord 

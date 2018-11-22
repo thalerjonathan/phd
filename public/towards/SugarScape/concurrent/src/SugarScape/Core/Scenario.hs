@@ -235,7 +235,7 @@ mkSugarScapeScenario = SugarScapeScenario {
 mkParamsAnimationII_1 :: SugarScapeScenario 
 mkParamsAnimationII_1 = mkSugarScapeScenario {
     sgScenarioName         = "Animation II-1"
-  , sgAgentCount           = 1400     -- page 28
+  , sgAgentCount           = 400     -- page 28
   , sgAgentDistribution    = Scatter
   , spSugarRegrow          = Immediate -- regrow to max immediately
   , spSugarEndowmentRange  = (5, 25) -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25

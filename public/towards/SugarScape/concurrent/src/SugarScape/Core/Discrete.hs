@@ -1,3 +1,5 @@
+-- NOTE: if this is NOT strict, then memory builds up like HELL
+{-# LANGUAGE Strict           #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Core.Discrete 
   ( Discrete2dDimension
@@ -86,37 +88,47 @@ allCells e = getElems $ envDisc2dCells e
 allCellsWithCoords :: Discrete2d c -> STM [Discrete2dCell c]
 allCellsWithCoords e = getAssocs $ envDisc2dCells e
 
-{- this doesn't work because mapArray creates a new array
-updateCells :: (c -> c) 
-            -> Discrete2d c 
-            -> STM (Discrete2d c)
-updateCells f e = do
-    ec' <- mapArray f ec
-    return $ e { envDisc2dCells = ec' }
-  where
-    ec = envDisc2dCells e
--}
 updateCells :: (c -> c) 
             -> Discrete2d c 
             -> STM ()
 updateCells f e = do
     cs <- allCellsWithCoords e
-  
-    mapM_ (\(coord, c) -> writeArray arr coord (f c)) cs
+    -- NOTE: can't use mapArray because creates a new array
+    mapM_ forceStrict cs
   where
     arr = envDisc2dCells e
+
+    -- NOTE: by using this function and {-# LANGUAGE Strict #-}
+    -- we were able to remove a serious memory-leak 
+    -- The crucial part is that we make c' explicit which seems
+    -- to force the result as well, just implementing as
+    -- forceStrict (coord, c) = writeArray arr coord (f $! c) STILL LEAKS!
+    forceStrict (coord, c) = writeArray arr coord c'
+      where
+        -- crucial bit is here
+        c' = f c
 
 updateCellsWithCoords :: (Discrete2dCell c -> c) 
                       -> Discrete2d c 
                       -> STM ()
 updateCellsWithCoords f e = do
-  ecs <- allCellsWithCoords e
-  
-  let cs       = map f ecs
-      ecCoords = map fst ecs
+    ecs <- allCellsWithCoords e
+    
+    let cs       = map f ecs
+        ecCoords = map fst ecs
 
-  mapM_ (\(coord, c) -> changeCellAt coord c e) (zip ecCoords cs)
-     
+    mapM_ forceStrict (zip ecCoords cs)
+  where
+    -- NOTE: by using this function and {-# LANGUAGE Strict #-}
+    -- we were able to remove a serious memory-leak 
+    -- The crucial part is that we make c' explicit which seems
+    -- to force the result as well, just implementing as
+    -- forceStrict (coord, c) = changeCellAt coord (f $! cc) e STILL LEAKS!
+    forceStrict cc@(coord, _) = changeCellAt coord c' e
+      where
+        -- crucial bit is here
+        c' = f cc
+
 updateCellAt :: Discrete2dCoord 
              -> (c -> c) 
              -> Discrete2d c 

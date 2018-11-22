@@ -1,3 +1,5 @@
+-- NOTE: if this is NOT strict, then memory builds up like HELL
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Init 
   ( createSugarScape
   ) where

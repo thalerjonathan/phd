@@ -1,5 +1,5 @@
 -- NOTE: Strict seems to be beneficial
--- {-# LANGUAGE Strict #-}
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Core.Discrete 
   ( Discrete2dDimension
@@ -58,12 +58,13 @@ module SugarScape.Core.Discrete
 
 import Data.Maybe
 
--- TODO: there is still a bug in my implementation !!!
-
---import Data.Array.IArray
 import qualified Data.IntMap.Strict as Map 
 import Control.Monad.Random
 import Control.Monad.State.Strict
+
+-- NOTE: used IArray before, would be very elegant but 2 problems
+--       1. non-strict => leaking like hell
+--       2. updates O(n) and copy whole array => awful performance
 
 type Discrete2dDimension     = (Int, Int)
 type Discrete2dCoord         = Discrete2dDimension
@@ -77,10 +78,10 @@ data EnvironmentWrapping
   | WrapBoth deriving (Show, Read, Eq)
 
 data Discrete2d c = Discrete2d 
-  { envDisc2dDims          :: Discrete2dDimension
-  , envDisc2dNeighbourhood :: Discrete2dNeighbourhood
-  , envDisc2dWrapping      :: EnvironmentWrapping
-  , envDisc2dCells         :: Map.IntMap (Discrete2dCell c) --Array Discrete2dCoord c  
+  { envDisc2dDims          :: !Discrete2dDimension
+  , envDisc2dNeighbourhood :: !Discrete2dNeighbourhood
+  , envDisc2dWrapping      :: !EnvironmentWrapping
+  , envDisc2dCells         :: !(Map.IntMap (Discrete2dCell c))
   } deriving (Show, Read, Eq)
 
 createDiscrete2d :: Discrete2dDimension
@@ -98,7 +99,6 @@ createDiscrete2d d n w cs =
   where
     ls = map (\(coord, c) -> (coordToIdx d coord, (coord, c))) cs
     m  = Map.fromList ls
-    --arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
 coordToIdx :: Discrete2dDimension
            -> Discrete2dCoord 
@@ -131,7 +131,17 @@ updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
 updateCells f e = e { envDisc2dCells = m' }
   where
     m  = envDisc2dCells e
-    m' = Map.map (\(coord, c) -> (coord, f c)) m
+    m' = Map.map forceStrict m
+
+    -- NOTE: by using this function and {-# LANGUAGE Strict #-}
+    -- we were able to remove a serious memory-leak 
+    -- The crucial part is that we make c' explicit which seems
+    -- to force the result as well, just implementing as
+    -- forceStrict (coord, c) = (coord, f $! c) STILL LEAKS!
+    forceStrict (coord, c) = (coord, c')
+      where
+        -- crucial bit is here
+        c' = f c
 
 updateCellsWithCoordsM :: MonadState (Discrete2d c) m
                        => (Discrete2dCell c -> c) 
@@ -144,7 +154,17 @@ updateCellsWithCoords :: (Discrete2dCell c -> c)
 updateCellsWithCoords f e = e { envDisc2dCells = m' }
   where
     m  = envDisc2dCells e
-    m' = Map.map (\cc@(coord, _) -> (coord, f cc)) m
+    m' = Map.map forceStrict m
+
+    -- NOTE: by using this function and {-# LANGUAGE Strict #-}
+    -- we were able to remove a serious memory-leak 
+    -- The crucial part is that we make c' explicit which seems
+    -- to force the result as well, just implementing as
+    -- forceStrict (coord, c) = (coord, f $! c) STILL LEAKS!
+    forceStrict cc@(coord, _) = (coord, c')
+      where
+        -- crucial bit is here
+        c' = f cc
 
 updateCellAt :: Discrete2dCoord 
              -> (c -> c) 
@@ -154,7 +174,7 @@ updateCellAt coord f e = e { envDisc2dCells = m' }
   where
     m      = envDisc2dCells e
     d      = envDisc2dDims e
-    idx    = coordToIdx coord d
+    idx    = coordToIdx d coord
     (_, c) = fromJust $ Map.lookup idx m -- should not fail if coord is within bounds
     c'     = f c
     m'     = Map.insert idx (coord, c') m
@@ -164,7 +184,7 @@ changeCellAt coord c e = e { envDisc2dCells = m' }
   where
     m   = envDisc2dCells e
     d   = envDisc2dDims e
-    idx = coordToIdx coord d
+    idx = coordToIdx d coord
     m'  = Map.insert idx (coord, c) m
 
 changeCellAtM :: MonadState (Discrete2d c) m
@@ -181,7 +201,7 @@ cellAt coord e = c
   where
     m      = envDisc2dCells e
     d      = envDisc2dDims e
-    idx    = coordToIdx coord d
+    idx    = coordToIdx d coord
     (_, c) = fromJust $ Map.lookup idx m
 
 cellAtM :: MonadState (Discrete2d c) m
@@ -272,12 +292,12 @@ neighboursCellsInNeumannDistanceM coord dist ic =
 neighbours :: Discrete2dCoord -> Bool -> Discrete2d c -> [Discrete2dCell c]
 neighbours coord ic e = zip wrappedNs cells
   where
-    n = envDisc2dNeighbourhood e
-    l = envDisc2dDims e
-    w = envDisc2dWrapping e
-    ns = neighbourhoodOf coord ic n
+    n         = envDisc2dNeighbourhood e
+    l         = envDisc2dDims e
+    w         = envDisc2dWrapping e
+    ns        = neighbourhoodOf coord ic n
     wrappedNs = wrapNeighbourhood l w ns
-    cells = cellsAt wrappedNs e
+    cells     = cellsAt wrappedNs e
 
 neighboursM :: MonadState (Discrete2d c) m
             => Discrete2dCoord 
@@ -348,18 +368,18 @@ wrapDisc2d :: Discrete2dDimension
            -> EnvironmentWrapping 
            -> Discrete2dCoord 
            -> Discrete2dCoord
-wrapDisc2d (maxX, maxY) ClipToMax (x, y) = 
-                  (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
+wrapDisc2d (maxX, maxY) ClipToMax (x, y) 
+  = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
 wrapDisc2d l@(maxX, _) WrapHorizontal (x, y)
-  | x < 0       = wrapDisc2d l WrapHorizontal (x + maxX, y)
-  | x >= maxX   = wrapDisc2d l WrapHorizontal (x - maxX, y)
-  | otherwise   = (x, y)
+  | x < 0     = wrapDisc2d l WrapHorizontal (x + maxX, y)
+  | x >= maxX = wrapDisc2d l WrapHorizontal (x - maxX, y)
+  | otherwise = (x, y)
 wrapDisc2d l@(_, maxY) WrapVertical (x, y)
-  | y < 0       = wrapDisc2d l WrapVertical (x, y + maxY)
-  | y >= maxY   = wrapDisc2d l WrapVertical (x, y - maxY)
-  | otherwise   = (x, y)
-wrapDisc2d l WrapBoth c = 
-                  wrapDisc2d l WrapHorizontal $ wrapDisc2d l WrapVertical  c
+  | y < 0     = wrapDisc2d l WrapVertical (x, y + maxY)
+  | y >= maxY = wrapDisc2d l WrapVertical (x, y - maxY)
+  | otherwise = (x, y)
+wrapDisc2d l WrapBoth c 
+  = wrapDisc2d l WrapHorizontal $ wrapDisc2d l WrapVertical  c
 
 topLeftDelta :: Discrete2dCoord
 topLeftDelta      = (-1, -1)

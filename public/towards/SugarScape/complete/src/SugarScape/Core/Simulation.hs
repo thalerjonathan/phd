@@ -1,5 +1,5 @@
 -- NOTE: Strict seems to be beneficial
--- {-# LANGUAGE Strict #-}
+{-# LANGUAGE Strict #-}
 module SugarScape.Core.Simulation
   ( SimulationState (..)
   , SimStepOut

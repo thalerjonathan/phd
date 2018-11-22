@@ -36,13 +36,14 @@ data Options = Options
 -- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -v 0 --ac Default --sc Resource -r 42
 
 -- TODO
--- CONCURRENT MESSAGING AS IT WORKS ATM LEADDS TO A SUGARSCAPE WHICH IS NOT CORRECT: two agents who are interacting with each other
--- must not process other messages in between - this cant be guaranteed atm, which renders our implementation incorrect
--- check if self-messaging works: does it result in a retry if a thread enqueues a message to the tqueue it has read before?
--- fix bug with continuations
--- check semantics of TQueue: when does a retry happen - does it happen when another thread writes to a queue a thread has read before?
--- remove unsafePerformIO for reading Environment in Renderer and Tests
--- remove busy waiting in main-thread with cleverer technique, results in loads of retries
+-- -> CONCURRENT MESSAGING AS IT WORKS ATM LEADDS TO A SUGARSCAPE WHICH IS NOT CORRECT: two agents who are interacting with each other
+--    must not process other messages in between - this cant be guaranteed atm, which renders our implementation incorrect
+--      -> possible solution: interacting agents stop reading from queue and communicate through a new TVar, after interaction finished, switch back to reading from TQueue
+-- -> check if self-messaging works: does it result in a retry if a thread enqueues a message to the tqueue it has read before?
+-- -> fix bug with continuations
+-- -> check semantics of TQueue: when does a retry happen - does it happen when another thread writes to a queue a thread has read before?
+-- -> remove unsafePerformIO for reading Environment in Renderer and Tests
+-- -> remove busy waiting in main-thread with cleverer technique, results in loads of retries
 
 main :: IO ()
 main = do

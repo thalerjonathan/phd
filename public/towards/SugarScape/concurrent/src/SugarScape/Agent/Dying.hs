@@ -21,20 +21,19 @@ import SugarScape.Core.Utils
 -- => will happen if agent starves to death (spice or sugar) or dies from age
 agentDies :: RandomGen g
           => SugarScapeScenario
-          -> AgentId
           -> SugarScapeAgent g
-          -> AgentAction g (SugAgentOut g)
-agentDies params myId asf = do
+          -> AgentLocalMonad g (SugAgentOut g)
+agentDies params asf = do
   unoccupyPosition
   ao  <- kill <$> agentObservableM
   ao' <- birthNewAgent params asf ao
-  inheritance params myId ao'
+  inheritance params ao'
 
 birthNewAgent :: RandomGen g
               => SugarScapeScenario
               -> SugarScapeAgent g
               -> SugAgentOut g
-              -> AgentAction g (SugAgentOut g)
+              -> AgentLocalMonad g (SugAgentOut g)
 birthNewAgent params asf ao
   | not $ spReplaceAgents params = return ao
   | otherwise = do
@@ -57,7 +56,7 @@ birthNewAgent params asf ao
     -- TODO: the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position
     findUnoccpiedRandomPosition :: RandomGen g
-                                => AgentAction g (Discrete2dCoord, SugEnvSite)
+                                => AgentLocalMonad g (Discrete2dCoord, SugEnvSite)
     findUnoccpiedRandomPosition = do
       (coord, c) <- randomCell
       ifThenElse
@@ -65,7 +64,7 @@ birthNewAgent params asf ao
         findUnoccpiedRandomPosition
         (return (coord, c))
 
-    randomCell :: RandomGen g => AgentAction g (Discrete2dCoord, SugEnvSite)
+    randomCell :: RandomGen g => AgentLocalMonad g (Discrete2dCoord, SugEnvSite)
     randomCell = do
       (maxX, maxY) <- envRun dimensionsDisc2d
 
@@ -79,10 +78,9 @@ birthNewAgent params asf ao
 
 inheritance :: RandomGen g
             => SugarScapeScenario
-            -> AgentId
             -> SugAgentOut g
-            -> AgentAction g (SugAgentOut g)
-inheritance params myId ao0
+            -> AgentLocalMonad g (SugAgentOut g)
+inheritance params ao0
     | not $ spInheritance params = return ao0
     | otherwise = do
       sugLvl   <- agentProperty sugAgSugarLevel
@@ -100,20 +98,20 @@ inheritance params myId ao0
       if sugLvl > 0 && not (null children)
         then do
           let share = sugLvl / fromIntegral (length children)
-          broadcastEvent myId children (Inherit share)
+          broadcastEvent children (Inherit share)
           agentObservableM
         else agentObservableM
   where
     inheritLoans :: RandomGen g 
                  => [Loan]
                  -> [AgentId] 
-                 -> AgentAction g ()
+                 -> AgentLocalMonad g ()
     inheritLoans ls children 
         = mapM_ inheritLoan ls
       where
         inheritLoan :: Loan
-                    -> AgentAction g ()
-        inheritLoan l = sendEvents myId loanMsgs
+                    -> AgentLocalMonad g ()
+        inheritLoan l = sendEvents loanMsgs
           where
             newLoans = splitLoanLent (length children) l
             loanMsgs = map (\(c, l') -> (c, LoanInherit l')) (zip children newLoans)
@@ -121,9 +119,9 @@ inheritance params myId ao0
     notifyBorrowers :: RandomGen g 
                     => [Loan]
                     -> [AgentId] 
-                    -> AgentAction g ()
+                    -> AgentLocalMonad g ()
     notifyBorrowers ls children
-        = broadcastEvent myId borrowerIds (LoanLenderDied children)
+        = broadcastEvent borrowerIds (LoanLenderDied children)
       where
         borrowerIds = map loanAgentId ls
 
@@ -131,11 +129,10 @@ inheritance params myId ao0
         loanAgentId (Loan _ aid _ _ ) = aid
 
 handleInheritance :: RandomGen g
-                  => AgentId
-                  -> Double
-                  -> AgentAction g (SugAgentOut g)
-handleInheritance myId share = do
+                  => Double
+                  -> AgentLocalMonad g (SugAgentOut g)
+handleInheritance share = do
   updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + share })
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-  updateSiteWithOccupier myId
+  updateSiteOccupied
   agentObservableM

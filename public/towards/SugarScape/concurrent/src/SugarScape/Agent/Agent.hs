@@ -6,6 +6,7 @@ module SugarScape.Agent.Agent
 
 import Control.Monad.Random
 import Control.Monad.Trans.MSF.State
+import Control.Monad.Trans.MSF.Reader
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
@@ -27,69 +28,67 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: maybe add a reader for AgentId and SugarScapeScenario?
 agentMsf :: RandomGen g => SugarScapeAgent g
 agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
-  (s', ao) <- runStateS (generalEventHandler params aid) -< (s, evt)
+  (s', ao) <- runStateS (runReaderS (generalEventHandler params)) -< (s, ((params, aid), evt))
   returnA -< (ao, s'))
-
+  
 generalEventHandler :: RandomGen g 
                     => SugarScapeScenario
-                    -> AgentId 
                     -> EventHandler g
-generalEventHandler params myId =
+generalEventHandler params =
   -- optionally switching the top event handler 
   continueWithAfter 
     (proc evt -> 
       case evt of 
         TickStart dt -> 
-          arrM (handleTick params myId) -< dt
+          arrM (handleTick params) -< dt
         (DomainEvent (sender, MatingRequest otherGender)) -> do
-          ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)
+          ao <- arrM (uncurry handleMatingRequest) -< (sender, otherGender)
           returnA -< (ao, Nothing)
         (DomainEvent (sender, MatingTx childId)) -> do
-          ao <- arrM (uncurry (handleMatingTx myId)) -< (sender, childId)
+          ao <- arrM (uncurry handleMatingTx) -< (sender, childId)
           returnA -< (ao, Nothing)
         (DomainEvent (_, Inherit share)) -> do
-          ao <- arrM (handleInheritance myId) -< share
+          ao <- arrM handleInheritance -< share
           returnA -< (ao, Nothing)
         (DomainEvent (sender, CulturalProcess tag)) -> do
-          ao <- arrM (uncurry (handleCulturalProcess myId)) -< (sender, tag)
+          ao <- arrM (uncurry handleCulturalProcess) -< (sender, tag)
           returnA -< (ao, Nothing)
         (DomainEvent (sender, KilledInCombat)) -> do
-          ao <- arrM (handleKilledInCombat myId) -< sender
+          ao <- arrM handleKilledInCombat -< sender
           returnA -< (ao, Nothing)
         (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
-          ao <- arrM (uncurry3 (handleTradingOffer myId)) -< (sender, traderMrsBefore, traderMrsAfter)
+          ao <- arrM (uncurry3 handleTradingOffer) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
         (DomainEvent (_, LoanOffer loan)) -> do
-          ao <- arrM (handleLoanOffer myId) -< loan
+          ao <- arrM handleLoanOffer -< loan
           returnA -< (ao, Nothing)
         (DomainEvent (sender, LoanPayback loan sugarBack spiceBack)) -> do
-          ao <- arrM (uncurry4 (handleLoanPayback params myId)) -< (sender, loan, sugarBack, spiceBack)
+          ao <- arrM (uncurry4 (handleLoanPayback params)) -< (sender, loan, sugarBack, spiceBack)
           returnA -< (ao, Nothing)
         (DomainEvent (sender, LoanLenderDied children)) -> do
-          ao <- arrM (uncurry (handleLoanLenderDied myId)) -< (sender, children)
+          ao <- arrM (uncurry handleLoanLenderDied) -< (sender, children)
           returnA -< (ao, Nothing)
         (DomainEvent (sender, LoanInherit loan)) -> do
-          ao <- arrM (uncurry (handleLoanInherit myId)) -< (sender, loan)
+          ao <- arrM (uncurry handleLoanInherit) -< (sender, loan)
           returnA -< (ao, Nothing)
         (DomainEvent (_, DiseaseTransmit disease)) -> do
           ao <- arrM handleDiseaseTransmit -< disease
           returnA -< (ao, Nothing)
-        _        -> 
-          returnA -< error $ "Agent " ++ show myId ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
+        _        -> do
+          aid <- constM myId -< ()
+          returnA -< error $ "Agent " ++ show aid ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
 handleTick :: RandomGen g 
            => SugarScapeScenario
-           -> AgentId
            -> DTime
-           -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-handleTick params myId dt = do
+           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+handleTick params dt = do
   agentAgeing dt
   
-  harvestAmount <- agentMove params myId
-  metabAmount   <- agentMetabolism params myId
+  harvestAmount <- agentMove params 
+  metabAmount   <- agentMetabolism params 
   -- initialize net-income to gathering minus metabolism, might adjusted later during Loan-handling
   updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - fromIntegral metabAmount})
   -- compute polution and diffusion
@@ -101,47 +100,43 @@ handleTick params myId dt = do
   ifThenElseM
     (starvedToDeath params `orM` dieOfAge)
     (do
-      aoDie <- agentDies params myId agentMsf
+      aoDie <- agentDies params agentMsf
       return (aoDie, Nothing))
     (do 
-      let cont = agentContAfterMating params myId
-      agentMating params myId agentMsf cont)
+      let cont = agentContAfterMating params 
+      agentMating params agentMsf cont)
 
 agentContAfterMating :: RandomGen g 
                      => SugarScapeScenario
-                     -> AgentId
-                     -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentContAfterMating params myId = do
-    aoCulture       <- agentCultureProcess params myId
-    (aoTrade, mhdl) <- agentTrade params myId cont
+                     -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentContAfterMating params = do
+    aoCulture       <- agentCultureProcess params 
+    (aoTrade, mhdl) <- agentTrade params cont
 
     let ao = aoCulture `agentOutMergeRightObs` aoTrade
     return (ao, mhdl)
   where
-    cont = agentContAfterTrading params myId
+    cont = agentContAfterTrading params
 
 agentContAfterTrading :: RandomGen g 
                       => SugarScapeScenario
-                      -> AgentId
-                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentContAfterTrading params myId = do
-  (aoLoan, mhdl) <- agentLoan params myId (agentContAfterLoan params myId)
+                      -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentContAfterTrading params = do
+  (aoLoan, mhdl) <- agentLoan params (agentContAfterLoan params)
   return (aoLoan, mhdl)
 
 agentContAfterLoan :: RandomGen g 
                    => SugarScapeScenario
-                   -> AgentId
-                   -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentContAfterLoan params myId = do
-    (aoDisease, mhdl) <- agentDisease params myId cont
+                   -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentContAfterLoan params = do
+    (aoDisease, mhdl) <- agentDisease params cont
     return (aoDisease, mhdl)
   where
-    cont = defaultCont params myId
+    cont = defaultCont params
 
 defaultCont :: RandomGen g 
             => SugarScapeScenario
-            -> AgentId
-            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-defaultCont params myId = do
+            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+defaultCont params = do
   ao <- agentObservableM
-  return (ao, Just $ generalEventHandler params myId)
+  return (ao, Just $ generalEventHandler params)

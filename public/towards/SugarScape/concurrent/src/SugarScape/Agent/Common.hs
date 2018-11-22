@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Common
   ( SugarScapeAgent
-  , AgentAction
+  , AgentLocalMonad
   , EventHandler
 
   , absCtxLift
@@ -9,6 +9,9 @@ module SugarScape.Agent.Common
   , randLift
   , stmLift
   , envRun
+
+  , myId
+  , scenario
 
   , neighbourAgentIds
   , getSimTime
@@ -30,13 +33,13 @@ module SugarScape.Agent.Common
   , mrsStateChange
 
   , occupier
-  , occupierM
+  , occupierLocal
   , siteOccupier
   , siteUnoccupied
   , siteOccupied
 
   , unoccupyPosition
-  , updateSiteWithOccupier
+  , updateSiteOccupied
   , agentCellOnCoord
   
   , randomAgent
@@ -72,54 +75,61 @@ import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
-type AgentAction g out = StateT SugAgentState (SugAgentMonadT g) out
-type EventHandler g    = MSF (StateT SugAgentState (SugAgentMonadT g)) (ABSEvent SugEvent) (SugAgentOut g)
 
-absCtxLift :: ReaderT (ABSCtx SugEvent) (ReaderT SugEnvironment (RandT g STM)) a -> AgentAction g a
-absCtxLift = lift 
+type AgentLocalMonad g = ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g))
+type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) (SugAgentOut g)
 
-envLift :: ReaderT SugEnvironment (RandT g STM) a -> AgentAction g a
-envLift = lift . lift
+absCtxLift :: ReaderT (ABSCtx SugEvent) (ReaderT SugEnvironment (RandT g STM)) a -> AgentLocalMonad g a
+absCtxLift = lift . lift 
 
-randLift :: RandT g STM a -> AgentAction g a
-randLift = lift . lift . lift
+envLift :: ReaderT SugEnvironment (RandT g STM) a -> AgentLocalMonad g a
+envLift = lift . lift . lift
 
-stmLift :: STM a -> AgentAction g a
-stmLift = lift . lift . lift . lift
+randLift :: RandT g STM a -> AgentLocalMonad g a
+randLift = lift . lift . lift . lift
+
+stmLift :: STM a -> AgentLocalMonad g a
+stmLift = lift . lift . lift . lift . lift
 
 envRun :: (SugEnvironment -> STM a) 
-       -> AgentAction g a
+       -> AgentLocalMonad g a
 envRun f = do
   env <- envLift ask 
   stmLift (f env)
 
-broadcastEvent :: AgentId
-               -> [AgentId]
-               -> SugEvent
-               -> AgentAction g ()
-broadcastEvent myId rs e
-  = mapM_ (\rid -> sendEventTo myId rid e) rs
+myId :: AgentLocalMonad g AgentId
+myId = snd <$> ask
 
-sendEvents :: AgentId
-           -> [(AgentId, SugEvent)]
-           -> AgentAction g ()
-sendEvents myId
-  = mapM_ (uncurry $ sendEventTo myId)
+scenario :: AgentLocalMonad g SugarScapeScenario
+scenario = fst <$> ask
+
+-- NOTE: one-way only, no sync possible 
+broadcastEvent :: [AgentId]
+               -> SugEvent
+               -> AgentLocalMonad g ()
+broadcastEvent rs e 
+  = mapM_ (`sendEventTo` e) rs
+
+-- NOTE: one-way only, no sync possible 
+sendEvents :: [(AgentId, SugEvent)]
+           -> AgentLocalMonad g ()
+sendEvents
+  = mapM_ (uncurry sendEventTo)
 
 sendEventTo :: AgentId
-            -> AgentId
             -> SugEvent
-            -> AgentAction g ()
-sendEventTo myId receiverId e = do
+            -> AgentLocalMonad g ()
+sendEventTo receiverId e = do
+  senderId <- myId
   msgQsVar <- absCtxMsgQueues <$> absCtxLift ask 
   msgQs    <- stmLift $ readTVar msgQsVar
 
   let mq = Map.lookup receiverId msgQs
   case mq of
     Nothing -> return () -- not found, ignore (maybe already dead)
-    Just q  -> stmLift $ writeTQueue q (DomainEvent (myId, e)) 
+    Just q  -> stmLift $ writeTQueue q (DomainEvent (senderId, e)) 
 
-neighbourAgentIds :: AgentAction g [AgentId]
+neighbourAgentIds :: AgentLocalMonad g [AgentId]
 neighbourAgentIds = do
     coord <- agentProperty sugAgCoord
     filterNeighbourIds <$> envRun (neighbours coord False)
@@ -127,10 +137,10 @@ neighbourAgentIds = do
     filterNeighbourIds :: [Discrete2dCell SugEnvSite] -> [AgentId]
     filterNeighbourIds ns = map (siteOccupier . snd) $ filter (siteOccupied . snd) ns
 
-getSimTime :: AgentAction g Time
+getSimTime :: AgentLocalMonad g Time
 getSimTime = absCtxLift $ reader absCtxTime
 
-nextAgentId :: AgentAction g AgentId
+nextAgentId :: AgentLocalMonad g AgentId
 nextAgentId = do
   aidVar <- absCtxLift $ reader absCtxIdVar
   stmLift $ stateTVar aidVar (\i -> (i+1, i))
@@ -247,10 +257,11 @@ occupier aid as = SugEnvSiteOccupier {
   , sugEnvOccMRS         = mrsState as
   }
 
-occupierM :: MonadState SugAgentState m
-          => AgentId 
-          -> m SugEnvSiteOccupier
-occupierM aid = get >>= \s -> return $ occupier aid s
+occupierLocal :: AgentLocalMonad g SugEnvSiteOccupier
+occupierLocal = do
+  s   <- get 
+  aid <- myId
+  return $ occupier aid s
 
 siteOccupier :: SugEnvSite -> AgentId
 siteOccupier site = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site
@@ -262,23 +273,20 @@ siteUnoccupied :: SugEnvSite -> Bool
 siteUnoccupied = not . siteOccupied
 
 unoccupyPosition :: RandomGen g
-                 => AgentAction g ()
+                 => AgentLocalMonad g ()
 unoccupyPosition = do
   (coord, cell) <- agentCellOnCoord
   let cell' = cell { sugEnvSiteOccupier = Nothing }
   envRun $ changeCellAt coord cell'
 
-updateSiteWithOccupier :: RandomGen g
-                       => AgentId
-                       -> AgentAction g ()
-updateSiteWithOccupier aid = do
+updateSiteOccupied :: RandomGen g => AgentLocalMonad g ()
+updateSiteOccupied = do
   (coord, cell) <- agentCellOnCoord
-  occ           <- occupierM aid
+  occ           <- occupierLocal
   let cell' = cell { sugEnvSiteOccupier = Just occ }
   envRun $ changeCellAt coord cell'
 
-agentCellOnCoord :: RandomGen g
-                => AgentAction g (Discrete2dCoord, SugEnvSite)
+agentCellOnCoord :: RandomGen g => AgentLocalMonad g (Discrete2dCoord, SugEnvSite)
 agentCellOnCoord = do
   coord <- agentProperty sugAgCoord
   cell  <- envRun $ cellAt coord

@@ -27,11 +27,10 @@ import SugarScape.Core.Utils
 
 agentMating :: RandomGen g
             => SugarScapeScenario               -- parameters of the current sugarscape scenario
-            -> AgentId                        -- the id of the agent 
             -> SugarScapeAgent g              -- the top-level MSF of the agent, to be used for birthing children
-            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
-            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentMating params myId amsf cont
+            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
+            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentMating params amsf cont
   | not $ spSexRuleActive params = cont
   | otherwise = do
     coord   <- agentProperty sugAgCoord
@@ -51,17 +50,16 @@ agentMating params myId amsf cont
       else do
         -- shuffle ocs bcs selecting agents at random according to the book
         ocsShuff <- randLift $ fisherYatesShuffleM ocs
-        mateWith params myId amsf cont ocsShuff
+        mateWith params amsf cont ocsShuff
 
 mateWith :: RandomGen g
          => SugarScapeScenario
-         -> AgentId 
          -> SugarScapeAgent g
-         -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+         -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
          -> [(Discrete2dCoord, SugEnvSite)]
-         -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-mateWith _ _ _ cont [] = cont -- mating finished, continue with agent-behaviour where it left before starting mating
-mateWith params myId amsf cont ((coord, site) : ns) =
+         -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+mateWith _ _ cont [] = cont -- mating finished, continue with agent-behaviour where it left before starting mating
+mateWith params amsf cont ((coord, site) : ns) =
   -- check fertility again because might not be fertile because of previous matings
   ifThenElseM
     isAgentFertile
@@ -76,16 +74,16 @@ mateWith params myId amsf cont ((coord, site) : ns) =
 
       if null freeSites
         -- in case no free sites, can't give birth to new agent, try next neighbour, might have free sites
-        then mateWith params myId amsf cont ns
+        then mateWith params amsf cont ns
         else do
           -- in this case fromJust guaranteed not to fail, neighbours contain only occupied sites 
           let matingPartnerId = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site 
-              evtHandler      = matingHandler params myId amsf cont ns freeSites
+              evtHandler      = matingHandler params amsf cont ns freeSites
 
           myGender <- agentProperty sugAgGender
           ao       <- agentObservableM
 
-          sendEventTo myId matingPartnerId (MatingRequest myGender)
+          sendEventTo matingPartnerId (MatingRequest myGender)
 
           return (ao, Just evtHandler))
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
@@ -93,32 +91,34 @@ mateWith params myId amsf cont ((coord, site) : ns) =
 
 matingHandler :: RandomGen g
               => SugarScapeScenario
-              -> AgentId 
               -> SugarScapeAgent g
-              -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+              -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
               -> [Discrete2dCell SugEnvSite]
               -> [(Discrete2dCoord, SugEnvSite)]
               -> EventHandler g
-matingHandler params myId amsf0 cont0 ns freeSites = 
+matingHandler params amsf0 cont0 ns freeSites = 
     continueWithAfter
       (proc evt -> 
         case evt of
           (DomainEvent (sender, MatingReply accept)) -> 
             arrM (uncurry (handleMatingReply amsf0 cont0)) -< (sender, accept)
-          (DomainEvent (sender, MatingContinue)) -> 
-            if sender /= myId 
-              then returnA -< error $ "Agent " ++ show myId ++ ": received MatingContinue not from self, terminating!"
-              else constM (mateWith params myId amsf0 cont0 ns) -< ()
-          _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
+          (DomainEvent (sender, MatingContinue)) -> do
+            aid <- constM myId -< ()
+            if sender /= aid 
+              then returnA -< error $ "Agent " ++ show aid ++ ": received MatingContinue not from self, terminating!"
+              else constM (mateWith params amsf0 cont0 ns) -< ()
+          _ -> do
+            aid <- constM myId -< ()
+            returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
   where
     handleMatingReply :: RandomGen g
                       => SugarScapeAgent g
-                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                      -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
                       -> AgentId
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
-                      -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                      -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
     handleMatingReply amsf cont _ Nothing =  -- the sender refuse the mating-request
-      mateWith params myId amsf cont ns
+      mateWith params amsf cont ns
     handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
       mySpiLvl  <- agentProperty sugAgSpiceLevel
@@ -150,7 +150,7 @@ matingHandler params myId amsf0 cont0 ns freeSites =
                                 , sugAgSpiceLevel = mySpiLvl / 2
                                 , sugAgChildren   = childId : sugAgChildren s })
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-      updateSiteWithOccupier myId
+      updateSiteOccupied
 
       -- child occupies the site immediately to prevent others from occupying it
       let occ        = occupier childId childState
@@ -161,9 +161,10 @@ matingHandler params myId amsf0 cont0 ns freeSites =
       -- mating-partner => agent sends to itself a MatingContinue event
       ao <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      sendEventTo myId sender (MatingTx childId)
+      sendEventTo sender (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
-      sendEventTo myId myId MatingContinue 
+      aid <- myId
+      sendEventTo aid MatingContinue 
       
       -- TODO: does a self-send result in a retry? 
 
@@ -215,10 +216,9 @@ isAgentFertileWealth = do
 
 handleMatingRequest :: RandomGen g
                     => AgentId
-                    -> AgentId
                     -> AgentGender
-                    -> AgentAction g (SugAgentOut g)
-handleMatingRequest myId sender otherGender = do
+                    -> AgentLocalMonad g (SugAgentOut g)
+handleMatingRequest sender otherGender = do
   accept <- acceptMatingRequest otherGender
 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
@@ -234,15 +234,14 @@ handleMatingRequest myId sender otherGender = do
 
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
-  sendEventTo myId sender (MatingReply acc)
+  sendEventTo sender (MatingReply acc)
   agentObservableM
 
 handleMatingTx :: RandomGen g
                => AgentId
                -> AgentId
-               -> AgentId
-               -> AgentAction g (SugAgentOut g)
-handleMatingTx myId _sender childId = do
+               -> AgentLocalMonad g (SugAgentOut g)
+handleMatingTx _sender childId = do
   sugLvl <- agentProperty sugAgSugarLevel
   spiLvl <- agentProperty sugAgSpiceLevel
 
@@ -251,6 +250,5 @@ handleMatingTx myId _sender childId = do
                             , sugAgSpiceLevel = spiLvl / 2
                             , sugAgChildren   = childId : sugAgChildren s})
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-  updateSiteWithOccupier myId
-
+  updateSiteOccupied
   agentObservableM

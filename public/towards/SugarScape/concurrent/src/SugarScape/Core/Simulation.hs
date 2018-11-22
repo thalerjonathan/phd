@@ -76,9 +76,10 @@ initSimulationSeed seed = initSimulationRng g0
   where
     g0 = mkStdGen seed
 
-initSimulationRng :: StdGen
+initSimulationRng :: RandomGen g
+                  => g
                   -> SugarScapeScenario
-                  -> IO (SimulationState StdGen, SimTickOut, SugarScapeScenario)
+                  -> IO (SimulationState g, SimTickOut, SugarScapeScenario)
 initSimulationRng g0 params = do
   -- initial agents and environment data
   ((initAs, initEnv, params'), g) <- executeSTM $ runRandT (createSugarScape params) g0
@@ -230,12 +231,13 @@ simulationTick ss0 = do
 executeSTM :: STM a -> IO a
 executeSTM = atomically
 
-createAgentThread :: AgentId
-                  -> SugAgentMSF StdGen
-                  -> StdGen
+createAgentThread :: RandomGen g
+                  => AgentId
+                  -> SugAgentMSF g
+                  -> g
                   -> SugEnvironment
                   -> ABSCtx SugEvent
-                  -> IO (MVar (AgentId, SugAgentOut StdGen))
+                  -> IO (MVar (AgentId, SugAgentOut g))
 createAgentThread aid0 asf0 g0 env ctx0 = do 
     -- mvar for sending agent-out to main thread
     outVar <- newEmptyMVar
@@ -247,9 +249,10 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
     _ <- forkIO $ agentThread asf0 g0 outVar q
     return outVar
   where
-    agentThread :: SugAgentMSF StdGen
-                -> StdGen
-                -> MVar (AgentId, SugAgentOut StdGen)
+    agentThread :: RandomGen g
+                => SugAgentMSF g
+                -> g
+                -> MVar (AgentId, SugAgentOut g)
                 -> TQueue (ABSEvent SugEvent)
                 -> IO ()
     agentThread asf g outVar q = do
@@ -275,11 +278,12 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
         
       -- agent is dead, terminate thread, removal of agent queue is handled by main thread
 
-    processWhileMessages :: Maybe (SugAgentOut StdGen)
-                         -> SugAgentMSF StdGen
-                         -> StdGen
+    processWhileMessages :: RandomGen g
+                         => Maybe (SugAgentOut g)
+                         -> SugAgentMSF g
+                         -> g
                          -> TQueue (ABSEvent SugEvent)
-                         -> IO (Maybe (SugAgentOut StdGen), SugAgentMSF StdGen, StdGen)
+                         -> IO (Maybe (SugAgentOut g), SugAgentMSF g, g)
     processWhileMessages mao asf g q = do
       --putStrLn $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
       ret <- executeSTM $ agentProcessNextMessage asf g q
@@ -287,10 +291,11 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
         Nothing             -> return (mao, asf, g)
         Just (ao, asf', g') -> processWhileMessages (Just ao) asf' g' q
 
-    agentProcessNextMessage :: SugAgentMSF StdGen
-                            -> StdGen
+    agentProcessNextMessage :: RandomGen g
+                            => SugAgentMSF g
+                            -> g
                             -> TQueue (ABSEvent SugEvent)
-                            -> STM (Maybe (SugAgentOut StdGen, SugAgentMSF StdGen, StdGen))
+                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
     agentProcessNextMessage asf g q = do
       -- wait for next message, will block with retry when no message there
       --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
@@ -311,12 +316,13 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
       let msgQsVar = absCtxMsgQueues ctx
       executeSTM $ modifyTVar msgQsVar (Map.insert aid q)
 
-runAgentMSF :: SugAgentMSF StdGen
+runAgentMSF :: RandomGen g
+            => SugAgentMSF g
             -> ABSEvent SugEvent
             -> ABSCtx SugEvent
             -> SugEnvironment
-            -> StdGen
-            -> STM (SugAgentOut StdGen, SugAgentMSF StdGen, StdGen)
+            -> g
+            -> STM (SugAgentOut g, SugAgentMSF g, g)
 runAgentMSF sf evt absCtx env g = do
   let sfAbsCtx   = unMSF sf evt 
       sfEnvState = runReaderT sfAbsCtx absCtx

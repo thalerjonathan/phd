@@ -8,15 +8,13 @@ import Control.Monad.Random
 import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
-import SugarScape.Core.Common 
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 
 agentMetabolism :: RandomGen g
                 => SugarScapeScenario
-                -> AgentId
-                -> AgentAction g Int
-agentMetabolism params myId
+                -> AgentLocalMonad g Int
+agentMetabolism params 
   | spSpiceEnabled params = do
     sugarMetab <- agentProperty sugAgSugarMetab
     sugarLevel <- agentProperty sugAgSugarLevel
@@ -30,7 +28,7 @@ agentMetabolism params myId
     updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel'
                                 , sugAgSpiceLevel = spiceLevel' })
     -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-    updateSiteWithOccupier myId
+    updateSiteOccupied
 
     return $ sugarMetab + spiceMetab
   
@@ -42,7 +40,7 @@ agentMetabolism params myId
     
     updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
     -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-    updateSiteWithOccupier myId
+    updateSiteOccupied
 
     return sugarMetab
 

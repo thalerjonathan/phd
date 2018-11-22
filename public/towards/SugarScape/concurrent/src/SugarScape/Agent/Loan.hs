@@ -33,23 +33,21 @@ import Debug.Trace as DBG
 
 agentLoan :: RandomGen g
           => SugarScapeScenario               -- parameters of the current sugarscape scenario
-          -> AgentId                        -- the id of the agent 
-          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentLoan params myId cont
+          -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+          -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentLoan params cont
   | isNothing $ spLoansEnabled params = cont
   | otherwise = do
-    aoDebt         <- checkBorrowedLoans params myId
-    (aoLend, mhdl) <- offerLending params myId cont
+    aoDebt         <- checkBorrowedLoans params 
+    (aoLend, mhdl) <- offerLending params cont
 
     let ao = aoDebt `agentOutMergeRightObs` aoLend
     return (ao, mhdl)
 
 checkBorrowedLoans :: RandomGen g
                    => SugarScapeScenario
-                   -> AgentId
-                   -> AgentAction g (SugAgentOut g)
-checkBorrowedLoans params myId = do
+                   -> AgentLocalMonad g (SugAgentOut g)
+checkBorrowedLoans params = do
     cs <- agentProperty sugAgBorrowed
 
     ret <- mapM checkLoan cs
@@ -62,14 +60,14 @@ checkBorrowedLoans params myId = do
     updateAgentState (\s -> s { sugAgBorrowed  = cs'
                               , sugAgNetIncome = sugAgNetIncome s  - (sugDebtSum + spiDebtSum)})
     -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
-    updateSiteWithOccupier myId
+    updateSiteOccupied
 
     ao0 <- agentObservableM
     return $ foldr agentOutMergeRightObs ao0 aos
   where
     checkLoan :: RandomGen g
                 => Loan
-                -> AgentAction g (SugAgentOut g, Maybe Loan, Double, Double) 
+                -> AgentLocalMonad g (SugAgentOut g, Maybe Loan, Double, Double) 
     checkLoan borrowerLoan@(Loan dueDate lender sugarFace spiceFace) = do
       t  <- getSimTime
       ao <- agentObservableM
@@ -90,10 +88,11 @@ checkBorrowedLoans params myId = do
               updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - sugPay
                                         , sugAgSpiceLevel = sugAgSpiceLevel s - spiPay})
               -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
-              updateSiteWithOccupier myId
+              updateSiteOccupied
 
-              sendEventTo myId lender (LoanPayback borrowerLoan sugPay spiPay)
-              DBG.trace ("Agent " ++ show myId ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pay FULLY back to lender " ++ show lender)
+              sendEventTo lender (LoanPayback borrowerLoan sugPay spiPay)
+              aid <- myId
+              DBG.trace ("Agent " ++ show aid ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pay FULLY back to lender " ++ show lender)
                           return (ao, Nothing, sugPay, spiPay)
             else do -- not enough wealth, just pay back half of wealth and issue new Loan for the remaining face value(s)
               let dueDate' = t + (fst . fromJust $ spLoansEnabled params)
@@ -103,23 +102,23 @@ checkBorrowedLoans params myId = do
                   spiPay' = min spiceFace spiLvl / 2  
                   c'      = Loan dueDate' lender (sugarFace - sugPay') (spiceFace - spiPay')
               
-              sendEventTo myId lender (LoanPayback borrowerLoan sugPay' spiPay')
+              sendEventTo lender (LoanPayback borrowerLoan sugPay' spiPay')
 
               -- NOTE: need to adjust wealth already here otherwise could pay more back than this agent has
               updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - sugPay'
                                         , sugAgSpiceLevel = sugAgSpiceLevel s - spiPay'})
               -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
-              updateSiteWithOccupier myId
+              updateSiteOccupied
 
-              DBG.trace ("Agent " ++ show myId ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pays PARTIALLY back with half of its wealth " ++ show (sugPay', spiPay') ++ " to lender " ++ show lender) 
+              aid <- myId
+              DBG.trace ("Agent " ++ show aid ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pays PARTIALLY back with half of its wealth " ++ show (sugPay', spiPay') ++ " to lender " ++ show lender) 
                 return (ao, Just c', sugPay', spiPay')
 
 offerLending :: RandomGen g
              => SugarScapeScenario               -- parameters of the current sugarscape scenario
-             -> AgentId                        -- the id of the agent 
-             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-offerLending params myId cont = do
+             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+offerLending params cont = do
   pl <- potentialLender
   if isNothing pl 
     then cont
@@ -135,52 +134,54 @@ offerLending params myId cont = do
           let dueDate = t + (fst . fromJust $ spLoansEnabled params)
 
           ns' <- randLift $ fisherYatesShuffleM ns
-          lendTo myId cont dueDate ns'
+          lendTo cont dueDate ns'
 
 lendTo :: RandomGen g
-       => AgentId
-       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+       => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
        -> Time
        -> [SugEnvSiteOccupier]
-       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-lendTo _ cont _ []  = cont       -- iterated through all neighbours, finished, quit lendingTo and switch back to globalHandler
-lendTo myId cont dueDate (neighbour : ns) = do 
+       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+lendTo cont _ []  = cont       -- iterated through all neighbours, finished, quit lendingTo and switch back to globalHandler
+lendTo cont dueDate (neighbour : ns) = do 
   pl <- potentialLender -- always check because could have changed while iterating
   case pl of 
     Nothing -> cont -- not potential lender, quit
     Just (sug, spi) -> do
+      aid <- myId
+
       let borrowerId   = sugEnvOccId neighbour
-          borrowerLoan = Loan dueDate myId sug spi
-          evtHandler   = lendingToHandler myId cont dueDate ns borrowerLoan
+          borrowerLoan = Loan dueDate aid sug spi
+          evtHandler   = lendingToHandler cont dueDate ns borrowerLoan
           
       ao <- agentObservableM
 
-      sendEventTo myId borrowerId (LoanOffer borrowerLoan)
+      sendEventTo borrowerId (LoanOffer borrowerLoan)
       return (ao, Just evtHandler)
 
 lendingToHandler :: RandomGen g
-                 => AgentId
-                 -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                 => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
                  -> Time
                  -> [SugEnvSiteOccupier]
                  -> Loan
                  -> EventHandler g
-lendingToHandler myId cont0 dueDate ns borrowerLoan@(Loan _ _ sugarFace spiceFace) = 
+lendingToHandler cont0 dueDate ns borrowerLoan@(Loan _ _ sugarFace spiceFace) = 
     continueWithAfter
       (proc evt -> 
         case evt of
           (DomainEvent (borrowerId, LoanReply reply)) -> 
             arrM (uncurry (handleLendingReply cont0)) -< (borrowerId, reply)
-          _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during lending, terminating simulation!")
+          _ -> do
+            aid <- constM myId -< ()
+            returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during lending, terminating simulation!")
   where
     handleLendingReply :: RandomGen g
-                       => AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                       => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
                        -> AgentId
                        -> LoanReply
-                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
     handleLendingReply cont _ (RefuseLoan _) =  
       -- the sender refuses the Loan-offer, continue with the next neighbour
-      lendTo myId cont dueDate ns
+      lendTo cont dueDate ns
     handleLendingReply cont borrowerId AcceptLoan = do 
       let lenderLoan = Loan dueDate borrowerId sugarFace spiceFace
 
@@ -189,20 +190,20 @@ lendingToHandler myId cont0 dueDate ns borrowerLoan@(Loan _ _ sugarFace spiceFac
                                 , sugAgSpiceLevel = sugAgSpiceLevel s - spiceFace
                                 , sugAgLent       = lenderLoan : sugAgLent s})
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-      updateSiteWithOccupier myId
+      updateSiteOccupied
       -- continue with next neighbour
-      DBG.trace ("Agent " ++ show myId ++ ": lending " ++ show borrowerLoan ++ " to " ++ show borrowerId ++ " with lenderLoan = " ++ show lenderLoan) 
-                  lendTo myId cont dueDate ns
+      aid <- myId
+      DBG.trace ("Agent " ++ show aid ++ ": lending " ++ show borrowerLoan ++ " to " ++ show borrowerId ++ " with lenderLoan = " ++ show lenderLoan) 
+                  lendTo cont dueDate ns
 
 handleLoanOffer :: RandomGen g
-                => AgentId
-                -> Loan
-                -> AgentAction g (SugAgentOut g)
-handleLoanOffer myId borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
+                => Loan
+                -> AgentLocalMonad g (SugAgentOut g)
+handleLoanOffer borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
   pb <- potentialBorrower
   case pb of
     Just reason -> do
-      sendEventTo myId lender (LoanReply $ RefuseLoan reason)
+      sendEventTo lender (LoanReply $ RefuseLoan reason)
       agentObservableM
 
     Nothing -> do
@@ -212,46 +213,46 @@ handleLoanOffer myId borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
                                 , sugAgSpiceLevel = sugAgSpiceLevel s + spiceFace
                                 , sugAgBorrowed   = borrowerLoan : sugAgBorrowed s })
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-      updateSiteWithOccupier myId
+      updateSiteOccupied
 
-      sendEventTo myId lender (LoanReply AcceptLoan)
-      
-      DBG.trace ("Agent " ++ show myId ++ ": borrowing " ++ show borrowerLoan ++ " from " ++ show lender)
+      sendEventTo lender (LoanReply AcceptLoan)
+      aid <- myId
+      DBG.trace ("Agent " ++ show aid ++ ": borrowing " ++ show borrowerLoan ++ " from " ++ show lender)
         agentObservableM
 
 handleLoanPayback :: RandomGen g
                   => SugarScapeScenario
                   -> AgentId
-                  -> AgentId
                   -> Loan
                   -> Double
                   -> Double
-                  -> AgentAction g (SugAgentOut g)
-handleLoanPayback params myId borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sugarBack spiceBack = do
+                  -> AgentLocalMonad g (SugAgentOut g)
+handleLoanPayback params borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sugarBack spiceBack = do
     t <- getSimTime
     let newDueDate = t + (fst . fromJust $ spLoansEnabled params)
 
-    ls <- processBorrower newDueDate <$> agentProperty sugAgLent
+    aid <- myId
+    ls <- processBorrower aid newDueDate <$> agentProperty sugAgLent
 
     updateAgentState (\s -> s { sugAgLent = ls
                               , sugAgSugarLevel = sugAgSugarLevel s + sugarBack
                               , sugAgSpiceLevel = sugAgSpiceLevel s + spiceBack})
     -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
-    updateSiteWithOccupier myId
-
+    updateSiteOccupied
     agentObservableM
   where
-    processBorrower :: Time
+    processBorrower :: AgentId
+                    -> Time
                     -> [Loan]
                     -> [Loan]
-    processBorrower newDueDate ls 
+    processBorrower aid newDueDate ls 
         -- TODO: when inheritance is turned on, this error occurs sometimes, no idea why
-        | isNothing mxid = error $ "Agent " ++ show myId ++ ": couldn't find " ++ show borrowerLoan ++  
+        | isNothing mxid = error $ "Agent " ++ show aid ++ ": couldn't find " ++ show borrowerLoan ++  
                                    " for borrower payback in my loans " ++ show ls ++ ", exit."
         | otherwise = if fullyPaidBack l
-                        then DBG.trace ("Agent " ++ show myId ++ ": received FULL Loan payback of " ++ show l ++ 
+                        then DBG.trace ("Agent " ++ show aid ++ ": received FULL Loan payback of " ++ show l ++ 
                                         " from " ++ show borrower) ls'
-                        else DBG.trace("Agent " ++ show myId ++ ": received PARTIAL Loan payback of " ++ show l ++ 
+                        else DBG.trace("Agent " ++ show aid ++ ": received PARTIAL Loan payback of " ++ show l ++ 
                               " from " ++ show borrower) (l' : ls')
       where
         mxid = findIndex findBorrowerLoan ls 
@@ -281,14 +282,13 @@ handleLoanPayback params myId borrower borrowerLoan@(Loan dueDate _ sugarFace sp
 
 handleLoanLenderDied :: RandomGen g
                      => AgentId
-                     -> AgentId
                      -> [AgentId]
-                     -> AgentAction g (SugAgentOut g)
-handleLoanLenderDied myId lender children = do
+                     -> AgentLocalMonad g (SugAgentOut g)
+handleLoanLenderDied lender children = do
     oldLs <- agentProperty sugAgBorrowed
     ls    <- processLoans [] <$> agentProperty sugAgBorrowed
-
-    DBG.trace ("Agent " ++ show myId ++ ": lender " ++ show lender ++ " died and inherits its loan to its children " ++ show children ++ 
+    aid <- myId
+    DBG.trace ("Agent " ++ show aid ++ ": lender " ++ show lender ++ " died and inherits its loan to its children " ++ show children ++ 
                "\nold loans = " ++ show oldLs ++ 
                "\nnew loans = " ++ show ls)
       updateAgentState (\s -> s { sugAgBorrowed = ls })
@@ -307,11 +307,11 @@ handleLoanLenderDied myId lender children = do
 
 handleLoanInherit :: RandomGen g
                   => AgentId
-                  -> AgentId
                   -> Loan
-                  -> AgentAction g (SugAgentOut g)
-handleLoanInherit myId parent loan = do
-  DBG.trace ("Agent " ++ show myId ++ ": inherited " ++ show loan ++ " from parent " ++ show parent)
+                  -> AgentLocalMonad g (SugAgentOut g)
+handleLoanInherit parent loan = do
+  aid <- myId
+  DBG.trace ("Agent " ++ show aid ++ ": inherited " ++ show loan ++ " from parent " ++ show parent)
     updateAgentState (\s -> s { sugAgLent = loan : sugAgLent s })
   agentObservableM
 

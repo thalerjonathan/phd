@@ -14,13 +14,13 @@ agentPolute :: RandomGen g
             => SugarScapeScenario
             -> Double
             -> Double
-            -> AgentAction g ()
+            -> AgentLocalMonad g ()
 agentPolute params s m 
     = agentPoluteAux $ spPolutionFormation params
   where
     agentPoluteAux :: RandomGen g
                    => PolutionFormation 
-                   -> AgentAction g ()
+                   -> AgentLocalMonad g ()
     agentPoluteAux NoPolution = return ()
     agentPoluteAux (Polute a b) = do
       let polution = a * s + b * m

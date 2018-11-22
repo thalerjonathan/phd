@@ -12,7 +12,6 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
-import SugarScape.Core.Common 
 import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
@@ -20,24 +19,21 @@ import SugarScape.Core.Utils
 
 agentDisease :: RandomGen g
              => SugarScapeScenario
-             -> AgentId
-             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentDisease params myId cont
+             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentDisease params cont
   | isNothing $ spDiseasesEnabled params = cont
   | otherwise = do
     -- pass a random disease to each neighbour
-    aoTrans <- transmitDisease myId
+    aoTrans <- transmitDisease
     -- imunise agent in each step
     immuniseAgent 
     -- merge continuation out
     (aoCont, mhdl) <- cont
     return (aoTrans `agentOutMergeRightObs` aoCont, mhdl)
 
-transmitDisease :: RandomGen g
-                => AgentId
-                -> AgentAction g (SugAgentOut g)
-transmitDisease myId = do
+transmitDisease :: RandomGen g => AgentLocalMonad g (SugAgentOut g)
+transmitDisease = do
   nids <- neighbourAgentIds
   ds   <- agentProperty sugAgDiseases
 
@@ -48,9 +44,7 @@ transmitDisease myId = do
       ao  <- agentObservableM
 
       let evts = zipWith (\nid d -> (nid, DiseaseTransmit d)) nids rds
-
-      sendEvents myId evts
-
+      sendEvents evts
       return ao
 
 immuniseAgent :: MonadState SugAgentState m => m ()
@@ -88,7 +82,7 @@ immuniseAgent = do
 
 handleDiseaseTransmit :: RandomGen g
                       => Disease
-                      -> AgentAction g (SugAgentOut g)
+                      -> AgentLocalMonad g (SugAgentOut g)
 handleDiseaseTransmit disease = do
   is <- agentProperty sugAgImmuneSystem
 

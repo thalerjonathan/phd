@@ -83,9 +83,10 @@ initSimulationSeed seed = initSimulationRng g0
   where
     g0 = mkStdGen seed
 
-initSimulationRng :: StdGen
+initSimulationRng :: RandomGen g
+                  => g
                   -> SugarScapeScenario
-                  -> ( SimulationState StdGen
+                  -> ( SimulationState g
                      , SimStepOut
                      , SugarScapeScenario)
 initSimulationRng g0 params = (initSimState, initOut, params')

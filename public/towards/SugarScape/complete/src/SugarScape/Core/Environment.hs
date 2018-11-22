@@ -1,3 +1,4 @@
+-- NOTE: if this is NOT strict, then memory builds up 
 {-# LANGUAGE Strict #-}
 module SugarScape.Core.Environment 
   ( SugEnvBehaviour
@@ -50,26 +51,33 @@ polutionDiffusion (Just d) t env
             let c' = c { sugEnvSitePolutionLevel = flux }
             changeCellAt coord c' acc) env (zip cs fs)
 
-
 regrowSugarWithRate :: RegrowByRateFunc
-regrowSugarWithRate rate c 
-  = c { sugEnvSiteSugarLevel = 
-          min
+regrowSugarWithRate rate c = c { sugEnvSiteSugarLevel = lvl }
+  where
+    -- NOTE: force strictness here
+    lvl = min
               (sugEnvSiteSugarCapacity c)
-              ((sugEnvSiteSugarLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
+              ((sugEnvSiteSugarLevel c) + rate)  -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
 regrowSugarToMax :: RegrowToMaxFunc
-regrowSugarToMax c = c { sugEnvSiteSugarLevel = sugEnvSiteSugarCapacity c}
+regrowSugarToMax c = c { sugEnvSiteSugarLevel = lvl }
+  where
+    -- NOTE: force strictness here
+    lvl = sugEnvSiteSugarCapacity c
 
 regrowSpiceWithRate :: RegrowByRateFunc
-regrowSpiceWithRate rate c 
-  = c { sugEnvSiteSpiceLevel = 
-          min
+regrowSpiceWithRate rate c = c { sugEnvSiteSpiceLevel = lvl }     
+  where
+    -- NOTE: force strictness here
+    lvl = min
               (sugEnvSiteSpiceCapacity c)
-              ((sugEnvSiteSpiceLevel c) + rate)} -- if this bracket is omited it leads to a bug: all environment cells have +1 level
+              ((sugEnvSiteSpiceLevel c) + rate) -- if this bracket is omited it leads to a bug: all environment cells have +1 level
 
 regrowSpiceToMax :: RegrowToMaxFunc
-regrowSpiceToMax c = c { sugEnvSiteSpiceLevel = sugEnvSiteSpiceCapacity c}
+regrowSpiceToMax c = c { sugEnvSiteSpiceLevel = lvl }
+  where
+    -- NOTE: force strictness here
+    lvl = sugEnvSiteSpiceCapacity c
 
 regrow :: Regrow 
        -> RegrowToMaxFunc

@@ -1,5 +1,3 @@
--- NOTE: Strict seems to be beneficial
-{-# LANGUAGE Strict #-}
 module SugarScape.Core.Model 
   ( AgentGender (..)
   , CultureTag

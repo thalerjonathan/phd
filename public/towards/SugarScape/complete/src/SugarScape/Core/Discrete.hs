@@ -1,4 +1,4 @@
--- NOTE: Strict seems to be beneficial
+-- NOTE: if this is NOT strict, then memory builds up like HELL
 {-# LANGUAGE Strict #-}
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Core.Discrete 

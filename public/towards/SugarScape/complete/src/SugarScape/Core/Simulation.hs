@@ -1,5 +1,3 @@
--- NOTE: Strict seems to be beneficial
-{-# LANGUAGE Strict #-}
 module SugarScape.Core.Simulation
   ( SimulationState (..)
   , SimStepOut
@@ -48,12 +46,12 @@ type SimStepOut        = (Time, Int, SugEnvironment, [AgentObservable SugAgentOb
 -- NOTE: strictness on those fields, otherwise space-leak 
 -- (memory consumption increases throughout run-time and execution gets slower and slower)
 data SimulationState g = SimulationState 
-  { simAgentMap :: AgentMap g
-  , simAbsState :: ABSState 
-  , simEnvState :: SugEnvironment
-  , simEnvBeh   :: SugEnvBehaviour
-  , simRng      :: g
-  , simSteps    :: Int
+  { simAgentMap :: !(AgentMap g)
+  , simAbsState :: !ABSState 
+  , simEnvState :: !SugEnvironment
+  , simEnvBeh   :: !SugEnvBehaviour
+  , simRng      :: !g
+  , simSteps    :: !Int
   }
 
 -- sugarscape is stepped with a time-delta of 1.0

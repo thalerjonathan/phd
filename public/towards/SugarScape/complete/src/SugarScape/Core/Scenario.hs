@@ -248,8 +248,8 @@ mkParamsAnimationII_1 = mkSugarScapeScenario {
 -- Social Evolution with regrow rate of 1, page 29
 mkParamsAnimationII_2 :: SugarScapeScenario
 mkParamsAnimationII_2 = mkParamsAnimationII_1 {
-    sgScenarioName  = "Animation II-2"
-  , spSugarRegrow = Rate 1       -- regrow by 1 unit per step
+    sgScenarioName = "Animation II-2"
+  , spSugarRegrow  = Rate 1       -- regrow by 1 unit per step
   }
 
 -- Wealth Distribution page 34
@@ -446,7 +446,7 @@ mkParamsFigureIV_5 = mkParamsFigureIV_3 {
 -- otherwise this will be not really comparable
 mkCarryingCapacityWithSpice :: SugarScapeScenario
 mkCarryingCapacityWithSpice = mkParamsAnimationII_2 {
-    sgScenarioName           = "Carrying Capacity With Spice"
+    sgScenarioName         = "Carrying Capacity With Spice"
   , spSpiceMetabolismRange = (1, 4)     -- add spice 
   , spSpiceEndowmentRange  = (5, 25)    -- add spice
   , spSpiceEnabled         = True       -- enable spice
@@ -462,8 +462,8 @@ mkParamsFigureIV_6 = mkCarryingCapacityWithSpice {
 -- see page 117 and 118
 mkParamsFigureIV_7 :: SugarScapeScenario
 mkParamsFigureIV_7 = mkParamsFigureIV_3 {
-    sgScenarioName  = "Figure IV-7"
-  , spVisionRange = (1, 1)
+    sgScenarioName = "Figure IV-7"
+  , spVisionRange  = (1, 1)
   }
 
 mkParamsFigureIV_8 :: SugarScapeScenario
@@ -473,14 +473,14 @@ mkParamsFigureIV_8 = mkParamsFigureIV_7 {
 
 mkParamsFigureIV_9 :: SugarScapeScenario
 mkParamsFigureIV_9 = mkParamsFigureIV_3 {
-    sgScenarioName  = "Figure IV-9"
-  , spVisionRange = (1, 15)
+    sgScenarioName = "Figure IV-9"
+  , spVisionRange  = (1, 15)
   }
 
 -- see page 121
 mkParamsFigureIV_10 :: SugarScapeScenario
 mkParamsFigureIV_10 = mkParamsFigureIV_3 {
-    sgScenarioName    = "Figure IV-10"
+    sgScenarioName  = "Figure IV-10"
   , spReplaceAgents = True          -- R rule is turned on
   , spAgeSpan       = Range 60 100  -- and agents can die of age
   }
@@ -521,7 +521,7 @@ mkParamsFigureIV_14 = mkParamsFigureIV_3 {
 -- page 130-133
 mkParamsAnimationIV_5 :: SugarScapeScenario
 mkParamsAnimationIV_5 = mkParamsAnimationII_2 {
-    sgScenarioName = "Animation IV-5"
+    sgScenarioName         = "Animation IV-5"
   , sgAgentCount           = 400
   , spSugarEndowmentRange  = (50, 100)
 

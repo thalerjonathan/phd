@@ -20,38 +20,39 @@ import SugarScape.Core.Utils
 -- Also rule I is implemented, see page 67...
 -- => will happen if agent starves to death (spice or sugar) or dies from age
 agentDies :: RandomGen g
-          => SugarScapeScenario
-          -> SugarScapeAgent g
+          => SugarScapeAgent g
           -> AgentLocalMonad g (SugAgentOut g)
-agentDies params asf = do
+agentDies asf = do
   unoccupyPosition
   ao  <- kill <$> agentObservableM
-  ao' <- birthNewAgent params asf ao
-  inheritance params ao'
+  ao' <- birthNewAgent asf ao
+  inheritance ao'
 
 birthNewAgent :: RandomGen g
-              => SugarScapeScenario
-              -> SugarScapeAgent g
+              => SugarScapeAgent g
               -> SugAgentOut g
               -> AgentLocalMonad g (SugAgentOut g)
-birthNewAgent params asf ao
-  | not $ spReplaceAgents params = return ao
-  | otherwise = do
-    newAid              <- nextAgentId
-    myTribe             <- agentProperty sugAgTribe
-    (newCoord, newCell) <- findUnoccpiedRandomPosition
-    (newA, newAState)   <- randLift $ randomAgent params (newAid, newCoord) asf 
-                              (\as -> case myTribe of
-                                        Red  -> changeToRedTribe params as
-                                        Blue -> changeToBlueTribe params as)
+birthNewAgent asf ao =
+  ifThenElseM
+    ((not . spReplaceAgents) <$> scenario)
+    (return ao)
+    (do
+      sc                  <- scenario
+      newAid              <- nextAgentId
+      myTribe             <- agentProperty sugAgTribe
+      (newCoord, newCell) <- findUnoccpiedRandomPosition
+      (newA, newAState)   <- randLift $ randomAgent sc (newAid, newCoord) asf 
+                                (\as -> case myTribe of
+                                          Red  -> changeToRedTribe sc as
+                                          Blue -> changeToBlueTribe sc as)
 
-    -- need to occupy the cell to prevent other agents occupying it
-    let occ      = occupier newAid newAState
-        newCell' = newCell { sugEnvSiteOccupier = Just occ }
-        
-    envRun $ changeCellAt newCoord newCell' 
+      -- need to occupy the cell to prevent other agents occupying it
+      let occ      = occupier newAid newAState
+          newCell' = newCell { sugEnvSiteOccupier = Just occ }
+          
+      envRun $ changeCellAt newCoord newCell' 
 
-    return $ newAgent newA ao
+      return $ newAgent newA ao)
   where
     -- TODO: the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position
@@ -77,30 +78,31 @@ birthNewAgent params asf ao
       return (randCoord, randCell)
 
 inheritance :: RandomGen g
-            => SugarScapeScenario
-            -> SugAgentOut g
+            => SugAgentOut g
             -> AgentLocalMonad g (SugAgentOut g)
-inheritance params ao0
-    | not $ spInheritance params = return ao0
-    | otherwise = do
-      sugLvl   <- agentProperty sugAgSugarLevel
-      children <- agentProperty sugAgChildren
+inheritance ao0 =
+    ifThenElseM
+      ((not . spInheritance) <$> scenario)
+      (return ao0)
+      (do
+        sugLvl   <- agentProperty sugAgSugarLevel
+        children <- agentProperty sugAgChildren
 
-      ls <- agentProperty sugAgLent
-      -- children inherit all loans
-      inheritLoans ls children
-      -- notify borrowers that lender has died and will be inherited by children
-      notifyBorrowers ls children
+        ls <- agentProperty sugAgLent
+        -- children inherit all loans
+        inheritLoans ls children
+        -- notify borrowers that lender has died and will be inherited by children
+        notifyBorrowers ls children
 
-      -- only inherit in case 
-      -- 1. there is sugar left (performance optimisation) (sugLvl is 0 in case the agent starved to death)
-      -- 2. there are actually children
-      if sugLvl > 0 && not (null children)
-        then do
-          let share = sugLvl / fromIntegral (length children)
-          broadcastEvent children (Inherit share)
-          agentObservableM
-        else agentObservableM
+        -- only inherit in case 
+        -- 1. there is sugar left (performance optimisation) (sugLvl is 0 in case the agent starved to death)
+        -- 2. there are actually children
+        if sugLvl > 0 && not (null children)
+          then do
+            let share = sugLvl / fromIntegral (length children)
+            broadcastEvent children (Inherit share)
+            agentObservableM
+          else agentObservableM)
   where
     inheritLoans :: RandomGen g 
                  => [Loan]

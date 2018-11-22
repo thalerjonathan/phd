@@ -279,14 +279,14 @@ unoccupyPosition = do
   let cell' = cell { sugEnvSiteOccupier = Nothing }
   envRun $ changeCellAt coord cell'
 
-updateSiteOccupied :: RandomGen g => AgentLocalMonad g ()
+updateSiteOccupied :: AgentLocalMonad g ()
 updateSiteOccupied = do
   (coord, cell) <- agentCellOnCoord
   occ           <- occupierLocal
   let cell' = cell { sugEnvSiteOccupier = Just occ }
   envRun $ changeCellAt coord cell'
 
-agentCellOnCoord :: RandomGen g => AgentLocalMonad g (Discrete2dCoord, SugEnvSite)
+agentCellOnCoord :: AgentLocalMonad g (Discrete2dCoord, SugEnvSite)
 agentCellOnCoord = do
   coord <- agentProperty sugAgCoord
   cell  <- envRun $ cellAt coord

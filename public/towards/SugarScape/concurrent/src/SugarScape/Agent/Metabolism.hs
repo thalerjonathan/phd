@@ -4,55 +4,51 @@ module SugarScape.Agent.Metabolism
   , starvedToDeath
   ) where
 
-import Control.Monad.Random
-import Control.Monad.State.Strict
-
 import SugarScape.Agent.Common
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
+import SugarScape.Core.Utils
 
-agentMetabolism :: RandomGen g
-                => SugarScapeScenario
-                -> AgentLocalMonad g Int
-agentMetabolism params 
-  | spSpiceEnabled params = do
-    sugarMetab <- agentProperty sugAgSugarMetab
-    sugarLevel <- agentProperty sugAgSugarLevel
+agentMetabolism :: AgentLocalMonad g Int
+agentMetabolism =
+  ifThenElseM
+    (spSpiceEnabled <$> scenario)
+    (do
+      sugarMetab <- agentProperty sugAgSugarMetab
+      sugarLevel <- agentProperty sugAgSugarLevel
 
-    spiceMetab <- agentProperty sugAgSpiceMetab
-    spiceLevel <- agentProperty sugAgSpiceLevel
+      spiceMetab <- agentProperty sugAgSpiceMetab
+      spiceLevel <- agentProperty sugAgSpiceLevel
 
-    let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
-        spiceLevel' = max 0 (spiceLevel - fromIntegral spiceMetab)
+      let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+          spiceLevel' = max 0 (spiceLevel - fromIntegral spiceMetab)
 
-    updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel'
-                                , sugAgSpiceLevel = spiceLevel' })
-    -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-    updateSiteOccupied
+      updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel'
+                                  , sugAgSpiceLevel = spiceLevel' })
+      -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+      updateSiteOccupied
 
-    return $ sugarMetab + spiceMetab
-  
-  | otherwise = do
-    sugarMetab <- agentProperty sugAgSugarMetab
-    sugarLevel <- agentProperty sugAgSugarLevel
+      return $ sugarMetab + spiceMetab)
+    (do
+      sugarMetab <- agentProperty sugAgSugarMetab
+      sugarLevel <- agentProperty sugAgSugarLevel
 
-    let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
-    
-    updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
-    -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-    updateSiteOccupied
+      let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+      
+      updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
+      -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+      updateSiteOccupied
 
-    return sugarMetab
+      return sugarMetab)
 
-starvedToDeath :: MonadState SugAgentState m
-               => SugarScapeScenario
-               -> m Bool
-starvedToDeath params 
-  | spSpiceEnabled params = do
-    sugar <- agentProperty sugAgSugarLevel
-    spice <- agentProperty sugAgSpiceLevel
-    return $ sugar <= 0 || spice <= 0
-
-  | otherwise = do
-    sugar <- agentProperty sugAgSugarLevel
-    return $ sugar <= 0
+starvedToDeath :: AgentLocalMonad g Bool
+starvedToDeath =
+  ifThenElseM
+    (spSpiceEnabled <$> scenario)
+    (do
+      sugar <- agentProperty sugAgSugarLevel
+      spice <- agentProperty sugAgSpiceLevel
+      return $ sugar <= 0 || spice <= 0)
+    (do
+      sugar <- agentProperty sugAgSugarLevel
+      return $ sugar <= 0)

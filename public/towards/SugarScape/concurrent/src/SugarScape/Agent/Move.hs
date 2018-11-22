@@ -19,17 +19,16 @@ import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
-agentMove :: RandomGen g
-          => SugarScapeScenario
-          -> AgentLocalMonad g Double
-agentMove params 
-  | isNothing $ spCombat params = agentNonCombat params
-  | otherwise                   = agentCombat params 
+agentMove :: RandomGen g => AgentLocalMonad g Double
+agentMove =
+  ifThenElseM
+    ((isNothing . spCombat) <$> scenario)
+    agentNonCombat
+    agentCombat
 
 agentNonCombat :: RandomGen g
-               => SugarScapeScenario
-               -> AgentLocalMonad g Double
-agentNonCombat params = do
+               => AgentLocalMonad g Double
+agentNonCombat = do
   sitesInSight <- agentLookout
   coord        <- agentProperty sugAgCoord
 
@@ -37,26 +36,25 @@ agentNonCombat params = do
 
   ifThenElse 
     (null uoc)
-    (agentHarvestSite params coord)
+    (agentHarvestSite coord)
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
         selfCell <- envRun $ cellAt coord
         myState  <- get
+        sc       <- scenario
 
         let uoc' = (coord, selfCell) : uoc
-            bf   = selectSiteMeasureFunc params myState
+            bf   = selectSiteMeasureFunc sc myState
             bcs  = selectBestSites bf coord uoc'
 
         (cellCoord, _) <- randLift $ randomElemM bcs
         agentMoveTo cellCoord
-        agentHarvestSite params cellCoord)
+        agentHarvestSite cellCoord)
 
-agentCombat :: RandomGen g
-            => SugarScapeScenario
-            -> AgentLocalMonad g Double
-agentCombat params = do
-    let combatReward = fromJust $ spCombat params
+agentCombat :: RandomGen g => AgentLocalMonad g Double
+agentCombat = do
+    combatReward <- (fromJust . spCombat) <$> scenario
 
     myTribe  <- agentProperty sugAgTribe
     mySugLvl <- agentProperty sugAgSugarLevel
@@ -76,18 +74,19 @@ agentCombat params = do
 
     -- throw out all sites which are vulnerable to retalation:
     nonRetaliationSites <- filterRetaliation myTribe myWealth myVis combatReward sites []
-
+    
     if null nonRetaliationSites
-      then agentNonCombat params -- if no sites left for combat, just do a non-combat move
+      then agentNonCombat -- if no sites left for combat, just do a non-combat move
       else do
         myCoord <- agentProperty sugAgCoord
-      
-        let bf   = combatSiteMeasure params combatReward
+        sc      <- scenario
+
+        let bf   = combatSiteMeasure sc combatReward
             bcs  = selectBestSites bf myCoord nonRetaliationSites
 
         (siteCoord, site) <- randLift $ randomElemM bcs
         agentMoveTo siteCoord
-        harvestAmount <- agentHarvestSite params siteCoord
+        harvestAmount <- agentHarvestSite siteCoord
 
         let victim       = fromJust $ sugEnvSiteOccupier site
             victimWealth = sugEnvOccSugarWealth victim + sugEnvOccSpiceWealth victim
@@ -156,28 +155,27 @@ agentMoveTo cellCoord = do
   envRun $ changeCellAt cellCoord co 
 
 agentHarvestSite :: RandomGen g
-                 => SugarScapeScenario
-                 -> Discrete2dCoord 
+                 => Discrete2dCoord 
                  -> AgentLocalMonad g Double
-agentHarvestSite params siteCoord = do
+agentHarvestSite siteCoord = do
   site   <- envRun $ cellAt siteCoord
   sugLvl <- agentProperty sugAgSugarLevel
   
   let sugLvlSite = sugEnvSiteSugarLevel site
 
   harvestAmount <- 
-    if spSpiceEnabled params 
-      then do
+    ifThenElseM
+      (spSpiceEnabled <$> scenario)
+      (do
         spiceLvl <- agentProperty sugAgSpiceLevel
         let spiceLvlSite = sugEnvSiteSpiceLevel site
 
         updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite
                                   , sugAgSpiceLevel = spiceLvl + spiceLvlSite})
-        return (sugLvlSite + spiceLvlSite)
-
-      else do
+        return (sugLvlSite + spiceLvlSite))
+      (do
         updateAgentState (\s -> s { sugAgSugarLevel = sugLvl + sugLvlSite })
-        return sugLvlSite
+        return sugLvlSite)
 
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   occ <- occupierLocal

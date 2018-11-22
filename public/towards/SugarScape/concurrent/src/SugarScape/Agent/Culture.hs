@@ -15,23 +15,23 @@ import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
-agentCultureProcess :: RandomGen g
-                    => SugarScapeScenario               -- parameters of the current sugarscape scenario
-                    -> AgentLocalMonad g (SugAgentOut g)
-agentCultureProcess params  
-  | isNothing $ spCulturalProcess params = agentObservableM
-  | otherwise = do
-    nids <- neighbourAgentIds
+agentCultureProcess :: RandomGen g => AgentLocalMonad g (SugAgentOut g)
+agentCultureProcess = 
+  ifThenElseM
+    ((isNothing . spCulturalProcess) <$> scenario)
+    agentObservableM
+    (do
+      nids <- neighbourAgentIds
 
-    -- no neighbours, ignore cultural process
-    if null nids
-      then agentObservableM
-      else do
-        ao         <- agentObservableM
-        cultureTag <- agentProperty sugAgCultureTag
-        -- simply broadcast to all neighbours, they compute and flip their tags themselves
-        broadcastEvent nids (CulturalProcess cultureTag)
-        return ao
+      -- no neighbours, ignore cultural process
+      if null nids
+        then agentObservableM
+        else do
+          ao         <- agentObservableM
+          cultureTag <- agentProperty sugAgCultureTag
+          -- simply broadcast to all neighbours, they compute and flip their tags themselves
+          broadcastEvent nids (CulturalProcess cultureTag)
+          return ao)
 
 handleCulturalProcess :: RandomGen g
                       => AgentId

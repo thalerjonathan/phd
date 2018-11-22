@@ -18,14 +18,16 @@ import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
+import SugarScape.Core.Utils
 
 agentTrade :: RandomGen g
-           => SugarScapeScenario               -- parameters of the current sugarscape scenario
+           => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-agentTrade params cont
-  | not $ spTradingEnabled params = cont
-  | otherwise = tradingRound cont []
+agentTrade cont =
+  ifThenElseM
+    ((not . spTradingEnabled) <$> scenario)
+    cont
+    (tradingRound cont [])
 
 tradingRound :: RandomGen g
              => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))

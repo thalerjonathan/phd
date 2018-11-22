@@ -11,12 +11,12 @@ import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 
 agentPolute :: RandomGen g
-            => SugarScapeScenario
-            -> Double
+            =>  Double
             -> Double
             -> AgentLocalMonad g ()
-agentPolute params s m 
-    = agentPoluteAux $ spPolutionFormation params
+agentPolute s m = do
+    pol <- spPolutionFormation <$> scenario
+    agentPoluteAux pol
   where
     agentPoluteAux :: RandomGen g
                    => PolutionFormation 

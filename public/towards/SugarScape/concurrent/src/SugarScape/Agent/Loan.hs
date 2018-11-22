@@ -32,22 +32,21 @@ import SugarScape.Core.Utils
 import Debug.Trace as DBG
 
 agentLoan :: RandomGen g
-          => SugarScapeScenario               -- parameters of the current sugarscape scenario
+          => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-          -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-agentLoan params cont
-  | isNothing $ spLoansEnabled params = cont
-  | otherwise = do
-    aoDebt         <- checkBorrowedLoans params 
-    (aoLend, mhdl) <- offerLending params cont
+agentLoan cont =
+  ifThenElseM
+    ((isNothing . spLoansEnabled) <$> scenario)
+    cont
+    (do
+      aoDebt         <- checkBorrowedLoans 
+      (aoLend, mhdl) <- offerLending cont
 
-    let ao = aoDebt `agentOutMergeRightObs` aoLend
-    return (ao, mhdl)
+      let ao = aoDebt `agentOutMergeRightObs` aoLend
+      return (ao, mhdl))
 
-checkBorrowedLoans :: RandomGen g
-                   => SugarScapeScenario
-                   -> AgentLocalMonad g (SugAgentOut g)
-checkBorrowedLoans params = do
+checkBorrowedLoans :: RandomGen g => AgentLocalMonad g (SugAgentOut g)
+checkBorrowedLoans = do
     cs <- agentProperty sugAgBorrowed
 
     ret <- mapM checkLoan cs
@@ -66,8 +65,8 @@ checkBorrowedLoans params = do
     return $ foldr agentOutMergeRightObs ao0 aos
   where
     checkLoan :: RandomGen g
-                => Loan
-                -> AgentLocalMonad g (SugAgentOut g, Maybe Loan, Double, Double) 
+              => Loan
+              -> AgentLocalMonad g (SugAgentOut g, Maybe Loan, Double, Double) 
     checkLoan borrowerLoan@(Loan dueDate lender sugarFace spiceFace) = do
       t  <- getSimTime
       ao <- agentObservableM
@@ -75,8 +74,9 @@ checkBorrowedLoans params = do
       if dueDate /= t
         then return (ao, Just borrowerLoan, 0, 0) -- Loan not yet due
         else do
-          let rate   = (snd . fromJust $ spLoansEnabled params) / 100
-              sugPay = sugarFace + (sugarFace * rate)  -- payback the original face-value + a given percentage (interest)
+          rate <- ((/100) . snd . fromJust . spLoansEnabled) <$> scenario 
+
+          let sugPay = sugarFace + (sugarFace * rate)  -- payback the original face-value + a given percentage (interest)
               spiPay = spiceFace + (spiceFace * rate)  -- payback the original face-value + a given percentage (interest)
 
           sugLvl <- agentProperty sugAgSugarLevel
@@ -95,10 +95,10 @@ checkBorrowedLoans params = do
               DBG.trace ("Agent " ++ show aid ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pay FULLY back to lender " ++ show lender)
                           return (ao, Nothing, sugPay, spiPay)
             else do -- not enough wealth, just pay back half of wealth and issue new Loan for the remaining face value(s)
-              let dueDate' = t + (fst . fromJust $ spLoansEnabled params)
+              dueDate' <- ((t+) . fst . fromJust . spLoansEnabled) <$> scenario
                   -- prevent negative values in facevalues: if agent has enough sugar/spice but not the other 
                   -- then it could be the case that it pays back one part of the Loan fully
-                  sugPay' = min sugarFace sugLvl / 2
+              let sugPay' = min sugarFace sugLvl / 2
                   spiPay' = min spiceFace spiLvl / 2  
                   c'      = Loan dueDate' lender (sugarFace - sugPay') (spiceFace - spiPay')
               
@@ -115,10 +115,9 @@ checkBorrowedLoans params = do
                 return (ao, Just c', sugPay', spiPay')
 
 offerLending :: RandomGen g
-             => SugarScapeScenario               -- parameters of the current sugarscape scenario
+             => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
              -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-offerLending params cont = do
+offerLending cont = do
   pl <- potentialLender
   if isNothing pl 
     then cont
@@ -130,8 +129,8 @@ offerLending params cont = do
       if null ns
         then cont
         else do
-          t <- getSimTime
-          let dueDate = t + (fst . fromJust $ spLoansEnabled params)
+          t       <- getSimTime
+          dueDate <- ((t+) . fst . fromJust . spLoansEnabled) <$> scenario
 
           ns' <- randLift $ fisherYatesShuffleM ns
           lendTo cont dueDate ns'
@@ -221,18 +220,18 @@ handleLoanOffer borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
         agentObservableM
 
 handleLoanPayback :: RandomGen g
-                  => SugarScapeScenario
-                  -> AgentId
+                  => AgentId
                   -> Loan
                   -> Double
                   -> Double
                   -> AgentLocalMonad g (SugAgentOut g)
-handleLoanPayback params borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sugarBack spiceBack = do
-    t <- getSimTime
-    let newDueDate = t + (fst . fromJust $ spLoansEnabled params)
+handleLoanPayback borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sugarBack spiceBack = do
+    t          <- getSimTime
+    newDueDate <- ((t+) . fst . fromJust . spLoansEnabled) <$> scenario
+    rate       <- ((/100) . snd . fromJust . spLoansEnabled) <$> scenario 
 
     aid <- myId
-    ls <- processBorrower aid newDueDate <$> agentProperty sugAgLent
+    ls <- processBorrower rate aid newDueDate <$> agentProperty sugAgLent
 
     updateAgentState (\s -> s { sugAgLent = ls
                               , sugAgSugarLevel = sugAgSugarLevel s + sugarBack
@@ -241,11 +240,12 @@ handleLoanPayback params borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFa
     updateSiteOccupied
     agentObservableM
   where
-    processBorrower :: AgentId
+    processBorrower :: Double
+                    -> AgentId
                     -> Time
                     -> [Loan]
                     -> [Loan]
-    processBorrower aid newDueDate ls 
+    processBorrower rate aid newDueDate ls 
         -- TODO: when inheritance is turned on, this error occurs sometimes, no idea why
         | isNothing mxid = error $ "Agent " ++ show aid ++ ": couldn't find " ++ show borrowerLoan ++  
                                    " for borrower payback in my loans " ++ show ls ++ ", exit."
@@ -266,7 +266,6 @@ handleLoanPayback params borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFa
             = fullSugarBack == sugarBack && fullSpiceBack == spiceBack
           where
             -- NOTE: need to include the interest!
-            rate          = (snd . fromJust $ spLoansEnabled params) / 100
             fullSugarBack = sugarFace' + (sugarFace' * rate)
             fullSpiceBack = spiceFace' + (spiceFace' * rate)
 

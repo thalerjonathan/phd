@@ -10,6 +10,7 @@ module SugarScape.Agent.Mating
 
 import Data.Maybe
 
+import Control.Concurrent.STM.TMVar
 import Control.Monad
 import Control.Monad.Random
 import Control.Monad.State.Strict
@@ -83,6 +84,7 @@ mateWith amsf cont ((coord, site) : ns) =
           myGender <- agentProperty sugAgGender
           ao       <- agentObservableM
 
+          -- TODO: use sendEventToWithReply
           sendEventTo matingPartnerId (MatingRequest myGender)
 
           return (ao, Just evtHandler))
@@ -99,13 +101,13 @@ matingHandler amsf0 cont0 ns freeSites =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent (sender, MatingReply accept)) -> 
-            arrM (uncurry (handleMatingReply amsf0 cont0)) -< (sender, accept)
+          (DomainEventWithReply (sender, MatingReply accept, replyChannel)) -> 
+            arrM (uncurry3 (handleMatingReply amsf0 cont0)) -< (sender, accept, replyChannel)
           (DomainEvent (sender, MatingContinue)) -> do
             aid <- constM myId -< ()
             if sender /= aid 
               then returnA -< error $ "Agent " ++ show aid ++ ": received MatingContinue not from self, terminating!"
-              else constM (mateWith amsf0 cont0 ns) -< ()
+              else constM (mateWith amsf0 cont0 ns) -< () -- TODO: switch back to queue-processing
           _ -> do
             aid <- constM myId -< ()
             returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
@@ -115,10 +117,12 @@ matingHandler amsf0 cont0 ns freeSites =
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
                       -> AgentId
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
+                      -> TMVar SugEvent
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply amsf cont _ Nothing =  -- the sender refuse the mating-request
+    handleMatingReply amsf cont _ Nothing _ =  -- the sender refuse the mating-request
+      -- TODO: switch back to queue-processing
       mateWith amsf cont ns
-    handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) = do -- the sender accepts the mating-request
+    handleMatingReply amsf _ _sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) replyChannel = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
       mySpiLvl  <- agentProperty sugAgSpiceLevel
       myMetab   <- agentProperty sugAgSugarMetab
@@ -161,12 +165,11 @@ matingHandler amsf0 cont0 ns freeSites =
       -- mating-partner => agent sends to itself a MatingContinue event
       ao <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      sendEventTo sender (MatingTx childId)
+      -- sendEventTo sender (MatingTx childId) -- TODO: send with channel!
+      stmLift $ putTMVar replyChannel (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
       aid <- myId
-      sendEventTo aid MatingContinue 
-      
-      -- TODO: does a self-send result in a retry? 
+      sendEventTo aid MatingContinue  -- TODO: does a self-send result in a retry? 
 
       return (ao, Nothing)
 
@@ -234,6 +237,7 @@ handleMatingRequest sender otherGender = do
 
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
+  -- TODO: use replyChannel
   sendEventTo sender (MatingReply acc)
   agentObservableM
 
@@ -251,4 +255,6 @@ handleMatingTx _sender childId = do
                             , sugAgChildren   = childId : sugAgChildren s})
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteOccupied
+
+  -- TODO: switch back to queue-processing
   agentObservableM

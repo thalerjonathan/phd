@@ -22,6 +22,7 @@ import Control.Concurrent
 import System.Random
 
 import Control.Concurrent.STM.TVar
+import Control.Concurrent.STM.TMVar
 import Control.Concurrent.STM.TQueue
 -- import Control.Concurrent.STM.Stats
 import Control.Monad.Random
@@ -259,7 +260,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
       -- wait for main-thread to write TickStart into queue
 
       -- process messages while there are and wait for messages 
-      (mao, asf', g') <- processWhileMessages Nothing asf g q
+      (mao, asf', g') <- processWhileMessages Nothing asf g q Nothing
       -- because we posted a Tick message (writeTick) to our queue, we will
       -- always return a Just with an AgentOut, thus this is safe!
       let ao = fromJust mao
@@ -283,20 +284,22 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                          -> SugAgentMSF g
                          -> g
                          -> TQueue (ABSEvent SugEvent)
+                         -> Maybe (TMVar SugEvent)
                          -> IO (Maybe (SugAgentOut g), SugAgentMSF g, g)
-    processWhileMessages mao asf g q = do
+    processWhileMessages mao asf g q replyVar = do
       --putStrLn $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
-      ret <- executeSTM $ agentProcessNextMessage asf g q
+      ret <- executeSTM $ agentProcessNextMessage asf g q replyVar
       case ret of 
-        Nothing             -> return (mao, asf, g)
-        Just (ao, asf', g') -> processWhileMessages (Just ao) asf' g' q
+        Nothing -> return (mao, asf, g)
+        Just (ao, asf', g', replyVar') -> processWhileMessages (Just ao) asf' g' q replyVar'
 
     agentProcessNextMessage :: RandomGen g
                             => SugAgentMSF g
                             -> g
                             -> TQueue (ABSEvent SugEvent)
-                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
-    agentProcessNextMessage asf g q = do
+                            -> Maybe (TMVar SugEvent)
+                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g, Maybe (TMVar SugEvent)))
+    agentProcessNextMessage asf g q Nothing = do
       -- wait for next message, will block with retry when no message there
       --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
       evt <- readTQueue q
@@ -306,7 +309,16 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                     return Nothing -- finished, no output
         _       -> do
           (ao, asf', g') <- runAgentMSF asf evt ctx0 env g
-          return $ Just (ao, asf', g')
+          return $ Just (ao, asf', g', aoReplyVar ao)
+
+    agentProcessNextMessage asf g _ (Just var) = do
+      -- wait for next message, will block with retry when no message there
+      --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
+      evt <- takeTMVar var
+      --DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt) 
+      let absEvt = Reply evt
+      (ao, asf', g') <- runAgentMSF asf absEvt ctx0 env g
+      return $ Just (ao, asf', g', aoReplyVar ao)
 
     insertAgentQueue :: AgentId
                      -> TQueue (ABSEvent SugEvent)

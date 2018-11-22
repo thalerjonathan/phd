@@ -31,7 +31,7 @@ agentDisease cont =
     immuniseAgent 
     -- merge continuation out
     (aoCont, mhdl) <- cont
-    return (aoTrans `agentOutMergeRightObs` aoCont, mhdl))
+    return (aoTrans `agentOutMergeRight` aoCont, mhdl))
 
 transmitDisease :: RandomGen g => AgentLocalMonad g (SugAgentOut g)
 transmitDisease = do

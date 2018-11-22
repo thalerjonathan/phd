@@ -15,7 +15,7 @@ module SugarScape.Core.Common
 
 import Control.Concurrent.STM.TQueue
 import Control.Concurrent.STM.TVar
--- import Control.Concurrent.STM.TMVar
+import Control.Concurrent.STM.TMVar
 import Control.Monad.STM
 import qualified Data.IntMap.Strict as Map -- better performance than normal Map according to hackage page
 
@@ -26,14 +26,22 @@ type AgentId = Int
 
 data ABSEvent e = TickStart DTime
                 | TickEnd 
-                | DomainEvent (AgentId, e)  -- sender, event, reply channel  Maybe (TMVar e)
-                deriving (Show, Eq)
+                | DomainEvent (AgentId, e)  -- sender, event
+                | DomainEventWithReply (AgentId, e, TMVar e)  -- sender, event, reply channel 
+                | Reply e
 
 data ABSCtx e = ABSCtx
   { absCtxIdVar     :: TVar AgentId  -- holds the NEXT agent-id 
   , absCtxMsgQueues :: TVar (Map.IntMap (TQueue (ABSEvent e)))
   , absCtxTime      :: !Time
   }
+
+instance Show e => Show (ABSEvent e) where
+  show (TickStart dt) = "TickStart " ++ show dt 
+  show TickEnd = "TickEnd"
+  show (DomainEvent (aid, e)) = "DomainEvent " ++ show aid ++ " " ++ show e
+  show (DomainEventWithReply (aid, e, _)) = "DomainEventWithReply " ++ show aid ++ " " ++ show e
+  show (Reply e) = "Reply " ++ show e
 
 defaultAbsCtx :: STM (ABSCtx e)
 defaultAbsCtx = mkAbsCtx 0 

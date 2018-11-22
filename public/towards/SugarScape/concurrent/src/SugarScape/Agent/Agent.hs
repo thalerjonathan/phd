@@ -75,7 +75,7 @@ generalEventHandler =
           returnA -< (ao, Nothing)
         _        -> do
           aid <- constM myId -< ()
-          returnA -< error $ "Agent " ++ show aid ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
+          returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ ", terminating!")
 
 handleTick :: RandomGen g 
            => DTime
@@ -106,7 +106,7 @@ agentContAfterMating = do
   aoCulture       <- agentCultureProcess 
   (aoTrade, mhdl) <- agentTrade agentContAfterTrading
 
-  let ao = aoCulture `agentOutMergeRightObs` aoTrade
+  let ao = aoCulture `agentOutMergeRight` aoTrade
   return (ao, mhdl)
 
 agentContAfterTrading :: RandomGen g 

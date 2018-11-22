@@ -18,9 +18,10 @@ module SugarScape.Agent.Common
   , nextAgentId
 
   , broadcastEvent
-  , sendEventTo
   , sendEvents
-  
+  , sendEventTo
+  , sendEventToWithReply
+
   , agentWelfare
   , agentWelfareM
   , agentWelfareState
@@ -60,6 +61,7 @@ import Data.Maybe
 
 import Control.Concurrent.STM.TQueue
 import Control.Concurrent.STM.TVar
+import Control.Concurrent.STM.TMVar
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -121,13 +123,31 @@ sendEventTo :: AgentId
             -> AgentLocalMonad g ()
 sendEventTo receiverId e = do
   senderId <- myId
+  sendEventToAux (DomainEvent (senderId, e)) receiverId
+
+sendEventToWithReply :: AgentId
+                     -> SugEvent
+                     -> AgentLocalMonad g (TMVar SugEvent)
+sendEventToWithReply receiverId e = do
+  -- TODO: is it not too expensive to create a new TVar for each interaction?
+  replyChannel <- stmLift newEmptyTMVar
+  senderId <- myId
+
+  sendEventToAux (DomainEventWithReply (senderId, e, replyChannel)) receiverId
+
+  return replyChannel
+
+sendEventToAux :: ABSEvent SugEvent
+               -> AgentId
+               -> AgentLocalMonad g ()
+sendEventToAux evt receiverId = do
   msgQsVar <- absCtxMsgQueues <$> absCtxLift ask 
   msgQs    <- stmLift $ readTVar msgQsVar
 
   let mq = Map.lookup receiverId msgQs
   case mq of
     Nothing -> return () -- not found, ignore (maybe already dead)
-    Just q  -> stmLift $ writeTQueue q (DomainEvent (senderId, e)) 
+    Just q  -> stmLift $ writeTQueue q evt
 
 neighbourAgentIds :: AgentLocalMonad g [AgentId]
 neighbourAgentIds = do

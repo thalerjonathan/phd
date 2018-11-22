@@ -42,7 +42,7 @@ agentLoan cont =
       aoDebt         <- checkBorrowedLoans 
       (aoLend, mhdl) <- offerLending cont
 
-      let ao = aoDebt `agentOutMergeRightObs` aoLend
+      let ao = aoDebt `agentOutMergeRight` aoLend
       return (ao, mhdl))
 
 checkBorrowedLoans :: RandomGen g => AgentLocalMonad g (SugAgentOut g)
@@ -62,7 +62,7 @@ checkBorrowedLoans = do
     updateSiteOccupied
 
     ao0 <- agentObservableM
-    return $ foldr agentOutMergeRightObs ao0 aos
+    return $ foldr agentOutMergeRight ao0 aos
   where
     checkLoan :: RandomGen g
               => Loan
@@ -90,6 +90,7 @@ checkBorrowedLoans = do
               -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
               updateSiteOccupied
 
+              -- NOTE: this is really just one-way and no need for a synchronised reply
               sendEventTo lender (LoanPayback borrowerLoan sugPay spiPay)
               aid <- myId
               DBG.trace ("Agent " ++ show aid ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pay FULLY back to lender " ++ show lender)
@@ -102,6 +103,7 @@ checkBorrowedLoans = do
                   spiPay' = min spiceFace spiLvl / 2  
                   c'      = Loan dueDate' lender (sugarFace - sugPay') (spiceFace - spiPay')
               
+              -- NOTE: this is really just one-way and no need for a synchronised reply
               sendEventTo lender (LoanPayback borrowerLoan sugPay' spiPay')
 
               -- NOTE: need to adjust wealth already here otherwise could pay more back than this agent has
@@ -154,6 +156,7 @@ lendTo cont dueDate (neighbour : ns) = do
           
       ao <- agentObservableM
 
+      -- TODO: use sendEventToWithReply
       sendEventTo borrowerId (LoanOffer borrowerLoan)
       return (ao, Just evtHandler)
 
@@ -202,6 +205,7 @@ handleLoanOffer borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
   pb <- potentialBorrower
   case pb of
     Just reason -> do
+      -- TODO: use replyChannel
       sendEventTo lender (LoanReply $ RefuseLoan reason)
       agentObservableM
 
@@ -214,6 +218,7 @@ handleLoanOffer borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
       updateSiteOccupied
 
+      -- TODO: use replyChannel
       sendEventTo lender (LoanReply AcceptLoan)
       aid <- myId
       DBG.trace ("Agent " ++ show aid ++ ": borrowing " ++ show borrowerLoan ++ " from " ++ show lender)

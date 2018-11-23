@@ -29,6 +29,8 @@ module SugarScape.Core.Model
   , SugAgentDef
   , SugAgentOut
 
+  , SugReplyChannel
+  
   , maxSugarCapacitySite
   , maxSpiceCapacitySite
 
@@ -175,6 +177,8 @@ type SugAgentMonadT g = AgentT (SugAgentMonad g) SugEvent
 type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentDef g = AgentDef (SugAgentMonad g) SugEvent SugAgentObservable
 type SugAgentOut g = AgentOut (SugAgentMonad g) SugEvent SugAgentObservable
+
+type SugReplyChannel = ReplyChannel SugEvent
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

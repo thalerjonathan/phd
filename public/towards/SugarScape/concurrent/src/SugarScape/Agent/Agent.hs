@@ -40,42 +40,56 @@ generalEventHandler =
       case evt of 
         TickStart dt -> 
           arrM handleTick -< dt
-        (DomainEvent (sender, MatingRequest otherGender)) -> do
-          ao <- arrM (uncurry handleMatingRequest) -< (sender, otherGender)
+
+        -- MATING EVENTS
+        (DomainEventWithReply sender (MatingRequest otherGender) ch) -> do
+          ao <- arrM (uncurry3 replyMatingRequest) -< (sender, ch, otherGender)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, MatingTx childId)) -> do
-          ao <- arrM (uncurry handleMatingTx) -< (sender, childId)
+        (Reply sender (MatingTx childId) ch) -> do
+          ao <- arrM (uncurry3 handleMatingTxReply) -< (sender, ch, childId)
           returnA -< (ao, Nothing)
-        (DomainEvent (_, Inherit share)) -> do
+
+        -- INHERITANCE EVENTS
+        (DomainEvent _ (Inherit share)) -> do
           ao <- arrM handleInheritance -< share
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CulturalProcess tag)) -> do
+
+        -- CULTURAL PROCESS EVENTS
+        (DomainEvent sender (CulturalProcess tag)) -> do
           ao <- arrM (uncurry handleCulturalProcess) -< (sender, tag)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, KilledInCombat)) -> do
+
+        -- COMBAT EVENTS
+        (DomainEvent sender KilledInCombat) -> do
           ao <- arrM handleKilledInCombat -< sender
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
+        
+        -- TRADING EVENTS
+        (DomainEvent sender (TradingOffer traderMrsBefore traderMrsAfter)) -> do
           ao <- arrM (uncurry3 handleTradingOffer) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
-        (DomainEvent (_, LoanOffer loan)) -> do
+
+        -- LOAN EVENTS
+        (DomainEvent _ (LoanOffer loan)) -> do
           ao <- arrM handleLoanOffer -< loan
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, LoanPayback loan sugarBack spiceBack)) -> do
+        (DomainEvent sender (LoanPayback loan sugarBack spiceBack)) -> do
           ao <- arrM (uncurry4 handleLoanPayback) -< (sender, loan, sugarBack, spiceBack)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, LoanLenderDied children)) -> do
+        (DomainEvent sender (LoanLenderDied children)) -> do
           ao <- arrM (uncurry handleLoanLenderDied) -< (sender, children)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, LoanInherit loan)) -> do
+        (DomainEvent sender (LoanInherit loan)) -> do
           ao <- arrM (uncurry handleLoanInherit) -< (sender, loan)
           returnA -< (ao, Nothing)
-        (DomainEvent (_, DiseaseTransmit disease)) -> do
+
+        -- DISEASE EVENTS
+        (DomainEvent _ (DiseaseTransmit disease)) -> do
           ao <- arrM handleDiseaseTransmit -< disease
           returnA -< (ao, Nothing)
         _        -> do
           aid <- constM myId -< ()
-          returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ ", terminating!")
+          returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " in general handler, terminating!")
 
 handleTick :: RandomGen g 
            => DTime
@@ -118,8 +132,8 @@ agentContAfterTrading = do
 agentContAfterLoan :: RandomGen g 
                    => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
 agentContAfterLoan = do
-    (aoDisease, mhdl) <- agentDisease defaultCont
-    return (aoDisease, mhdl)
+  (aoDisease, mhdl) <- agentDisease defaultCont
+  return (aoDisease, mhdl)
 
 defaultCont :: RandomGen g 
             => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))

@@ -4,13 +4,12 @@ module SugarScape.Agent.Mating
   ( agentMating
 
   , isAgentFertile
-  , handleMatingRequest
-  , handleMatingTx
+  , replyMatingRequest
+  , handleMatingTxReply
   ) where
 
 import Data.Maybe
 
-import Control.Concurrent.STM.TMVar
 import Control.Monad
 import Control.Monad.Random
 import Control.Monad.State.Strict
@@ -79,14 +78,14 @@ mateWith amsf cont ((coord, site) : ns) =
         else do
           -- in this case fromJust guaranteed not to fail, neighbours contain only occupied sites 
           let matingPartnerId = sugEnvOccId $ fromJust $ sugEnvSiteOccupier site 
-              evtHandler      = matingHandler amsf cont ns freeSites
+          let evtHandler      = matingHandler amsf cont ns freeSites
 
           myGender <- agentProperty sugAgGender
-          ao       <- agentObservableM
+          -- expecting reply
+          ch <- sendEventToWithReply matingPartnerId (MatingRequest myGender)
 
-          -- TODO: use sendEventToWithReply
-          sendEventTo matingPartnerId (MatingRequest myGender)
-
+          -- NOTE: switching from message-queue processing to reply-channel processing
+          ao <- setReplyChannel ch <$> agentObservableM
           return (ao, Just evtHandler))
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
     cont
@@ -101,13 +100,16 @@ matingHandler amsf0 cont0 ns freeSites =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEventWithReply (sender, MatingReply accept, replyChannel)) -> 
-            arrM (uncurry3 (handleMatingReply amsf0 cont0)) -< (sender, accept, replyChannel)
+          (Reply _ (MatingReply accept) ch) -> 
+            arrM (uncurry (handleMatingReply amsf0 cont0)) -< (accept, ch)
+            {-
+            TODO: remove MatingContinue
           (DomainEvent (sender, MatingContinue)) -> do
             aid <- constM myId -< ()
             if sender /= aid 
               then returnA -< error $ "Agent " ++ show aid ++ ": received MatingContinue not from self, terminating!"
               else constM (mateWith amsf0 cont0 ns) -< () -- TODO: switch back to queue-processing
+              -}
           _ -> do
             aid <- constM myId -< ()
             returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
@@ -115,14 +117,16 @@ matingHandler amsf0 cont0 ns freeSites =
     handleMatingReply :: RandomGen g
                       => SugarScapeAgent g
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-                      -> AgentId
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
-                      -> TMVar SugEvent
+                      -> SugReplyChannel
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply amsf cont _ Nothing _ =  -- the sender refuse the mating-request
-      -- TODO: switch back to queue-processing
+    handleMatingReply amsf cont Nothing _ =  -- the sender refuse the mating-request
+      -- NOTE: just carry on with next neighbours, will implicitly switch back to message-queue processing if
+      -- trading is finished or will switch to a new reply channel in case of a new interaction
       mateWith amsf cont ns
-    handleMatingReply amsf _ _sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) replyChannel = do -- the sender accepts the mating-request
+    handleMatingReply amsf cont 
+        (Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) 
+        ch = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
       mySpiLvl  <- agentProperty sugAgSpiceLevel
       myMetab   <- agentProperty sugAgSugarMetab
@@ -134,7 +138,7 @@ matingHandler amsf0 cont0 ns freeSites =
       childVision  <- randLift $ randomElemM [myVision, otherVision]
       childCultTag <- randLift $ crossOver myCultTag otherCultureTag
       childImmSys  <- randLift $ crossOver myImSysGe otherImSysGe
-        
+
       let updateChildState s = s { sugAgSugarLevel   = (mySugLvl / 2) + otherSugShare + (mySpiLvl / 2) + otherSpiShare
                                  , sugAgSugarMetab   = childMetab
                                  , sugAgVision       = childVision
@@ -163,15 +167,21 @@ matingHandler amsf0 cont0 ns freeSites =
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao <- newAgent childDef <$> agentObservableM
+      aoNew <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      -- sendEventTo sender (MatingTx childId) -- TODO: send with channel!
-      stmLift $ putTMVar replyChannel (MatingTx childId)
+      -- NOTE: use reply as well because transacting resources, must not be violated!
+      reply ch (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
-      aid <- myId
-      sendEventTo aid MatingContinue  -- TODO: does a self-send result in a retry? 
+      -- NOTE: can call mateWith and then merge the aos? no need to spawn new agent immediately
+  
+      --aid <- myId
+      --sendEventTo aid MatingContinue  
 
-      return (ao, Nothing)
+      (aoCont, mhdl) <- mateWith amsf cont ns
+      -- this will always succeed, aoNew has only new agent
+      let ao = aoNew `agentOutMergeRight` aoCont
+
+      return (ao, mhdl)
 
 crossOver :: MonadRandom m 
           => [Bool]
@@ -217,11 +227,12 @@ isAgentFertileWealth = do
   
   return $ sugLvl >= initSugLvl && spiLvl >= initSpiLvl
 
-handleMatingRequest :: RandomGen g
-                    => AgentId
-                    -> AgentGender
-                    -> AgentLocalMonad g (SugAgentOut g)
-handleMatingRequest sender otherGender = do
+replyMatingRequest :: RandomGen g
+                   => AgentId
+                   -> SugReplyChannel
+                   -> AgentGender
+                   -> AgentLocalMonad g (SugAgentOut g)
+replyMatingRequest _sender ch otherGender = do
   accept <- acceptMatingRequest otherGender
 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
@@ -237,15 +248,18 @@ handleMatingRequest sender otherGender = do
 
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
-  -- TODO: use replyChannel
-  sendEventTo sender (MatingReply acc)
-  agentObservableM
+  -- NOTE: we need to reply using the reply-channel provided
+  reply ch (MatingReply acc)
 
-handleMatingTx :: RandomGen g
-               => AgentId
-               -> AgentId
-               -> AgentLocalMonad g (SugAgentOut g)
-handleMatingTx _sender childId = do
+  -- NOTE: switch to reply-channel processing, will receive MatingTX with child-id 
+  setReplyChannel ch <$> agentObservableM
+
+handleMatingTxReply :: RandomGen g
+                    => AgentId
+                    -> SugReplyChannel
+                    -> AgentId
+                    -> AgentLocalMonad g (SugAgentOut g)
+handleMatingTxReply _sender _ch childId = do
   sugLvl <- agentProperty sugAgSugarLevel
   spiLvl <- agentProperty sugAgSpiceLevel
 
@@ -256,5 +270,5 @@ handleMatingTx _sender childId = do
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteOccupied
 
-  -- TODO: switch back to queue-processing
+  -- NOTE: go back to message-queue processing, this will implicitly switch back to message-queue processing
   agentObservableM

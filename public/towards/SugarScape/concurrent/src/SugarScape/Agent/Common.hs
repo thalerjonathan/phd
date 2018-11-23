@@ -21,7 +21,8 @@ module SugarScape.Agent.Common
   , sendEvents
   , sendEventTo
   , sendEventToWithReply
-
+  , reply
+  
   , agentWelfare
   , agentWelfareM
   , agentWelfareState
@@ -123,19 +124,28 @@ sendEventTo :: AgentId
             -> AgentLocalMonad g ()
 sendEventTo receiverId e = do
   senderId <- myId
-  sendEventToAux (DomainEvent (senderId, e)) receiverId
+  sendEventToAux (DomainEvent senderId e) receiverId
 
 sendEventToWithReply :: AgentId
                      -> SugEvent
-                     -> AgentLocalMonad g (TMVar SugEvent)
+                     -> AgentLocalMonad g SugReplyChannel
 sendEventToWithReply receiverId e = do
-  -- TODO: is it not too expensive to create a new TVar for each interaction?
+  -- NOTE: is it not too expensive to create a new TMVar for each interaction?
+  -- NOTE: this is happening when writing to a TQueue as well (is implemented
+  -- underneath using TMVar)
   replyChannel <- stmLift newEmptyTMVar
   senderId <- myId
 
-  sendEventToAux (DomainEventWithReply (senderId, e, replyChannel)) receiverId
+  sendEventToAux (DomainEventWithReply senderId e replyChannel) receiverId
 
   return replyChannel
+
+reply :: SugReplyChannel
+      -> SugEvent
+      -> AgentLocalMonad g ()
+reply ch e = do
+  senderId <- myId
+  stmLift $ putTMVar ch (senderId, e)
 
 sendEventToAux :: ABSEvent SugEvent
                -> AgentId

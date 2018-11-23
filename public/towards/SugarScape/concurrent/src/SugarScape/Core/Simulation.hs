@@ -284,7 +284,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                          -> SugAgentMSF g
                          -> g
                          -> TQueue (ABSEvent SugEvent)
-                         -> Maybe (TMVar SugEvent)
+                         -> Maybe SugReplyChannel
                          -> IO (Maybe (SugAgentOut g), SugAgentMSF g, g)
     processWhileMessages mao asf g q replyVar = do
       --putStrLn $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
@@ -297,8 +297,8 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                             => SugAgentMSF g
                             -> g
                             -> TQueue (ABSEvent SugEvent)
-                            -> Maybe (TMVar SugEvent)
-                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g, Maybe (TMVar SugEvent)))
+                            -> Maybe SugReplyChannel
+                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g, Maybe SugReplyChannel))
     agentProcessNextMessage asf g q Nothing = do
       -- wait for next message, will block with retry when no message there
       --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
@@ -314,9 +314,9 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
     agentProcessNextMessage asf g _ (Just var) = do
       -- wait for next message, will block with retry when no message there
       --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
-      evt <- takeTMVar var
+      (senderId, evt) <- takeTMVar var
       --DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt) 
-      let absEvt = Reply evt
+      let absEvt = Reply senderId evt var
       (ao, asf', g') <- runAgentMSF asf absEvt ctx0 env g
       return $ Just (ao, asf', g', aoReplyVar ao)
 

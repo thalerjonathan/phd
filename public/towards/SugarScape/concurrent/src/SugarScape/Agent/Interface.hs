@@ -8,7 +8,8 @@ module SugarScape.Agent.Interface
   , AgentOut (..)
 
   , observable
-  
+  , setReplyChannel
+
   , agentOut
   , agentOutMergeLeft
   , agentOutMergeRight
@@ -18,7 +19,8 @@ module SugarScape.Agent.Interface
   , newAgent
   ) where
 
-import Control.Concurrent.STM.TMVar
+import Data.Maybe
+
 import Control.Monad.Reader
 import Data.MonadicStreamFunction
 
@@ -39,7 +41,7 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !Bool
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
-  , aoReplyVar   :: !(Maybe (TMVar e))
+  , aoReplyVar   :: !(Maybe (ReplyChannel e))
   }
 
 agentOut :: o -> AgentOut m e o
@@ -58,6 +60,13 @@ kill ao = ao { aoKill = True }
 
 observable :: AgentOut m e o -> o
 observable = aoObservable
+
+setReplyChannel :: ReplyChannel e
+                -> AgentOut m e o 
+                -> AgentOut m e o
+setReplyChannel ch ao 
+  | isJust $ aoReplyVar ao = error "Reply Channel already set!"
+  | otherwise = ao { aoReplyVar = Just ch }
 
 newAgent :: AgentDef m e o
          -> AgentOut m e o 
@@ -86,7 +95,7 @@ agentOutMergeRight aoLeft aoRight
       aoRight 
 
 mergeAgentOut :: o
-              -> Maybe (TMVar e) 
+              -> Maybe (ReplyChannel e) 
               -> AgentOut m e o
               -> AgentOut m e o
               -> AgentOut m e o

@@ -170,8 +170,8 @@ lendingToHandler cont0 dueDate ns borrowerLoan@(Loan _ _ sugarFace spiceFace) =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent (borrowerId, LoanReply reply)) -> 
-            arrM (uncurry (handleLendingReply cont0)) -< (borrowerId, reply)
+          (DomainEvent borrowerId (LoanReply r)) -> 
+            arrM (uncurry (handleLendingReply cont0)) -< (borrowerId, r)
           _ -> do
             aid <- constM myId -< ()
             returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during lending, terminating simulation!")

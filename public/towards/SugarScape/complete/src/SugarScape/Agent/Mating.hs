@@ -101,9 +101,9 @@ matingHandler params myId amsf0 cont0 ns freeSites =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent (sender, MatingReply accept)) -> 
+          (DomainEvent sender (MatingReply accept)) -> 
             arrM (uncurry (handleMatingReply amsf0 cont0)) -< (sender, accept)
-          (DomainEvent (sender, MatingContinue)) -> 
+          (DomainEvent sender MatingContinue) -> 
             if sender /= myId 
               then returnA -< error $ "Agent " ++ show myId ++ ": received MatingContinue not from self, terminating!"
               else constM (mateWith params myId amsf0 cont0 ns) -< ()
@@ -157,12 +157,12 @@ matingHandler params myId amsf0 cont0 ns freeSites =
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao0 <- (newAgent childDef) <$> agentObservableM
+      ao0 <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
       let ao' = sendEventTo sender (MatingTx childId) ao0
       -- THEN continue with mating-requests to the remaining neighbours
       let ao'' = sendEventTo myId MatingContinue ao'
-
+      -- NOTE: cannot continue with mateWith because sendEventTo needs to be executed before!
       return (ao'', Nothing)
 
 crossOver :: MonadRandom m 

@@ -105,7 +105,7 @@ tradingHandler myId cont0 tradeInfos tradeOccured traders (price, sugEx, spiEx) 
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent (traderId, TradingReply reply)) -> 
+          (DomainEvent traderId (TradingReply reply)) -> 
             arrM (uncurry $ handleTradingReply cont0) -< (traderId, reply)
           _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Trading, terminating simulation!")
   where

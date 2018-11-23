@@ -186,7 +186,7 @@ simulationStep ss0 = (ssFinal, sao)
 
         -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
-        es' = map (\(receiver, domEvt) -> (receiver, DomainEvent (aid, domEvt))) (aoEvents ao) ++ es
+        es' = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents ao) ++ es
 
         -- update new signalfunction and agent-observable
         am' = Map.insert aid (asf', aoObservable ao) am

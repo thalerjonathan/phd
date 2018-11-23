@@ -27,7 +27,7 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: maybe add a reader for AgentId and SugarScapeScenario?
+-- TODO: add a reader for AgentId and SugarScapeScenario as in concurrent implementation
 agentMsf :: RandomGen g => SugarScapeAgent g
 agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
   (s', ao) <- runStateS (generalEventHandler params aid) -< (s, evt)
@@ -44,37 +44,51 @@ generalEventHandler params myId =
       case evt of 
         Tick -> 
           constM (handleTick params myId) -< ()
-        (DomainEvent (sender, MatingRequest otherGender)) -> do
+
+        -- MATING EVENTS
+        (DomainEvent sender (MatingRequest otherGender)) -> do
           ao <- arrM (uncurry (handleMatingRequest myId)) -< (sender, otherGender)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, MatingTx childId)) -> do
+        (DomainEvent sender (MatingTx childId)) -> do
           ao <- arrM (uncurry (handleMatingTx myId)) -< (sender, childId)
           returnA -< (ao, Nothing)
-        (DomainEvent (_, Inherit share)) -> do
+        
+        -- INHERITANCE EVENTS
+        (DomainEvent _ (Inherit share)) -> do
           ao <- arrM (handleInheritance myId) -< share
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, CulturalProcess tag)) -> do
+
+        -- CULTURAL PROCESS EVENTS
+        (DomainEvent sender (CulturalProcess tag)) -> do
           ao <- arrM (uncurry (handleCulturalProcess myId)) -< (sender, tag)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, KilledInCombat)) -> do
+
+        -- COMBAT EVENTS
+        (DomainEvent sender KilledInCombat) -> do
           ao <- arrM (handleKilledInCombat myId) -< sender
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, TradingOffer traderMrsBefore traderMrsAfter)) -> do
+
+        -- TRADING EVENTS
+        (DomainEvent sender (TradingOffer traderMrsBefore traderMrsAfter)) -> do
           ao <- arrM (uncurry3 (handleTradingOffer myId)) -< (sender, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
-        (DomainEvent (_, LoanOffer loan)) -> do
+
+        -- LOAN EVENTS
+        (DomainEvent _ (LoanOffer loan)) -> do
           ao <- arrM (handleLoanOffer myId) -< loan
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, LoanPayback loan sugarBack spiceBack)) -> do
+        (DomainEvent sender (LoanPayback loan sugarBack spiceBack)) -> do
           ao <- arrM (uncurry4 (handleLoanPayback params myId)) -< (sender, loan, sugarBack, spiceBack)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, LoanLenderDied children)) -> do
+        (DomainEvent sender (LoanLenderDied children)) -> do
           ao <- arrM (uncurry (handleLoanLenderDied myId)) -< (sender, children)
           returnA -< (ao, Nothing)
-        (DomainEvent (sender, LoanInherit loan)) -> do
+        (DomainEvent sender (LoanInherit loan)) -> do
           ao <- arrM (uncurry (handleLoanInherit myId)) -< (sender, loan)
           returnA -< (ao, Nothing)
-        (DomainEvent (_, DiseaseTransmit disease)) -> do
+
+        -- DISEASE EVENTS
+        (DomainEvent _ (DiseaseTransmit disease)) -> do
           ao <- arrM handleDiseaseTransmit -< disease
           returnA -< (ao, Nothing)
         _        -> 

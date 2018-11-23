@@ -31,8 +31,10 @@ type ReplyChannel e = TMVar (AgentId, e) -- sender, event
 data ABSEvent e = TickStart DTime
                 | TickEnd 
                 | DomainEvent AgentId e  -- sender, event
-                | DomainEventWithReply AgentId e (ReplyChannel e) -- NOTE: this is used to establish a multi-step Reply interaction using ReplyChannel
-                | Reply AgentId e (ReplyChannel e)                -- NOTE: could have used DomainEventWithReply but Reply makes it clear that we are communicating already using a ReplyChannel
+                
+                -- in both cases the first channel is the repyling channel, the second the receiving channel
+                | DomainEventWithReply AgentId e (ReplyChannel e) (ReplyChannel e) -- NOTE: this is used to establish a multi-step Reply interaction using ReplyChannel
+                | Reply AgentId e (ReplyChannel e) (ReplyChannel e)                -- NOTE: could have used DomainEventWithReply but Reply makes it clear that we are communicating already using a ReplyChannel
 
 data ABSCtx e = ABSCtx
   { absCtxIdVar     :: TVar AgentId  -- holds the NEXT agent-id 
@@ -44,8 +46,8 @@ instance Show e => Show (ABSEvent e) where
   show (TickStart dt) = "TickStart " ++ show dt 
   show TickEnd = "TickEnd"
   show (DomainEvent aid e) = "DomainEvent " ++ show aid ++ " (" ++ show e ++ ")"
-  show (DomainEventWithReply aid e _) = "DomainEventWithReply " ++ show aid ++ " (" ++ show e ++ ")"
-  show (Reply aid e _) = "Reply " ++ show aid ++ " (" ++ show e ++ ")"
+  show (DomainEventWithReply aid e _ _) = "DomainEventWithReply " ++ show aid ++ " (" ++ show e ++ ")"
+  show (Reply aid e _ _) = "Reply " ++ show aid ++ " (" ++ show e ++ ")"
 
 defaultAbsCtx :: STM (ABSCtx e)
 defaultAbsCtx = mkAbsCtx 0 

@@ -128,17 +128,18 @@ sendEventTo receiverId e = do
 
 sendEventToWithReply :: AgentId
                      -> SugEvent
-                     -> AgentLocalMonad g SugReplyChannel
+                     -> AgentLocalMonad g (SugReplyChannel, SugReplyChannel)
 sendEventToWithReply receiverId e = do
-  -- NOTE: is it not too expensive to create a new TMVar for each interaction?
-  -- NOTE: this is happening when writing to a TQueue as well (is implemented
-  -- underneath using TMVar)
-  replyChannel <- stmLift newEmptyTMVar
-  senderId <- myId
+  -- NOTE: is it not too expensive to create 2 new TMVars for each interaction?
+  -- NOTE: this is happening anyway when writing to a TQueue as well
+  receiveCh <- stmLift newEmptyTMVar -- this is the channel from receiver to initiator 
+  replyCh   <- stmLift newEmptyTMVar -- this is the channel from initiator to receiver
+  senderId  <- myId
 
-  sendEventToAux (DomainEventWithReply senderId e replyChannel) receiverId
+  -- NOTE: swapping channels, to match perspective of receiver
+  sendEventToAux (DomainEventWithReply senderId e receiveCh replyCh) receiverId
 
-  return replyChannel
+  return (receiveCh, replyCh)
 
 reply :: SugReplyChannel
       -> SugEvent

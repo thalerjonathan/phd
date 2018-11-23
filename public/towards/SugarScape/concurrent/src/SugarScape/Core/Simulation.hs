@@ -284,21 +284,23 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                          -> SugAgentMSF g
                          -> g
                          -> TQueue (ABSEvent SugEvent)
-                         -> Maybe SugReplyChannel
+                         -> Maybe (SugReplyChannel, SugReplyChannel)
                          -> IO (Maybe (SugAgentOut g), SugAgentMSF g, g)
-    processWhileMessages mao asf g q replyVar = do
+    processWhileMessages mao asf g q mics = do
       --putStrLn $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
-      ret <- executeSTM $ agentProcessNextMessage asf g q replyVar
+      ret <- executeSTM $ agentProcessNextMessage asf g q mics
       case ret of 
         Nothing -> return (mao, asf, g)
-        Just (ao, asf', g', replyVar') -> processWhileMessages (Just ao) asf' g' q replyVar'
+        Just (ao, asf', g') -> do
+          let mics' = aoInteractCh ao
+          processWhileMessages (Just ao) asf' g' q mics'
 
     agentProcessNextMessage :: RandomGen g
                             => SugAgentMSF g
                             -> g
                             -> TQueue (ABSEvent SugEvent)
-                            -> Maybe SugReplyChannel
-                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g, Maybe SugReplyChannel))
+                            -> Maybe (SugReplyChannel, SugReplyChannel)
+                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
     agentProcessNextMessage asf g q Nothing = do
       -- wait for next message, will block with retry when no message there
       --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
@@ -309,16 +311,16 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                     return Nothing -- finished, no output
         _       -> do
           (ao, asf', g') <- runAgentMSF asf evt ctx0 env g
-          return $ Just (ao, asf', g', aoReplyVar ao)
+          return $ Just (ao, asf', g')
 
-    agentProcessNextMessage asf g _ (Just var) = do
+    agentProcessNextMessage asf g _ (Just (receiveCh, replyCh)) = do
       -- wait for next message, will block with retry when no message there
       --DBG.trace ("Agent " ++ show aid0 ++ ": checking for next message..")
-      (senderId, evt) <- takeTMVar var
+      (senderId, evt) <- takeTMVar receiveCh
       --DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt) 
-      let absEvt = Reply senderId evt var
+      let absEvt = Reply senderId evt receiveCh replyCh
       (ao, asf', g') <- runAgentMSF asf absEvt ctx0 env g
-      return $ Just (ao, asf', g', aoReplyVar ao)
+      return $ Just (ao, asf', g')
 
     insertAgentQueue :: AgentId
                      -> TQueue (ABSEvent SugEvent)

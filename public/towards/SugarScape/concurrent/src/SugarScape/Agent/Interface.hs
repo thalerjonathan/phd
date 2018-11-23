@@ -8,7 +8,7 @@ module SugarScape.Agent.Interface
   , AgentOut (..)
 
   , observable
-  , setReplyChannel
+  , setInteractionChannels
 
   , agentOut
   , agentOutMergeLeft
@@ -41,7 +41,7 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !Bool
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
-  , aoReplyVar   :: !(Maybe (ReplyChannel e))
+  , aoInteractCh :: !(Maybe (ReplyChannel e, ReplyChannel e))  -- the interaction channels
   }
 
 agentOut :: o -> AgentOut m e o
@@ -49,7 +49,7 @@ agentOut o = AgentOut
   { aoKill       = False
   , aoCreate     = []
   , aoObservable = o
-  , aoReplyVar   = Nothing
+  , aoInteractCh = Nothing
   }
 
 isDead :: AgentOut m e o -> Bool
@@ -61,12 +61,13 @@ kill ao = ao { aoKill = True }
 observable :: AgentOut m e o -> o
 observable = aoObservable
 
-setReplyChannel :: ReplyChannel e
-                -> AgentOut m e o 
-                -> AgentOut m e o
-setReplyChannel ch ao 
-  | isJust $ aoReplyVar ao = error "Reply Channel already set!"
-  | otherwise = ao { aoReplyVar = Just ch }
+setInteractionChannels :: ReplyChannel e
+                       -> ReplyChannel e
+                       -> AgentOut m e o 
+                       -> AgentOut m e o
+setInteractionChannels receiveCh replyCh ao 
+  | isJust $ aoInteractCh ao = error "Interaction shannels already set!"
+  | otherwise = ao { aoInteractCh = Just (receiveCh, replyCh) }
 
 newAgent :: AgentDef m e o
          -> AgentOut m e o 
@@ -80,7 +81,7 @@ agentOutMergeLeft :: AgentOut m e o
 agentOutMergeLeft aoLeft aoRight
   = mergeAgentOut
       (aoObservable aoLeft)
-      (pickMaybe (aoReplyVar aoLeft) (aoReplyVar aoRight))
+      (pickMaybe (aoInteractCh aoLeft) (aoInteractCh aoRight))
       aoLeft
       aoRight
 
@@ -90,12 +91,12 @@ agentOutMergeRight :: AgentOut m e o
 agentOutMergeRight aoLeft aoRight 
   = mergeAgentOut 
       (aoObservable aoRight)
-      (pickMaybe (aoReplyVar aoRight) (aoReplyVar aoLeft))
+      (pickMaybe (aoInteractCh aoRight) (aoInteractCh aoLeft))
       aoLeft
       aoRight 
 
 mergeAgentOut :: o
-              -> Maybe (ReplyChannel e) 
+              -> Maybe (ReplyChannel e, ReplyChannel e) 
               -> AgentOut m e o
               -> AgentOut m e o
               -> AgentOut m e o
@@ -103,7 +104,7 @@ mergeAgentOut o rv aoLeft aoRight = AgentOut
   { aoKill       = aoKill aoLeft || aoKill aoRight
   , aoCreate     = aoCreate aoLeft ++ aoCreate aoRight
   , aoObservable = o
-  , aoReplyVar   = rv 
+  , aoInteractCh = rv 
   }
 
 pickMaybe :: Maybe a

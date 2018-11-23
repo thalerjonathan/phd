@@ -149,7 +149,6 @@ data LoanReply = AcceptLoan
 data SugEvent = MatingRequest AgentGender
               | MatingReply (Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)) -- in case of acceptance: Just share of sugar, spice, metab, vision
               | MatingTx AgentId
-              | MatingContinue
 
               | Inherit Double 
 

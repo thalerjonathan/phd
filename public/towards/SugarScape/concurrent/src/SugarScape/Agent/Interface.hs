@@ -41,7 +41,7 @@ data AgentOut m e o = AgentOut
   { aoKill       :: !Bool
   , aoCreate     :: ![AgentDef m e o]
   , aoObservable :: !o
-  , aoInteractCh :: !(Maybe (ReplyChannel e, ReplyChannel e))  -- the interaction channels
+  , aoInteractCh :: !(Maybe (ReplyChannel e, ReplyChannel e))  -- the interaction channels, receiving and replying channel
   }
 
 agentOut :: o -> AgentOut m e o

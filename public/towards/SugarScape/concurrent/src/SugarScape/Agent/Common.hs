@@ -132,12 +132,12 @@ sendEventToWithReply :: AgentId
 sendEventToWithReply receiverId e = do
   -- NOTE: is it not too expensive to create 2 new TMVars for each interaction?
   -- NOTE: this is happening anyway when writing to a TQueue as well
-  receiveCh <- stmLift newEmptyTMVar -- this is the channel from receiver to initiator 
-  replyCh   <- stmLift newEmptyTMVar -- this is the channel from initiator to receiver
+  receiveCh <- stmLift newEmptyTMVar  -- receive channel: from DomainEventWithReply receiver to this agent (initiator)
+  replyCh   <- stmLift newEmptyTMVar  -- reply channel:   from this agent (initiator) to DomainEventWithReply receiver
   senderId  <- myId
 
   -- NOTE: swapping channels, to match perspective of receiver
-  sendEventToAux (DomainEventWithReply senderId e receiveCh replyCh) receiverId
+  sendEventToAux (DomainEventWithReply senderId e replyCh receiveCh) receiverId
 
   return (receiveCh, replyCh)
 

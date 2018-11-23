@@ -32,7 +32,7 @@ data ABSEvent e = TickStart DTime
                 | TickEnd 
                 | DomainEvent AgentId e  -- sender, event
                 
-                -- in both cases the first channel is the repyling channel, the second the receiving channel
+                -- in both cases the first channel is the receiving channel, the second the replying channel
                 | DomainEventWithReply AgentId e (ReplyChannel e) (ReplyChannel e) -- NOTE: this is used to establish a multi-step Reply interaction using ReplyChannel
                 | Reply AgentId e (ReplyChannel e) (ReplyChannel e)                -- NOTE: could have used DomainEventWithReply but Reply makes it clear that we are communicating already using a ReplyChannel
 

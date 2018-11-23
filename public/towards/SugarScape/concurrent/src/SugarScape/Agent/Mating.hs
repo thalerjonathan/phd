@@ -89,8 +89,9 @@ mateWith amsf cont ((coord, site) : ns) =
           -- NOTE: switching from message-queue processing to reply-channel processing
           ao <- setInteractionChannels receiveCh replyCh <$> agentObservableM
 
-          aid <- myId
-          DBG.trace ("Agent " ++ show aid ++ ": is sending event MatingRequest to " ++ show matingPartnerId) $ return (ao, Just evtHandler))
+          _aid <- myId
+          --DBG.trace ("Agent " ++ show _aid ++ ": is sending event MatingRequest to " ++ show matingPartnerId) 
+          (return (ao, Just evtHandler)))
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
     cont
 
@@ -100,20 +101,12 @@ matingHandler :: RandomGen g
               -> [Discrete2dCell SugEnvSite]
               -> [(Discrete2dCoord, SugEnvSite)]
               -> EventHandler g
-matingHandler amsf0 cont0 ns freeSites = 
+matingHandler amsf0 cont0 _ns freeSites = 
     continueWithAfter
       (proc evt -> 
         case evt of
           (Reply sender (MatingReply accept) receiveCh replyCh) -> 
             arrM (uncurry4 (handleMatingReply amsf0 cont0)) -< (sender, receiveCh, replyCh, accept)
-            {-
-            TODO: remove MatingContinue
-          (DomainEvent (sender, MatingContinue)) -> do
-            aid <- constM myId -< ()
-            if sender /= aid 
-              then returnA -< error $ "Agent " ++ show aid ++ ": received MatingContinue not from self, terminating!"
-              else constM (mateWith amsf0 cont0 ns) -< () -- TODO: switch back to queue-processing
-              -}
           _ -> do
             aid <- constM myId -< ()
             returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
@@ -126,12 +119,13 @@ matingHandler amsf0 cont0 ns freeSites =
                       -> SugReplyChannel
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply amsf cont sender _receiveCh _replyCh Nothing = do -- the sender refuse the mating-request
-      aid <- myId
-      DBG.trace ("Agent " ++ show aid ++ ": received MatingReply Nothign from " ++ show sender)
+    handleMatingReply _amsf cont _sender _receiveCh _replyCh Nothing = do -- the sender refuse the mating-request
+      --aid <- myId
+      --DBG.trace ("Agent " ++ show aid ++ ": received MatingReply Nothign from " ++ show sender)
         -- NOTE: just carry on with next neighbours, will implicitly switch back to message-queue processing if
         -- trading is finished or will switch to a new reply channel in case of a new interaction
-        (mateWith amsf cont ns)
+        --TODO: (mateWith amsf cont ns)
+        cont
     handleMatingReply amsf cont sender _receiveCh replyCh
         (Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel
@@ -180,16 +174,63 @@ matingHandler amsf0 cont0 ns freeSites =
       aid <- myId
       DBG.trace ("Agent " ++ show aid ++ ": sending MatingTx to " ++ show sender) $ reply replyCh (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
-      -- NOTE: can call mateWith and then merge the aos? no need to spawn new agent immediately
-  
-      --aid <- myId
-      --sendEventTo aid MatingContinue  
-
-      (aoCont, mhdl) <- mateWith amsf cont ns
+      -- NOTE: can call mateWith and then merge the aos, no need to spawn new agent immediately
+      (aoCont, mhdl) <- cont -- TODO: mateWith amsf cont ns
       -- this will always succeed, aoNew has only new agent
       let ao = aoNew `agentOutMergeRight` aoCont
-
       return (ao, mhdl)
+      
+replyMatingRequest :: RandomGen g
+                   => AgentId
+                   -> SugReplyChannel
+                   -> SugReplyChannel
+                   -> AgentGender
+                   -> AgentLocalMonad g (SugAgentOut g)
+replyMatingRequest sender receiveCh replyCh otherGender = do
+  accept <- acceptMatingRequest otherGender
+
+  -- each parent provides half of its sugar-endowment for the endowment of the new-born child
+  acc <- if not accept
+      then return Nothing
+      else do
+        sugLvl  <- agentProperty sugAgSugarLevel
+        spiLvl  <- agentProperty sugAgSpiceLevel
+        metab   <- agentProperty sugAgSugarMetab
+        vision  <- agentProperty sugAgVision
+        culTag  <- agentProperty sugAgCultureTag
+        imSysGe <- agentProperty sugAgImSysGeno
+
+        return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
+
+  -- NOTE: we need to reply using the reply-channel provided
+  aid <- myId
+  DBG.trace ("Agent " ++ show aid ++ ": is replying MatingReply " ++ show acc ++ " to " ++ show sender)
+    (reply replyCh (MatingReply acc))
+
+  -- NOTE: switch to reply-channel processing, will receive MatingTX with child-id 
+  setInteractionChannels receiveCh replyCh <$> agentObservableM
+
+handleMatingTxReply :: RandomGen g
+                    => AgentId
+                    -> SugReplyChannel
+                    -> SugReplyChannel
+                    -> AgentId
+                    -> AgentLocalMonad g (SugAgentOut g)
+handleMatingTxReply _sender _receiveCh _replyCh childId = do
+  sugLvl <- agentProperty sugAgSugarLevel
+  spiLvl <- agentProperty sugAgSpiceLevel
+
+  -- subtract 50% wealth, each parent provides 50% of its wealth to the child
+  updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2
+                            , sugAgSpiceLevel = spiLvl / 2
+                            , sugAgChildren   = childId : sugAgChildren s})
+  -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
+  updateSiteOccupied
+
+  -- NOTE: go back to message-queue processing, this will implicitly switch back to message-queue processing
+  aid <- myId
+  DBG.trace ("Agent " ++ show aid ++ ": received MatingTx from " ++ show _sender)
+    agentObservableM
 
 crossOver :: MonadRandom m 
           => [Bool]
@@ -234,51 +275,3 @@ isAgentFertileWealth = do
   initSpiLvl <- agentProperty sugAgInitSpiEndow
   
   return $ sugLvl >= initSugLvl && spiLvl >= initSpiLvl
-
-replyMatingRequest :: RandomGen g
-                   => AgentId
-                   -> SugReplyChannel
-                   -> SugReplyChannel
-                   -> AgentGender
-                   -> AgentLocalMonad g (SugAgentOut g)
-replyMatingRequest sender replyCh receiveCh otherGender = do
-  accept <- acceptMatingRequest otherGender
-
-  -- each parent provides half of its sugar-endowment for the endowment of the new-born child
-  acc <- if not accept
-      then return Nothing
-      else do
-        sugLvl  <- agentProperty sugAgSugarLevel
-        spiLvl  <- agentProperty sugAgSpiceLevel
-        metab   <- agentProperty sugAgSugarMetab
-        vision  <- agentProperty sugAgVision
-        culTag  <- agentProperty sugAgCultureTag
-        imSysGe <- agentProperty sugAgImSysGeno
-
-        return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
-
-  -- NOTE: we need to reply using the reply-channel provided
-  aid <- myId
-  DBG.trace ("Agent " ++ show aid ++ ": is replying MatingReply to " ++ show sender) $ reply replyCh (MatingReply acc)
-
-  -- NOTE: switch to reply-channel processing, will receive MatingTX with child-id 
-  setInteractionChannels receiveCh replyCh <$> agentObservableM
-
-handleMatingTxReply :: RandomGen g
-                    => AgentId
-                    -> SugReplyChannel
-                    -> AgentId
-                    -> AgentLocalMonad g (SugAgentOut g)
-handleMatingTxReply _sender _ch childId = do
-  sugLvl <- agentProperty sugAgSugarLevel
-  spiLvl <- agentProperty sugAgSpiceLevel
-
-  -- subtract 50% wealth, each parent provides 50% of its wealth to the child
-  updateAgentState (\s -> s { sugAgSugarLevel = sugLvl / 2
-                            , sugAgSpiceLevel = spiLvl / 2
-                            , sugAgChildren   = childId : sugAgChildren s})
-  -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-  updateSiteOccupied
-
-  -- NOTE: go back to message-queue processing, this will implicitly switch back to message-queue processing
-  agentObservableM

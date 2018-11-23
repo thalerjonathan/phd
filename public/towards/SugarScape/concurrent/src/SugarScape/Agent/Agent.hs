@@ -42,11 +42,11 @@ generalEventHandler =
           arrM handleTick -< dt
 
         -- MATING EVENTS
-        (DomainEventWithReply sender (MatingRequest otherGender) replyCh receiveCh) -> do
-          ao <- arrM (uncurry4 replyMatingRequest) -< (sender, replyCh, receiveCh, otherGender)
+        (DomainEventWithReply sender (MatingRequest otherGender) receiveCh replyCh) -> do
+          ao <- arrM (uncurry4 replyMatingRequest) -< (sender, receiveCh, replyCh, otherGender)
           returnA -< (ao, Nothing)
-        (Reply sender (MatingTx childId) ch _) -> do
-          ao <- arrM (uncurry3 handleMatingTxReply) -< (sender, ch, childId)
+        (Reply sender (MatingTx childId) receiveCh replyCh) -> do
+          ao <- arrM (uncurry4 handleMatingTxReply) -< (sender, receiveCh, replyCh, childId)
           returnA -< (ao, Nothing)
 
         -- INHERITANCE EVENTS

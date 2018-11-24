@@ -26,10 +26,12 @@ import SugarScape.Core.Common
 import SugarScape.Core.Model
 import SugarScape.Core.Utils
 
+-- import Debug.Trace as DBG
+
 ------------------------------------------------------------------------------------------------------------------------
 agentMsf :: RandomGen g => SugarScapeAgent g
 agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
-  (s', ao) <- runStateS (runReaderS generalEventHandler) -< (s, ((params, aid), evt))
+  (s', ao) <- runStateS (runReaderS generalEventHandler) -< (s, ((params, aid), evt)) --DBG.trace ("Agent " ++ show aid ++ " running ...") 
   returnA -< (ao, s'))
   
 generalEventHandler :: RandomGen g => EventHandler g

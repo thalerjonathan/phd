@@ -32,11 +32,10 @@ data Options = Options
   , optRngSeed  :: Maybe Int
   }
 
--- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape-concurrent -s "Animation II-1" -v 0 --ac Default --sc Resource -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Animation III-1" -f 1000 -o export/dynamics.m -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Animation III-1" -v 0 --ac Default --sc Resource -r 42
 
 -- TODO
--- -> fix bug with continuations in Mating
 -- -> check semantics of TQueue: when does a retry happen - does it happen when another thread writes to a queue a thread has read before?
 -- -> remove unsafePerformIO for reading Environment in Renderer and Tests
 -- -> remove busy waiting in main-thread with cleverer technique, results in loads of retries

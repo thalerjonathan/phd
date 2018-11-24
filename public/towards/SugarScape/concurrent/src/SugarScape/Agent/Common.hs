@@ -101,10 +101,10 @@ envRun f = do
   stmLift (f env)
 
 myId :: AgentLocalMonad g AgentId
-myId = snd <$> ask
+myId = asks snd
 
 scenario :: AgentLocalMonad g SugarScapeScenario
-scenario = fst <$> ask
+scenario = asks fst
 
 -- NOTE: one-way only, no sync possible 
 broadcastEvent :: [AgentId]
@@ -137,6 +137,7 @@ sendEventToWithReply receiverId e = do
   senderId  <- myId
 
   -- NOTE: swapping channels, to match perspective of receiver
+  -- NOTE: sender must ensure that the receiver does actually exist, otherwise no way for reply
   sendEventToAux (DomainEventWithReply senderId e replyCh receiveCh) receiverId
 
   return (receiveCh, replyCh)
@@ -157,7 +158,7 @@ sendEventToAux evt receiverId = do
 
   let mq = Map.lookup receiverId msgQs
   case mq of
-    Nothing -> return () -- not found, ignore (maybe already dead)
+    Nothing -> error $ "Receiver of event " ++ show evt ++ " does not exist: Agent " ++ show receiverId --return () -- not found, ignore (maybe already dead)
     Just q  -> stmLift $ writeTQueue q evt
 
 neighbourAgentIds :: AgentLocalMonad g [AgentId]

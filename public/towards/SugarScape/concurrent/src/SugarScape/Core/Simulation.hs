@@ -24,7 +24,7 @@ import System.Random
 import Control.Concurrent.STM.TVar
 import Control.Concurrent.STM.TMVar
 import Control.Concurrent.STM.TQueue
-import Control.Concurrent.STM.Stats
+-- import Control.Concurrent.STM.Stats
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.STM
@@ -40,7 +40,7 @@ import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils 
 
-import Debug.Trace as DBG
+--import Debug.Trace as DBG
 
 type AgentObservable o    = (AgentId, o)
 type SugarScapeObservable = AgentObservable SugAgentObservable
@@ -138,19 +138,23 @@ simulationTick ss0 = do
 
     -- agents are blocking at that point because of a retry on their queue
 
+    --putStrLn "Core writes TickStart..."
     -- insert TickStart into each agents queue => will unblock them and all agents start working
     -- NOTE: no need to shuffle, concurrency will introduce randomness endogenously ;)
     mapM_ (writeTickStart sugarScapeTimeDelta) allQs
 
+    --putStrLn "Core waiting for all Queues empty..."
     -- wait until all agents have consumed their messages, which will
     -- leave them blocking on their queue because of retry
     -- TODO: this busy waiting causes a lot of retries, can we do it in a more clever way without causing (that many) retries?
     whileM (notM $ allQueuesEmpty allQs) (return ())
 
+    --putStrLn "Core writes TickEnd..."
     -- notify agents that this tick has finished: send TickEnd which will
     -- unblock them all and terminate their message-checking function
     mapM_ writeTickEnd allQs
 
+    --putStrLn "Waiting for thread outputs..."
     -- after TickEnd each agent will signal its output back to the main thread
     aos <- mapM takeMVar outVars  
 
@@ -232,7 +236,7 @@ simulationTick ss0 = do
         aobs  = map (\(aid, ao) -> (aid, observable ao)) aos
 
 executeSTM :: STM a -> IO a
-executeSTM = trackSTM -- atomically
+executeSTM = atomically -- atomically trackSTM
 
 createAgentThread :: RandomGen g
                   => AgentId
@@ -295,6 +299,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
         Nothing -> return (mao, asf, g)
         Just (ao, asf', g') -> do
           let mics' = aoInteractCh ao
+          --DBG.traceIO $ "Agent " ++ show aid0 ++ " has interaction channels: " ++ maybe "NO" (const "YES") mics'
           processWhileMessages (Just ao) asf' g' q mics'
 
     agentProcessNextMessage :: RandomGen g
@@ -305,19 +310,23 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                             -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
     agentProcessNextMessage asf g q Nothing = do
       -- wait for next message, will block with retry when no message there
-      evt <- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-queue for next message..") (readTQueue q)
+      evt <- -- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-queue for next message..") 
+              readTQueue q
       case evt of
-        TickEnd -> -- DBG.trace ("Agent " ++ show aid0 ++ ": received TickEnd, finished with this tick") 
+        TickEnd -> --DBG.trace ("Agent " ++ show aid0 ++ ": received TickEnd, finished with this tick") 
                     return Nothing -- finished, no output
         _       -> do
-          (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message on message-queue " ++ show evt) (runAgentMSF asf evt ctx0 env g)
+          (ao, asf', g') <- --DBG.trace ("Agent " ++ show aid0 ++ ": got message on message-queue " ++ show evt) 
+                          runAgentMSF asf evt ctx0 env g
           return $ Just (ao, asf', g')
 
     agentProcessNextMessage asf g _ (Just (receiveCh, replyCh)) = do
       -- wait for next message, will block with retry when no message there
-      (senderId, evt) <- DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") (takeTMVar receiveCh)
+      (senderId, evt) <- --DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") 
+                        takeTMVar receiveCh
       let absEvt = Reply senderId evt receiveCh replyCh
-      (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message on receiving channel " ++ show evt) (runAgentMSF asf absEvt ctx0 env g)
+      (ao, asf', g') <- -- DBG.trace ("Agent " ++ show aid0 ++ ": got message on receiving channel " ++ show evt) 
+                        runAgentMSF asf absEvt ctx0 env g
       return $ Just (ao, asf', g')
 
     insertAgentQueue :: AgentId

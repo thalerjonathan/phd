@@ -24,7 +24,7 @@ import System.Random
 import Control.Concurrent.STM.TVar
 import Control.Concurrent.STM.TMVar
 import Control.Concurrent.STM.TQueue
--- import Control.Concurrent.STM.Stats
+--import Control.Concurrent.STM.Stats
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.STM
@@ -94,8 +94,11 @@ initSimulationRng g0 params = do
 
   absCtx <- executeSTM $ mkAbsCtx $ maximum initAis
 
-  outVars <- zipWithM (\(aid, _, asf) ga -> 
-              createAgentThread aid asf ga initEnv absCtx) initAs rngs
+  outVars <- zipWithM (\(aid, _, asf) ga -> do
+    (ov, q) <- createAgentThread aid asf ga initEnv absCtx
+    -- add this queue to the map of all agent message queues
+    insertAgentQueue aid q absCtx
+    return ov) initAs rngs
 
   let initSimState = mkSimState absCtx initEnv initEnvBeh g' outVars
 
@@ -160,9 +163,11 @@ simulationTick ss0 = do
 
     -- agents have finished at that point and are blocking again
 
+    --putStrLn "Running the environment..."
     -- run the environment
     runEnv ss0
 
+    --putStrLn "Processing dead agents..."
     -- remove tick and out vars and queue of killed agents
     outVars' <- foldM (\acc ((aid, ao), ov) -> 
                         if not $ isDead ao
@@ -175,12 +180,16 @@ simulationTick ss0 = do
     let newAdefs   = concatMap (aoCreate . snd) aos
         (rngs, g') = rngSplits (length newAdefs) g
 
+    --putStrLn $ "Spawning " ++ show (length newAdefs) ++ " new agents..."
+
     (newOutVars, newAobs) <- unzip <$> zipWithM (\ad ga -> do
       let aid  = adId ad
           asf  = adSf ad
           aobs = adInitObs ad
 
-      ov <- createAgentThread aid asf ga (simStEnv ss0) ctx
+      (ov, q) <- createAgentThread aid asf ga (simStEnv ss0) ctx
+      -- add this queue to the map of all agent message queues
+      insertAgentQueue aid q ctx
       return (ov, (aid, aobs))) newAdefs rngs
 
     -- construct output for this tick and also add new agents observables to out
@@ -188,8 +197,8 @@ simulationTick ss0 = do
         out' = (tOut, evtOut, aobs ++ newAobs)
 
     -- update changed tick and out variables and rng
-    let ss = ss0 { simStOutVars  = outVars'  ++ newOutVars
-                 , simStRng      = g' }
+    let ss = ss0 { simStOutVars = outVars' ++ newOutVars
+                 , simStRng     = g' }
     -- increment time in simulation state
     let ss' = incrementTime ss
 
@@ -235,6 +244,16 @@ simulationTick ss0 = do
         env   = simStEnv ss
         aobs  = map (\(aid, ao) -> (aid, observable ao)) aos
 
+insertAgentQueue :: AgentId
+                  -> TQueue (ABSEvent SugEvent)
+                  -> ABSCtx SugEvent
+                  -> IO ()
+insertAgentQueue aid q ctx = do
+  --putStrLn $ "insertAgentQueue aid = " ++ show aid
+
+  let msgQsVar = absCtxMsgQueues ctx
+  executeSTM $ modifyTVar msgQsVar (Map.insert aid q)
+
 executeSTM :: STM a -> IO a
 executeSTM = atomically -- atomically trackSTM
 
@@ -244,17 +263,15 @@ createAgentThread :: RandomGen g
                   -> g
                   -> SugEnvironment
                   -> ABSCtx SugEvent
-                  -> IO (MVar (AgentId, SugAgentOut g))
+                  -> IO (MVar (AgentId, SugAgentOut g), TQueue (ABSEvent SugEvent))
 createAgentThread aid0 asf0 g0 env ctx0 = do 
     -- mvar for sending agent-out to main thread
     outVar <- newEmptyMVar
     -- message queue of this agent for receiving messages from others (and main thread: TickStart / TickEnd)
     q <- executeSTM newTQueue
-    -- add this queue to the map of all agent message queues
-    insertAgentQueue aid0 q ctx0
     -- start thread
     _ <- forkIO $ agentThread asf0 g0 outVar q
-    return outVar
+    return (outVar, q)
   where
     agentThread :: RandomGen g
                 => SugAgentMSF g
@@ -282,8 +299,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
         (isDead ao)
         -- not dead, continue with work
         (agentThread asf' g' outVar q)
-        
-      -- agent is dead, terminate thread, removal of agent queue is handled by main thread
+        -- agent is dead, terminate thread, removal of agent queue is handled by main thread
 
     processWhileMessages :: RandomGen g
                          => Maybe (SugAgentOut g)
@@ -328,14 +344,6 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
       (ao, asf', g') <- -- DBG.trace ("Agent " ++ show aid0 ++ ": got message on receiving channel " ++ show evt) 
                         runAgentMSF asf absEvt ctx0 env g
       return $ Just (ao, asf', g')
-
-    insertAgentQueue :: AgentId
-                     -> TQueue (ABSEvent SugEvent)
-                     -> ABSCtx SugEvent
-                     -> IO ()
-    insertAgentQueue aid q ctx = do
-      let msgQsVar = absCtxMsgQueues ctx
-      executeSTM $ modifyTVar msgQsVar (Map.insert aid q)
 
 runAgentMSF :: RandomGen g
             => SugAgentMSF g

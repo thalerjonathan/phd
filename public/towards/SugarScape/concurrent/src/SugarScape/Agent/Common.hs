@@ -175,7 +175,7 @@ getSimTime = absCtxLift $ reader absCtxTime
 nextAgentId :: AgentLocalMonad g AgentId
 nextAgentId = do
   aidVar <- absCtxLift $ reader absCtxIdVar
-  stmLift $ stateTVar aidVar (\i -> (i+1, i))
+  stmLift $ stateTVar aidVar (\i -> (i, i+1))
 
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState as = SugAgentObservable

@@ -141,23 +141,23 @@ simulationTick ss0 = do
 
     -- agents are blocking at that point because of a retry on their queue
 
-    --putStrLn "Core writes TickStart..."
+    putStrLn "Core writes TickStart..."
     -- insert TickStart into each agents queue => will unblock them and all agents start working
     -- NOTE: no need to shuffle, concurrency will introduce randomness endogenously ;)
     mapM_ (writeTickStart sugarScapeTimeDelta) allQs
 
-    --putStrLn "Core waiting for all Queues empty..."
+    putStrLn "Core waiting for all Queues empty..."
     -- wait until all agents have consumed their messages, which will
     -- leave them blocking on their queue because of retry
     -- TODO: this busy waiting causes a lot of retries, can we do it in a more clever way without causing (that many) retries?
     whileM (notM $ allQueuesEmpty allQs) (return ())
 
-    --putStrLn "Core writes TickEnd..."
+    putStrLn "Core writes TickEnd..."
     -- notify agents that this tick has finished: send TickEnd which will
     -- unblock them all and terminate their message-checking function
     mapM_ writeTickEnd allQs
 
-    --putStrLn "Waiting for thread outputs..."
+    putStrLn "Waiting for thread outputs..."
     -- after TickEnd each agent will signal its output back to the main thread
     aos <- mapM takeMVar outVars  
 
@@ -167,7 +167,7 @@ simulationTick ss0 = do
     -- run the environment
     runEnv ss0
 
-    --putStrLn "Processing dead agents..."
+    putStrLn "Processing dead agents..."
     -- remove tick and out vars and queue of killed agents
     outVars' <- foldM (\acc ((aid, ao), ov) -> 
                         if not $ isDead ao
@@ -180,7 +180,7 @@ simulationTick ss0 = do
     let newAdefs   = concatMap (aoCreate . snd) aos
         (rngs, g') = rngSplits (length newAdefs) g
 
-    --putStrLn $ "Spawning " ++ show (length newAdefs) ++ " new agents..."
+    putStrLn $ "Spawning " ++ show (length newAdefs) ++ " new agents..."
 
     (newOutVars, newAobs) <- unzip <$> zipWithM (\ad ga -> do
       let aid  = adId ad

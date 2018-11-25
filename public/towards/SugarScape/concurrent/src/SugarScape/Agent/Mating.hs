@@ -25,7 +25,7 @@ import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
---import Debug.Trace as DBG
+import Debug.Trace as DBG
 
 agentMating :: RandomGen g
             => SugarScapeAgent g              -- the top-level MSF of the agent, to be used for birthing children
@@ -87,7 +87,7 @@ mateWith amsf cont ((coord, site) : ns) =
           (receiveCh, replyCh) <- sendEventToWithReply matingPartnerId (MatingRequest myGender)
 
           -- NOTE: switching from message-queue processing to reply-channel processing
-          ao <- setInteractionChannels receiveCh replyCh <$> agentObservableM
+          ao <- switchInteractionChannels receiveCh replyCh <$> agentObservableM
 
           _aid <- myId
           --DBG.trace ("Agent " ++ show _aid ++ ": is sending event MatingRequest to " ++ show matingPartnerId) 
@@ -119,8 +119,8 @@ matingHandler amsf0 cont0 _ns freeSites =
                       -> SugReplyChannel
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply _amsf cont _sender _receiveCh _replyCh Nothing = do -- the sender refuse the mating-request
-      _aid <- myId
+    handleMatingReply _amsf cont _sender _receiveCh _replyCh Nothing = -- the sender refuse the mating-request
+      --_aid <- myId
       --DBG.trace ("Agent " ++ show _aid ++ ": received MatingReply Nothign from " ++ show _sender)
         -- NOTE: just carry on with next neighbours, will implicitly switch back to message-queue processing if
         -- trading is finished or will switch to a new reply channel in case of a new interaction
@@ -170,9 +170,9 @@ matingHandler amsf0 cont0 _ns freeSites =
       aoNew <- newAgent childDef <$> agentObservableM
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
       -- NOTE: use reply as well because transacting resources, must not be violated!
-      --_aid <- myId
-      --DBG.trace ("Agent " ++ show _aid ++ ": sending MatingTx to " ++ show _sender) 
-      reply replyCh (MatingTx childId)
+      _aid <- myId
+      DBG.trace ("Agent " ++ show _aid ++ ": sending MatingTx to " ++ show _sender) 
+        (reply replyCh (MatingTx childId))
 
       -- THEN continue with mating-requests to the remaining neighbours
       -- NOTE: can call mateWith and then merge the aos, no need to spawn new agent immediately
@@ -204,9 +204,9 @@ replyMatingRequest _sender receiveCh replyCh otherGender = do
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
   -- NOTE: we need to reply using the reply-channel provided
-  --_aid <- myId
-  -- DBG.trace ("Agent " ++ show _aid ++ ": is replying MatingReply " ++ show acc ++ " to " ++ show _sender)
-  reply replyCh (MatingReply acc)
+  _aid <- myId
+  DBG.trace ("Agent " ++ show _aid ++ ": is replying MatingReply " ++ show acc ++ " to " ++ show _sender)
+    (reply replyCh (MatingReply acc))
 
   if not accept
     then
@@ -214,7 +214,7 @@ replyMatingRequest _sender receiveCh replyCh otherGender = do
       agentObservableM
     else 
       -- NOTE: switch to reply-channel processing, will receive MatingTX with child-id 
-      setInteractionChannels receiveCh replyCh <$> agentObservableM
+      switchInteractionChannels receiveCh replyCh <$> agentObservableM
 
 handleMatingTxReply :: RandomGen g
                     => AgentId
@@ -234,9 +234,9 @@ handleMatingTxReply _sender _receiveCh _replyCh childId = do
   updateSiteOccupied
 
   -- NOTE: go back to message-queue processing, interaction finished
-  --_aid <- myId
-  --DBG.trace ("Agent " ++ show _aid ++ ": received MatingTx from " ++ show _sender)
-  agentObservableM
+  _aid <- myId
+  DBG.trace ("Agent " ++ show _aid ++ ": received MatingTx from " ++ show _sender)
+    agentObservableM
 
 crossOver :: MonadRandom m 
           => [Bool]

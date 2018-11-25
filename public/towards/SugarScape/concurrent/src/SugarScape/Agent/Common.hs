@@ -158,7 +158,9 @@ sendEventToAux evt receiverId = do
 
   let mq = Map.lookup receiverId msgQs
   case mq of
-    Nothing -> error $ "Receiver of event " ++ show evt ++ " does not exist: Agent " ++ show receiverId --return () -- not found, ignore (maybe already dead)
+    -- TODO: in case of inheritance it could happen that the receiver is already
+    -- dead, then we want to ignore this case. Leave it in for debugging purposes
+    Nothing -> error $ "Receiver of event " ++ show evt ++ " does not exist: Agent " ++ show receiverId 
     Just q  -> stmLift $ writeTQueue q evt
 
 neighbourAgentIds :: AgentLocalMonad g [AgentId]

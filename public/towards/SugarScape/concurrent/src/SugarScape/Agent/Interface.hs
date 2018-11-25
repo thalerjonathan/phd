@@ -8,7 +8,7 @@ module SugarScape.Agent.Interface
   , AgentOut (..)
 
   , observable
-  , setInteractionChannels
+  , switchInteractionChannels
 
   , agentOut
   , agentOutMergeLeft
@@ -61,11 +61,11 @@ kill ao = ao { aoKill = True }
 observable :: AgentOut m e o -> o
 observable = aoObservable
 
-setInteractionChannels :: ReplyChannel e
-                       -> ReplyChannel e
-                       -> AgentOut m e o 
-                       -> AgentOut m e o
-setInteractionChannels receiveCh replyCh ao 
+switchInteractionChannels :: ReplyChannel e
+                          -> ReplyChannel e
+                          -> AgentOut m e o 
+                          -> AgentOut m e o
+switchInteractionChannels receiveCh replyCh ao 
   | isJust $ aoInteractCh ao = error "Interaction shannels already set!"
   | otherwise = ao { aoInteractCh = Just (receiveCh, replyCh) }
 

@@ -40,7 +40,7 @@ import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils 
 
---import Debug.Trace as DBG
+import Debug.Trace as DBG
 
 type AgentObservable o    = (AgentId, o)
 type SugarScapeObservable = AgentObservable SugAgentObservable
@@ -315,8 +315,12 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
         Nothing -> return (mao, asf, g)
         Just (ao, asf', g') -> do
           let mics' = aoInteractCh ao
+              -- merge agent outs with the new ao having priority
+              ao'   = maybe ao (agentOutMergeLeft ao) mao
+              ao''  = ao' { aoInteractCh = Nothing } -- override channels to nothing
+
           --DBG.traceIO $ "Agent " ++ show aid0 ++ " has interaction channels: " ++ maybe "NO" (const "YES") mics'
-          processWhileMessages (Just ao) asf' g' q mics'
+          processWhileMessages (Just ao'') asf' g' q mics'
 
     agentProcessNextMessage :: RandomGen g
                             => SugAgentMSF g
@@ -326,22 +330,22 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                             -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
     agentProcessNextMessage asf g q Nothing = do
       -- wait for next message, will block with retry when no message there
-      evt <- -- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-queue for next message..") 
+      evt <- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-queue for next message..") 
               readTQueue q
       case evt of
-        TickEnd -> --DBG.trace ("Agent " ++ show aid0 ++ ": received TickEnd, finished with this tick") 
+        TickEnd -> DBG.trace ("Agent " ++ show aid0 ++ ": received TickEnd, finished with this tick") 
                     return Nothing -- finished, no output
         _       -> do
-          (ao, asf', g') <- --DBG.trace ("Agent " ++ show aid0 ++ ": got message on message-queue " ++ show evt) 
-                          runAgentMSF asf evt ctx0 env g
+          (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message on message-queue " ++ show evt) 
+                              runAgentMSF asf evt ctx0 env g
           return $ Just (ao, asf', g')
 
     agentProcessNextMessage asf g _ (Just (receiveCh, replyCh)) = do
       -- wait for next message, will block with retry when no message there
-      (senderId, evt) <- --DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") 
-                        takeTMVar receiveCh
+      (senderId, evt) <- DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") 
+                          takeTMVar receiveCh
       let absEvt = Reply senderId evt receiveCh replyCh
-      (ao, asf', g') <- -- DBG.trace ("Agent " ++ show aid0 ++ ": got message on receiving channel " ++ show evt) 
+      (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message on receiving channel " ++ show evt) 
                         runAgentMSF asf absEvt ctx0 env g
       return $ Just (ao, asf', g')
 

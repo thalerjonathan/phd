@@ -90,8 +90,8 @@ mateWith amsf cont ((coord, site) : ns) =
           ao <- switchInteractionChannels receiveCh replyCh <$> agentObservableM
 
           _aid <- myId
-          --DBG.trace ("Agent " ++ show _aid ++ ": is sending event MatingRequest to " ++ show matingPartnerId) 
-          return (ao, Just evtHandler))
+          DBG.trace ("Agent " ++ show _aid ++ ": is sending event MatingRequest to " ++ show matingPartnerId) 
+            (return (ao, Just evtHandler)))
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
     cont
 
@@ -119,12 +119,12 @@ matingHandler amsf0 cont0 _ns freeSites =
                       -> SugReplyChannel
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-    handleMatingReply _amsf cont _sender _receiveCh _replyCh Nothing = -- the sender refuse the mating-request
-      --_aid <- myId
-      --DBG.trace ("Agent " ++ show _aid ++ ": received MatingReply Nothign from " ++ show _sender)
+    handleMatingReply _amsf cont _sender _receiveCh _replyCh Nothing = do -- the sender refuse the mating-request
+      _aid <- myId
+      DBG.trace ("Agent " ++ show _aid ++ ": received MatingReply Nothign from " ++ show _sender)
         -- NOTE: just carry on with next neighbours, will implicitly switch back to message-queue processing if
         -- trading is finished or will switch to a new reply channel in case of a new interaction
-      mateWith _amsf cont _ns
+        mateWith _amsf cont _ns
     handleMatingReply amsf cont _sender _receiveCh replyCh
         (Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) = do -- the sender accepts the mating-request
       mySugLvl  <- agentProperty sugAgSugarLevel

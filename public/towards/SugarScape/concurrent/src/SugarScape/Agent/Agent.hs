@@ -72,8 +72,8 @@ generalEventHandler =
           returnA -< (ao, Nothing)
 
         -- LOAN EVENTS
-        (DomainEvent _ (LoanOffer loan)) -> do
-          ao <- arrM handleLoanOffer -< loan
+        (DomainEventWithReply _ (LoanOffer loan) receiveCh replyCh) -> do
+          ao <- arrM (uncurry3 replyLoanOffer) -< (receiveCh, replyCh, loan)
           returnA -< (ao, Nothing)
         (DomainEvent sender (LoanPayback loan sugarBack spiceBack)) -> do
           ao <- arrM (uncurry4 handleLoanPayback) -< (sender, loan, sugarBack, spiceBack)

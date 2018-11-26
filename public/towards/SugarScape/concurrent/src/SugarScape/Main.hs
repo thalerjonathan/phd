@@ -37,15 +37,8 @@ data Options = Options
 -- clear & stack exec -- sugarscape-concurrent -s "Figure IV-3" -v 0 --ac Default --sc Resource -r 42
 
 -- TODOs
--- BUG: Animation III-1 blocks after 11 steps (in the 12th), probably process message has some sort of bug
--- BUG: new borns are placed already on the Environment but cant react to incoming messages 
---  yet because no thread running. also their queue shoulndt be found when messaging them because not 
---  yet inserted => should result in errror. program with maybe as exceptions
--- BUG: Tickstart agentout will be overridden in case an agent receives other messages. this could
---  lead to newagents be placed on the Environment but not actually created => block in the following 
---  step when fetching them. merge agentout in agenthread instead of overriding.
--- BUG: loans not working correctly yet
--- MISSING: concurrent Interactions in remaining features 
+-- BUG: Mating, Trading and Lending blocks, unclear why. Hypothesise a bug in Core.Simulation 
+-- BUG: loans not working correctly yet when inheritance is turned on
 -- CLEANUP: remove unsafePerformIO for reading Environment in Renderer and Tests
 -- PERFORMANCE: more than 50% of time used in main thread waiting for all queues to empty.
 --  still faster than sequential but can we do better? huge Potential for Performance improvemrnt

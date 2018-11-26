@@ -3,7 +3,7 @@
 module SugarScape.Agent.Loan
   ( agentLoan
 
-  , handleLoanOffer
+  , replyLoanOffer
   , handleLoanPayback
   , handleLoanLenderDied
   , handleLoanInherit
@@ -90,7 +90,7 @@ checkBorrowedLoans = do
               -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
               updateSiteOccupied
 
-              -- NOTE: this is really just one-way and no need for a synchronised reply
+              -- NOTE: this is just one-way and no need for a synchronised reply
               sendEventTo lender (LoanPayback borrowerLoan sugPay spiPay)
               aid <- myId
               DBG.trace ("Agent " ++ show aid ++ ": " ++ show borrowerLoan ++ " is now due at t = " ++ show t ++ ", pay FULLY back to lender " ++ show lender)
@@ -103,7 +103,7 @@ checkBorrowedLoans = do
                   spiPay' = min spiceFace spiLvl / 2  
                   c'      = Loan dueDate' lender (sugarFace - sugPay') (spiceFace - spiPay')
               
-              -- NOTE: this is really just one-way and no need for a synchronised reply
+              -- NOTE: this is just one-way and no need for a synchronised reply
               sendEventTo lender (LoanPayback borrowerLoan sugPay' spiPay')
 
               -- NOTE: need to adjust wealth already here otherwise could pay more back than this agent has
@@ -153,11 +153,10 @@ lendTo cont dueDate (neighbour : ns) = do
       let borrowerId   = sugEnvOccId neighbour
           borrowerLoan = Loan dueDate aid sug spi
           evtHandler   = lendingToHandler cont dueDate ns borrowerLoan
-          
-      ao <- agentObservableM
 
-      -- TODO: use sendEventToWithReply
-      sendEventTo borrowerId (LoanOffer borrowerLoan)
+      -- expecting reply => synchronous interaction
+      (receiveCh, replyCh) <- sendEventToWithReply borrowerId (LoanOffer borrowerLoan)
+      ao <- switchInteractionChannels receiveCh replyCh <$> agentObservableM
       return (ao, Just evtHandler)
 
 lendingToHandler :: RandomGen g
@@ -170,7 +169,7 @@ lendingToHandler cont0 dueDate ns borrowerLoan@(Loan _ _ sugarFace spiceFace) =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent borrowerId (LoanReply r)) -> 
+          (Reply borrowerId (LoanReply r) _ _) -> 
             arrM (uncurry (handleLendingReply cont0)) -< (borrowerId, r)
           _ -> do
             aid <- constM myId -< ()
@@ -198,15 +197,17 @@ lendingToHandler cont0 dueDate ns borrowerLoan@(Loan _ _ sugarFace spiceFace) =
       DBG.trace ("Agent " ++ show aid ++ ": lending " ++ show borrowerLoan ++ " to " ++ show borrowerId ++ " with lenderLoan = " ++ show lenderLoan) 
                   lendTo cont dueDate ns
 
-handleLoanOffer :: RandomGen g
-                => Loan
-                -> AgentLocalMonad g (SugAgentOut g)
-handleLoanOffer borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
+replyLoanOffer :: RandomGen g
+               => SugReplyChannel
+               -> SugReplyChannel
+               -> Loan
+               -> AgentLocalMonad g (SugAgentOut g)
+replyLoanOffer _receiveCh replyCh borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
   pb <- potentialBorrower
   case pb of
     Just reason -> do
-      -- TODO: use replyChannel
-      sendEventTo lender (LoanReply $ RefuseLoan reason)
+      -- refuse loan offer
+      reply replyCh (LoanReply $ RefuseLoan reason)
       agentObservableM
 
     Nothing -> do
@@ -218,8 +219,8 @@ handleLoanOffer borrowerLoan@(Loan _ lender sugarFace spiceFace) = do
       -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
       updateSiteOccupied
 
-      -- TODO: use replyChannel
-      sendEventTo lender (LoanReply AcceptLoan)
+      -- accept loan offer
+      reply replyCh (LoanReply AcceptLoan)
       aid <- myId
       DBG.trace ("Agent " ++ show aid ++ ": borrowing " ++ show borrowerLoan ++ " from " ++ show lender)
         agentObservableM
@@ -236,9 +237,9 @@ handleLoanPayback borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sug
     rate       <- ((/100) . snd . fromJust . spLoansEnabled) <$> scenario 
 
     aid <- myId
-    ls <- processBorrower rate aid newDueDate <$> agentProperty sugAgLent
+    ls  <- processBorrower rate aid newDueDate <$> agentProperty sugAgLent
 
-    updateAgentState (\s -> s { sugAgLent = ls
+    updateAgentState (\s -> s { sugAgLent       = ls
                               , sugAgSugarLevel = sugAgSugarLevel s + sugarBack
                               , sugAgSpiceLevel = sugAgSpiceLevel s + spiceBack})
     -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
@@ -252,6 +253,7 @@ handleLoanPayback borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sug
                     -> [Loan]
     processBorrower rate aid newDueDate ls 
         -- TODO: when inheritance is turned on, this error occurs sometimes, no idea why
+        -- TODO: maybe missing some non-uniqueness problem?
         | isNothing mxid = error $ "Agent " ++ show aid ++ ": couldn't find " ++ show borrowerLoan ++  
                                    " for borrower payback in my loans " ++ show ls ++ ", exit."
         | otherwise = if fullyPaidBack l

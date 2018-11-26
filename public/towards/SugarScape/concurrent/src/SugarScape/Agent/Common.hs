@@ -162,6 +162,9 @@ sendEventToAux evt receiverId = do
   case mq of
     -- TODO: in case of inheritance it could happen that the receiver is already
     -- dead, then we want to ignore this case. Leave it in for debugging purposes
+    -- TODO: also in case a new born was placed on the environment it is not possible
+    -- to send a message to the new-born in the same tick it was created because
+    -- the queue doesnt exist yet => throw exception
     Nothing -> error $ "Receiver of event " ++ show evt ++ " does not exist: Agent " ++ show receiverId 
     Just q  -> stmLift $ writeTQueue q evt
 

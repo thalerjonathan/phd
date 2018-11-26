@@ -33,8 +33,8 @@ data Options = Options
   }
 
 -- RUNNING FROM COMMAND LINE EXAMPLES (using stack)
--- clear & stack exec -- sugarscape-concurrent -s "Animation III-1" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape-concurrent -s "Animation III-1" -v 0 --ac Default --sc Resource -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Figure IV-3" -f 1000 -o export/dynamics.m -r 42
+-- clear & stack exec -- sugarscape-concurrent -s "Figure IV-3" -v 0 --ac Default --sc Resource -r 42
 
 -- TODOs
 -- BUG: Animation III-1 blocks after 11 steps (in the 12th), probably process message has some sort of bug

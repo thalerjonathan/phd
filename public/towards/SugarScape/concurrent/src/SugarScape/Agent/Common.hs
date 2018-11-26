@@ -154,7 +154,9 @@ sendEventToAux :: ABSEvent SugEvent
                -> AgentLocalMonad g ()
 sendEventToAux evt receiverId = do
   msgQsVar <- absCtxMsgQueues <$> absCtxLift ask 
-  msgQs    <- stmLift $ readTVar msgQsVar
+  -- NOTE: reading this TVar will not result in retry as it is only modified by main thread
+  -- when the agents are blocking for next TickStart
+  msgQs <- stmLift $ readTVar msgQsVar
 
   let mq = Map.lookup receiverId msgQs
   case mq of

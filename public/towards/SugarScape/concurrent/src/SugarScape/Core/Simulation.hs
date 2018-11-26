@@ -309,7 +309,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                          -> Maybe (SugReplyChannel, SugReplyChannel)
                          -> IO (Maybe (SugAgentOut g), SugAgentMSF g, g)
     processWhileMessages mao asf g q mics = do
-      --putStrLn $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
+      DBG.traceIO $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
       ret <- executeSTM $ agentProcessNextMessage asf g q mics
       case ret of 
         Nothing -> return (mao, asf, g)
@@ -319,7 +319,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
               ao'   = maybe ao (agentOutMergeLeft ao) mao
               ao''  = ao' { aoInteractCh = Nothing } -- override channels to nothing
 
-          --DBG.traceIO $ "Agent " ++ show aid0 ++ " has interaction channels: " ++ maybe "NO" (const "YES") mics'
+          DBG.traceIO $ "Agent " ++ show aid0 ++ " has interaction channels: " ++ maybe "NO" (const "YES") mics'
           processWhileMessages (Just ao'') asf' g' q mics'
 
     agentProcessNextMessage :: RandomGen g
@@ -330,13 +330,13 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                             -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
     agentProcessNextMessage asf g q Nothing = do
       -- wait for next message, will block with retry when no message there
-      evt <- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-queue for next message..") 
+      evt <- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-QUEUE for next message..") 
               readTQueue q
       case evt of
         TickEnd -> DBG.trace ("Agent " ++ show aid0 ++ ": received TickEnd, finished with this tick") 
                     return Nothing -- finished, no output
         _       -> do
-          (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message on message-queue " ++ show evt) 
+          (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt ++ " on message-queue") 
                               runAgentMSF asf evt ctx0 env g
           return $ Just (ao, asf', g')
 
@@ -345,7 +345,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
       (senderId, evt) <- DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") 
                           takeTMVar receiveCh
       let absEvt = Reply senderId evt receiveCh replyCh
-      (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message on receiving channel " ++ show evt) 
+      (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt ++ " on receiving channel from " ++ show senderId) 
                         runAgentMSF asf absEvt ctx0 env g
       return $ Just (ao, asf', g')
 

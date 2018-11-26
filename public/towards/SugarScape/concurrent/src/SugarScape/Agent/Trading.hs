@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SugarScape.Agent.Trading
   ( agentTrade
-  , handleTradingOffer
+  , replyTradingOffer
   ) where
 
 import Data.Maybe
@@ -12,6 +12,7 @@ import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Common
+import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils 
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
@@ -88,9 +89,9 @@ tradeWith cont tradeInfos tradeOccured (trader : ts) = do -- trade with next one
     then tradeWith cont tradeInfos tradeOccured ts -- not better off, continue with next trader
     else do
       let evtHandler = tradingHandler cont tradeInfos tradeOccured ts (price, sugEx, spiEx) 
-      ao <- agentObservableM
-      -- TODO: use sendEventToWithReply
-      sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter)
+      -- expecting reply => use synchronous interaction channels
+      (receiveCh, replyCh) <- sendEventToWithReply (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter)
+      ao <- switchInteractionChannels receiveCh replyCh <$> agentObservableM
       return (ao, Just evtHandler)
 
 tradingHandler :: RandomGen g
@@ -104,7 +105,7 @@ tradingHandler cont0 tradeInfos tradeOccured traders (price, sugEx, spiEx) =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent traderId (TradingReply r)) -> 
+          (Reply traderId (TradingReply r) _ _) -> 
             arrM (uncurry (handleTradingReply cont0)) -< (traderId, r)
           _ -> do
             aid <- constM myId -< ()
@@ -116,26 +117,23 @@ tradingHandler cont0 tradeInfos tradeOccured traders (price, sugEx, spiEx) =
                        -> TradingReply
                        -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
     handleTradingReply cont _ (RefuseTrade _) =  
-      -- TODO: switch back to queue-processing
       -- the sender refuses the trading-offer, continue with the next trader
       tradeWith cont tradeInfos tradeOccured traders
     handleTradingReply cont traderId AcceptTrade = do -- the sender accepts the trading-offer
       -- NOTE: at this point the trade-partner agent is better off as well, MRS won't cross over and the other agent has already transacted
       let tradeInfos' = TradeInfo price sugEx spiEx traderId : tradeInfos
-
       transactTradeWealth sugEx spiEx
-
-      -- TODO: switch back to queue-processing
-
       -- continue with next trader
       tradeWith cont tradeInfos' True traders
 
-handleTradingOffer :: RandomGen g
-                   => AgentId
-                   -> Double
-                   -> Double
-                   -> AgentLocalMonad g (SugAgentOut g)
-handleTradingOffer traderId traderMrsBefore traderMrsAfter = do
+replyTradingOffer :: RandomGen g
+                  => AgentId
+                  -> SugReplyChannel
+                  -> SugReplyChannel
+                  -> Double
+                  -> Double
+                  -> AgentLocalMonad g (SugAgentOut g)
+replyTradingOffer _traderId _receiveCh replyCh traderMrsBefore traderMrsAfter = do
   myState <- get
 
   let myMrsBefore  = mrsState myState -- agents mrs BEFORE trade
@@ -147,20 +145,18 @@ handleTradingOffer traderId traderMrsBefore traderMrsAfter = do
       myMrsAfter     = mrsStateChange myState sugEx spiEx           -- agents mrs AFTER trade
 
   if myWfAfter <= myWfBefore
-    -- not better off, turn offer down
-    -- TODO: use replyChannel
-    then sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease) >> agentObservableM
+    -- not better off, turn offer down and switch into queue-processing
+    then reply replyCh (TradingReply $ RefuseTrade NoWelfareIncrease) >> agentObservableM
     else
       if mrsCrossover myMrsBefore traderMrsBefore myMrsAfter traderMrsAfter
-        -- MRS cross-over, turn offer down
-        -- TODO: use replyChannel
-        then sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) >> agentObservableM
+        -- MRS cross-over, turn offer down and switch into queue-processing
+        then reply replyCh (TradingReply $ RefuseTrade MRSCrossover) >> agentObservableM
         else do
           -- all good, transact and accept offer
           transactTradeWealth sugEx spiEx
-          -- TODO: use replyChannel
-          sendEventTo traderId (TradingReply AcceptTrade)
-          -- TODO: switch back into queue-processing
+          -- reply accept
+          reply replyCh (TradingReply AcceptTrade)
+          -- switch back into queue-processing
           agentObservableM 
 
 mrsCrossover :: Double

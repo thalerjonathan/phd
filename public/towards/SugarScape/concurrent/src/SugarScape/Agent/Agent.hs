@@ -67,8 +67,8 @@ generalEventHandler =
           returnA -< (ao, Nothing)
         
         -- TRADING EVENTS
-        (DomainEvent sender (TradingOffer traderMrsBefore traderMrsAfter)) -> do
-          ao <- arrM (uncurry3 handleTradingOffer) -< (sender, traderMrsBefore, traderMrsAfter)
+        (DomainEventWithReply sender (TradingOffer traderMrsBefore traderMrsAfter) receiveCh replyCh) -> do
+          ao <- arrM (uncurry5 replyTradingOffer) -< (sender, receiveCh, replyCh, traderMrsBefore, traderMrsAfter)
           returnA -< (ao, Nothing)
 
         -- LOAN EVENTS

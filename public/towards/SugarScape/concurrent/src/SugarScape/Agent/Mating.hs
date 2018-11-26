@@ -189,7 +189,7 @@ replyMatingRequest :: RandomGen g
                    -> AgentLocalMonad g (SugAgentOut g)
 replyMatingRequest _sender receiveCh replyCh otherGender = do
   accept <- acceptMatingRequest otherGender
-
+ 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
   acc <- if not accept
       then return Nothing

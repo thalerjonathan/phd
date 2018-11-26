@@ -32,13 +32,26 @@ data Options = Options
   , optRngSeed  :: Maybe Int
   }
 
+-- RUNNING FROM COMMAND LINE EXAMPLES (using stack)
 -- clear & stack exec -- sugarscape-concurrent -s "Animation III-1" -f 1000 -o export/dynamics.m -r 42
 -- clear & stack exec -- sugarscape-concurrent -s "Animation III-1" -v 0 --ac Default --sc Resource -r 42
 
--- TODO
--- -> check semantics of TQueue: when does a retry happen - does it happen when another thread writes to a queue a thread has read before?
--- -> remove unsafePerformIO for reading Environment in Renderer and Tests
--- -> remove busy waiting in main-thread with cleverer technique, results in loads of retries
+-- TODOs
+-- BUG: Animation III-1 blocks after 11 steps (in the 12th), probably process message has some sort of bug
+-- BUG: new borns are placed already on the Environment but cant react to incoming messages 
+--  yet because no thread running. also their queue shoulndt be found when messaging them because not 
+--  yet inserted => should result in errror. program with maybe as exceptions
+-- BUG: Tickstart agentout will be overridden in case an agent receives other messages. this could
+--  lead to newagents be placed on the Environment but not actually created => block in the following 
+--  step when fetching them. merge agentout in agenthread instead of overriding.
+-- BUG: loans not working correctly yet
+-- MISSING: concurrent Interactions in remaining features 
+-- CLEANUP: remove unsafePerformIO for reading Environment in Renderer and Tests
+-- PERFORMANCE: more than 50% of time used in main thread waiting for all queues to empty.
+--  still faster than sequential but can we do better? huge Potential for Performance improvemrnt
+-- TESTING: can we add some tests which check for memory-leaks? e.g. running
+--  various scenarios and check if memory-consumption is 'normal'? Can we use
+--  criterion for that?
 
 main :: IO ()
 main = do

@@ -36,8 +36,15 @@ data Options = Options
   , optRngSeed  :: Maybe Int
   }
 
+-- RUNNING FROM COMMAND LINE EXAMPLES (using stack)
 -- clear & stack exec -- sugarscape -s "Animation II-1" -f 1000 -o export/dynamics.m -r 42
 -- clear & stack exec -- sugarscape -s "Animation II-1" -v 0 --ac Disease --sc Resource -r 42
+
+-- TODOs
+-- MISSING: concurrent Interactions in remaining features 
+-- TESTING: can we add some tests which check for memory-leaks? e.g. running
+--  various scenarios and check if memory-consumption is 'normal'? Can we use
+--  criterion for that?
 
 main :: IO ()
 main = do

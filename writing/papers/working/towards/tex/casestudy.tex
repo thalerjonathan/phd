@@ -50,6 +50,8 @@ A solution is to change to an event-driven approach: SF now have an input, which
 
 Stateful programming (or programming that \textit{feels} stateful) comes inherently with difficulties where one can forget to update a state or mutate state where not appropriate. A pure functional approach to that is no exception and shows the same problems. In our case we ran into a bug where the trading agent saw an outdated MRS value of the trading-partner resulting into two different trading-prices which obviously must be prevented under all circumstances because it would destroy / create wealth. The origin of the bug was that MRS depends on the wealth (sugar and spice) of the agent and we simply forgot to update the MRS in the environment from which the offering agent can read it when the trading agents wealth changed (e.g. through harvesting, inheritance,...).
 
+explain continuation, explain monads = replacement of ; operator, runs custom (depending on monad) Code between evaluations
+
 \subsection{Performance}
 Haskell is notorious for its space-leaks due to laziness. Even for simple programs one can be hit by a serious space-leak where unevaluated code pieces (thunks) builds up in memory until they are needed, leading to dramatically increased memory usage for a problem which should be solved using a fraction.
 
@@ -65,3 +67,16 @@ Common.hs	  -> Major
 Discrete.hs	  -> Minor
 Model.hs	  -> Minor
 Simulation.hs -> Minor
+
+After fixing the memory-leaks we get a very low level memory consumption - depending on number of agents is around 3 MB in case of 250 Agents in Animation III-1. What is interesting is that the concurrent implementation consistently uses less memory than the sequential one with the Animation III-1 using up around only 2 MB.
+
+TODO: performance comparison with netlogo implementation
+TODO: laziness can save Performance: laziness vs strictness
+
+\subsection{Concurrency}
+Although concurrent programming in general is hard, Haskell takes much of the difficulties out through its functional nature and its strong static type system. Because of its referential transparency it is easy to guarantee that no concurrent modification of state will happen (unless running in IO). Also through the type system it is possible to indicate that concurrent computations might or might not happen: also being clear about difference between parallelism and concurrency in types is possible: parallel computations run in parallel and do NOT interfere with each other e.g. through synchronisation or data-dependencies / data-mutation. Concurrent computations run in parallel but might interfere with each other through synchronisation primitives and shared data. Haskell allows to distinguish between these two types of computations in its type-system: a parallel computation is always deterministic and thus pure / referential transparent. Concurrency is indicated using IO or STM.
+
+\subsubsection{Getting it right}
+There were a few subtle bugs in my implementation as getting a concurrent implementation right is still hard even when using Haskell. Still Haskells type system and lack of effects helps a lot when reasoning about concurrent behaviour and also the run-time provides amazing help. For example will the program terminate with an exception when a thread blocks on a synchronisation primitive (e.g. MVar) which no other thread references - this is an example for a classic deadlock which cannot be recovered. It is highly beneficial that Haskell actually detects such deadlocks which would be quite difficult to detected without such facilities and in many other languages one would simply end up with infinitely hanging threads.
+
+https://www.fpcomplete.com/blog/2018/05/pinpointing-deadlocks-in-haskell

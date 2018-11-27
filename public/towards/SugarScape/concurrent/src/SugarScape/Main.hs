@@ -37,7 +37,15 @@ data Options = Options
 -- clear & stack exec -- sugarscape-concurrent -s "Figure IV-3" -v 0 --ac Default --sc Resource -r 42
 
 -- TODOs
--- BUG: Mating, Trading and Lending blocks, unclear why. Hypothesise a bug in Core.Simulation 
+-- BUG: Mating, Trading and Lending blocks.
+--   REASON: assuming agent A processes its TickStart message and sends
+--   a Mating/Trading/Lending/Request to agent B. If agent B has not processed
+--   its TickStart message yet, it could be well the case that this agent B
+--   will send a Mating/Trading/Lending Request to agent A (which is quite likely
+--   because they are neighbours, otherwise wouldnt happen). This will end up both
+--   waiting for the other agents reply on the TMVar channels, resulting in a dead-lock.
+---  SOLUTION: ?
+--   
 -- BUG: loans not working correctly yet when inheritance is turned on
 -- CLEANUP: remove unsafePerformIO for reading Environment in Renderer and Tests
 -- PERFORMANCE: more than 50% of time used in main thread waiting for all queues to empty.

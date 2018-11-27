@@ -17,9 +17,11 @@ module SugarScape.Core.Simulation
   , runEnv
   ) where
 
-import Data.Maybe
 import Control.Concurrent
+import Control.Exception
+import Data.Maybe
 import System.Random
+import System.Timeout
 
 import Control.Concurrent.STM.TVar
 import Control.Concurrent.STM.TMVar
@@ -310,7 +312,7 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                          -> IO (Maybe (SugAgentOut g), SugAgentMSF g, g)
     processWhileMessages mao asf g q mics = do
       DBG.traceIO $ "Agent " ++ show aid0 ++ ": processWhileMessages" 
-      ret <- executeSTM $ agentProcessNextMessage asf g q mics
+      ret <- agentProcessNextMessage asf g q mics
       case ret of 
         Nothing -> return (mao, asf, g)
         Just (ao, asf', g') -> do
@@ -327,8 +329,8 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                             -> g
                             -> TQueue (ABSEvent SugEvent)
                             -> Maybe (SugReplyChannel, SugReplyChannel)
-                            -> STM (Maybe (SugAgentOut g, SugAgentMSF g, g))
-    agentProcessNextMessage asf g q Nothing = do
+                            -> IO (Maybe (SugAgentOut g, SugAgentMSF g, g))
+    agentProcessNextMessage asf g q Nothing = executeSTM $ do
       -- wait for next message, will block with retry when no message there
       evt <- DBG.trace ("Agent " ++ show aid0 ++ ": checking message-QUEUE for next message..") 
               readTQueue q
@@ -340,14 +342,16 @@ createAgentThread aid0 asf0 g0 env ctx0 = do
                               runAgentMSF asf evt ctx0 env g
           return $ Just (ao, asf', g')
 
-    agentProcessNextMessage asf g _ (Just (receiveCh, replyCh)) = do
-      -- wait for next message, will block with retry when no message there
-      (senderId, evt) <- DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") 
-                          takeTMVar receiveCh
-      let absEvt = Reply senderId evt receiveCh replyCh
-      (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt ++ " on receiving channel from " ++ show senderId) 
-                        runAgentMSF asf absEvt ctx0 env g
-      return $ Just (ao, asf', g')
+    agentProcessNextMessage asf g _ (Just (receiveCh, replyCh)) 
+      = timeout 1000000 (executeSTM $ do -- 100ms
+        -- wait for next message, will block with retry when no message there
+        (senderId, evt) <- DBG.trace ("Agent " ++ show aid0 ++ ": checking receiving channel for next message..") 
+                            takeTMVar receiveCh
+        let absEvt = Reply senderId evt receiveCh replyCh
+        (ao, asf', g') <- DBG.trace ("Agent " ++ show aid0 ++ ": got message " ++ show evt ++ " on receiving channel from " ++ show senderId) 
+                          runAgentMSF asf absEvt ctx0 env g
+        return $ Just (ao, asf', g')) >>= 
+          maybe (DBG.traceIO ("[Timeout] in Agent " ++ show aid0 ++ " when checking receiving channel") >> throwIO Deadlock) return
 
 runAgentMSF :: RandomGen g
             => SugAgentMSF g

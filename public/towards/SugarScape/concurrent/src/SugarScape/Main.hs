@@ -44,7 +44,16 @@ data Options = Options
 --   will send a Mating/Trading/Lending Request to agent A (which is quite likely
 --   because they are neighbours, otherwise wouldnt happen). This will end up both
 --   waiting for the other agents reply on the TMVar channels, resulting in a dead-lock.
----  SOLUTION: ?
+---  SOLUTION: using orElse: in case the TMVar blocks, read from the queue,
+--     if this blocks then try to read the TMVar again until either one responds
+--     then we either can have progress on the TMVar or on the Queue:
+--     in case of the TMVar all is good and we continue. In case of the queue:
+--     check if the message is of type DomainEventWithReply, in this case, 
+--     we know that both block on each other. Problem: we cannot just start processing
+--     that message because the agent is internally in a different state.
+--     Also we can't go back to previous agent MSF because might have had 
+--     changes in the environment or other changes in STM which cannot be
+--     rolled back. NO IDEA SO FAR HOW TO SOLVE THIS!
 --   
 -- BUG: loans not working correctly yet when inheritance is turned on
 -- CLEANUP: remove unsafePerformIO for reading Environment in Renderer and Tests

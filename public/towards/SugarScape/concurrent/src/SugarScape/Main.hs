@@ -49,11 +49,25 @@ data Options = Options
 --     then we either can have progress on the TMVar or on the Queue:
 --     in case of the TMVar all is good and we continue. In case of the queue:
 --     check if the message is of type DomainEventWithReply, in this case, 
---     we know that both block on each other. Problem: we cannot just start processing
---     that message because the agent is internally in a different state.
+--     we know that both block on each other. In other cases just put the message back in the queue.
+--     Problem: we cannot just start processing that message because the agent is internally in a different state.
 --     Also we can't go back to previous agent MSF because might have had 
 --     changes in the environment or other changes in STM which cannot be
 --     rolled back. NO IDEA SO FAR HOW TO SOLVE THIS!
+--
+-- FUNDAMENTAL PROBLEM OF CONCURRENT APPROACH: due to asynchronous events it is
+--   might well be the case that the environment changes in between the initial
+--   agent message and its continuation: e.g. when sending a TradingOffer to 
+--   another agent, that other agents MRS might have changed in the mean time
+--   already
+-- 
+-- CONCLUSION: the concurrent approach using STM shows promising results but
+--   it seems that it is just not feasible in sugarscape because it implies / requires
+--   too sequential processing semantics, especially in the cases of Mating, Trading and Lending.
+--   All the other use-cases work perfectly using asynchronous messaging because
+--   there is no need for a synchronous reply.
+--   => WE LEAVE THE CONCURRENT IMPLEMENTATION AS IT IS FOR NOW AND LEAVE IT AS
+--   OPEN RESEARCH QUESTION.
 --   
 -- BUG: loans not working correctly yet when inheritance is turned on
 -- CLEANUP: remove unsafePerformIO for reading Environment in Renderer and Tests

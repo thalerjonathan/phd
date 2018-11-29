@@ -44,6 +44,7 @@ data Options = Options
 --   will send a Mating/Trading/Lending Request to agent A (which is quite likely
 --   because they are neighbours, otherwise wouldnt happen). This will end up both
 --   waiting for the other agents reply on the TMVar channels, resulting in a dead-lock.
+------------------------------------------------------------------------------------
 ---  SOLUTION: using orElse: in case the TMVar blocks, read from the queue,
 --     if this blocks then try to read the TMVar again until either one responds
 --     then we either can have progress on the TMVar or on the Queue:
@@ -68,7 +69,42 @@ data Options = Options
 --   there is no need for a synchronous reply.
 --   => WE LEAVE THE CONCURRENT IMPLEMENTATION AS IT IS FOR NOW AND LEAVE IT AS
 --   OPEN RESEARCH QUESTION.
---   
+-- ------------------------------------------------------------------------------------  
+--  OTHER APPROACH TO SYNC INTERACTIONS
+--    Abandon SYNC INTERACTIONS alltogether:
+--    Instead of sending e.g. a Mating/Trading/LendingOffer the agent sends 
+--    just a Mating/Trading/Lending ENGAGE message without any of its information
+--    e.g. MRS,... which is local to the interaction and depends on the current
+--    state of the agent. This information will then be exchanged in further asynchronous
+--    interactions, which require more steps but this solves the problem of invalid
+--    data sent initially. Also this does not require the agent to change
+--    the event handler internally. 
+--    
+--    The reason why we wanted to employ synchronous interactions is because
+--    it solves the problem of resource-constraints: if an agent sends a mating
+--    request it will spend half of its wealth on its newborn - if the mating
+--    request goes through. If we have asynchronous messages these can be interleaved
+--    e.g. while waiting for the reply of the mating partner the agent could
+--    be engaged in a trade which transacts, suddenly making this agent unable
+--    to bear children because its not wealthy enough anymore. 2 ways:
+--    1. ignore these situations and assume they will rarely occur: 
+--       not very good because they will occur more often than we think, also we want 
+--       to replicate the dynamics which will probably not be possible anymore.
+--       Also in trading this makes it simply wrong because agents engage in loads of trades
+--       and it would create new wealth out of nothing, violating ressource-constraints.
+--    2. The agent 'locks' the consumable ressources away until the interaction finishes:
+--       this leads to the agent being able to transact other messages but it has
+--       virtually less wealth until the interaction really transact. If the 
+--       interaction does not transact, the locked ressources will be restored
+--       => probably most reasonable approach:
+--          - no internal state-changes of message-handlers necessary
+--          - no deadlocks possible even in case two agents send each other same offering message
+--          - should result in same dynamics 
+--          - QUESTION: the selection of neighbours and their state always local to the initiation
+--          of the messages: the neighbours and their state could change during the transaction
+--          but that will not bother us, we kind of assume a snap-shot at the moment of the
+--          Engage message.
+
 -- BUG: loans not working correctly yet when inheritance is turned on
 -- CLEANUP: remove unsafePerformIO for reading Environment in Renderer and Tests
 -- PERFORMANCE: more than 50% of time used in main thread waiting for all queues to empty.

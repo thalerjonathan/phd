@@ -15,7 +15,7 @@ import SugarScape.Core.Scenario
 agentMetabolism :: RandomGen g
                 => SugarScapeScenario
                 -> AgentId
-                -> AgentAction g Int
+                -> AgentAction g Double
 agentMetabolism params myId
   | spSpiceEnabled params = do
     sugarMetab <- agentProperty sugAgSugarMetab
@@ -24,27 +24,38 @@ agentMetabolism params myId
     spiceMetab <- agentProperty sugAgSpiceMetab
     spiceLevel <- agentProperty sugAgSpiceLevel
 
-    let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
-        spiceLevel' = max 0 (spiceLevel - fromIntegral spiceMetab)
+    -- return the actual value which was metabolised which could be less than
+    -- the metabolism value in case the agent owns less of the respective resource
+    let sugarMetab' = min sugarLevel (fromIntegral sugarMetab)
+        spiceMetab' = min spiceLevel (fromIntegral spiceMetab)
+        -- negative values shouldn't occur due to min check but better be safe than sorry
+        -- with floating point
+        sugarLevel' = max 0 (sugarLevel - sugarMetab')
+        spiceLevel' = max 0 (spiceLevel - spiceMetab')
 
     updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel'
                                 , sugAgSpiceLevel = spiceLevel' })
     -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
     updateSiteWithOccupier myId
 
-    return $ sugarMetab + spiceMetab
+    return $ sugarMetab' + spiceMetab'
   
   | otherwise = do
     sugarMetab <- agentProperty sugAgSugarMetab
     sugarLevel <- agentProperty sugAgSugarLevel
 
-    let sugarLevel' = max 0 (sugarLevel - fromIntegral sugarMetab)
+    -- return the actual value which was metabolised which could be less than
+    -- the metabolism value in case the agent owns less of the respective resource
+    let sugarMetab' = min sugarLevel (fromIntegral sugarMetab)
+        -- negative values shouldn't occur due to min check but better be safe than sorry
+        -- with floating point
+        sugarLevel' = max 0 (sugarLevel - sugarMetab')
     
     updateAgentState (\s' -> s' { sugAgSugarLevel = sugarLevel' })
     -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
     updateSiteWithOccupier myId
 
-    return sugarMetab
+    return sugarMetab'
 
 starvedToDeath :: MonadState SugAgentState m
                => SugarScapeScenario

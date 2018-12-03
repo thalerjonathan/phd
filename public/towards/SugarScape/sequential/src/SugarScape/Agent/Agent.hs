@@ -105,9 +105,9 @@ handleTick params myId dt = do
   (harvestAmount, aoMove) <- agentMove params myId
   metabAmount             <- agentMetabolism params myId
   -- initialize net-income to gathering minus metabolism, might adjusted later during Loan-handling
-  updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - fromIntegral metabAmount})
+  updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - metabAmount})
   -- compute polution and diffusion
-  agentPolute params harvestAmount (fromIntegral metabAmount)
+  agentPolute params harvestAmount metabAmount
 
   -- NOTE: ordering is important to replicate the dynamics
   -- after having aged, moved and applied metabolism, the 

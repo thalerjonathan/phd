@@ -18,5 +18,7 @@ agentTests g = testGroup "Agent Tests"
                                                           age <- choose (60, 100)
                                                           return $ prop_agent_dieOfAge a age
 
-                , QC.testProperty "Starved To Death" $ prop_agent_starved g
-                ] --, QC.testProperty "Metabolism" $ prop_agent_metabolism g]
+                , QC.testProperty "Starved To Death Sugar only" prop_agent_starved_sugaronly
+                , QC.testProperty "Starved To Death Sugar and Spice" prop_agent_starved_sugarandspice
+                , QC.testProperty "Metabolism Sugar only" $ prop_agent_metabolism_sugaronly g
+                ] --, QC.testProperty "Metabolism" $ prop_agent_metabolism g

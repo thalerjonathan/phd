@@ -5,7 +5,8 @@ module SugarScape.Core.Common
   ( Time
   , DTime
   , AgentId
-
+  , ABSEvent (..)
+  
   , ABSState (..)
 
   , nextAgentId
@@ -22,8 +23,12 @@ type DTime = Int
 
 type AgentId = Int
 
+data ABSEvent e = Tick DTime
+                | DomainEvent AgentId e  -- sender, event 
+                deriving (Show, Eq) 
+
 data ABSState = ABSState
-  { absNextId :: AgentId
+  { absNextId :: AgentId -- holds the NEXT agent-id 
   , absTime   :: Time
   } deriving (Show, Eq)
 

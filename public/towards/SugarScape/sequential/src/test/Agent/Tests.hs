@@ -13,8 +13,10 @@ agentTests :: RandomGen g
            => g
            -> TestTree 
 agentTests g = testGroup "Agent Tests"
-                [ QC.testProperty "Starved To Death" $ prop_agent_starved g
+                [ QC.testProperty "Ageing by DTime" prop_agent_ageing
                 , QC.testProperty "Die Of Age" $ \a -> do
                                                           age <- choose (60, 100)
-                                                          return $ prop_agent_dieOfAge g a age
+                                                          return $ prop_agent_dieOfAge a age
+
+                , QC.testProperty "Starved To Death" $ prop_agent_starved g
                 ] --, QC.testProperty "Metabolism" $ prop_agent_metabolism g]

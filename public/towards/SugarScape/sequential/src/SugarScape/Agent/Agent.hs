@@ -42,8 +42,8 @@ generalEventHandler params myId =
   continueWithAfter 
     (proc evt -> 
       case evt of 
-        Tick -> 
-          constM (handleTick params myId) -< ()
+        Tick dt -> 
+          arrM (handleTick params myId) -< dt
 
         -- MATING EVENTS
         (DomainEvent sender (MatingRequest otherGender)) -> do
@@ -97,9 +97,10 @@ generalEventHandler params myId =
 handleTick :: RandomGen g 
            => SugarScapeScenario
            -> AgentId
+           -> DTime
            -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-handleTick params myId = do
-  agentAgeing
+handleTick params myId dt = do
+  agentAgeing dt
   
   (harvestAmount, aoMove) <- agentMove params myId
   metabAmount             <- agentMetabolism params myId

@@ -10,7 +10,6 @@ module Utils.Runner
 import Control.Monad.Random
 import Control.Monad.State.Strict
 
-import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Environment
 import SugarScape.Core.Model
@@ -36,7 +35,7 @@ runAgentSFTimeSteps steps = runAgentSFTimeStepsAux steps []
     runAgentSFTimeStepsAux 0 acc sf absState _ g = (reverse acc, sf, absState, g)
     runAgentSFTimeStepsAux n acc sf absState env g = runAgentSFTimeStepsAux (n - 1) acc' sf' absState' env' g'
       where
-        (out, sf', absState', env', g') = runAgentSF sf Tick absState env g
+        (out, sf', absState', env', g') = runAgentSF sf (Tick sugarScapeTimeDelta) absState env g
         acc' = (out, env') : acc
 
 -- runs a computation of the agent monad and discharges all context except return value of computation

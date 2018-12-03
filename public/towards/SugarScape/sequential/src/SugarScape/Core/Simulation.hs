@@ -137,7 +137,7 @@ simulationStep ss0 = (ssFinal, sao)
     g0   = simRng ss0
     (aisShuffled, gShuff) = randomShuffle g0 ais0
     -- schedule Tick messages in random order by generating event-list from shuffled agent-ids
-    el = zip aisShuffled (repeat Tick)
+    el = zip aisShuffled (repeat $ Tick sugarScapeTimeDelta)
     -- process all events
     ssSteps = processEvents el (ss0 { simRng = gShuff })
     -- run the environment

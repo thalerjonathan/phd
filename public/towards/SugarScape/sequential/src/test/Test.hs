@@ -5,8 +5,8 @@ import System.Random
 import Test.Tasty
 
 import Agent.Tests
-import Environment.Tests
-import Model.Tests
+--import Environment.Tests
+--import Model.Tests
 
 -- clear & stack test --test-arguments="--quickcheck-tests=100 --quickcheck-replay="
 
@@ -22,9 +22,9 @@ main = do
 
   let sugarScapeTests 
         = testGroup "SugarScape Tests" 
-            [ modelTests g
-            , agentTests g
-            , envTests
+            [ -- modelTests g
+              agentTests g
+              -- envTests
             ]
 
   defaultMain sugarScapeTests

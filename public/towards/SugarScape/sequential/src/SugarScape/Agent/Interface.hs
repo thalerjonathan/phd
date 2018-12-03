@@ -1,9 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts  #-}
 module SugarScape.Agent.Interface
-  ( ABSEvent (..)
-
-  , AgentT
+  ( AgentT
   , AgentMSF
 
   , AgentDef (..)
@@ -28,10 +26,6 @@ import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
 
 import SugarScape.Core.Common
-
-data ABSEvent e = Tick 
-                | DomainEvent AgentId e  -- sender, event 
-                deriving (Show, Eq) 
 
 type AgentT m       = StateT ABSState m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double 

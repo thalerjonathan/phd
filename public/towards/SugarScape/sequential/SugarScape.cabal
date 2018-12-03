@@ -112,11 +112,16 @@ Test-Suite sugarscape-test
 
   type:                 exitcode-stdio-1.0
 
-  other-modules:        Agent
-                      , Environment
-                      , Simulation
-                      , StatsUtils
-                      , Runner
+  other-modules:        Agent.Ageing
+                      , Agent.Agent
+                      , Agent.Metabolism
+                      , Agent.Tests
+                      , Environment.Environment
+                      , Environment.Tests
+                      , Model.Model
+                      , Model.Tests
+                      , Utils.StatsUtils
+                      , Utils.Runner
                       
                       , SugarScape.Agent.Agent
                       , SugarScape.Agent.Ageing
@@ -169,4 +174,3 @@ Test-Suite sugarscape-test
                       -threaded -with-rtsopts=-N
                       -fwarn-tabs 
                       -fno-warn-orphans
-                      -fno-warn-unused-top-binds

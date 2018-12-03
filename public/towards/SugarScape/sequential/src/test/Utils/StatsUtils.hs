@@ -1,15 +1,15 @@
-module StatsUtils 
+module Utils.StatsUtils 
   ( avgTest
   
   , tTest
 
-  , StatsUtils.mean
-  , StatsUtils.std
+  , Utils.StatsUtils.mean
+  , Utils.StatsUtils.std
 
   , median
   
-  , StatsUtils.skewness
-  , StatsUtils.kurtosis
+  , Utils.StatsUtils.skewness
+  , Utils.StatsUtils.kurtosis
   ) where
 
 import Data.List                        as List
@@ -29,7 +29,7 @@ avgTest :: [Double]
 avgTest ys mu0 eps 
     = abs (mu - mu0) <= eps
   where
-    mu = StatsUtils.mean ys
+    mu = Utils.StatsUtils.mean ys
 
 -- Performs a 2-sided t-test evaluating the null hypothesis that the mean of the population from which sample is drawn equals mu.
 -- The functions returns 'Just True' in case the means are statistically equal and 'Just False' if they are not
@@ -75,8 +75,8 @@ tTest name samples mu0 alpha
                               "\nt = " List.++ show t) Just t
       where
         n     = List.length samples
-        mu    = StatsUtils.mean samples
-        sigma = StatsUtils.std samples
+        mu    = Utils.StatsUtils.mean samples
+        sigma = Utils.StatsUtils.std samples
 
         t = (mu - mu0) / (sigma / sqrt (fromIntegral n))
 

@@ -1,17 +1,17 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Environment
-  ( envTests
+module Environment.Environment
+  ( prop_env_regrow_rate
+  , prop_env_regrow_rate_full
+  , prop_env_regrow_full
   ) where
 
-import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Core.Discrete
 import SugarScape.Core.Environment
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
-
-import Runner
+import Utils.Runner
 
 instance Arbitrary SugEnvSite where
   -- arbitrary :: Gen SugEnvSite
@@ -49,12 +49,6 @@ instance Arbitrary (Discrete2d SugEnvSite) where
         csCoord = zip coords cs
 
     return $ createDiscrete2d dim n w csCoord
-
-envTests :: TestTree 
-envTests = testGroup "Environment Tests"
-            [ QC.testProperty "Regrow By Rate" prop_env_regrow_rate
-            , QC.testProperty "Regrow By Max" prop_env_regrow_full
-            , QC.testProperty "Regrow To Full" prop_env_regrow_rate_full ]
 
 prop_env_regrow_rate :: Positive Double
                      -> Discrete2d SugEnvSite

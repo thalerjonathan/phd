@@ -1,11 +1,10 @@
 module Agent.Agent
-  ( emptyEnvironment
+  ( 
   ) where
 
 import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Agent.Common
-import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 
 instance Arbitrary SugAgentState where
@@ -39,6 +38,3 @@ instance Arbitrary SugAgentState where
     , sugAgImSysGeno    = []
     , sugAgDiseases     = []
     }
-
-emptyEnvironment :: SugEnvironment
-emptyEnvironment = createDiscrete2d (0, 0) moore WrapBoth []

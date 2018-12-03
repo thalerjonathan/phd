@@ -37,11 +37,13 @@ data Options = Options
   }
 
 -- RUNNING FROM COMMAND LINE EXAMPLES (using stack)
--- clear & stack exec -- sugarscape -s "Animation II-1" -f 1000 -o export/dynamics.m -r 42
--- clear & stack exec -- sugarscape -s "Animation II-1" -v 0 --ac Disease --sc Resource -r 42
+-- clear & stack exec -- sugarscape -s "Animation II-3" -f 1000 -o export/dynamics.m -r 42
+-- clear & stack exec -- sugarscape -s "Animation II-3" -v 0 --ac Default --sc Resource -r 42
+
+-- PROFILING
+-- clear & stack exec -- sugarscape -s "Animation II-3" -f 1000 -o export/dynamics.m -r 42 +RTS -p -h -s
 
 -- TODOs
--- MISSING: concurrent Interactions in remaining features 
 -- TESTING: can we add some tests which check for memory-leaks? e.g. running
 --  various scenarios and check if memory-consumption is 'normal'? Can we use
 --  criterion for that?

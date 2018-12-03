@@ -11,16 +11,16 @@ import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 
 agentPolute :: RandomGen g
-            => SugarScapeScenario
+            => Double
             -> Double
-            -> Double
-            -> AgentAction g ()
-agentPolute params s m 
-    = agentPoluteAux $ spPolutionFormation params
+            -> AgentLocalMonad g ()
+agentPolute s m = do
+    pol <- spPolutionFormation <$> scenario
+    agentPoluteAux pol
   where
     agentPoluteAux :: RandomGen g
                    => PolutionFormation 
-                   -> AgentAction g ()
+                   -> AgentLocalMonad g ()
     agentPoluteAux NoPolution = return ()
     agentPoluteAux (Polute a b) = do
       let polution = a * s + b * m

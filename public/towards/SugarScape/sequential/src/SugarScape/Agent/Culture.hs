@@ -16,29 +16,28 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 agentCultureProcess :: RandomGen g
-                    => SugarScapeScenario               -- parameters of the current sugarscape scenario
-                    -> AgentId                        -- the id of the agent 
-                    -> AgentAction g (SugAgentOut g)
-agentCultureProcess params _myId 
-  | isNothing $ spCulturalProcess params = agentObservableM
-  | otherwise = do
-    nids <- neighbourAgentIds
+                    => AgentLocalMonad g (SugAgentOut g)
+agentCultureProcess =
+  ifThenElseM
+    ((isNothing . spCulturalProcess) <$> scenario)
+    agentObservableM
+    (do
+      nids <- neighbourAgentIds
 
-    -- no neighbours, ignore cultural process
-    if null nids
-      then agentObservableM
-      else do
-        ao         <- agentObservableM
-        cultureTag <- agentProperty sugAgCultureTag
-        -- simply broadcast to all neighbours, they compute and flip their tags themselves
-        return $ broadcastEvent nids (CulturalProcess cultureTag) ao
+      -- no neighbours, ignore cultural process
+      if null nids
+        then agentObservableM
+        else do
+          ao         <- agentObservableM
+          cultureTag <- agentProperty sugAgCultureTag
+          -- simply broadcast to all neighbours, they compute and flip their tags themselves
+          return $ broadcastEvent nids (CulturalProcess cultureTag) ao)
 
 handleCulturalProcess :: RandomGen g
                       => AgentId
-                      -> AgentId
                       -> CultureTag
-                      -> AgentAction g (SugAgentOut g)
-handleCulturalProcess myId _sender otherTag = do
+                      -> AgentLocalMonad g (SugAgentOut g)
+handleCulturalProcess _sender otherTag = do
   myTag <- agentProperty sugAgCultureTag
   
   -- NOTE: assuming length otherTag == length myTag
@@ -53,6 +52,6 @@ handleCulturalProcess myId _sender otherTag = do
       updateAgentState (\s -> s { sugAgCultureTag = myTag'
                                 , sugAgTribe      = tagToTribe myTag' })
       -- NOTE: need to update occupier info because tribe might have changed
-      updateSiteWithOccupier myId)
+      updateSiteOccupied)
 
   agentObservableM

@@ -19,22 +19,22 @@ import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
+import SugarScape.Core.Utils
 
 agentTrade :: RandomGen g
-           => SugarScapeScenario               -- parameters of the current sugarscape scenario
-           -> AgentId                        -- the id of the agent 
-           -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-           -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-agentTrade params myId cont
-  | not $ spTradingEnabled params = cont
-  | otherwise = tradingRound myId cont []
+           => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentTrade cont =
+  ifThenElseM
+    ((not . spTradingEnabled) <$> scenario)
+    cont
+    (tradingRound cont [])
 
 tradingRound :: RandomGen g
-             => AgentId
-             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+             => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
              -> [TradeInfo]
-             -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-tradingRound myId cont tradeInfos = do
+             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+tradingRound cont tradeInfos = do
   myCoord <- agentProperty sugAgCoord
   -- (re-)fetch neighbours from environment, to get up-to-date information
   ns    <- envLift $ neighboursM myCoord False
@@ -50,24 +50,23 @@ tradingRound myId cont tradeInfos = do
     then cont -- NOTE: no need to put tradeInfos into observable, because when no potential traders tradeInfos is guaranteed to be null
     else do
       potentialTraders' <- randLift $ randomShuffleM potentialTraders
-      tradeWith myId cont tradeInfos False potentialTraders'
+      tradeWith cont tradeInfos False potentialTraders'
 
 tradeWith :: RandomGen g
-          => AgentId
-          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+          => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
           -> [TradeInfo]
           -> Bool
           -> [SugEnvSiteOccupier]
-          -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
-tradeWith myId cont tradeInfos tradeOccured []       -- iterated through all potential traders => trading round has finished
-  | tradeOccured = tradingRound myId cont tradeInfos -- if we have traded with at least one agent, try another round
+          -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+tradeWith cont tradeInfos tradeOccured []       -- iterated through all potential traders => trading round has finished
+  | tradeOccured = tradingRound cont tradeInfos -- if we have traded with at least one agent, try another round
   | otherwise    = do
     (ao, mhdl) <- cont
     -- NOTE: at this point we add the trades to the observable output because finished with trading in this time-step
     let ao' = observableTrades tradeInfos ao
     return (ao', mhdl)
 
-tradeWith myId cont tradeInfos tradeOccured (trader : ts) = do -- trade with next one
+tradeWith cont tradeInfos tradeOccured (trader : ts) = do -- trade with next one
   myState <- get
 
   let myMrsBefore     = mrsState myState     -- agents mrs BEFORE trade
@@ -87,52 +86,52 @@ tradeWith myId cont tradeInfos tradeOccured (trader : ts) = do -- trade with nex
 
   -- NOTE: check if it makes this agent better off: does it increase the agents welfare?
   if myWfAfter <= myWfBefore
-    then tradeWith myId cont tradeInfos tradeOccured ts -- not better off, continue with next trader
+    then tradeWith cont tradeInfos tradeOccured ts -- not better off, continue with next trader
     else do
-      let evtHandler = tradingHandler myId cont tradeInfos tradeOccured ts (price, sugEx, spiEx) 
+      let evtHandler = tradingHandler cont tradeInfos tradeOccured ts (price, sugEx, spiEx) 
       ao <- agentObservableM
       return (sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter) ao, Just evtHandler)
 
 tradingHandler :: RandomGen g
-               => AgentId
-               -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+               => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
                -> [TradeInfo]
                -> Bool
                -> [SugEnvSiteOccupier]
                -> (Double, Double, Double)
                -> EventHandler g
-tradingHandler myId cont0 tradeInfos tradeOccured traders (price, sugEx, spiEx) = 
+tradingHandler cont0 tradeInfos tradeOccured traders (price, sugEx, spiEx) = 
     continueWithAfter
       (proc evt -> 
         case evt of
           (DomainEvent traderId (TradingReply reply)) -> 
             arrM (uncurry $ handleTradingReply cont0) -< (traderId, reply)
-          _ -> returnA -< error $ "Agent " ++ show myId ++ ": received unexpected event " ++ show evt ++ " during active Trading, terminating simulation!")
+          _ -> do
+            aid <- constM myId -< ()
+            returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Trading, terminating simulation!")
   where
     handleTradingReply :: RandomGen g
-                       => AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                       => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
                        -> AgentId
                        -> TradingReply
-                       -> AgentAction g (SugAgentOut g, Maybe (EventHandler g))
+                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
     handleTradingReply cont _ (RefuseTrade _) =  
       -- the sender refuses the trading-offer, continue with the next trader
-      tradeWith myId cont tradeInfos tradeOccured traders
+      tradeWith cont tradeInfos tradeOccured traders
     handleTradingReply cont traderId AcceptTrade = do -- the sender accepts the trading-offer
       -- NOTE: at this point the trade-partner agent is better off as well, MRS won't cross over and the other agent has already transacted
       let tradeInfos' = TradeInfo price sugEx spiEx traderId : tradeInfos
 
-      transactTradeWealth myId sugEx spiEx
+      transactTradeWealth sugEx spiEx
 
       -- continue with next trader
-      tradeWith myId cont tradeInfos' True traders
+      tradeWith cont tradeInfos' True traders
 
 handleTradingOffer :: RandomGen g
                    => AgentId
-                   -> AgentId
                    -> Double
                    -> Double
-                   -> AgentAction g (SugAgentOut g)
-handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
+                   -> AgentLocalMonad g (SugAgentOut g)
+handleTradingOffer traderId traderMrsBefore traderMrsAfter = do
   myState <- get
 
   let myMrsBefore  = mrsState myState -- agents mrs BEFORE trade
@@ -151,7 +150,7 @@ handleTradingOffer myId traderId traderMrsBefore traderMrsAfter = do
         -- MRS cross-over, turn offer down
         then sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) <$> agentObservableM
         else do -- all good, transact and accept offer
-          transactTradeWealth myId sugEx spiEx
+          transactTradeWealth sugEx spiEx
           sendEventTo traderId (TradingReply AcceptTrade) <$> agentObservableM
 
 mrsCrossover :: Double
@@ -181,15 +180,14 @@ exchangeRates myMrs otherMrs
     price = sqrt (myMrs * otherMrs) -- price is the geometric mean
 
 transactTradeWealth :: RandomGen g
-                    => AgentId
+                    => Double
                     -> Double
-                    -> Double
-                    -> AgentAction g ()
-transactTradeWealth myId sugEx spiEx = do
+                    -> AgentLocalMonad g ()
+transactTradeWealth sugEx spiEx = do
   -- NOTE: negative values shouldn't happen due to welfare increase / MRS crossover restrictions
   -- but for security reasons make sure that we cap at 0 and cant go below
   updateAgentState (\s -> s { sugAgSugarLevel = max (sugAgSugarLevel s + sugEx) 0
                             , sugAgSpiceLevel = max (sugAgSpiceLevel s + spiEx) 0 })
 
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
-  updateSiteWithOccupier myId
+  updateSiteOccupied

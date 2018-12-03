@@ -80,3 +80,24 @@ Although concurrent programming in general is hard, Haskell takes much of the di
 There were a few subtle bugs in my implementation as getting a concurrent implementation right is still hard even when using Haskell. Still Haskells type system and lack of effects helps a lot when reasoning about concurrent behaviour and also the run-time provides amazing help. For example will the program terminate with an exception when a thread blocks on a synchronisation primitive (e.g. MVar) which no other thread references - this is an example for a classic deadlock which cannot be recovered. It is highly beneficial that Haskell actually detects such deadlocks which would be quite difficult to detected without such facilities and in many other languages one would simply end up with infinitely hanging threads.
 
 https://www.fpcomplete.com/blog/2018/05/pinpointing-deadlocks-in-haskell
+
+\section{Code}
+We used the command line tool \textit{cloc} to count the lines of Haskell code we have written (ignoring comments, reporting only the 'code' values)
+
+Count LoC of NetLogo (4.0.4, as 5.1 seemed to have bugs in some of their functionality): 2128 LoC in a single (!) file (Sugarscape.nlogo)
+Count LoC of Java implementation (http://sugarscape.sourceforge.net/): 6525 in 5 files
+
+Count LoC of my implementation
+- complete project: ~4300 in 38 files
+- complete project without test-code ~3660 in 27 files
+- test code: ~635 in 11 files
+- simulation-core and infrastructure (no rendering): ~1550 in 9 files
+- data-export: ~70 in 1 file
+- visualisation: ~200 in 2 files
+- agent-behaviour only: ~1700 in 14 files
+
+Big difference in our implementation
+- lots of lines are type-, import- and export (module) declarations. We conjecture that roughly 40\% of the whole code consists of such declarations.
+
+- several hundred lines are the scenario-definitions
+- what we provide in addition (netlogo does not need): simulation kernel, infrastructure, utilities, exporting of data, low-level rendering

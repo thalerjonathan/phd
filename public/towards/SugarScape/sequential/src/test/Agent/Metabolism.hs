@@ -6,8 +6,10 @@ module Agent.Metabolism
 
 import Control.Monad.Random
 
+import SugarScape.Agent.Common
 import SugarScape.Agent.Metabolism
 import SugarScape.Core.Common
+import SugarScape.Core.Discrete
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 import Utils.Runner
@@ -20,9 +22,12 @@ prop_agent_starved_sugaronly :: RandomGen g
 prop_agent_starved_sugaronly g0 asInit sugLvl
     = starved == (sugLvl <= 0) && asUnchanged 
   where
-    as0            = asInit { sugAgSugarLevel = sugLvl }
-    (starved, as') = runAgentMonadDefaultConst starvedToDeath as0 g0
-    asUnchanged    = as0 == as'
+    -- change sugar-level to random value
+    as0 = asInit { sugAgSugarLevel = sugLvl }
+    -- run the agent with defaults for Scenario, ABSState, Environment and require them not to change
+    (starved, as') = runAgentMonadDefaultConst starvedToDeath as0 g0 Nothing Nothing Nothing 
+    -- agent-state must not change
+    asUnchanged = as0 == as'
 
 prop_agent_starved_sugarandspice :: RandomGen g 
                                  => g 
@@ -31,39 +36,41 @@ prop_agent_starved_sugarandspice :: RandomGen g
                                  -> Double
                                  -> Bool
 prop_agent_starved_sugarandspice g0 asInit sugLvl spiLvl
-    = starved == (sugLvl <= 0 || spiLvl <= 0) && 
-      asUnchanged &&
-      absStateUnchanged &&
-      envUnchanged 
+    = starved == (sugLvl <= 0 || spiLvl <= 0) && asUnchanged
   where
-    as0       = asInit { sugAgSugarLevel = sugLvl, sugAgSpiceLevel = spiLvl }
-    env0      = emptyEnvironment
-    absState0 = defaultAbsState
-    scen      = mkSugarScapeScenario { spSpiceEnabled = True }
+    -- change sugar- and spice-level to random values
+    as0 = asInit { sugAgSugarLevel = sugLvl, sugAgSpiceLevel = spiLvl }
+    -- changed scenario: enable spice
+    sc = mkSugarScapeScenario { spSpiceEnabled = True }
     
-    (starved, as', absState', env', _) = runAgentMonad starvedToDeath scen 0 as0 absState0 env0 g0
-    asUnchanged       = as0 == as'
-    absStateUnchanged = absState0 == absState'
-    envUnchanged      = env0 == env'
+    -- run the agent with defaults for ABSState, Environment and require them not to change
+    (starved, as') = runAgentMonadDefaultConst starvedToDeath as0 g0 (Just sc) Nothing Nothing
+    -- agent-state must not change!
+    asUnchanged = as0 == as'
 
 prop_agent_metabolism_sugaronly :: RandomGen g 
                                 => g
                                 -> SugAgentState
+                                -> SugEnvSite
                                 -> Bool
-prop_agent_metabolism_sugaronly g0 as0 
-    = metabAmount == metabAmountExp &&
-      asUnchanged &&
-      absStateUnchanged &&
-      envUnchanged
+prop_agent_metabolism_sugaronly g0 as0 site0
+    = metabAmount == metabAmountExp && absStateUnchanged 
   where
+    -- default AgentId
+    aid       = 0
+    -- default ABSState
     absState0 = defaultAbsState
-    -- TODO: we need a proper environment here, with the agent occupying it
-    env0           = emptyEnvironment
-    metabAmountExp = 0
+
+    -- change site to have an occupier
+    site = site0 { sugEnvSiteOccupier = Just $ occupier aid as0 }
+    -- create a 1x1 environment with the given site
+    env  = createDiscrete2d (1, 1) moore WrapBoth [((0,0), site)]
+    -- default scenario (no spice)
     scen = mkSugarScapeScenario
 
-    (metabAmount, as', absState', env', _g') = runAgentMonad agentMetabolism scen 0 as0 absState0 env0 g0
+    metabAmountExp = 0 
 
-    asUnchanged       = as0 == as'
+    (metabAmount, _as', absState', _env', _) = runAgentMonad agentMetabolism scen aid as0 absState0 env g0
+
+    -- ABSState must not change
     absStateUnchanged = absState0 == absState'
-    envUnchanged      = env0 == env'

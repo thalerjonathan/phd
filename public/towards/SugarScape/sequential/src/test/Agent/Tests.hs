@@ -9,6 +9,7 @@ import Test.Tasty.QuickCheck as QC
 import Agent.Agent
 import Agent.Ageing
 import Agent.Metabolism
+import Environment.Environment
 
 agentTests :: RandomGen g 
            => g

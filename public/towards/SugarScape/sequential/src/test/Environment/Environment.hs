@@ -94,3 +94,4 @@ posSugarLevel c = sugEnvSiteSugarLevel c > 0
 
 levelLTESugarMax :: SugEnvSite -> Bool
 levelLTESugarMax c = sugEnvSiteSugarLevel c <= sugEnvSiteSugarCapacity c
+

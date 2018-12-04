@@ -10,6 +10,8 @@ module Utils.Runner
   , emptyEnvironment
   ) where
 
+import Data.Maybe
+
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -68,23 +70,27 @@ runAgentMonad_ f sc aid as0 absState0 env0 g0 = ret
 -- it returns the value of the computation and checks
 -- whether either one of the default values have changed.
 -- If any of the default values have changed it will throw an error
+-- NOTE: Scenario, ABSState and Environment can be provided optionally
 runAgentMonadDefaultConst :: RandomGen g
                           => AgentLocalMonad g ret
                           -> SugAgentState
                           -> g
+                          -> Maybe SugarScapeScenario
+                          -> Maybe ABSState
+                          -> Maybe SugEnvironment
                           -> (ret, SugAgentState)
-runAgentMonadDefaultConst acomp as0 g0 
-    | absState' /= absState0 = error "ABSState has changed during Agent-Computation!"
-    | env' /= env0           = error "Environment has changed during Agent-Computation!"
-    | otherwise              = (ret, as')
+runAgentMonadDefaultConst acomp as0 g0 msc mAbsState menv
+    | absState' /= absState = error "ABSState has changed during Agent-Computation!"
+    | env' /= env           = error "Environment has changed during Agent-Computation!"
+    | otherwise             = (ret, as')
   where
-    scen      = mkSugarScapeScenario
-    aid       = 0
-    env0      = emptyEnvironment
-    absState0 = defaultAbsState
+    aid      = 0
+    scen     = fromMaybe mkSugarScapeScenario msc
+    absState = fromMaybe defaultAbsState mAbsState
+    env      = fromMaybe emptyEnvironment menv
 
-    (ret, as', absState', env', _) = runAgentMonad acomp scen aid as0 absState0 env0 g0
-    
+    (ret, as', absState', env', _) = runAgentMonad acomp scen aid as0 absState env g0
+
 runAgentMonad :: RandomGen g
               => AgentLocalMonad g ret
               -> SugarScapeScenario
@@ -94,10 +100,10 @@ runAgentMonad :: RandomGen g
               -> SugEnvironment
               -> g
               -> (ret, SugAgentState, ABSState, SugEnvironment, g)
-runAgentMonad f sc aid as0 absState0 env0 g0 
+runAgentMonad acomp sc aid as0 absState0 env0 g0
     = (ret, as', absState', env', g')
   where
-    fAgState  = runReaderT f (sc, aid)
+    fAgState  = runReaderT acomp (sc, aid)
     fAbsState = runStateT fAgState as0
     fEnvState = runStateT fAbsState absState0
     fRand     = runStateT fEnvState env0

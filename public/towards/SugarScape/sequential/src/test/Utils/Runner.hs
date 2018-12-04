@@ -67,24 +67,27 @@ runAgentMonad_ f sc aid as0 absState0 env0 g0 = ret
 -- 2. agent id
 -- 3. environment
 -- 4. abs-state
+-- 5. random-number generator
 -- it returns the value of the computation and checks
 -- whether either one of the default values have changed.
 -- If any of the default values have changed it will throw an error
 -- NOTE: Scenario, ABSState and Environment can be provided optionally
-runAgentMonadDefaultConst :: RandomGen g
-                          => AgentLocalMonad g ret
+-- NOTE: if the agent computation makes use of Random Number functionality 
+--       then do NOT use this function when running repeated tests e.g.
+--       in QuickCheck because stream will always be the same.
+runAgentMonadDefaultConst :: AgentLocalMonad StdGen ret
                           -> SugAgentState
-                          -> g
                           -> Maybe SugarScapeScenario
                           -> Maybe ABSState
                           -> Maybe SugEnvironment
                           -> (ret, SugAgentState)
-runAgentMonadDefaultConst acomp as0 g0 msc mAbsState menv
+runAgentMonadDefaultConst acomp as0 msc mAbsState menv
     | absState' /= absState = error "ABSState has changed during Agent-Computation!"
     | env' /= env           = error "Environment has changed during Agent-Computation!"
     | otherwise             = (ret, as')
   where
     aid      = 0
+    g0       = mkStdGen 42
     scen     = fromMaybe mkSugarScapeScenario msc
     absState = fromMaybe defaultAbsState mAbsState
     env      = fromMaybe emptyEnvironment menv

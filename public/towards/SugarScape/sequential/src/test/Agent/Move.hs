@@ -8,7 +8,6 @@ module Agent.Move
 
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Agent.Move 
 import SugarScape.Core.Model

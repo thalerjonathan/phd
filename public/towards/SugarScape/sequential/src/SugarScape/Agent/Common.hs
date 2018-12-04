@@ -244,18 +244,18 @@ randomAgent :: MonadRandom m
             -> SugarScapeAgent g
             -> (SugAgentState -> SugAgentState)
             -> m (SugAgentDef g, SugAgentState)
-randomAgent params (agentId, coord) asf f = do
-  randSugarMetab     <- getRandomR $ spSugarMetabolismRange params
-  randVision         <- getRandomR $ spVisionRange params
-  randSugarEndowment <- getRandomR $ spSugarEndowmentRange params
-  ageSpan            <- randomAgentAge $ spAgeSpan params
-  randGender         <- randomGender $ spGenderRatio params
-  randFertAgeRange   <- randomFertilityRange params randGender
-  randCultureTag     <- randomCultureTag params
-  randSpiceEndowment <- getRandomR $ spSpiceEndowmentRange params
-  randSpiceMetab     <- getRandomR $ spSpiceMetabolismRange params
-  randImmuneSystem   <- randomImmuneSystem params
-  randDiseases       <- randomDiseases params
+randomAgent sc (agentId, coord) asf f = do
+  randSugarMetab     <- getRandomR $ spSugarMetabolismRange sc
+  randVision         <- getRandomR $ spVisionRange sc
+  randSugarEndowment <- getRandomR $ spSugarEndowmentRange sc
+  ageSpan            <- randomAgentAge $ spAgeSpan sc
+  randGender         <- randomGender $ spGenderRatio sc
+  randFertAgeRange   <- randomFertilityRange sc randGender
+  randCultureTag     <- randomCultureTag sc
+  randSpiceEndowment <- getRandomR $ spSpiceEndowmentRange sc
+  randSpiceMetab     <- getRandomR $ spSpiceMetabolismRange sc
+  randImmuneSystem   <- randomImmuneSystem sc
+  randDiseases       <- randomDiseases sc
 
   let initSugar = fromIntegral randSugarEndowment
       initSpice = fromIntegral randSpiceEndowment
@@ -287,7 +287,7 @@ randomAgent params (agentId, coord) asf f = do
   let s'   = f s
       adef = AgentDef {
     adId      = agentId
-  , adSf      = asf params agentId s'
+  , adSf      = asf sc agentId s'
   , adInitObs = sugObservableFromState s'
   }
 
@@ -296,8 +296,8 @@ randomAgent params (agentId, coord) asf f = do
 randomDiseases :: MonadRandom m
                => SugarScapeScenario
                -> m [Disease]
-randomDiseases params = 
-  case spDiseasesEnabled params of 
+randomDiseases sc = 
+  case spDiseasesEnabled sc of 
     Nothing -> return []
     Just (_, _, _, n, masterList) -> 
       randomElemsM n masterList
@@ -305,8 +305,8 @@ randomDiseases params =
 randomImmuneSystem :: MonadRandom m
                    => SugarScapeScenario
                    -> m ImmuneSystem
-randomImmuneSystem params = 
-  case spDiseasesEnabled params of 
+randomImmuneSystem sc = 
+  case spDiseasesEnabled sc of 
     Nothing -> return []
     Just (n, _, _, _, _)  -> 
       take n <$> getRandoms
@@ -314,20 +314,20 @@ randomImmuneSystem params =
 changeToRedTribe :: SugarScapeScenario
                  -> SugAgentState
                  -> SugAgentState
-changeToRedTribe params s = s { sugAgTribe      = tagToTribe redTag
+changeToRedTribe sc s = s { sugAgTribe      = tagToTribe redTag
                               , sugAgCultureTag = redTag }
   where             
-    redTag = case spCulturalProcess params of 
+    redTag = case spCulturalProcess sc of 
               Nothing -> replicate 10 True -- cultural process is deactivated => select default of 10 to generate different Red tribe
               Just n  -> replicate n True
 
 changeToBlueTribe :: SugarScapeScenario
                   -> SugAgentState
                   -> SugAgentState
-changeToBlueTribe params s = s { sugAgTribe     = tagToTribe blueTag
+changeToBlueTribe sc s = s { sugAgTribe     = tagToTribe blueTag
                               , sugAgCultureTag = blueTag }
   where             
-    blueTag = case spCulturalProcess params of 
+    blueTag = case spCulturalProcess sc of 
               Nothing -> replicate 10 False -- cultural process is deactivated => select default of 10 to generate different Red tribe
               Just n  -> replicate n False
 
@@ -344,8 +344,8 @@ tagToTribe tag
 randomCultureTag :: MonadRandom m
                  => SugarScapeScenario
                  -> m CultureTag
-randomCultureTag params = 
-  case spCulturalProcess params of 
+randomCultureTag sc = 
+  case spCulturalProcess sc of 
     Nothing -> return []
     Just n  -> 
       take n <$> getRandoms
@@ -363,13 +363,13 @@ randomFertilityRange :: MonadRandom m
                      => SugarScapeScenario 
                      -> AgentGender
                      -> m (Int, Int)
-randomFertilityRange params Male = do
-  from <- getRandomR $ spFertStartRangeMale params
-  to   <- getRandomR $ spFertEndRangeMale params
+randomFertilityRange sc Male = do
+  from <- getRandomR $ spFertStartRangeMale sc
+  to   <- getRandomR $ spFertEndRangeMale sc
   return (from, to)
-randomFertilityRange params Female = do
-  from <- getRandomR $ spFertStartRangeFemale params
-  to   <- getRandomR $ spFertEndRangeFemale params
+randomFertilityRange sc Female = do
+  from <- getRandomR $ spFertStartRangeFemale sc
+  to   <- getRandomR $ spFertEndRangeFemale sc
   return (from, to)
 
 randomAgentAge :: MonadRandom m

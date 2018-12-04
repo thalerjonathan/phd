@@ -114,6 +114,7 @@ Test-Suite sugarscape-test
 
   other-modules:        Agent.Ageing
                       , Agent.Agent
+                      , Agent.Mating
                       , Agent.Metabolism
                       , Agent.Move
                       , Agent.Tests
@@ -177,4 +178,4 @@ Test-Suite sugarscape-test
                       -threaded -with-rtsopts=-N
                       -fwarn-tabs 
                       -fno-warn-orphans
-                      -fno-warn-unused-imports
+                      -fno-warn-unused-local-binds

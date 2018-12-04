@@ -3,7 +3,6 @@ module Discrete.Tests
   ) where
 
 import Test.Tasty
-import Test.Tasty.QuickCheck as QC
 
 import Discrete.Discrete
 

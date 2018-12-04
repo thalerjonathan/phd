@@ -1,31 +1,27 @@
-module Agent.Tests 
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- disable warning for unused imports, need to import Arbitrary instances
+module Agent.Tests
   ( agentTests
   ) where
 
-import Control.Monad.Random
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import Agent.Agent
+import Agent.Agent  -- need this import for Arbitrary instance for AgentState
 import Agent.Ageing
+import Agent.Mating
 import Agent.Metabolism
 import Agent.Move
-import Environment.Environment
+import Environment.Environment -- need this import for Arbitrary instance for SugEnvSite
 
-agentTests :: RandomGen g 
-           => g
-           -> TestTree 
-agentTests g = testGroup "Agent Tests"
-                [ test_sselectBestSites_group
-                , QC.testProperty "Ageing by DTime" prop_agent_ageing
-                , QC.testProperty "Die Of Age" $ \a -> do
-                                                          age <- choose (60, 100)
-                                                          return $ prop_agent_dieOfAge a age
-
-                , QC.testProperty "Starved To Death Sugar only" $ prop_agent_starved_sugaronly g
-                , QC.testProperty "Starved To Death Sugar and Spice" $ prop_agent_starved_sugarandspice g
-                , QC.testProperty "Metabolism Sugar only" $ prop_agent_metabolism_sugaronly g
-                ] --, QC.testProperty "Metabolism" $ prop_agent_metabolism g
+agentTests :: TestTree 
+agentTests = testGroup "Agent Tests"
+              [ test_sselectBestSites_group
+              , QC.testProperty "Ageing by DTime" prop_agent_ageing
+              , QC.testProperty "Die Of Age" prop_agent_dieOfAge
+              , QC.testProperty "Starved To Death Sugar only" prop_agent_starved_sugaronly
+              , QC.testProperty "Starved To Death Sugar and Spice" prop_agent_starved_sugarandspice
+              , QC.testProperty "Metabolism Sugar only" prop_agent_metabolism_sugaronly
+              , QC.testProperty "Accept Mating Request" prop_agent_acceptMatingRequest ]
 
 test_sselectBestSites_group :: TestTree
 test_sselectBestSites_group = 

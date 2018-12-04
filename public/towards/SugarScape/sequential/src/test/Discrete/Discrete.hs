@@ -27,8 +27,6 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC
 
-import System.Random
-
 -------------------------------------------------------------------------------
 -- wrapDisc2d ClipToMax
 -------------------------------------------------------------------------------

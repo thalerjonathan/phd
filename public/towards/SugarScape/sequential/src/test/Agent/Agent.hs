@@ -1,40 +1,100 @@
 module Agent.Agent
-  ( 
+  ( arbitraryAgentStateFromScenario
   ) where
 
 import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Agent.Common
 import SugarScape.Core.Model
+import SugarScape.Core.Scenario
 
+-- NOTE: this instance creates default random SugAgentState. Some fields might
+-- be overriden by different random values in some property-tests.
 instance Arbitrary SugAgentState where
   -- arbitrary :: Gen SugAgentState
-  arbitrary = do
-    randSugarMetab     <- choose (1, 4)
-    randVision         <- choose (1, 6)
-    randSugarEndowment <- choose (5, 25)
-    randMaxAge         <- choose (60, 100)
-    
-    return SugAgentState {
-      sugAgCoord        = (0, 0)
-    , sugAgSugarMetab   = randSugarMetab
-    , sugAgVision       = randVision
-    , sugAgSugarLevel   = randSugarEndowment
-    , sugAgMaxAge       = Just randMaxAge
-    , sugAgAge          = 0
-    , sugAgGender       = Male
-    , sugAgFertAgeRange = (0, 0)
-    , sugAgInitSugEndow = randSugarEndowment
-    , sugAgChildren     = []
-    , sugAgCultureTag   = []
-    , sugAgTribe        = tagToTribe []
-    , sugAgSpiceLevel   = randSugarEndowment
-    , sugAgSpiceMetab   = randSugarMetab
-    , sugAgInitSpiEndow = randSugarEndowment
-    , sugAgBorrowed     = []
-    , sugAgLent         = []
-    , sugAgNetIncome    = 0
-    , sugAgImmuneSystem = []
-    , sugAgImSysGeno    = []
-    , sugAgDiseases     = []
-    }
+  arbitrary = arbitraryAgentStateFromScenario mkParamsAnimationII_3
+
+arbitraryAgentStateFromScenario :: SugarScapeScenario -> Gen SugAgentState
+arbitraryAgentStateFromScenario sc = do
+  randSugarMetab     <- choose $ spSugarMetabolismRange sc
+  randVision         <- choose $ spVisionRange sc
+  randSugarEndowment <- choose $ spSugarEndowmentRange sc
+  ageSpan            <- randomAgentAge $ spAgeSpan sc
+  randGender         <- randomGender $ spGenderRatio sc
+  randFertAgeRange   <- randomFertilityRange sc randGender
+  randCultureTag     <- randomCultureTag sc
+  randSpiceEndowment <- choose $ spSpiceEndowmentRange sc
+  randSpiceMetab     <- choose $ spSpiceMetabolismRange sc
+  randImmuneSystem   <- randomImmuneSystem sc
+  randDiseases       <- randomDiseases sc
+
+  let initSugar = fromIntegral randSugarEndowment
+      initSpice = fromIntegral randSpiceEndowment
+
+  return SugAgentState {
+    sugAgCoord        = (0, 0)  -- default position
+  , sugAgSugarMetab   = randSugarMetab
+  , sugAgVision       = randVision
+  , sugAgSugarLevel   = initSugar
+  , sugAgMaxAge       = ageSpan
+  , sugAgAge          = 0
+  , sugAgGender       = randGender
+  , sugAgFertAgeRange = randFertAgeRange
+  , sugAgInitSugEndow = initSugar
+  , sugAgChildren     = []
+  , sugAgCultureTag   = randCultureTag
+  , sugAgTribe        = tagToTribe randCultureTag
+  , sugAgSpiceLevel   = initSpice
+  , sugAgInitSpiEndow = initSpice
+  , sugAgSpiceMetab   = randSpiceMetab
+  , sugAgBorrowed     = []
+  , sugAgLent         = []
+  , sugAgNetIncome    = 0
+  , sugAgImmuneSystem = randImmuneSystem
+  , sugAgImSysGeno    = randImmuneSystem
+  , sugAgDiseases     = randDiseases
+  }
+
+randomDiseases :: SugarScapeScenario -> Gen [Disease]
+randomDiseases sc = 
+  case spDiseasesEnabled sc of 
+    Nothing                       -> return []
+    Just (_, _, _, n, masterList) -> 
+      mapM (const $ elements masterList) [1..n]
+
+randomImmuneSystem :: SugarScapeScenario -> Gen ImmuneSystem
+randomImmuneSystem sc = 
+  case spDiseasesEnabled sc of 
+    Nothing              -> return []
+    Just (n, _, _, _, _) -> vector n 
+
+randomCultureTag :: SugarScapeScenario -> Gen CultureTag
+randomCultureTag sc = 
+  case spCulturalProcess sc of 
+    Nothing -> return []
+    Just n  -> vector n
+
+randomGender :: Double -> Gen AgentGender
+randomGender p = do
+  r <- choose ((0, 1) :: (Double, Double))
+  if r >= p
+    then return Male
+    else return Female
+
+randomFertilityRange :: SugarScapeScenario 
+                     -> AgentGender
+                     -> Gen (Int, Int)
+randomFertilityRange sc Male = do
+  from <- choose $ spFertStartRangeMale sc
+  to   <- choose $ spFertEndRangeMale sc
+  return (from, to)
+randomFertilityRange sc Female = do
+  from <- choose $ spFertStartRangeFemale sc
+  to   <- choose $ spFertEndRangeFemale sc
+  return (from, to)
+
+randomAgentAge :: AgentAgeSpan -> Gen (Maybe Int)
+randomAgentAge Forever         = return Nothing
+randomAgentAge (Range from to) = do
+  randMaxAge <- choose (from, to)
+  return $ Just randMaxAge

@@ -13,6 +13,8 @@ import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 import Utils.Runner
 
+-- NOTE: this instance creates default random SugEnvSites. Some fields might
+-- be overriden by different random values in some property-tests.
 instance Arbitrary SugEnvSite where
   -- arbitrary :: Gen SugEnvSite
   arbitrary = do
@@ -30,6 +32,8 @@ instance Arbitrary SugEnvSite where
     , sugEnvSitePolutionLevel = 0
     }
 
+-- NOTE: this instance creates default random Discrete2d SugEnvSite. Some fields might
+-- be overriden by different random values in some property-tests.
 instance Arbitrary (Discrete2d SugEnvSite) where
   -- arbitrary :: Gen (Discrete2d SugEnvSite)
   arbitrary = do

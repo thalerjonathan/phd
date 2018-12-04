@@ -2,6 +2,9 @@
 module SugarScape.Agent.Move 
   ( agentMove
   , handleKilledInCombat
+
+  , selectBestSites   -- for testing purposes
+  , sugarSiteMeasure  -- for testing purposes
   ) where
 
 import Data.List

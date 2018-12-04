@@ -54,23 +54,43 @@ prop_agent_metabolism_sugaronly :: RandomGen g
                                 -> SugEnvSite
                                 -> Bool
 prop_agent_metabolism_sugaronly g0 as0 site0
-    = metabAmount == metabAmountExp && absStateUnchanged 
+    = metabAmount == metabAmountExp
+        && absStateUnchanged 
+        && asStateExpectedChange
+        && siteExpectedChange
   where
     -- default AgentId
     aid       = 0
     -- default ABSState
     absState0 = defaultAbsState
+    -- singleton site environment coordinat
+    siteCoord = (0, 0)
 
     -- change site to have an occupier
-    site = site0 { sugEnvSiteOccupier = Just $ occupier aid as0 }
+    occ0 = occupier aid as0
+    site = site0 { sugEnvSiteOccupier = Just occ0 }
     -- create a 1x1 environment with the given site
-    env  = createDiscrete2d (1, 1) moore WrapBoth [((0,0), site)]
+    env  = createDiscrete2d (1, 1) moore WrapBoth [(siteCoord, site)]
     -- default scenario (no spice)
-    scen = mkSugarScapeScenario
+    sc = mkSugarScapeScenario
 
-    metabAmountExp = 0 
+    -- either the agent consumes its remaining sugar level if the metabolism is larger
+    -- or if there is still sugar left, it will simply take away the metabolism amount
+    metabAmountExp = min (sugAgSugarLevel as0) (fromIntegral $ sugAgSugarMetab as0)
 
-    (metabAmount, _as', absState', _env', _) = runAgentMonad agentMetabolism scen aid as0 absState0 env g0
+    -- run the agent computation
+    (metabAmount, as', absState', env', _) = runAgentMonad agentMetabolism sc aid as0 absState0 env g0
 
     -- ABSState must not change
     absStateUnchanged = absState0 == absState'
+    
+    -- check agent state has changed: sugarlevel was reduced by metabAmount
+    expSugarLevel = sugAgSugarLevel as0 - metabAmountExp
+    asExp = as0 { sugAgSugarLevel = expSugarLevel }
+    asStateExpectedChange = as' == asExp 
+
+    -- check if occupier on cell in environment has changed:  sugEnvOccSugarWealth and sugEnvOccMRS
+    occExp  = occ0 { sugEnvOccSugarWealth = expSugarLevel, sugEnvOccMRS = mrsState asExp }
+    siteExp = site { sugEnvSiteOccupier = Just occExp }
+    site'   = cellAt siteCoord env'
+    siteExpectedChange = site' == siteExp

@@ -115,7 +115,10 @@ Test-Suite sugarscape-test
   other-modules:        Agent.Ageing
                       , Agent.Agent
                       , Agent.Metabolism
+                      , Agent.Move
                       , Agent.Tests
+                      , Discrete.Tests
+                      , Discrete.Discrete
                       , Environment.Environment
                       , Environment.Tests
                       , Model.Model

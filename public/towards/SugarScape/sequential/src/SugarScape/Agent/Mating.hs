@@ -212,7 +212,7 @@ isAgentFertileWealth = do
   
   return $ sugLvl >= initSugLvl && spiLvl >= initSpiLvl
 
-handleMatingRequest :: (RandomGen g, MonadState SugAgentState m)
+handleMatingRequest :: MonadState SugAgentState m
                     => AgentId
                     -> AgentGender
                     -> m (SugAgentOut g)

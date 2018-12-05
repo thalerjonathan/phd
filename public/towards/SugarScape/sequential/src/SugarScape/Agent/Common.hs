@@ -393,7 +393,7 @@ agentProperty = gets
 agentObservable :: SugAgentState -> SugAgentOut g 
 agentObservable = agentOut . sugObservableFromState
 
-agentObservableM :: (MonadState SugAgentState m, RandomGen g)
+agentObservableM :: MonadState SugAgentState m
                  => m (SugAgentOut g)
 agentObservableM 
   = get >>= \s -> return $ agentObservable s

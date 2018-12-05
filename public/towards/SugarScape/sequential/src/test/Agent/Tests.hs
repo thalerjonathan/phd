@@ -21,7 +21,8 @@ agentTests = testGroup "Agent Tests"
               , QC.testProperty "Starved To Death Sugar only" prop_agent_starved_sugaronly
               , QC.testProperty "Starved To Death Sugar and Spice" prop_agent_starved_sugarandspice
               , QC.testProperty "Metabolism Sugar only" prop_agent_metabolism_sugaronly
-              , QC.testProperty "Accept Mating Request" prop_agent_acceptMatingRequest ]
+              , QC.testProperty "Accept Mating Request" prop_agent_acceptMatingRequest
+              , QC.testProperty "Handle Mating Request" prop_agent_handleMatingRequest ]
 
 test_sselectBestSites_group :: TestTree
 test_sselectBestSites_group = 

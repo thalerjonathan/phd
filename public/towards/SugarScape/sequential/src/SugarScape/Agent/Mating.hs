@@ -6,6 +6,8 @@ module SugarScape.Agent.Mating
   , isAgentFertile
   , handleMatingRequest
   , handleMatingTx
+
+  , acceptMatingRequest  -- for testing purposes
   ) where
 
 import Data.Maybe

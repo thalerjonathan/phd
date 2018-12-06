@@ -13,7 +13,120 @@ page 28, footnote 16: we can guarantee that in haskell at compile time
 
 TODO: investigate where data-parallelisation is possible. concurrency has been dealt with in the STM paper already.
 
-\section{Chapter II}
+\subsection{A Functional View}
+The restrictions functional programming imposes, directly removes serious sources of bugs which leads to simulation which is more likely to be correct. These restrictions force us to solve the fundamental concepts in ABS implementation differently. Note that we could fall back to using IO throughout all the simulation in which case we have access to mutable references but then we lose important compile-time guarantees and introduce those serious sources of bugs we want to get rid of - also testing becomes more complicated and not as strong any more because we cannot guarantee at compile time that no random IO stuff is happening within the agents. Also note that obviously no one would do random IO stuff in an agent (e.g. read from a file, open connection to server...) but one must not underestimate the value of guaranteeing its absence at compile-time. Thus, due to the fundamentally different approaches of functional programming (FP) an ABS needs to be implemented fundamentally different as well compared to established object-oriented (OO) approaches. We face the following challenges:
+
+\begin{enumerate}
+	\item How can we represent an Agent, its local state and its interface? How can be make it pro-active? \\
+	In OO the obvious approach is to map an agent directly onto an object which encapsulates data and provides methods which implement the agents actions. Obviously we don't have objects in FP thus we need to find a different approach to represent the agents actions and to encapsulate its state.
+	In the established OO approach one represents the state of an Agent explicitly in mutable member variables of the object which implements the Agent. As already mentioned we don't have objects in FP and state is immutable which leaves us with the very tricky question how to represent state of an Agent which can be actually updated.
+	In the established OO approach, agents have a well-defined interface through their public methods through which one can interact with the agent and query information about it. Again we don't have this in FP as we don't have objects and globally mutable state.
+	In the established OO approach one would either expose the current time-delta in a mutable variable and implement time-dependent functions or ignore it at all and assume agents act on every step. At first this seems to be not a big deal in FP but when considering that it is yet unclear how to represent Agents and their state, which is directly related to time-dependent and reactive behaviour it raises the question how we can implement time-varying and reactive behaviour in a purely functional way.
+
+	\item How can we implement agent-agent interactions? \\
+	In the established OO approach Agents can directly invoke other Agents methods which makes direct Agent interaction straight forward. Again this is obviously not possible in FP as we don't have objects with methods and mutable state inside.
+	In the established OO approach agents simply have access to the environment either through global mechanisms (e.g. Singleton or simply global variable) or passed as parameter to a method and call methods which change the environment. Again we don't have this in FP as we don't have objects and globally mutable state.
+	
+	\item How can we represent an environment and its various types? How can we implement agent-environment interactions \\
+	In the established OO approach an environment is almost always a mutable object which can be easily made dynamic by implementing a method which changes its state and then calling it every step as well. In FP we struggle with this for the same reasons we face when deciding how to represent an Agent, its state and proactivity.
+	
+	\item How can we step the simulation? \\
+	In the established OO approach agents are run one after another (with being optionally shuffled before to uniformly distribute the ordering) which ensures mutual exclusive access in the agent-agent and agent-environment interactions. Obviously in FP we cannot iteratively mutate a global state.
+\end{enumerate}
+
+\subsection{Agent representation, local state, interface and pro-activity}
+The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations in turn allow to encapsulate the execution state of a program including local variables and pick up computation from that point later on. We present an example for continuations and recursions. TODO: explain
+
+\begin{HaskellCode}
+newtype Cont a = Cont (a -> (a, Cont a))
+
+adder :: Int -> Cont Int
+adder x = Cont (\x' -> (x + x', adder (x + x')))
+
+runCont :: Int -> Cont Int -> IO ()
+runCont 0 _ = return ()
+runCont n (Cont cont) = do
+  let (x, cont') = cont 1
+  print x
+  runCont (n-1) cont'
+
+test :: IO ()
+test = runCont 100 (adder 0)
+\end{HaskellCode}
+
+From the continuation example it becomes apparent that we can encapsulate local state which which is not accessible and mutable from outside but only through explicit inputs and outputs to the continuation. The source of pro-activity in ABS comes always from observing the time - when an agent can observe the flow of time, it can become pro-active and initiate actions on its own without external stimuli like events \cite{thaler_art_2017}. Thus we need to make the flow of time available to our agents as well. 
+
+FRP (see Section \ref{sec:frp}) provides us with an interesting abstraction for a flow of time, the signal function, which are built on \textit{recursion} and \textit{continuations}. A signal function can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. Also some FRP implementations allow to execute signal functions within a context which can have side-effects \cite{perez_functional_2016} of which we can make use as well (see below).
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow \alpha \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Using signal functions and FRP allows us to solve the presented problems, thus we make an Agent a signal function. Our agent-interface is defined in terms of the input $Signal \, \alpha$ and output $Signal \, \beta$ and the type of side-effects the context allows. Further it allows us to encapsulate local state on a very strong level: there is now way to access or mutate locale state outside of the control of an agent, it all has to go through the inputs and outputs and running the signal function. Pro-activity is not a problem as well as signal functions have an awareness of time which can be used to e.g. emit events \textit{after} a given time-out. 
+
+We present a short code-example of an infected agent of the agent-based SIR model \cite{macal_agent-based_2010} which recovers after a given time. The first line with the double semi-colons (::) defines the type of a function. We see that \textit{infectedAgent} is a signal function (SF) which has as input the empty tuple (can be seen as void / no input) and outputs the SIR state it is currently in. Also this signal-function is pure and does not run within a side-effect context. By looking at the types we see no explicit $\Delta t$ as input (it is hidden in the signal function and FRP implementation) thus there is no way to access it explicitly, meaning we removed a potential source of bugs.
+
+The infected agent behaves as infected until the recovery-event happens - from that moment on it will behave as a recovered agent - which is implemented using the \textit{switch} function provided by FRP. The \textit{infected} function returns a tuple with the Event in addition to the SIR state which indicates if the recovery-event has happened or not. If it has, then the \textit{switch} function will detect this and switch into \textit{recoveredAgent}. While infected, the agent 'waits' for the recovery-event which is generated using the \textit{occasionally} function, provided by FRP. It generates on average an event after \textit{illnessDuration}, meaning it generates stochastic events from an exponential distribution. Depending whether the event has occurred, the infected agents outputs Infected or Recovered.
+
+Note that \textit{occasionally} is a stochastic function which means it makes use of a random-number stream, which is passed to \textit{infectedAgent} in its first argument \textit{RandomGen g => g}.
+
+\begin{HaskellCode}
+-- an agent in the SIR model is either Susceptible, Infected or Recovered
+data SIRState = Susceptible | Infected | Recovered
+
+infectedAgent :: RandomGen g => g -> SF () SIRState
+infectedAgent g 
+    -- behave as infected until recovery-event, then behave as
+    -- recoveredAgent from that moment on    
+    = switch infected (const recoveredAgent)
+  where
+    infected :: SF () (SIRState, Event ())
+    infected = proc _ -> do
+      -- awaiting the recovery-event
+      recEvt <- occasionally g illnessDuration () -< ()
+      -- if event occurred a is Recovered, otherwise Infected
+      let a = event Infected (const Recovered) recEvt
+      -- return the state and event
+      returnA -< (a, recEvt)
+
+-- a recovered agent stays Recovered forever
+recoveredAgent :: SF () SIRState
+recoveredAgent = arr (const Recovered)
+\end{HaskellCode}
+
+Note that this approach to ABS is inherently time-driven. This means that depending on the time-semantics of the model, we need to select the right time-deltas by which to sample the simulation. If it is too large we might not arrive at the correct solution, if it is too small, we run into performance problems. An alternative is to follow an event-driven approach \cite{meyer_event-driven_2014}, where agents schedule events in a Discrete Event Simulation fashion. To implement such an approach is possible using signal functions and FRP as well by running within a State context in which one manages an event queue. The simulation stepping (see below) then advances the simulation through processing the events instead of time-deltas. Although the event-driven approach can emulate the time-driven approach and is thus more general, it might be more natural to implement the simulation in a time-driven way due to the model semantics fit more natural to it.
+
+\subsection{Agent-Agent interactions}
+Agent-agent interactions are trivial in object-orientation: one either makes a direct method call or send an event, mutating the internal state of the receiving agent. In functional programming we need to come up with alternatives because neither method-calls nor globally mutable state is available.
+
+A simple solution is to implement \textit{asynchronous} interactions, which can be seen as a message sent to the target agent which will arrive in the next time step, passed in through the signal function input. If the receiving agent doesn't handle the event, it will be lost if we are in a pure context because there is no concept of a persistent message-box which would require mutable data. In a effectful context e.g. STM or State, we could implement stateful message-boxes. Whether an asynchronous approach is suitable, depends entirely on model semantics - it might work for some models or parts of a model, but not for others.
+
+The alternative are \textit{synchronous} interactions which are necessary when an arbitrary number of interactions between two agents need to happen instantaneously without any time-steps in between. The use-case for this are price negotiations between multiple agents where each pair of agents needs to come to an agreement in the same time-step \cite{epstein_growing_1996}. In object-oriented programming, the concept of synchronous communication between agents is trivially implemented directly with method calls but it can get tricky to get right in an functional programming setting. The only option one has, is to dynamically find the target agents signal function and run it within the source agent. This would imply some effectful context which allows read/write to all signal functions in the system: we need to read it to find the target and write it to put the continuation back in because it has locally encapsulated state. This is active research we conduct at the moment and we leave this for further research as it is out of the scope of this paper.
+
+TODO: implement synchronous agent interaction
+
+TODO: discuss macals 4 classifications of his paper  \cite{macal_everything_2016} 
+
+\subsection{Environment representation and Agent-Environment interactions}
+Depending on which kind of environment we are using we have different approaches on how to solve these problems. We distinguish between four different environment types:
+
+\begin{enumerate}
+	\item Passive read-only e.g. a static neighbour network - The environment is passed as additional input to each agent.
+	\item Passive read/write e.g. a shared 2D grid like in the schelling model \cite{schelling_dynamic_1971} - The environment is shared through an effectful State context which can be accessed and manipulated by the agents.
+	\item Active read-only e.g. ? - The environment is made a signal function too which broadcasts asynchronous messages about changes in the environment to all agents.
+	\item Active read/write e.g. Sugarscapes environment in which agents move around and harvest resources but where the environment regrows them - The environment is made a signal function which acts on a shared state which is made available to the environment \textit{and} the agents using an effectful State context.
+\end{enumerate}
+
+\subsection{Stepping the simulation}
+An FRP library generally provides functions to either run signal functions with or without any effectful context. Further they might also provide a looping function which runs within the IO context to e.g. continuously render outputs to a window. All of it is built on the concept of recursion and continuations as we have introduced earlier which allows to feed the output of the current step into the next one, generating a closed feedback-loop.
+
+% Also depending on whether one is following a time- or event-driven approach one needs
+
+%TODO: SIR maps nicely to continuous time-semantics and state-transitions provided by FRP, property-testing can be used to directly express parts of the SD specification
+%TODO: Sugarscape: no need for continuous time-semantics as agents act in all time-step, main difficulty: synchronous agent-interactions, property-based testing: can we express hypotheses?
+
+\subsection{Chapter II}
 each agent is a Signal Function with no input and outputs an AgentOut which contains a list of agents it wants to spawn, a flag if the agent is to be removed from the simulation (e.g. starved to death) and observable properties the agent exhibits to the outside world. All the agents properties are encapsulated in the SF continuation and there is no way to access and manipulate the data from outside without running the SF itself which will produce an AgentOut.
 
 An agent has access to the shared environment state, a random-number generator and a shared ABS-system state which contains the next agent-id when birthing a new agent. All this is implemented by sharing the data-structures amongst all agents which can read/write it - this is possible in functional programming using Monadic Programming which can simulate a global state, accessible from within a function which can then read/write this state. The fundamental difference to imperative oop-programming is that all reads / writes are explicit using functions (no assignment).
@@ -30,7 +143,7 @@ Although this solution is much slower and more complex to implement and thus not
 - it serves more as a study to what different approaches are possible and how difficult / easy it is to implement them in FP, in this case, "rolling back" the actions of an agent is trivial in FP as long as the underlying monadic context is immune to rollbacks, in our case we argue that it is: incrementing agentids in ABSState does not matter, as it doesnt matter that we have a changed random-number stream. It would be a different matter if there is a global shared state which was modified by the agent.
 - in the extreme case this degenerates to a (much more expensive) sequential update 
 
-\section{Chapter III}
+\subsection{Chapter III}
 This chapter reveals the fundamental difference and difficulty in pure functional programming over established OOP approaches in the field: direct agent-interaction e.g. in mating where 2 agents interact synchronously with each other and might updated their internal state. These interactions \textit{must} happen synchronously because there are resource constraints in place which could be violated if an agent interacts with multiple agents virtually at the same time.
 
 In established OOP approaches this is nearly trivial and straight forward: the agent which initiates the direct interaction holds or looks up (e.g. through a central simulation management object) a reference to the other agent (e.g. by neighbourhood) and then makes direct method calls to the other agent where internal agent-states of both agents may be mutated.

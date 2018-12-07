@@ -15,7 +15,7 @@ To substantiate our claims we present fundamental concepts and advanced features
 	
 	\item We explored ways of code-testing our implementation. We show how to use property-based testing for ensuring the correctness of individual agent parts, and unit-testing of the whole simulation which serves both as regression test and to check model hypotheses.
 	
-	\item Our Sugarscape implementation is fully validated against the dynamics reported in the book \cite{epstein_growing_1996} and an already existing NetLogo replication \cite{weaver_replicating_nodate}. Due to lack of space we discuss the validation process in Appendix TODO.
+	\item Our Sugarscape implementation is fully validated against the dynamics reported in the book \cite{epstein_growing_1996} and an already existing NetLogo replication \cite{weaver_replicating_nodate}. Due to lack of space we discuss the validation process in Appendix \ref{app:validation}.
 \end{itemize}
 
 We present the challenges encountered in this case-study and discuss benefits and drawbacks. As will become apparent, our results support our claims that pure functional programming has indeed its place in ABS and that it has the mentioned benefits. On the other hand, due to its heavier approach in terms of engineering, its approach pays only off in cases of high-impact and large-scale simulations which results might have far-reaching consequences e.g. influence policy decisions. Because its only those models which require high confidence in correctness and stability of the software this heavier approach is almost never necessary for quick prototyping and small case-studies of ABS models for which NetLogo and the established object-oriented approaches using Python, Java, C++ are perfectly suitable. Still, we hope to distil the developed techniques into a general purpose ABS Haskell library so implementing models becomes much easier and quicker and makes using Haskell attractive for prototyping models as well.
@@ -23,9 +23,9 @@ We present the challenges encountered in this case-study and discuss benefits an
 The aim and contribution of this paper is to introduce the functional programming paradigm using Haskell to ABS on a \textit{conceptual} level, identifying benefits, difficulties and drawbacks. This is done by presenting the above mentioned case-study which introduces general implementation techniques applicable to ABS. To the best of our knowledge, we are the first to do so.
 
 The structure of the paper is as follows. 
-In Section TODO RELATED WORK we present related work on functional programming in ABS. 
-In Section TODO FUNCTIONAL PROGRAMMING we introduce the functional programming paradigm, establish key features, motivate why we chose Haskell, discuss its type system, side-effects, parallelism and concurrency and how ABS can be implemented on top of them building on Monads, Continuations and FRP. 
-In Section TODO CASE-STUDY we present our Sugarscape case-study and with its challenges encountered and benefits and drawbacks.
-In Section TODO DISCUSSION we discuss our initial claims in the light of the case-study.
-In Section TODO CONCLUSIONS we conclude and point out further research.
-We added an Appendix TODO APPENDIX in which we give a deeper insight into our process of validating our Sugarscape model against the book and \cite{epstein_growing_1996} and an already existing NetLogo replication \cite{weaver_replicating_nodate}.
+In Section \ref{sec:related_work} we present related work on functional programming in ABS. 
+In Section \ref{sec:fp} we introduce the functional programming paradigm, establish key features, motivate why we chose Haskell, discuss its type system, side-effects, parallelism and concurrency and how ABS can be implemented on top of them building on Monads, Continuations and FRP. 
+In Section \ref{sec:case_study} we present our Sugarscape case-study and with its challenges encountered and benefits and drawbacks.
+In Section \ref{sec:discussion} we discuss our initial claims in the light of the case-study.
+In Section \ref{sec:conclusions} we conclude and point out further research.
+We added an Appendix \ref{app:validation} in which we give a deeper insight into our process of validating our Sugarscape model against the book and \cite{epstein_growing_1996} and an already existing NetLogo replication \cite{weaver_replicating_nodate}.

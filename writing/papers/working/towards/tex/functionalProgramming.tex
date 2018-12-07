@@ -11,6 +11,8 @@ In our research we are using the \textit{pure} functional programming language H
 	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
 \end{itemize}
 
+\subsection{Fundamentals}
+
 To explain the central concepts of functional programming, we give an implementation of the factorial function in Haskell:
 \begin{HaskellCode}
 factorial :: Integer -> Integer
@@ -37,95 +39,27 @@ One of the fundamental strengths of Haskell is its way of dealing with side-effe
 
 Obviously, to write real-world programs which interact with the outside-world we need side-effects. Haskell allows to indicate in the \textit{type} of a function that it does or does \textit{not} have side-effects. Further there are a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is then ensured by the compiler which means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile. Haskell also provides mechanisms to combine multiple effects e.g. one can define a function which can draw random-numbers and modify some global data. The most common side-effect types are: \textit{IO} allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections, mutable references; \textit{Rand}  allows drawing random-numbers; Reader / Writer / State allows to read / write / both from / to an environment.
 
-TODO: show a simple effectful function
+A function without any side-effect type is called \textit{pure}, and the \textit{factorial} function is indeed pure. Below we give an example of a function which is not pure. The \textit{queryUser} function \textit{constructs} a computation which, when executed asks the user for its user-name and compares it with a given user-configuration. In case the user-name matches it returns True, and False otherwise after printing a corresponding message. 
+
 \begin{HaskellCode}
 queryUser :: String -> IO Bool
-queryUser userName = do
+queryUser username = do
   -- print text to console
   putStr "Type in user-name: "
   -- wait for user-input
   str <- getLine
   -- check if input matches user-name
-  if str == userName
+  if str == username
     then do
       putStrLn "Welcome!"			
       return True
     else do
-      putStrLn "Wrong user-name, try again."
-      queryUser userName
+      putStrLn "Wrong user-name!"
+      return False
 \end{HaskellCode}
 
-TODO: explain do notation and that monads with their underlying bind operator is bascially functional programmings ; operator
+The \textit{IO} in the first line indicates that the function runs in the IO effect and can thus (amongst others) print to the console and read input from it. What seems striking is that this looks very much like imperative code - this is no accident and intended. When we are dealing with side-effects, ordering becomes important, thus Haskell introduced the so-called do-notation which emulates an imperative style of programming. Whereas in imperative programming languages like C, commands are chained or composed together using the ; operator, in functional programming this is done using function composition: feeding the output of a function directly into the next function. The machinery behind the do-notation does exactly this and desugars this imperative-style code basically into function compositions which run custom code between each line, depending on the type of effect the computation runs in (IO in this case). This approach of function composition with custom code in between each function allows to emulate a broad range of imperative-style effects, including the above mentioned ones. For a technical, in-depth discussion of the concept of side-effects and how they are implemented in Haskell using Monads, we refer to the following papers: \cite{moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997,jones_tackling_2002}.
 
-%A function with side-effects has to indicate this in their type e.g. if we want to give our factorial function for debugging purposes the ability to write to the standard output, we add IO to its type: factorial :: Integer -> IO Integer. A function without any side-effect type is called \textit{pure}. A function with a given effect-type needs to be executed with a given effect-runner which takes all necessary parameters depending on the effect and runs a given effectful function returning its return value and depending on the effect also an effect-related result. For example when running a function with a State-effect one needs to specify the initial environment which can be read and written. After running such a function with a State-effect the effect-runner returns the changed environment in addition with the return value of the function itself. Note that we cannot call functions of different effect-types from a function with another effect-type, which would violate the guarantees. Calling a \textit{pure} function though is always allowed because it has by definition no side-effects. An effect-runner itself is a \textit{pure} function. The exception to this is the IO effect type which does not have a runner but originates from the \textit{main} function which is always of type IO.
+Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in the function explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because effect-runners are themselves \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect-runner. This allows a much easier approach to isolated testing because the history of the system is made explicit.
 
-Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because effect-runners are themselves \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect-runner. This allows a much easier approach to isolated testing because the history of the system is made explicit.
-
-For a technical, in-depth discussion of the concept of side-effects and how they are implemented in Haskell using Monads, we refer to the following papers: \cite{moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997,jones_tackling_2002}.
-
-\subsection{Parallelism and Concurrency}
-TODO: write this section
-
-Also Haskell makes a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. Although data in functional programming is immutable, Haskell provides primitives which allow to share immutable data between threads. Accessing these primitives is but only possible from within an IO or STM context which means that when we are using concurrency in our program, the types of our functions change from pure to either IO or STM effect context.
-
-Spawning thousands of threads in Haskell is no problem and has very low memory footprint because they are lightweight user-space threads, managed by the Haskell Runtime System which maps them to physical operating-system threads. 
-
-TODO: in haskell we can distinguish between parallelism and concurrency in the types: parallelism is pure, concurrency is impure
-TODO: parallelism for free because all isolated e.g. running multiple replications or parameter-variations
-
-TODO: For a technical, in-depth discussion on parallelism and concurrency in Haskell we refer to the excellent book \cite{marlow_parallel_2013}.
-
-TODO: explain STM, Problem: live locks, For a technical, in-depth discussion on Software Transactional Memory in Haskell we refer to the following papers: \cite{harris_composable_2005,discolo_lock_2006,osullivan_real_2008,perfumo_limits_2008}. TODO: need much more papers on STM, parallelism and concurrency
-
-%\subsection{Functional Reactive Programming}
-%\label{sec:frp}
-%Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in functional programming. The central concept in FRP is the Signal Function which can be understood as a process over time which maps an input- to an output-signal. A signal in turn, can be understood as a value
-%which varies over time. Thus, signal functions have an awareness of the passing of time by having access to a $\Delta t$ which are positive time-steps with which the system is sampled. In general, signal functions can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. Note that this is an important building block to represent agents in functional programming: by implementing agents as signal functions allows us to implement them as processes which act continuously over time, which implies a time-driven approach to ABS. We have also applied the concept of FRP to event-driven ABS \cite{meyer_event-driven_2014}.
-%
-%FRP provides a number of functions for expressing time-semantics, generating events and making state-changes of the system. They allow to change system behaviour in case of events, run signal functions, generate deterministic (after fixed time) and stochastic (exponential arrival rate) events and provide random-number streams. 
-%
-%TODO: libraries Yampa and Dunai
-%
-%For a technical, in-depth discussion on FRP in Haskell we refer to the following papers: \cite{wan_functional_2000,hughes_generalising_2000,hughes_programming_2005,nilsson_functional_2002,hudak_arrows_2003,courtney_yampa_2003,perez_functional_2016, perez_extensible_2017}
-%
-%\subsection{Property-Based Testing}
-%TODO: write this section
-%
-%Although property-based testing has been brought to non-functional languages like Java and Python as well, it has its origins in Haskell and it is here where it truly shines.
-%
-%We found property-based testing particularly well suited for ABS. Although it is now available in a wide range of programming languages and paradigms, propert-based testing has its origins in Haskell \cite{claessen_quickcheck_2000,claessen_testing_2002} and we argue that for that reason it really shines in pure functional programming. Property-based testing allows to formulate \textit{functional specifications} in code which then the property-testing library (e.g. QuickCheck \cite{claessen_quickcheck_2000}) tries to falsify by automatically generating random test-data covering as much cases as possible. When an input is found for which the property fails, the library then reduces it to the most simple one. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through). Also the deductive nature of falsification in property-based testing suits very well the constructive nature of ABS.
-%
-%TODO: use the reverse or the reverse is the list again
-%
-%For a technical, in-depth discussion on property-based testing in Haskell we refer to the following papers: \cite{claessen_quickcheck_2000,claessen_testing_2002}.
-
-%\subsection{Software Transactional Memory}
-%Although there exist STM implementations in non-functional languages like Java and Python, due to the nature of Haskells type-system, the use of STM has unique benefits in this setting.
-%
-%Concurrent programming is notoriously difficult to get right because reasoning about the interactions of multiple concurrently running threads and low level operational details of synchronisation primitives and locks is \textit{very hard}. The main problems are:
-%
-%\begin{itemize}
-%	\item Race conditions due to forgotten locks.
-%	\item Deadlocks resulting from inconsistent lock ordering.
-%	\item Corruption caused by uncaught exceptions.
-%	\item Lost wakeups induced by omitted notifications.
-%\end{itemize}
-%
-%Worse, concurrency does not compose. It is utterly difficult to write two functions (or methods in an object) acting on concurrent data which can be composed into a larger concurrent behaviour. The reason for it is that one has to know about internal details of locking, which breaks encapsulation and makes composition depend on knowledge about their implementation. Also it is impossible to compose two functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
-%
-%STM promises to solve all these problems for a very low cost. In STM one executes actions atomically where modifications made in such an action are invisible to other threads until the action is performed. Also the thread in which this action is run, doesn't see changes made by other threads - thus execution of STM actions are isolated. When a transaction exists one of the following things will occur:
-%
-%\begin{enumerate}
-%	\item If no other thread concurrently modified the same data as us, all of our modifications will simultaneously become visible to other threads.
-%	\item Otherwise, our modifications are discarded without being performed, and our block of actions is automatically restarted.
-%\end{enumerate}
-%
-%Note that the ability to \textit{restart} a block of actions without any visible effects is only possible due to the nature of Haskells type-system which allows being explicit about side-effects: by restricting the effects to STM only ensures that no uncontrolled effects, which cannot be rolled-back, occur.
-%
-%STM is implemented using optimistic synchronisation. This means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exists, this log is checked whether other threads have written to memory it has read - it checks whether it has a consistent view to the shared data or not. This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
-%
-%Applying this to our agents is very simple: because we already use Dunai / BearRiver as our FRP library, we can run in arbitrary Monadic contexts. This allows us to simply run agents within an STM Monad and execute each agent in their own thread. This allows then the agents to communicate concurrently with each other using the STM primitives without problems of explicit concurrency, making the concurrent nature of an implementation very transparent. Further through optimistic synchronisation we should arrive at a much better performance than with low level locking.
-%
-%Problem: live locks
-%
-%For a technical, in-depth discussion on Software Transactional Memory in Haskell we refer to the following papers: \citep{harris_composable_2005, osullivan_real_2008}.
+Further, this type system allows Haskell to make a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. For a technical, in-depth discussion on Parallelism and Concurrency in Haskell we refer to the following books and papers: \cite{marlow_parallel_2013,osullivan_real_2008,harris_composable_2005,marlow_runtime_2009}.

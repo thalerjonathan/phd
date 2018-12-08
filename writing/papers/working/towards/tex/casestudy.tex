@@ -11,7 +11,7 @@ TODO: page 28, footnote 16: we can guarantee that in haskell at compile time
 Due to the fundamentally different approaches of functional programming (FP) an ABS needs to be implemented fundamentally different as well compared to established object-oriented (OO) approaches. We face the following challenges:
 
 \begin{enumerate}
-	\item How can we represent an Agent, its local state and its interface? How can be make it pro-active? \\
+	\item How can we represent an Agent, its local state and its interface? \\
 	In OO the obvious approach is to map an agent directly onto an object which encapsulates data and provides methods which implement the agents actions. We don't have objects in FP \footnote{Not in Haskell, there exist languages which combine object-orientation and functional programming e.g. Ocaml and Scala, but we don't consider them here as it is a whole new direction.} thus we need to find a different approach to represent the agents actions and to encapsulate its state.
 	In the established OO approach one represents the state of an Agent explicitly in mutable member variables of the object which implements the Agent. As already mentioned we don't have objects in FP and state is immutable which leaves us with the very tricky question how to represent state of an Agent which can be actually updated.
 	In the established OO approach, agents have a well-defined interface through their public methods through which one can interact with the agent and query information about it. Again we don't have this in FP as we don't have objects and globally mutable state.

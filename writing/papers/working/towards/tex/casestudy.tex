@@ -3,7 +3,9 @@
 
 To explore how to approach ABS based on pure functional programming concepts as introduced before, we did a \textit{full and verified} implementation of the seminal Sugarscape model \cite{epstein_growing_1996}. We chose the model because it is quite well known in the ABS community, it was highly influential in sparking the interest in ABS, it is quite complex with non-trivial agent-interactions and it used object-oriented techniques and explicitly advocates them as a good fit to ABS. 
 
-Our goal was first to develop techniques and concepts to show \textit{how} to engineer a clean, maintainable and robust ABS in Haskell. The second step was then to identify benefits and drawbacks to identify \textit{why} one would follow such an approach. In a third step we pushed the benefits of pure functional programming further and tried to find a remedy for the drawbacks. Absolutely paramount in our research was, that we are focusing on \textit{pure} functional programming, which avoids the IO effect type under all circumstances because we would practically lose all strong compile time guarantees \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape}}.
+Our goal was first to develop techniques and concepts to show \textit{how} to engineer a clean, maintainable and robust ABS in Haskell. The second step was then to identify benefits and drawbacks to identify \textit{why} one would follow such an approach. In a third step we pushed the benefits of pure functional programming further and tried to find a remedy for the drawbacks. Absolutely paramount in our research was, that we are being \textit{pure}, which avoids the IO effect type under all circumstances because we would practically lose all strong compile time guarantees \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape}}.
+
+TODO: \cite{macal_everything_2016} sugarscape is level 4, chapter 2 is level 3 or 2?
 
 TODO: page 28, footnote 16: we can guarantee that in haskell at compile time
 
@@ -11,134 +13,29 @@ TODO: page 28, footnote 16: we can guarantee that in haskell at compile time
 Due to the fundamentally different approaches of functional programming (FP) an ABS needs to be implemented fundamentally different as well compared to established object-oriented (OO) approaches. We face the following challenges:
 
 \begin{enumerate}
-	\item How can we represent an Agent, its local state and its interface? \\
-	In OO the obvious approach is to map an agent directly onto an object which encapsulates data and provides methods which implement the agents actions. We don't have objects in FP \footnote{Not in Haskell, there exist languages which combine object-orientation and functional programming e.g. Ocaml and Scala, but we don't consider them here as it is a whole new direction.} thus we need to find a different approach to represent the agents actions and to encapsulate its state.
-	In the established OO approach one represents the state of an Agent explicitly in mutable member variables of the object which implements the Agent. As already mentioned we don't have objects in FP and state is immutable which leaves us with the very tricky question how to represent state of an Agent which can be actually updated.
-	In the established OO approach, agents have a well-defined interface through their public methods through which one can interact with the agent and query information about it. Again we don't have this in FP as we don't have objects and globally mutable state.
-	In the established OO approach one would either expose the current time-delta in a mutable variable and implement time-dependent functions or ignore it at all and assume agents act on every step. At first this seems to be not a big deal in FP but when considering that it is yet unclear how to represent Agents and their state, which is directly related to time-dependent and reactive behaviour it raises the question how we can implement time-varying and reactive behaviour in a purely functional way.
-
-	\item How can we implement agent-agent interactions? \\
-	In the established OO approach Agents can directly invoke other Agents methods which makes direct Agent interaction straight forward. Again this is obviously not possible in FP as we don't have objects with methods and mutable state inside.
-	In the established OO approach agents simply have access to the environment either through global mechanisms (e.g. Singleton or simply global variable) or passed as parameter to a method and call methods which change the environment. Again we don't have this in FP as we don't have objects and globally mutable state.
-	
-	\item How can we represent an environment and its various types? How can we implement agent-environment interactions \\
-	In the established OO approach an environment is almost always a mutable object which can be easily made dynamic by implementing a method which changes its state and then calling it every step as well. In FP we struggle with this for the same reasons we face when deciding how to represent an Agent, its state and proactivity.
-	
-	\item How can we step the simulation? \\
-	In the established OO approach agents are run one after another (with being optionally shuffled before to uniformly distribute the ordering) which ensures mutual exclusive access in the agent-agent and agent-environment interactions. Obviously in FP we cannot iteratively mutate a global state.
+	\item How can we represent an Agent, its local state and its interface?
+	\item How can we implement direct agent-to-agent interactions?
+	\item How can we implement an environment and agent-to-environment interactions? 
 \end{enumerate}
 
-\subsection{Agent representation, local state, interface and pro-activity}
-The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations in turn allow to encapsulate the execution state of a program including local variables and pick up computation from that point later on. This allows us to define an agent as following:
+The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations in turn allow to encapsulate the execution state of a program including local variables and pick up computation from that point later on.
 
-\begin{HaskellCode}
-newtype Cont a = Cont (a -> (a, Cont a))
+This allows us to define an agent as a function, the question is what its input and output are. Event-driven approach \cite{meyer_event-driven_2014} Agent-agent interactions are trivial in object-orientation: one either makes a direct method call or send an event, mutating the internal state of the receiving agent. In functional programming we need to come up with alternatives because neither method-calls nor globally mutable state is available.
+TODO: derive the agent-interface, which is driven by agent-interactions
 
-adder :: Int -> Cont Int
-adder x = Cont (\x' -> (x + x', adder (x + x')))
-
-runCont :: Int -> Cont Int -> IO ()
-runCont 0 _ = return ()
-runCont n (Cont cont) = do
-  let (x, cont') = cont 1
-  print x
-  runCont (n-1) cont'
-
-test :: IO ()
-test = runCont 100 (adder 0)
-\end{HaskellCode}
-
-From this example it becomes apparent that we can encapsulate local state which which is not accessible and mutable from outside but only through explicit inputs and outputs to the continuation. The source of pro-activity in ABS comes always from observing the time - when an agent can observe the flow of time, it can become pro-active and initiate actions on its own without external stimuli like events \cite{thaler_art_2017}. Thus we need to make the flow of time available to our agents as well. 
-
-Note that this approach to ABS is inherently time-driven. This means that depending on the time-semantics of the model, we need to select the right time-deltas by which to sample the simulation. If it is too large we might not arrive at the correct solution, if it is too small, we run into performance problems. An alternative is to follow an event-driven approach \cite{meyer_event-driven_2014}, where agents schedule events in a Discrete Event Simulation fashion. To implement such an approach is possible using signal functions and FRP as well by running within a State context in which one manages an event queue. The simulation stepping (see below) then advances the simulation through processing the events instead of time-deltas. Although the event-driven approach can emulate the time-driven approach and is thus more general, it might be more natural to implement the simulation in a time-driven way due to the model semantics fit more natural to it.
-
-\subsection{Agent-Agent interactions}
-Agent-agent interactions are trivial in object-orientation: one either makes a direct method call or send an event, mutating the internal state of the receiving agent. In functional programming we need to come up with alternatives because neither method-calls nor globally mutable state is available.
-
-A simple solution is to implement \textit{asynchronous} interactions, which can be seen as a message sent to the target agent which will arrive in the next time step, passed in through the signal function input. If the receiving agent doesn't handle the event, it will be lost if we are in a pure context because there is no concept of a persistent message-box which would require mutable data. In a effectful context e.g. STM or State, we could implement stateful message-boxes. Whether an asynchronous approach is suitable, depends entirely on model semantics - it might work for some models or parts of a model, but not for others.
+As output the agent returns a data-structure which holds all \textit{observable} information which the agent wants to share with the outside world. Together with the continuation this guarantees that the agent is in full control over its local state, which no one can mutate or access from outside. This also implies that one can only get information out of the agent by running its function. It also means that the output type of the function has to cover all possible input cases - it cannot change or depend on the input. 
 
 The alternative are \textit{synchronous} interactions which are necessary when an arbitrary number of interactions between two agents need to happen instantaneously without any time-steps in between. The use-case for this are price negotiations between multiple agents where each pair of agents needs to come to an agreement in the same time-step \cite{epstein_growing_1996}. In object-oriented programming, the concept of synchronous communication between agents is trivially implemented directly with method calls but it can get tricky to get right in an functional programming setting. The only option one has, is to dynamically find the target agents signal function and run it within the source agent. This would imply some effectful context which allows read/write to all signal functions in the system: we need to read it to find the target and write it to put the continuation back in because it has locally encapsulated state. This is active research we conduct at the moment and we leave this for further research as it is out of the scope of this paper.
 
-TODO: discuss macals 4 classifications of his paper  \cite{macal_everything_2016} 
+\begin{HaskellCode}
+TODO: give a short example of continuation agent
+\end{HaskellCode}
 
-\subsection{Environment representation and Agent-Environment interactions}
-Depending on which kind of environment we are using we have different approaches on how to solve these problems. We distinguish between four different environment types:
+From this example it becomes apparent that we can encapsulate local state which which is not accessible and mutable from outside but only through explicit inputs and outputs to the continuation.
 
-\begin{enumerate}
-	\item Passive read-only e.g. a static neighbour network - The environment is passed as additional input to each agent.
-	\item Passive read/write e.g. a shared 2D grid like in the schelling model \cite{schelling_dynamic_1971} - The environment is shared through an effectful State context which can be accessed and manipulated by the agents.
-	\item Active read-only e.g. ? - The environment is made a signal function too which broadcasts asynchronous messages about changes in the environment to all agents.
-	\item Active read/write e.g. Sugarscapes environment in which agents move around and harvest resources but where the environment regrows them - The environment is made a signal function which acts on a shared state which is made available to the environment \textit{and} the agents using an effectful State context.
-\end{enumerate}
+Obviously the agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well.
 
-
-\subsection{Chapter II}
-each agent is a Signal Function with no input and outputs an AgentOut which contains a list of agents it wants to spawn, a flag if the agent is to be removed from the simulation (e.g. starved to death) and observable properties the agent exhibits to the outside world. All the agents properties are encapsulated in the SF continuation and there is no way to access and manipulate the data from outside without running the SF itself which will produce an AgentOut.
-
-An agent has access to the shared environment state, a random-number generator and a shared ABS-system state which contains the next agent-id when birthing a new agent. All this is implemented by sharing the data-structures amongst all agents which can read/write it - this is possible in functional programming using Monadic Programming which can simulate a global state, accessible from within a function which can then read/write this state. The fundamental difference to imperative oop-programming is that all reads / writes are explicit using functions (no assignment).
-
-Updating the agents is straight-forward because in this chapter, the agents interact with each other indirectly through the environment. In each step the agents are shuffled and updated one after another, where agents can see actions of agents updated before. 
-
-Our approach of sharing the environment globally and the agent-state locally works but immediately creates potential problems like: ordering of updates matter - in the end we are implementing a kind of an imperative approach but embedded in a functional language. The benefits are that we have much stronger type-safety and that the access and modification of the states is much more explicit than in imperative approaches - also we dont have mutable references.
-
-We implemented a different approach to iterating: instead of running the agents one after another and interacting through a globally shared environment all agents are now run \textit{conceptually} at the same time and receive the current environment as additional input and have to provide it in the output. This has the following implications: we end up with n copies of the environment where n is the number of agents, agents are not able to see the actions of others until the next step, there can be conflicts where multiple agents end up on the same position. 
-Obviously, positional conflicts need to be solved as the sugarscape specification clearly states that only one agent stays on a site at a time. Functional programming makes solving such conflicts easy: we pick a winning agent and rollback the other agents by re-running them with their SF at the beginning of the step - this will undo all changes within the encapsulation. Obviously it would be possible to have conflicts again thus one needs to recursively run the conflict-resolving process until no more conflicts are present.
-Although this solution is much slower and more complex to implement and thus not feasible to use in practice but we wanted to explore it for the following reasons:
-- it is "closer" to functional programming in spirit because programming with globally mutable state (even if its restricted, explicit and only simulated) should be avoided as far as possible.
-- we can exploit data-parallelism (but in this case its not possible anyway because of monadic computations: need mapM which can by definition not be parallel because ordering matters)
-- it serves more as a study to what different approaches are possible and how difficult / easy it is to implement them in FP, in this case, "rolling back" the actions of an agent is trivial in FP as long as the underlying monadic context is immune to rollbacks, in our case we argue that it is: incrementing agentids in ABSState does not matter, as it doesnt matter that we have a changed random-number stream. It would be a different matter if there is a global shared state which was modified by the agent.
-- in the extreme case this degenerates to a (much more expensive) sequential update 
-
-\subsection{Chapter III}
-This chapter reveals the fundamental difference and difficulty in pure functional programming over established OOP approaches in the field: direct agent-interaction e.g. in mating where 2 agents interact synchronously with each other and might updated their internal state. These interactions \textit{must} happen synchronously because there are resource constraints in place which could be violated if an agent interacts with multiple agents virtually at the same time.
-
-In established OOP approaches this is nearly trivial and straight forward: the agent which initiates the direct interaction holds or looks up (e.g. through a central simulation management object) a reference to the other agent (e.g. by neighbourhood) and then makes direct method calls to the other agent where internal agent-states of both agents may be mutated.
-This approach is not possible in pure functional programming because: 1. there are no objects which encapsulate state and behaviour and 2. there are not side-effects possible which would allow such a mutation of local state \footnote{Relaxing our constraint by also allowing \textit{impure} functional features so we can workaround the limitation of not being able to locally mutate state but this is not what we are interested in in this paper because we lose all relevant guarantees which make FP relevant and of benefit.}. 
-
-This makes implementation of direct agent-interactions utterly difficult.
-If we build on the approach we used for Chapter II (and which worked very well there!) we quickly run into painful problems:
-\begin{itemize}
-	\item To mutate local agent state or to generate an output / seeing local properties requires to run the SF. 
-	\item Running the SF is intrinsically linked in stepping the simulation forward from t to t+1. Currently the agent has no means to distinguish between different reasons why the SF is being run.
-	\item The agents are run after another (after being shuffled) and cannot make invokations of other agents SF during being executed due to pure functional programming.
-\end{itemize}
-
-A solution is to change to an event-driven approach: SF now have an input, which indicates an EventType and Agents need some way of initiating a multi-step interaction where a reply can lead to a new event and so on. In case of a simple time-advancement the SF is run with a "TimeStep" event, if an agent requests mating, then it sends "MatingRequest" to the other SF. This requires a completely different approach to iterating the agents.
-
-Stateful programming (or programming that \textit{feels} stateful) comes inherently with difficulties where one can forget to update a state or mutate state where not appropriate. A pure functional approach to that is no exception and shows the same problems. In our case we ran into a bug where the trading agent saw an outdated MRS value of the trading-partner resulting into two different trading-prices which obviously must be prevented under all circumstances because it would destroy / create wealth. The origin of the bug was that MRS depends on the wealth (sugar and spice) of the agent and we simply forgot to update the MRS in the environment from which the offering agent can read it when the trading agents wealth changed (e.g. through harvesting, inheritance,...).
-
-explain continuation, explain monads = replacement of ; operator, runs custom (depending on monad) Code between evaluations
-
-\subsection{Performance}
-Haskell is notorious for its space-leaks due to laziness. Even for simple programs one can be hit by a serious space-leak where unevaluated code pieces (thunks) builds up in memory until they are needed, leading to dramatically increased memory usage for a problem which should be solved using a fraction.
-
-It is no surprise that our highly complex sugarscape implementation (TODO: what about our SIR implementation) suffered severeyl by space-leaks. In Simulation this is a severe issue, threatening the value of the whole implementation despite its other benefits: because simulations might run for a (very) long time or conceptually forever, one must make absolutely sure that the memory usage stays constant.
-
-Exactly this was violated in our sugarscape implementation where the memory usage increased linearly with about 40MByte per second! 
-Haskell allows to add so-called Strict pargmas to code-modules which forces strict evaluation of all data even if it is not used. Carefully adding this conservatively file-by file and checking for changes in memory-leaks reduced the memory consumption considerably and also led to a substantial performance increase. Now only the environment data-structure left leaking. This 
-
-We found that the crucial files / modules were: initialisation, environment data-structure handling, simulation model data-structure, simulation core. What was particularly interesting was that when we added it to our initialisation module where the whole sugarscape model is constructed (agents and environment) it led to a huge improvement of memory-leaks and performance, so it seems to be necessary and quite beneficial to force strictness / evaluation for initialisation for a smooth running simulation.
-
-Init.hs       -> Major
-Common.hs	  -> Major
-Discrete.hs	  -> Minor
-Model.hs	  -> Minor
-Simulation.hs -> Minor
-
-After fixing the memory-leaks we get a very low level memory consumption - depending on number of agents is around 3 MB in case of 250 Agents in Animation III-1. What is interesting is that the concurrent implementation consistently uses less memory than the sequential one with the Animation III-1 using up around only 2 MB.
-
-TODO: performance comparison with netlogo implementation
-TODO: laziness can save Performance: laziness vs strictness
-
-\subsection{Concurrency}
-Although concurrent programming in general is hard, Haskell takes much of the difficulties out through its functional nature and its strong static type system. Because of its referential transparency it is easy to guarantee that no concurrent modification of state will happen (unless running in IO). Also through the type system it is possible to indicate that concurrent computations might or might not happen: also being clear about difference between parallelism and concurrency in types is possible: parallel computations run in parallel and do NOT interfere with each other e.g. through synchronisation or data-dependencies / data-mutation. Concurrent computations run in parallel but might interfere with each other through synchronisation primitives and shared data. Haskell allows to distinguish between these two types of computations in its type-system: a parallel computation is always deterministic and thus pure / referential transparent. Concurrency is indicated using IO or STM.
-
-\subsubsection{Getting it right}
-There were a few subtle bugs in my implementation as getting a concurrent implementation right is still hard even when using Haskell. Still Haskells type system and lack of effects helps a lot when reasoning about concurrent behaviour and also the run-time provides amazing help. For example will the program terminate with an exception when a thread blocks on a synchronisation primitive (e.g. MVar) which no other thread references - this is an example for a classic deadlock which cannot be recovered. It is highly beneficial that Haskell actually detects such deadlocks which would be quite difficult to detected without such facilities and in many other languages one would simply end up with infinitely hanging threads.
-
-https://www.fpcomplete.com/blog/2018/05/pinpointing-deadlocks-in-haskell
-
-\subsection{Code}
+\subsection{Code metrics}
 We used the command line tool \textit{cloc} to count the lines of Haskell code we have written (ignoring comments, reporting only the 'code' values)
 
 TODO: cite the book / paper  (?) which report the metrics of the sugarscape implementation.
@@ -162,24 +59,18 @@ Big difference in our implementation
 - several hundred lines are the scenario-definitions
 - what we provide in addition (netlogo does not need): simulation kernel, infrastructure, utilities, exporting of data, low-level rendering
 
+\subsection{Memory and Performance}
+Haskell is notorious for its space-leaks due to laziness. Even for simple programs one can be hit by a serious space-leak where unevaluated code pieces (thunks) builds up in memory until they are needed, leading to dramatically increased memory usage for a problem which should be solved using a fraction.
+
+It is no surprise that our highly complex sugarscape implementation (TODO: what about our SIR implementation) suffered severely from space-leaks. In Simulation this is a big issue, threatening the value of the whole implementation despite its other benefits: because simulations might run for a (very) long time or conceptually forever, one must make absolutely sure that the memory usage stays constant.
+
+Exactly this was violated in our sugarscape implementation where the memory usage increased linearly with about 40MByte per second! 
+Haskell allows to add so-called Strict pargmas to code-modules which forces strict evaluation of all data even if it is not used. Carefully adding this conservatively file-by file and checking for changes in memory-leaks reduced the memory consumption considerably and also led to a substantial performance increase. Now only the environment data-structure left leaking.
+
+\subsection{Concurrency and parallelism}
+To see how difficult it was to build a concurrent implementation we took the existing sequential implementation and added concurrency to it using Software Transactional Memory (STM). The main idea behind STM is that instead of locking and synchronising access to shared data, STM executes code-blocks as atomic transactions which either commit successfully in case no dirty-read happened or retries in case the value was changed since its last read. Although STM exists in other languages as well, Haskells type-system guarantees that retries have no persisting side-effects, which is crucial for the retry-semantics of STM implementations. We have written a separate paper about using STM to implement concurrent ABS TODO cite my paper in TOMACS, thus we will not go into more detail here but refer to that paper instead. 
+
 \subsection{Testing}
-To see how well pure functional programming is suited for code-testing we implemented tests on 4 different levels. Note that we only implemented a few tests on each level to develop an insight in their usefulness and how well FP is suited for each level. We didn't cover the whole functionality because of lack of time. In a proper, high-quality implementation the whole functionality needs to be covered. 
-
-\subsection{Property-Based Testing}
-Property-based testing allows to formulate \textit{functional specifications} in code which then a property-based testing library tries to falsify by \textit{automatically} generating test-data with some user-defined coverage. When a case is found for which the property fails, the library then reduces it to the most simple one. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and exploratory nature of ABS. Further, the automatic test-generation can make testing of large scenarios in ABS feasible as it does not require the programmer to specify all test-cases by hand, as is required in unit-tests.
-
-Property-based testing was invented by the authors of \cite{claessen_quickcheck_2000,claessen_testing_2002} in which they present the QuickCheck library, which tries to falsify the specifications by \textit{randomly} sampling the space. We argue, that the stochastic sampling nature of this approach is particularly well suited to ABS, because it is itself almost always driven by stochastic events and randomness in the agents behaviour, thus this correlation should make it straight-forward to map ABS to property-testing. The main challenge when using QuickCheck, as will be shown later, is to write \textit{custom} test-data generators for agents and the environment which cover the space sufficiently enough to not miss out on important test-cases. According to the authors of QuickCheck \textit{"The major limitation is that there is no measurement of test coverage."} \cite{claessen_quickcheck_2000}. QuickCheck provides help to report the distribution of test-cases but still it could be the case that simple test-cases which would fail are never tested.
-
-As a remedy for the potential sampling difficulties of QuickCheck, there exists also a deterministic property-testing library called SmallCheck \cite{runciman_smallcheck_2008} which instead of randomly sampling the test-space, enumerates test-cases exhaustively up to some depth. It is based on two observations, derived from model-checking, that (1) \textit{"If a program fails to meet its specification in some cases, it almost always fails in some simple case"} and (2) \textit{"If a program does not fail in any simple case, it hardly ever fails in any case} \cite{runciman_smallcheck_2008}. This non-stochastic approach to property-based testing might be a complementary addition in some cases where the tests are of non-stochastic nature with a search-space which is too large to implement manually by unit-tests but is relatively easy and small enough to enumerate exhaustively. The main difficulty and weakness of using SmallCheck is to reduce the dimensionality of the test-case depth search to prevent combinatorial explosion, which would lead to exponential number of cases. Thus one can see QuickCheck and SmallCheck as complementary instead of in opposition to each other.
-
-Note that in this paper we primarily focus on the use of QuickCheck due to the match of ABS stochastic nature and the random test generation. We refer to SmallCheck in cases where appropriate. Also note that we regard property-based testing as \textit{complementary} to unit-tests and not in opposition - we see it as an addition in the TDD process of developing an ABS.
-
-\subsubsection{Testing utility functions}
-We implemented a number of tests for utility functions which we implemented as simple unit-tests and a few also as property-based tests (see next section). These utility functions are pure computations like calculating the MRS, exchange rates of a trade, genetic crossover, neighbourhood distance, wrapping coordinates. Due to their nature they are very easy to test because the have no side-effects and don't need any construction of complex simulation state. Often it is not really necessary to test these functions because they are sufficiently short and one can reason about its correctness directly in code - a key feature of functional programming due to its different notion of computation: we can reason equationally about pure computations as they were simple math equations.
-
-TODO: discrete and bestcell
-
-\subsubsection{Testing individual agent functions}
 We implemented a number of tests for agent functions which don't cover a whole sub-part of an agents behaviour: checks whether an agent has died of age, check whether an agent has starved to death, the metabolism, immunisation step, check if an agent is a potential borrower, check for fertility, lookout, trading transaction. What all these functions have in common is that they are not pure computations like utility functions but are already running within an agent-context which means they have access to the agent state, environment, simulation context and random-number stream. This makes testing harder because one needs to construct more complex simulation state and needs to run the agent-context with the provided states.
 
 TODO: shortly describe property-based testing
@@ -187,26 +78,6 @@ Property-Based works surprisingly well in this context because properties seem t
 
 This might not sound too exciting but this concept has tremendous potential with reaching consequences: it reliefs one from covering a myriad number of edge cases but shifts it towards writing data-generators and the reliance on QuickCheck to find them (which it does, unless the data is too complex). Also the nature of a property-test has more a specification character, shifting the testing nature more towards a declarative nature, where we test what something is or is not instead of a more operational approach in unit-testing were we test a known fixed input against an a priori known fixed output. 
 
-TODO: implement
-- fertility
-- potential lender
-
 Due to the way Haskell deals with side-effects and separation of data and code in functional programming (which is both strength and weakness in oop / fp respectively), testing is quite straightforward because there are no implicit dependencies, everything is explicit. What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment or other data provided to the agent through a Monad: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
 
 One drawback though is that because the agents monad stack contains the random-number generator we also need to execute the Random Monad runner even if the respective function never makes use of the Random Number functionality - this is simply not possible to detect at compile time. In such a case it is no problem to simply pass a default random number generator always initialised by a fixed seed. This might look more serious than it is, some functions only make use of the agent state, which they declare in their type: the monad they run in is only a state monad with the AgentState as state-type - this makes it easy to run using the state runner and also guarantees at compile time that no other effects can and will happen.
-
-\subsubsection{Testing agent behaviour}
-These tests have the purpose of testing whole parts of agent behaviour. Due to the very different approach to ABS in FP this is also easier to test because agents have less dependencies between each other as they interact with each other through messages. This decouples them to a very high level. Also the sending of messages happens through passing the messages as output which will then be handled by the simulation kernel. Examples for such tests are all the handlers for incoming mating, trading or lending messages. More difficult to test is the behaviour of the Tick event which is scheduled to each agent in each time-step: depending on the scenario this can have multiple different paths and is quite involved.
-
-TODO: implement lending
-´
-TODO: can we find the lending with inheritance bug with that?
-
-Note that we are lacking testing of interaction between agents which we had to leave due to lack of time. This should follow a similar approach to testing agent behaviour but we leave this for further research.
-
-\subsubsection{Testing of the whole simulation}
-Conceptually, on this level we are testing the model for emergent properties shown and hypotheses expressed in the book. Technically speaking we have implemented that with unit-tests where in general we run the whole simulation with a fixed scenario and test the output for statistical properties which, in some cases is straight forward e.g. in case of Trading the authors of the Sugarscape model explicitly state that the standard deviation is below 0.05 after 1000 ticks.
-Obviously one needs to run multiple replications of the same simulation, each with a different random-number generator and perform a statistical test depending on what one is checking: in case of an expected mean one utilises a t-test and in case of standard-deviations a chi-squared test. We discuss some of tests we wrote in the appendix TODO. 
-
-Running multiple replications of the same simulation in parallel is extremely easy in functional programming: because each simulation is independent from each other, it is a case of data-parallelism which means that each can run independently in parallel, without the need to change the types. To run e.g. 100 replications just requires to replace a single function call by a different function which runs them all in parallel. Also the testing library we used (Tasty) supports running tests in parallel out of the box without danger of any side-effects interfering with each other. 
-Of course both parallelisms are possible in traditional OOP approaches and if the programmer has done his or her job right there should be no problem but the important message here is that: 1. haskell can guarantee that no interference will occur already at compile time and 2. it does support the parallelisation on a language level without the pain of low level thread management or locks.

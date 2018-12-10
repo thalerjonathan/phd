@@ -15,7 +15,6 @@ module SugarScape.Agent.Common
   , sendEvents
   , broadcastEvent
   , sendEventTo
-  , isDead
   , kill
   , newAgent
   
@@ -56,6 +55,7 @@ import Data.Maybe
 import Control.Monad.State.Strict
 import Control.Monad.Random
 import Control.Monad.Reader
+import Control.Monad.Trans.Writer.Strict
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Interface
@@ -67,7 +67,7 @@ import SugarScape.Core.Scenario
 
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 
-type AgentLocalMonad g = StateT (SugAgentOut g) (ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g)))
+type AgentLocalMonad g = WriterT (SugAgentOut g) (ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g)))
 type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
 
 absStateLift :: (StateT ABSState (StateT SugEnvironment (Rand g))) a -> AgentLocalMonad g a
@@ -96,31 +96,24 @@ agentProperty = lift . lift . gets
 agentState :: AgentLocalMonad g SugAgentState
 agentState = lift $ lift get
 
-sendEvents :: [(AgentId, SugEvent)] -> AgentLocalMonad g ()
-sendEvents es 
-  = state (\ao -> ((), sendEventsAo es ao))
-
 broadcastEvent :: [AgentId]
                -> SugEvent
                -> AgentLocalMonad g ()
-broadcastEvent rs e 
-  = state (\ao -> ((), broadcastEventAo rs e ao))
+broadcastEvent rs e = tell $ broadcastEventAo rs e
+
+sendEvents :: [(AgentId, SugEvent)] -> AgentLocalMonad g ()
+sendEvents es = tell $ sendEventsAo es
 
 sendEventTo :: AgentId
             -> SugEvent
             -> AgentLocalMonad g ()
-sendEventTo receiver e 
-  = state (\ao -> ((), sendEventToAo receiver e ao))
-
-isDead :: MonadState (AgentOut m e o) m => m Bool 
-isDead = gets aoKill
+sendEventTo receiver e = tell $ sendEventToAo receiver e
 
 kill :: AgentLocalMonad g ()
-kill = modify (\ao -> ao { aoKill = True })
+kill = tell killAo
 
 newAgent :: SugAgentDef g -> AgentLocalMonad g ()
-newAgent adef 
-  = state (\ao -> ((), newAgentAo adef ao))
+newAgent adef = tell $ newAgentAo adef 
 
 neighbourAgentIds :: AgentLocalMonad g [AgentId]
 neighbourAgentIds = do

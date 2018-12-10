@@ -7,6 +7,7 @@ module SugarScape.Agent.Agent
 import Control.Monad.Random
 import Control.Monad.Trans.MSF.Reader
 import Control.Monad.Trans.MSF.State
+import Control.Monad.Trans.MSF.Writer
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Ageing
@@ -14,7 +15,6 @@ import SugarScape.Agent.Common
 import SugarScape.Agent.Culture
 import SugarScape.Agent.Disease
 import SugarScape.Agent.Dying
-import SugarScape.Agent.Interface
 import SugarScape.Agent.Loan
 import SugarScape.Agent.Mating
 import SugarScape.Agent.Metabolism
@@ -28,23 +28,11 @@ import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 agentMsf :: RandomGen g => SugarScapeAgent g
-agentMsf params aid s0 = feedback s0 (proc (evt, s) ->
-  case evt of
-    Observe -> do
-      let obs = sugObservableFromState s
-      returnA -< ((Nothing, Just obs), s)
-    _       -> do
-      let ao0 = agentOut
-      -- TODO: employ a WriterT for the AgentOut, the agent never reads from it!
-      -- TODO: use a Maybe AgentOut and then merge
-      (s', (ao', _)) <- runStateS (runReaderS (runStateS generalEventHandler)) -< (s, ((params, aid), (ao0, evt)))
-      
-      -- NOTE: only return the new ao if it has changed
-      -- TODO: find out if value has actually changed?
-      -- let mao = if ao' == ao0 then Nothing else Just ao'
-      let obs = sugObservableFromState s
-
-      returnA -< ((Just ao', Just obs), s'))
+agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
+  -- WriterT for the AgentOut, the agent never reads from it!
+  (s', (ao', _)) <- runStateS (runReaderS (runWriterS generalEventHandler)) -< (s, ((params, aid), evt))
+  let obs = sugObservableFromState s
+  returnA -< ((ao', obs), s'))
 
 generalEventHandler :: RandomGen g => EventHandler g
 generalEventHandler =

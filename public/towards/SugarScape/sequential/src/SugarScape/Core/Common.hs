@@ -24,7 +24,6 @@ type DTime = Int
 type AgentId = Int
 
 data ABSEvent e = Tick DTime
-                | Observe
                 | DomainEvent AgentId e  -- sender, event 
                 deriving (Show, Eq) 
 

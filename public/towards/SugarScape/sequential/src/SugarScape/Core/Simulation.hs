@@ -37,7 +37,7 @@ import SugarScape.Core.Init
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 
-type AgentMap g = Map.IntMap (SugAgentMSF g, Maybe SugAgentObservable)
+type AgentMap g = Map.IntMap (SugAgentMSF g, SugAgentObservable)
 type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
 
 type AgentObservable o = (AgentId, o)
@@ -94,7 +94,7 @@ initSimulationRng g0 params = (initSimState, initOut, params')
     -- initial agents and environment data
     ((initAs, initEnv, params'), g') = runRand (createSugarScape params) g0
     -- initial agent map
-    agentMap = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, Just obs) am') Map.empty initAs
+    agentMap = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
     (initAis, initObs, _) = unzip3 initAs
     initOut = (0, 0, initEnv, zip initAis initObs)
     -- initial simulation state
@@ -141,12 +141,9 @@ simulationStep ss0 = (ssFinal, sao)
     -- processEvents will return after all events are processed
     tickEvents = zip aisShuffled (repeat $ Tick sugarScapeTimeDelta)
     ssTicks    = processEvents tickEvents (ss0 { simRng = gShuff })
-    -- schedule Observe messages and process them all (agents wont schedule additional events)
-    observeEvents = [] -- zip aisShuffled (repeat Observe)
-    ssObserve     = processEvents observeEvents ssTicks
     -- run the environment
-    envFinal = runEnv ssObserve
-    ssTime   = incrementTime ssObserve
+    envFinal = runEnv ssTicks
+    ssTime   = incrementTime ssTicks
     ssFinal  = ssTime { simEnvState = envFinal }
     -- produce final output of this step
     sao = simStepOutFromSimState ssFinal
@@ -163,7 +160,7 @@ simulationStep ss0 = (ssFinal, sao)
         t     = absTime $ simAbsState ss
         steps = simSteps ss
         env   = simEnvState ss
-        aos   = mapMaybe (\(aid, (_, maobs)) -> maybe Nothing (\aobs -> Just (aid, aobs)) maobs) (Map.assocs $ simAgentMap ss)
+        aos   = map (\(aid, (_, obs)) -> (aid, obs)) (Map.assocs $ simAgentMap ss)
 
     processEvents :: RandomGen g
                   => EventList
@@ -183,10 +180,10 @@ simulationStep ss0 = (ssFinal, sao)
         mayAgent = Map.lookup aid am
         (asf, _) = fromJust mayAgent
         
-        (mao, mobs, asf', absState', env', g') = runAgentSF asf evt absState env g
+        (ao, obs, asf', absState', env', g') = runAgentSF asf evt absState env g
 
-        am'               = updateMsfAndObservable asf' mobs am
-        (am'', newEvents) = handleAgentOut mao am'
+        am'               = updateMsfAndObservable asf' obs am
+        (am'', newEvents) = handleAgentOut ao am'
 
         -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         es' = newEvents ++ es
@@ -198,28 +195,27 @@ simulationStep ss0 = (ssFinal, sao)
                  , simSteps    = steps + 1 }
 
         updateMsfAndObservable :: SugAgentMSF g
-                               -> Maybe SugAgentObservable
+                               -> SugAgentObservable
                                -> AgentMap g
                                -> AgentMap g
-        updateMsfAndObservable asfUp mobsUp amUp = amUp'
+        updateMsfAndObservable asfUp obsUp amUp = amUp'
           where
             -- update new signalfunction and agent-observable
-            amUp' = Map.insert aid (asfUp, mobsUp) amUp
+            amUp' = Map.insert aid (asfUp, obsUp) amUp
 
         handleAgentOut :: RandomGen g
-                       => Maybe (SugAgentOut g)
+                       => SugAgentOut g
                        -> AgentMap g
                        -> (AgentMap g, EventList)
-        handleAgentOut Nothing amOut   = (amOut, [])
-        handleAgentOut (Just ao) amOut = (amOut'', evtsOut)
+        handleAgentOut aoOut amOut = (amOut'', evtsOut)
           where
             -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
-            evtsOut = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents ao)
+            evtsOut = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents aoOut)
            
             -- agent is dead, remove from set (technically its a map) of agents
-            amOut' = if isDeadAo ao
-                    then Map.delete aid amOut
-                    else amOut
+            amOut' = if isDeadAo aoOut
+                      then Map.delete aid amOut
+                      else amOut
 
             -- add newly created agents
             -- QUESTION: should an agent who isDead be allowed to create new ones? 
@@ -228,7 +224,7 @@ simulationStep ss0 = (ssFinal, sao)
             --         in the agent implementation thus aoCreate will always be null in case of a isDead agent
             --         NOTE the exception (there is always an exception) is when the R (replacement) rule is active
             --              which replaces a dead agent by a random new-born, then aoCreate contains exactly 1 element
-            amOut'' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, Just $ adInitObs ad) acc) amOut' (aoCreate ao)
+            amOut'' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) amOut' (aoCreate aoOut)
 
 
 runEnv :: SimulationState g -> SugEnvironment
@@ -244,14 +240,14 @@ runAgentSF :: RandomGen g
            -> ABSState
            -> SugEnvironment
            -> g
-           -> (Maybe (SugAgentOut g), Maybe SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
+           -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
 runAgentSF sf evt absState env g
-    = (mao, mobs, sf', absState', env', g') 
+    = (ao, obs, sf', absState', env', g') 
   where
     sfAbsState = unMSF sf evt  -- to get rid of unMSF we would need to run it all in an MSF...
     sfEnvState = runStateT sfAbsState absState
     sfRand     = runStateT sfEnvState env
-    (((((mao, mobs), sf'), absState'), env'), g') = runRand sfRand g
+    (((((ao, obs), sf'), absState'), env'), g') = runRand sfRand g
 
 mkSimState :: AgentMap g
            -> ABSState

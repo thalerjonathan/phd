@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- disable warning for unused imports, need to import Arbitrary instances
 module Agent.Metabolism
   ( prop_agent_starved_sugaronly
   , prop_agent_starved_sugarandspice
@@ -6,7 +7,9 @@ module Agent.Metabolism
 
 import Control.Monad.Random
 
+import Agent.Agent
 import SugarScape.Agent.Common
+import SugarScape.Agent.Interface
 import SugarScape.Agent.Metabolism
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
@@ -18,21 +21,23 @@ prop_agent_starved_sugaronly :: SugAgentState
                              -> Double
                              -> Bool
 prop_agent_starved_sugaronly asInit sugLvl
-    = starved == (sugLvl <= 0) && asUnchanged 
+    = starved == (sugLvl <= 0) && asUnchanged && aoEmpty
   where
     -- change sugar-level to random value
     as0 = asInit { sugAgSugarLevel = sugLvl }
     -- run the agent with defaults for Scenario, ABSState, Environment and require them not to change
-    (starved, as') = runAgentMonadDefaultConst starvedToDeath as0 Nothing Nothing Nothing 
+    (starved, as', ao) = runAgentMonadDefaultConst starvedToDeath as0 Nothing Nothing Nothing 
     -- agent-state must not change
     asUnchanged = as0 == as'
+    -- empty (unchanged) agent-out
+    aoEmpty = ao == mkAgentOut
 
 prop_agent_starved_sugarandspice :: SugAgentState
                                  -> Double
                                  -> Double
                                  -> Bool
 prop_agent_starved_sugarandspice asInit sugLvl spiLvl
-    = starved == (sugLvl <= 0 || spiLvl <= 0) && asUnchanged
+    = starved == (sugLvl <= 0 || spiLvl <= 0) && asUnchanged && aoEmpty
   where
     -- change sugar- and spice-level to random values
     as0 = asInit { sugAgSugarLevel = sugLvl, sugAgSpiceLevel = spiLvl }
@@ -40,9 +45,11 @@ prop_agent_starved_sugarandspice asInit sugLvl spiLvl
     sc = mkSugarScapeScenario { spSpiceEnabled = True }
     
     -- run the agent with defaults for ABSState, Environment and require them not to change
-    (starved, as') = runAgentMonadDefaultConst starvedToDeath as0 (Just sc) Nothing Nothing
+    (starved, as', ao) = runAgentMonadDefaultConst starvedToDeath as0 (Just sc) Nothing Nothing
     -- agent-state must not change!
     asUnchanged = as0 == as'
+    -- empty (unchanged) agent-out
+    aoEmpty = ao == mkAgentOut
 
 prop_agent_metabolism_sugaronly :: SugAgentState
                                 -> SugEnvSite
@@ -78,10 +85,13 @@ prop_agent_metabolism_sugaronly as0 site0
     metabAmountExp = min (sugAgSugarLevel as) (fromIntegral $ sugAgSugarMetab as)
 
     -- run the agent computation
-    (metabAmount, as', absState', env', _) = runAgentMonad agentMetabolism sc aid as absState0 env g0
+    (metabAmount, as', ao, absState', env', _) = runAgentMonad agentMetabolism sc aid as absState0 env g0
 
     -- ABSState must not change
     absStateUnchanged = absState0 == absState'
+    
+    -- agent-out must have not changed
+    aoEmpty = ao == mkAgentOut
     
     -- check agent state has changed: sugarlevel was reduced by metabAmount
     expSugarLevel = sugAgSugarLevel as - metabAmountExp

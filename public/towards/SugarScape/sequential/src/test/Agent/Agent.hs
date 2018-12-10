@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
 module Agent.Agent
   ( arbitraryAgentStateFromScenario
   ) where
@@ -5,8 +7,23 @@ module Agent.Agent
 import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Agent.Common
+import SugarScape.Agent.Interface
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
+
+-- NOTE: problem is that it contains AgentDef which in turn contains MSFs, which 
+-- can not be checked for equality (at least not in Haskell), ignoring MSF
+instance Eq (SugAgentOut g) where
+  (==) ao0 ao1 = aoKill ao0       == aoKill ao1 &&
+                 aoCreate ao0     == aoCreate ao1 &&
+                 aoEvents ao0     == aoEvents ao1
+
+-- NOTE: AgentDef contains MSF, which 
+-- can not be checked for equality (at least not in Haskell), ignoring MSF
+instance Eq (SugAgentDef g) where
+  (==) ad0 ad1 = adId ad0      == adId ad1 && 
+                 adInitObs ad0 == adInitObs ad1 
+
 
 -- NOTE: this instance creates default random SugAgentState. Some fields might
 -- be overriden by different random values in some property-tests.
@@ -47,6 +64,7 @@ arbitraryAgentStateFromScenario sc = do
   , sugAgSpiceLevel   = initSpice
   , sugAgInitSpiEndow = initSpice
   , sugAgSpiceMetab   = randSpiceMetab
+  , sugAgTrades       = []
   , sugAgBorrowed     = []
   , sugAgLent         = []
   , sugAgNetIncome    = 0

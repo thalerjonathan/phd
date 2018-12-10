@@ -170,6 +170,7 @@ Test-Suite sugarscape-test
                       , tasty-hunit
                       , tasty-smallcheck
                       , tasty-quickcheck
+                      , transformers
                       , vector
 
   ghc-options:        -O2

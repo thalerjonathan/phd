@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- disable warning for unused imports, need to import Arbitrary instances
 module Agent.Ageing
   ( prop_agent_ageing
   , prop_agent_dieOfAge
@@ -5,20 +6,24 @@ module Agent.Ageing
 
 import Data.Maybe
 
-import Control.Monad.State.Strict
 import Test.Tasty.QuickCheck as QC
 
+import Agent.Agent
 import SugarScape.Agent.Ageing
+import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Model
+import Utils.Runner
 
 prop_agent_ageing :: SugAgentState -> DTime -> Bool
-prop_agent_ageing as0 dt = as' == asExp
+prop_agent_ageing as0 dt = as' == asExp && aoEmpty
   where
-    as' = execState (agentAgeing dt) as0
+    (_, as', ao) = runAgentMonadDefaultConst (agentAgeing dt) as0 Nothing Nothing Nothing
     -- maybe not very useful to repeat the implementation in the test but 
     -- for completeness we test it
     asExp = as0 { sugAgAge = sugAgAge as0 + dt } 
+    -- agentout must not have changed
+    aoEmpty = ao == mkAgentOut
 
 -- NOTE: this property-test needs an adjusted agent state => runs in Gen
 -- NOTE: dieOfAge is not AgentLocalMonad but just MonadState => can be ran conveniently with runState
@@ -32,8 +37,10 @@ prop_agent_dieOfAge as0 = do
                              -> Int
                              -> Bool
     prop_agent_dieOfAge_prop as age
-        = died == (age >= asMaxAge) && asUnchanged
+        = died == (age >= asMaxAge) && asUnchanged && aoEmpty
       where
         asMaxAge    = fromJust $ sugAgMaxAge as
-        (died, as') = runState dieOfAge as
+        (died, as', ao) = runAgentMonadDefaultConst dieOfAge as Nothing Nothing Nothing
         asUnchanged = as == as'
+        -- agentout must not have changed
+        aoEmpty = ao == mkAgentOut

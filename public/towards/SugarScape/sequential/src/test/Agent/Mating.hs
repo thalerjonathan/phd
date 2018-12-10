@@ -1,33 +1,16 @@
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances    #-}
 module Agent.Mating
   ( prop_agent_acceptMatingRequest
   , prop_agent_handleMatingRequest
   ) where
 
-import Control.Monad.State.Strict
 import Test.Tasty.QuickCheck as QC
 
 import Agent.Agent
-import SugarScape.Agent.Common
 import SugarScape.Agent.Interface
 import SugarScape.Agent.Mating 
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
-
--- NOTE: problem is that it contains AgentDef which in turn contains MSFs, which 
--- can not be checked for equality (at least not in Haskell), ignoring MSF
-instance Eq (SugAgentOut g) where
-  (==) ao0 ao1 = aoKill ao0       == aoKill ao1 &&
-                 aoCreate ao0     == aoCreate ao1 &&
-                 aoObservable ao0 == aoObservable ao1 &&
-                 aoEvents ao0     == aoEvents ao1
-
--- NOTE: AgentDef contains MSF, which 
--- can not be checked for equality (at least not in Haskell), ignoring MSF
-instance Eq (SugAgentDef g) where
-  (==) ad0 ad1 = adId ad0      == adId ad1 && 
-                 adInitObs ad0 == adInitObs ad1 
+import Utils.Runner
 
 instance Arbitrary AgentGender where
   -- arbitrary :: Gen AgentGender
@@ -54,8 +37,9 @@ prop_agent_acceptMatingRequest otherGender = do
     prop_agent_acceptMatingRequest_prop as 
         = accept == (genderDiffer && agentFertile) 
             && agentStateUnchanged
+            && aoEmpty
       where
-        (accept, as')    = runState (acceptMatingRequest otherGender) as
+        (accept, as', ao) = runAgentMonadDefaultConst (acceptMatingRequest otherGender) as Nothing Nothing Nothing
 
         genderDiffer     = otherGender /= sugAgGender as
 
@@ -66,6 +50,8 @@ prop_agent_acceptMatingRequest otherGender = do
                             && sugAgSpiceLevel as >= sugAgInitSpiEndow as
         -- agent-state must not change during this function call
         agentStateUnchanged = as == as'
+        -- agent out must not change
+        aoEmpty = ao == mkAgentOut
 
 prop_agent_handleMatingRequest :: AgentGender -> Gen Bool
 prop_agent_handleMatingRequest otherGender = do
@@ -89,10 +75,10 @@ prop_agent_handleMatingRequest otherGender = do
         -- need to know if the agent has accepted the request, output depends on
         -- it - acceptMatingRequest is tested in a different property test.
         -- Does NOT change the agent-state, can ignore it using evalState
-        accept = evalState (acceptMatingRequest otherGender) as
+        (accept, _, _) = runAgentMonadDefaultConst (acceptMatingRequest otherGender) as Nothing Nothing Nothing
 
         senderId  = 42
-        (ao, as') = runState (handleMatingRequest senderId otherGender) as
+        (_, as', ao) = runAgentMonadDefaultConst (handleMatingRequest senderId otherGender) as Nothing Nothing Nothing
 
         expAccept   = (sugAgSugarLevel as / 2, 
                        sugAgSpiceLevel as / 2, 
@@ -100,7 +86,7 @@ prop_agent_handleMatingRequest otherGender = do
                        sugAgVision as, 
                        sugAgCultureTag as,
                        sugAgImSysGeno as)
-        aoExpAccept = sendEventTo senderId (MatingReply $ Just expAccept) (agentObservable as)
-        aoExpRefuse = sendEventTo senderId (MatingReply Nothing) (agentObservable as) 
+        aoExpAccept = sendEventToAo senderId (MatingReply $ Just expAccept)
+        aoExpRefuse = sendEventToAo senderId (MatingReply Nothing)
 
 -- TODO: handleMatingTx

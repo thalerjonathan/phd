@@ -55,7 +55,7 @@ import Data.Maybe
 import Control.Monad.State.Strict
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.Trans.Writer.Strict
+import Control.Monad.Writer.Strict
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Interface

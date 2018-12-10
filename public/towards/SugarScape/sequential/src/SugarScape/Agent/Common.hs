@@ -64,7 +64,7 @@ import SugarScape.Core.Scenario
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 
 type AgentLocalMonad g = ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g))
-type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) (SugAgentOut g)
+type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) (Maybe (SugAgentOut g))
 
 absStateLift :: (StateT ABSState (StateT SugEnvironment (Rand g))) a -> AgentLocalMonad g a
 absStateLift = lift . lift

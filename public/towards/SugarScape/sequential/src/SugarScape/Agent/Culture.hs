@@ -19,7 +19,7 @@ agentCultureProcess :: RandomGen g
                     => AgentLocalMonad g (SugAgentOut g)
 agentCultureProcess =
   ifThenElseM
-    ((isNothing . spCulturalProcess) <$> scenario)
+    (isNothing . spCulturalProcess <$> scenario)
     agentObservableM
     (do
       nids <- neighbourAgentIds
@@ -36,7 +36,7 @@ agentCultureProcess =
 handleCulturalProcess :: RandomGen g
                       => AgentId
                       -> CultureTag
-                      -> AgentLocalMonad g (SugAgentOut g)
+                      -> AgentLocalMonad g ()
 handleCulturalProcess _sender otherTag = do
   myTag <- agentProperty sugAgCultureTag
   
@@ -53,5 +53,3 @@ handleCulturalProcess _sender otherTag = do
                                 , sugAgTribe      = tagToTribe myTag' })
       -- NOTE: need to update occupier info because tribe might have changed
       updateSiteOccupied)
-
-  agentObservableM

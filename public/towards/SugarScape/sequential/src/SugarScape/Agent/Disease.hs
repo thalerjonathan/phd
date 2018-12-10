@@ -22,7 +22,7 @@ agentDisease :: RandomGen g
              -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
 agentDisease cont =
   ifThenElseM
-    ((isNothing . spDiseasesEnabled) <$> scenario)
+    (isNothing . spDiseasesEnabled <$> scenario)
     cont
     (do
       -- pass a random disease to each neighbour
@@ -84,7 +84,7 @@ immuniseAgent = do
 
 handleDiseaseTransmit :: RandomGen g
                       => Disease
-                      -> AgentLocalMonad g (SugAgentOut g)
+                      -> AgentLocalMonad g ()
 handleDiseaseTransmit disease = do
   is <- agentProperty sugAgImmuneSystem
 
@@ -92,12 +92,10 @@ handleDiseaseTransmit disease = do
       md = fst $ findMinWithIdx hd
 
   if 0 == md
-    then agentObservableM -- substring of this disease found in immune system => immune, ignore disease!
+    then return () -- substring of this disease found in immune system => immune, ignore disease!
     else do
       ds <- agentProperty sugAgDiseases
 
       if disease `elem` ds
-        then agentObservableM -- already got that disease, ignore
-        else do
-          updateAgentState (\s -> s { sugAgDiseases = disease : ds })
-          agentObservableM
+        then return () -- already got that disease, ignore
+        else updateAgentState (\s -> s { sugAgDiseases = disease : ds })

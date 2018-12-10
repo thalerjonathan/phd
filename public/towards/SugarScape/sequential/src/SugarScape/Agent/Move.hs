@@ -25,7 +25,7 @@ import SugarScape.Core.Utils
 agentMove :: RandomGen g => AgentLocalMonad g (Double, SugAgentOut g)
 agentMove =
   ifThenElseM
-    ((isNothing . spCombat) <$> scenario)
+    (isNothing . spCombat <$> scenario)
     runAgentNonCombat
     agentCombat
 
@@ -65,7 +65,7 @@ agentNonCombat = do
 agentCombat :: RandomGen g
             => AgentLocalMonad g (Double, SugAgentOut g)
 agentCombat = do
-    combatReward <- (fromJust . spCombat) <$> scenario
+    combatReward <- fromJust . spCombat <$> scenario
 
     myTribe  <- agentProperty sugAgTribe
     mySugLvl <- agentProperty sugAgSugarLevel

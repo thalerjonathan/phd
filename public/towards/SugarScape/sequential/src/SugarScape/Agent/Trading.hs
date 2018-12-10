@@ -26,7 +26,7 @@ agentTrade :: RandomGen g
            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
 agentTrade cont =
   ifThenElseM
-    ((not . spTradingEnabled) <$> scenario)
+    (not . spTradingEnabled <$> scenario)
     cont
     (tradingRound cont [])
 

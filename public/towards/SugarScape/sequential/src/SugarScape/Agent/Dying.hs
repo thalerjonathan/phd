@@ -35,7 +35,7 @@ birthNewAgent :: RandomGen g
               -> AgentLocalMonad g (SugAgentOut g)
 birthNewAgent asf ao =
  ifThenElseM
-    ((not . spReplaceAgents) <$> scenario)
+    (not . spReplaceAgents <$> scenario)
     (return ao)
     (do
       sc                  <- scenario
@@ -124,9 +124,8 @@ inheritance ao0 =
 
 handleInheritance :: RandomGen g
                   => Double
-                  -> AgentLocalMonad g (SugAgentOut g)
+                  -> AgentLocalMonad g ()
 handleInheritance share = do
   updateAgentState (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + share })
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteOccupied
-  agentObservableM

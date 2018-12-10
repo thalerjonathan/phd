@@ -30,7 +30,7 @@ import SugarScape.Core.Common
 type AgentT m       = StateT ABSState m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double 
 -- in SugarScape (we switch MSFs which would resert time anyway)
-type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o)
+type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (Maybe (AgentOut m e o))
 
 data AgentDef m e o = AgentDef
   { adId      :: AgentId
@@ -41,8 +41,8 @@ data AgentDef m e o = AgentDef
 data AgentOut m e o = AgentOut 
   { aoKill       :: Bool
   , aoCreate     :: [AgentDef m e o]
-  , aoObservable :: o
   , aoEvents     :: [(AgentId, e)]   -- event receiver, (DomainEvent) event
+  , aoObservable :: o
   }
 
 agentOut :: o -> AgentOut m e o
@@ -92,6 +92,10 @@ sendEvents :: [(AgentId, e)]
 sendEvents es ao 
   -- important: respect ordering!
   = ao { aoEvents = aoEvents ao ++ es } 
+
+
+-- TODO: implement andSendEventTo which takes an out
+-- TODO: change sendEventTo to create a default out
 
 sendEventTo :: AgentId
             -> e

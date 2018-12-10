@@ -36,7 +36,7 @@ agentLoan :: RandomGen g
           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
 agentLoan cont =
   ifThenElseM
-    ((isNothing . spLoansEnabled) <$> scenario)
+    (isNothing . spLoansEnabled <$> scenario)
     cont
     (do
       aoDebt         <- checkBorrowedLoans
@@ -45,8 +45,7 @@ agentLoan cont =
       let ao = aoDebt `agentOutMergeRightObs` aoLend
       return (ao, mhdl))
 
-checkBorrowedLoans :: RandomGen g
-                   => AgentLocalMonad g (SugAgentOut g)
+checkBorrowedLoans :: RandomGen g => AgentLocalMonad g (SugAgentOut g)
 checkBorrowedLoans = do
     cs <- agentProperty sugAgBorrowed
 
@@ -223,11 +222,11 @@ handleLoanPayback :: RandomGen g
                   -> Loan
                   -> Double
                   -> Double
-                  -> AgentLocalMonad g (SugAgentOut g)
+                  -> AgentLocalMonad g ()
 handleLoanPayback borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sugarBack spiceBack = do
     t          <- absStateLift getSimTime
-    newDueDate <- ((t+) . fst . fromJust . spLoansEnabled) <$> scenario
-    rate       <- ((/100) . snd . fromJust . spLoansEnabled) <$> scenario 
+    newDueDate <- (t+) . fst . fromJust . spLoansEnabled <$> scenario
+    rate       <- (/100) . snd . fromJust . spLoansEnabledW <$> scenario 
 
     aid <- myId
     ls  <- processBorrower rate aid newDueDate <$> agentProperty sugAgLent
@@ -237,8 +236,6 @@ handleLoanPayback borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sug
                               , sugAgSpiceLevel = sugAgSpiceLevel s + spiceBack})
     -- NOTE: need to update occupier-info in environment because wealth (and MRS) might have changed
     updateSiteOccupied
-
-    agentObservableM
   where
     processBorrower :: Double
                     -> AgentId
@@ -282,7 +279,7 @@ handleLoanPayback borrower borrowerLoan@(Loan dueDate _ sugarFace spiceFace) sug
 handleLoanLenderDied :: RandomGen g
                      => AgentId
                      -> [AgentId]
-                     -> AgentLocalMonad g (SugAgentOut g)
+                     -> AgentLocalMonad g ()
 handleLoanLenderDied lender children = do
     oldLs <- agentProperty sugAgBorrowed
     ls    <- processLoans [] <$> agentProperty sugAgBorrowed
@@ -292,8 +289,6 @@ handleLoanLenderDied lender children = do
                "\nold loans = " ++ show oldLs ++ 
                "\nnew loans = " ++ show ls)
       updateAgentState (\s -> s { sugAgBorrowed = ls })
-
-    agentObservableM
   where
     processLoans :: [Loan]
                  -> [Loan]
@@ -308,12 +303,11 @@ handleLoanLenderDied lender children = do
 handleLoanInherit :: RandomGen g
                   => AgentId
                   -> Loan
-                  -> AgentLocalMonad g (SugAgentOut g)
+                  -> AgentLocalMonad g ()
 handleLoanInherit parent loan = do
   aid <- myId
   DBG.trace ("Agent " ++ show aid ++ ": inherited " ++ show loan ++ " from parent " ++ show parent)
     updateAgentState (\s -> s { sugAgLent = loan : sugAgLent s })
-  agentObservableM
 
 potentialLender :: MonadState SugAgentState m => m (Maybe (Double, Double))
 potentialLender = do

@@ -140,6 +140,7 @@ simulationStep ss0 = (ssFinal, sao)
     el = zip aisShuffled (repeat $ Tick sugarScapeTimeDelta)
     -- process all events
     ssSteps = processEvents el (ss0 { simRng = gShuff })
+    -- TODO: schedule Observable messages
     -- run the environment
     envFinal = runEnv ssSteps
     ssSteps' = incrementTime ssSteps
@@ -182,34 +183,44 @@ simulationStep ss0 = (ssFinal, sao)
         mayAgent = Map.lookup aid am
         (asf, _) = fromJust mayAgent
         
-        (ao, asf', absState', env', g') = runAgentSF asf evt absState env g
+        (mao, asf', absState', env', g') = runAgentSF asf evt absState env g
+        (am', newEvents)                 = handleOutput mao am
 
         -- schedule events of the agent: will always be put infront of the list, thus processed immediately
-        -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
-        es' = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents ao) ++ es
+        es' = newEvents ++ es
 
-        -- update new signalfunction and agent-observable
-        am' = Map.insert aid (asf', aoObservable ao) am
-
-        -- agent is dead, remove from set (technically its a map) of agents
-        am'' = if isDead ao
-                then Map.delete aid am'
-                else am'
-
-        -- add newly created agents
-        -- QUESTION: should an agent who isDead be allowed to create new ones? 
-        -- ANSWER: depends on the model, we leave that to the model implementer to have a general solution
-        --         in case of SugarScape when an agent dies it wont engage in mating, which is prevented
-        --         in the agent implementation thus aoCreate will always be null in case of a isDead agent
-        --         NOTE the exception (there is always an exception) is when the R (replacement) rule is active
-        --              which replaces a dead agent by a random new-born, then aoCreate contains exactly 1 element
-        am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) am'' (aoCreate ao)
-
-        ss' = ss { simAgentMap = am'''
+        ss' = ss { simAgentMap = am'
                  , simAbsState = absState'
                  , simEnvState = env'
                  , simRng      = g'
                  , simSteps    = steps + 1 }
+
+        handleOutput :: Maybe (SugAgentOut g) 
+                     -> AgentMap g
+                     -> (AgentMap g, EventList)
+        handleOutput Nothing am = (am, [])
+        handleOutput ao am      = (am''', newEvents)
+          where
+            -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
+            newEvents = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents ao)
+
+            -- update new signalfunction and agent-observable
+            am' = Map.insert aid (asf', aoObservable ao) am
+
+            -- agent is dead, remove from set (technically its a map) of agents
+            am'' = if isDead ao
+                    then Map.delete aid am'
+                    else am'
+
+            -- add newly created agents
+            -- QUESTION: should an agent who isDead be allowed to create new ones? 
+            -- ANSWER: depends on the model, we leave that to the model implementer to have a general solution
+            --         in case of SugarScape when an agent dies it wont engage in mating, which is prevented
+            --         in the agent implementation thus aoCreate will always be null in case of a isDead agent
+            --         NOTE the exception (there is always an exception) is when the R (replacement) rule is active
+            --              which replaces a dead agent by a random new-born, then aoCreate contains exactly 1 element
+            am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) am'' (aoCreate ao)
+
 
 runEnv :: SimulationState g
        -> SugEnvironment

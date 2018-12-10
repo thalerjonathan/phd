@@ -238,7 +238,7 @@ handleMatingRequest sender otherGender = do
 handleMatingTx :: RandomGen g
                => AgentId
                -> AgentId
-               -> AgentLocalMonad g (SugAgentOut g)
+               -> AgentLocalMonad g ()
 handleMatingTx _sender childId = do
   sugLvl <- agentProperty sugAgSugarLevel
   spiLvl <- agentProperty sugAgSpiceLevel
@@ -249,5 +249,3 @@ handleMatingTx _sender childId = do
                             , sugAgChildren   = childId : sugAgChildren s})
   -- NOTE: need to update occupier-info in environment because wealth has (and MRS) changed
   updateSiteOccupied
-
-  agentObservableM

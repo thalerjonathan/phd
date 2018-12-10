@@ -14,11 +14,9 @@ import Data.Maybe
 
 import Control.Monad
 import Control.Monad.Random
-import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
@@ -29,8 +27,8 @@ import SugarScape.Core.Utils
 
 agentMating :: RandomGen g
             => SugarScapeAgent g              -- the top-level MSF of the agent, to be used for birthing children
-            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
-            -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+            -> AgentLocalMonad g (Maybe (EventHandler g))  -- the action to be carried out where agentMating has left off to finalise the agent
+            -> AgentLocalMonad g (Maybe (EventHandler g))
 agentMating amsf cont =
   ifThenElseM
     (not . spSexRuleActive <$> scenario)
@@ -57,9 +55,9 @@ agentMating amsf cont =
 
 mateWith :: RandomGen g
          => SugarScapeAgent g
-         -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+         -> AgentLocalMonad g (Maybe (EventHandler g))
          -> [(Discrete2dCoord, SugEnvSite)]
-         -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+         -> AgentLocalMonad g (Maybe (EventHandler g))
 mateWith _ cont [] = cont -- mating finished, continue with agent-behaviour where it left before starting mating
 mateWith amsf cont ((coord, site) : ns) =
   -- check fertility again because might not be fertile because of previous matings
@@ -83,15 +81,15 @@ mateWith amsf cont ((coord, site) : ns) =
               evtHandler      = matingHandler amsf cont ns freeSites
 
           myGender <- agentProperty sugAgGender
-          ao       <- agentObservableM
 
-          return (sendEventTo matingPartnerId (MatingRequest myGender) ao, Just evtHandler))
+          sendEventTo matingPartnerId (MatingRequest myGender)
+          return $ Just evtHandler)
     -- not fertile, mating finished, continue with agent-behaviour where it left before starting mating
     cont
 
 matingHandler :: RandomGen g
               => SugarScapeAgent g
-              -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+              -> AgentLocalMonad g (Maybe (EventHandler g))
               -> [Discrete2dCell SugEnvSite]
               -> [(Discrete2dCoord, SugEnvSite)]
               -> EventHandler g
@@ -99,23 +97,26 @@ matingHandler amsf0 cont0 ns freeSites =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent sender (MatingReply accept)) -> 
-            arrM (uncurry (handleMatingReply amsf0 cont0)) -< (sender, accept)
+          (DomainEvent sender (MatingReply accept)) -> do
+            mhdl <- arrM (uncurry (handleMatingReply amsf0 cont0)) -< (sender, accept)
+            returnA -< ((), mhdl)
           (DomainEvent sender MatingContinue) -> do
             aid <- constM myId -< ()
             if sender /= aid 
               then returnA -< error $ "Agent " ++ show aid ++ ": received MatingContinue not from self, terminating!"
-              else constM (mateWith amsf0 cont0 ns) -< ()
+              else do 
+                mhdl <- constM (mateWith amsf0 cont0 ns) -< ()
+                returnA -< ((), mhdl)
           _ -> do
             aid <- constM myId -< ()
             returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Mating, terminating simulation!")
   where
     handleMatingReply :: RandomGen g
                       => SugarScapeAgent g
-                      -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+                      -> AgentLocalMonad g (Maybe (EventHandler g))
                       -> AgentId
                       -> Maybe (Double, Double, Int, Int, CultureTag, ImmuneSystem)
-                      -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+                      -> AgentLocalMonad g (Maybe (EventHandler g))
     handleMatingReply amsf cont _ Nothing =  -- the sender refuse the mating-request
       mateWith amsf cont ns
     handleMatingReply amsf _ sender _acc@(Just (otherSugShare, otherSpiShare, otherMetab, otherVision, otherCultureTag, otherImSysGe)) = do -- the sender accepts the mating-request
@@ -159,14 +160,14 @@ matingHandler amsf0 cont0 ns freeSites =
 
       -- NOTE: we need to emit an agent-out to actually give birth to the child and send a message to the 
       -- mating-partner => agent sends to itself a MatingContinue event
-      ao0 <- newAgent childDef <$> agentObservableM
+      newAgent childDef
       -- ORDERING IS IMPORTANT: first we send the child-id to the mating-partner 
-      let ao' = sendEventTo sender (MatingTx childId) ao0
+      sendEventTo sender (MatingTx childId)
       -- THEN continue with mating-requests to the remaining neighbours
       aid <- myId
-      let ao'' = sendEventTo aid MatingContinue ao'
+      sendEventTo aid MatingContinue
       -- NOTE: cannot continue with mateWith because sendEventTo needs to be executed before!
-      return (ao'', Nothing)
+      return Nothing
 
 crossOver :: MonadRandom m 
           => [Bool]
@@ -182,27 +183,22 @@ crossOver = zipWithM selectTag
     selectTag False False = return False
     selectTag _ _         = getRandom
 
-acceptMatingRequest :: MonadState SugAgentState m
-                    => AgentGender
-                    -> m Bool
+acceptMatingRequest :: AgentGender -> AgentLocalMonad g Bool
 acceptMatingRequest otherGender = do
   myGender <- agentProperty sugAgGender
   fertile  <- isAgentFertile
   return $ (myGender /= otherGender) && fertile 
 
-isAgentFertile :: MonadState SugAgentState m
-               => m Bool
+isAgentFertile :: AgentLocalMonad g Bool
 isAgentFertile = isAgentFertileAge `andM` isAgentFertileWealth
 
-isAgentFertileAge :: MonadState SugAgentState m
-                  => m Bool
+isAgentFertileAge :: AgentLocalMonad g Bool
 isAgentFertileAge = do
   age        <- agentProperty sugAgAge
   (from, to) <- agentProperty sugAgFertAgeRange
   return $ age >= from && age <= to
 
-isAgentFertileWealth :: MonadState SugAgentState m
-                     => m Bool
+isAgentFertileWealth :: AgentLocalMonad g Bool
 isAgentFertileWealth = do
   sugLvl     <- agentProperty sugAgSugarLevel
   spiLvl     <- agentProperty sugAgSpiceLevel
@@ -212,13 +208,11 @@ isAgentFertileWealth = do
   
   return $ sugLvl >= initSugLvl && spiLvl >= initSpiLvl
 
-handleMatingRequest :: MonadState SugAgentState m
-                    => AgentId
+handleMatingRequest :: AgentId
                     -> AgentGender
-                    -> m (SugAgentOut g)
+                    -> AgentLocalMonad g ()
 handleMatingRequest sender otherGender = do
   accept <- acceptMatingRequest otherGender
-  ao     <- agentObservableM
 
   -- each parent provides half of its sugar-endowment for the endowment of the new-born child
   acc <- if not accept
@@ -233,7 +227,7 @@ handleMatingRequest sender otherGender = do
 
         return $ Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
 
-  return $ sendEventTo sender (MatingReply acc) ao
+  sendEventTo sender (MatingReply acc)
 
 handleMatingTx :: RandomGen g
                => AgentId

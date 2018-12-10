@@ -9,29 +9,24 @@ import Data.Maybe
 import Control.Monad.Random
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Model
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
-agentCultureProcess :: RandomGen g
-                    => AgentLocalMonad g (SugAgentOut g)
+agentCultureProcess :: RandomGen g => AgentLocalMonad g ()
 agentCultureProcess =
-  ifThenElseM
-    (isNothing . spCulturalProcess <$> scenario)
-    agentObservableM
+  whenM
+    (isJust . spCulturalProcess <$> scenario)
     (do
       nids <- neighbourAgentIds
 
       -- no neighbours, ignore cultural process
-      if null nids
-        then agentObservableM
-        else do
-          ao         <- agentObservableM
+      unless (null nids)
+        (do
           cultureTag <- agentProperty sugAgCultureTag
           -- simply broadcast to all neighbours, they compute and flip their tags themselves
-          return $ broadcastEvent nids (CulturalProcess cultureTag) ao)
+          broadcastEvent nids (CulturalProcess cultureTag)))
 
 handleCulturalProcess :: RandomGen g
                       => AgentId

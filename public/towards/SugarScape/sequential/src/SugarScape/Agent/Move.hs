@@ -11,10 +11,8 @@ import Data.List
 import Data.Maybe
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
@@ -22,19 +20,12 @@ import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
-agentMove :: RandomGen g => AgentLocalMonad g (Double, SugAgentOut g)
+agentMove :: RandomGen g => AgentLocalMonad g Double
 agentMove =
   ifThenElseM
     (isNothing . spCombat <$> scenario)
-    runAgentNonCombat
+    agentNonCombat
     agentCombat
-
-runAgentNonCombat :: RandomGen g
-                  => AgentLocalMonad g (Double, SugAgentOut g)
-runAgentNonCombat = do
-  ao      <- agentObservableM
-  harvest <- agentNonCombat
-  return (harvest, ao)
 
 agentNonCombat :: RandomGen g
                => AgentLocalMonad g Double
@@ -51,7 +42,7 @@ agentNonCombat = do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
         selfCell <- envLift $ cellAtM coord
-        myState  <- get
+        myState  <- agentState
         sc       <- scenario
 
         let uoc' = (coord, selfCell) : uoc
@@ -62,8 +53,7 @@ agentNonCombat = do
         agentMoveTo cellCoord
         agentHarvestSite cellCoord)
 
-agentCombat :: RandomGen g
-            => AgentLocalMonad g (Double, SugAgentOut g)
+agentCombat :: RandomGen g => AgentLocalMonad g Double
 agentCombat = do
     combatReward <- fromJust . spCombat <$> scenario
 
@@ -87,7 +77,7 @@ agentCombat = do
     nonRetaliationSites <- filterRetaliation myTribe myWealth myVis combatReward sites []
 
     if null nonRetaliationSites
-      then runAgentNonCombat -- if no sites left for combat, just do a non-combat move
+      then agentNonCombat -- if no sites left for combat, just do a non-combat move
       else do
         myCoord <- agentProperty sugAgCoord
         sc      <- scenario
@@ -104,9 +94,9 @@ agentCombat = do
             combatWealth = min victimWealth combatReward
 
         let victimId = sugEnvOccId (fromJust $ sugEnvSiteOccupier site)
-        ao <- sendEventTo victimId KilledInCombat <$> agentObservableM
+        sendEventTo victimId KilledInCombat
 
-        return (harvestAmount + combatWealth, ao)
+        return (harvestAmount + combatWealth)
 
   where
     filterRetaliation :: RandomGen g
@@ -140,20 +130,18 @@ agentCombat = do
 
 handleKilledInCombat :: RandomGen g
                      => AgentId
-                     -> AgentLocalMonad g (SugAgentOut g)
-handleKilledInCombat _killerId 
-  = kill <$> agentObservableM
+                     -> AgentLocalMonad g ()
+handleKilledInCombat _killerId = kill
 
-agentLookout :: RandomGen g
-             => AgentLocalMonad g [(Discrete2dCoord, SugEnvSite)]
+agentLookout :: RandomGen g => AgentLocalMonad g [(Discrete2dCoord, SugEnvSite)]
 agentLookout = do
   vis   <- agentProperty sugAgVision
   coord <- agentProperty sugAgCoord
   envLift $ neighboursInNeumannDistanceM coord vis False
 
 agentMoveTo :: RandomGen g
-             => Discrete2dCoord 
-             -> AgentLocalMonad g ()
+            => Discrete2dCoord 
+            -> AgentLocalMonad g ()
 agentMoveTo cellCoord = do
   unoccupyPosition
 

@@ -4,16 +4,14 @@ module SugarScape.Agent.Ageing
   , dieOfAge
   ) where
 
-import Control.Monad.State.Strict
-
 import SugarScape.Agent.Common
 import SugarScape.Core.Common
 import SugarScape.Core.Model
 
-agentAgeing :: MonadState SugAgentState m => DTime -> m ()
+agentAgeing :: DTime -> AgentLocalMonad g ()
 agentAgeing dt = updateAgentState (\s' -> s' { sugAgAge = sugAgAge s' + dt })
 
-dieOfAge :: MonadState SugAgentState m => m Bool
+dieOfAge :: AgentLocalMonad g Bool
 dieOfAge = do
   ageSpan <- agentProperty sugAgMaxAge
   case ageSpan of 

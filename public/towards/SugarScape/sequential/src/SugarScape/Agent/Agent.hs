@@ -28,9 +28,23 @@ import SugarScape.Core.Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 agentMsf :: RandomGen g => SugarScapeAgent g
-agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
-  (s', ao) <- runStateS (runReaderS generalEventHandler) -< (s, ((params, aid), evt))
-  returnA -< (ao, s'))
+agentMsf params aid s0 = feedback s0 (proc (evt, s) ->
+  case evt of
+    Observe -> do
+      let obs = sugObservableFromState s
+      returnA -< ((Nothing, Just obs), s)
+    _       -> do
+      let ao0 = agentOut
+      -- TODO: employ a WriterT for the AgentOut, the agent never reads from it!
+      -- TODO: use a Maybe AgentOut and then merge
+      (s', (ao', _)) <- runStateS (runReaderS (runStateS generalEventHandler)) -< (s, ((params, aid), (ao0, evt)))
+      
+      -- NOTE: only return the new ao if it has changed
+      -- TODO: find out if value has actually changed?
+      -- let mao = if ao' == ao0 then Nothing else Just ao'
+      let obs = sugObservableFromState s
+
+      returnA -< ((Just ao', Just obs), s'))
 
 generalEventHandler :: RandomGen g => EventHandler g
 generalEventHandler =
@@ -38,69 +52,72 @@ generalEventHandler =
   continueWithAfter 
     (proc evt -> 
       case evt of 
-        Tick dt -> 
-          arrM handleTick -< dt
+        Tick dt -> do
+          mhdl <- arrM handleTick -< dt
+          returnA -< ((), mhdl)
 
         -- MATING EVENTS
         (DomainEvent sender (MatingRequest otherGender)) -> do
-          ao <- arrM (uncurry handleMatingRequest) -< (sender, otherGender)
-          returnA -< (ao, Nothing)
+          arrM (uncurry handleMatingRequest) -< (sender, otherGender)
+          returnA -< ((), Nothing)
         (DomainEvent sender (MatingTx childId)) -> do
-          ao <- arrM (uncurry handleMatingTx) -< (sender, childId)
-          returnA -< (ao, Nothing)
+          arrM (uncurry handleMatingTx) -< (sender, childId)
+          returnA -< ((), Nothing)
         
         -- INHERITANCE EVENTS
         (DomainEvent _ (Inherit share)) -> do
-          ao <- arrM handleInheritance -< share
-          returnA -< (ao, Nothing)
+          arrM handleInheritance -< share
+          returnA -< ((), Nothing)
 
         -- CULTURAL PROCESS EVENTS
         (DomainEvent sender (CulturalProcess tag)) -> do
-          ao <- arrM (uncurry handleCulturalProcess) -< (sender, tag)
-          returnA -< (ao, Nothing)
+          arrM (uncurry handleCulturalProcess) -< (sender, tag)
+          returnA -< ((), Nothing)
 
         -- COMBAT EVENTS
         (DomainEvent sender KilledInCombat) -> do
-          ao <- arrM handleKilledInCombat -< sender
-          returnA -< (ao, Nothing)
+          arrM handleKilledInCombat -< sender
+          returnA -< ((), Nothing)
 
         -- TRADING EVENTS
         (DomainEvent sender (TradingOffer traderMrsBefore traderMrsAfter)) -> do
-          ao <- arrM (uncurry3 handleTradingOffer) -< (sender, traderMrsBefore, traderMrsAfter)
-          returnA -< (ao, Nothing)
+          arrM (uncurry3 handleTradingOffer) -< (sender, traderMrsBefore, traderMrsAfter)
+          returnA -< ((), Nothing)
 
         -- LOAN EVENTS
         (DomainEvent _ (LoanOffer loan)) -> do
-          ao <- arrM handleLoanOffer -< loan
-          returnA -< (ao, Nothing)
+          arrM handleLoanOffer -< loan
+          returnA -< ((), Nothing)
         (DomainEvent sender (LoanPayback loan sugarBack spiceBack)) -> do
-          ao <- arrM (uncurry4 handleLoanPayback) -< (sender, loan, sugarBack, spiceBack)
-          returnA -< (ao, Nothing)
+          arrM (uncurry4 handleLoanPayback) -< (sender, loan, sugarBack, spiceBack)
+          returnA -< ((), Nothing)
         (DomainEvent sender (LoanLenderDied children)) -> do
-          ao <- arrM (uncurry handleLoanLenderDied) -< (sender, children)
-          returnA -< (ao, Nothing)
+          arrM (uncurry handleLoanLenderDied) -< (sender, children)
+          returnA -< ((), Nothing)
         (DomainEvent sender (LoanInherit loan)) -> do
-          ao <- arrM (uncurry handleLoanInherit) -< (sender, loan)
-          returnA -< (ao, Nothing)
+          arrM (uncurry handleLoanInherit) -< (sender, loan)
+          returnA -< ((), Nothing)
 
         -- DISEASE EVENTS
         (DomainEvent _ (DiseaseTransmit disease)) -> do
-          ao <- arrM handleDiseaseTransmit -< disease
-          returnA -< (ao, Nothing)
+          arrM handleDiseaseTransmit -< disease
+          returnA -< ((), Nothing)
+
         _        -> do
           aid <- constM myId -< ()
           returnA -< error $ "Agent " ++ show aid ++ ": undefined event " ++ show evt ++ " in agent, terminating!")
 
 handleTick :: RandomGen g 
            => DTime
-           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+           -> AgentLocalMonad g (Maybe (EventHandler g))
 handleTick dt = do
   agentAgeing dt
   
-  (harvestAmount, aoMove) <- agentMove
-  metabAmount             <- agentMetabolism
+  harvestAmount <- agentMove
+  metabAmount   <- agentMetabolism
   -- initialize net-income to gathering minus metabolism, might adjusted later during Loan-handling
-  updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - metabAmount})
+  updateAgentState (\s -> s { sugAgNetIncome = harvestAmount - metabAmount
+                            , sugAgTrades    = []}) -- reset trades of the current Tick
   -- compute polution and diffusion
   agentPolute harvestAmount metabAmount
 
@@ -110,43 +127,24 @@ handleTick dt = do
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (do
-      aoDie <- agentDies agentMsf
+      agentDies agentMsf
+      return Nothing)
+    (agentMating agentMsf agentContAfterMating)
 
-      let ao = aoMove `agentOutMergeRightObs` aoDie
-      return (ao, Nothing))
-    (do 
-      (aoMating, mhdl) <- agentMating agentMsf agentContAfterMating
-      
-      let ao = aoMove `agentOutMergeRightObs` aoMating
-      return (ao, mhdl))
-
-agentContAfterMating :: RandomGen g 
-                     => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+agentContAfterMating :: RandomGen g => AgentLocalMonad g (Maybe (EventHandler g))
 agentContAfterMating = do
-    aoCulture       <- agentCultureProcess
-    (aoTrade, mhdl) <- agentTrade cont
-
-    let ao = aoCulture `agentOutMergeRightObs` aoTrade
-    return (ao, mhdl)
+    agentCultureProcess
+    agentTrade cont
   where
     cont = agentContAfterTrading
 
-agentContAfterTrading :: RandomGen g 
-                      => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-agentContAfterTrading = do
-  (aoLoan, mhdl) <- agentLoan agentContAfterLoan
-  return (aoLoan, mhdl)
+agentContAfterTrading :: RandomGen g  => AgentLocalMonad g (Maybe (EventHandler g))
+agentContAfterTrading = agentLoan agentContAfterLoan
 
-agentContAfterLoan :: RandomGen g 
-                   => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-agentContAfterLoan = do
-    (aoDisease, mhdl) <- agentDisease cont
-    return (aoDisease, mhdl)
+agentContAfterLoan :: RandomGen g => AgentLocalMonad g (Maybe (EventHandler g))
+agentContAfterLoan = agentDisease cont
   where
     cont = defaultCont
 
-defaultCont :: RandomGen g 
-            => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-defaultCont = do
-  ao <- agentObservableM
-  return (ao, Just generalEventHandler)
+defaultCont :: RandomGen g => AgentLocalMonad g (Maybe (EventHandler g))
+defaultCont = return $ Just generalEventHandler

@@ -8,16 +8,12 @@ module SugarScape.Agent.Interface
   , AgentOut (..)
 
   , agentOut
-  , agentOutMergeLeftObs
-  , agentOutMergeRightObs
-  
-  , sendEventTo
-  , sendEvents
-  , broadcastEvent
+  , sendEventToAo
+  , sendEventsAo
+  , broadcastEventAo
 
-  , isDead
-  , kill
-  , newAgent
+  , newAgentAo
+  , isDeadAo
   ) where
 
 import Data.Tuple
@@ -30,7 +26,7 @@ import SugarScape.Core.Common
 type AgentT m       = StateT ABSState m
 -- NOTE: an agent is a MSF not a SF! we don't need the ReaderT Double 
 -- in SugarScape (we switch MSFs which would resert time anyway)
-type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (Maybe (AgentOut m e o))
+type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (Maybe (AgentOut m e o), Maybe o)
 
 data AgentDef m e o = AgentDef
   { adId      :: AgentId
@@ -42,79 +38,47 @@ data AgentOut m e o = AgentOut
   { aoKill       :: Bool
   , aoCreate     :: [AgentDef m e o]
   , aoEvents     :: [(AgentId, e)]   -- event receiver, (DomainEvent) event
-  , aoObservable :: o
   }
 
-agentOut :: o -> AgentOut m e o
-agentOut o = AgentOut 
+agentOut :: AgentOut m e o
+agentOut = AgentOut 
   { aoKill       = False
   , aoCreate     = []
-  , aoObservable = o
   , aoEvents     = []
   }
 
-agentOutMergeLeftObs :: AgentOut m e o
-                     -> AgentOut m e o
-                     -> AgentOut m e o
-agentOutMergeLeftObs aoLeft  
-    = mergeAgentOut (aoObservable aoLeft) aoLeft  
-
-agentOutMergeRightObs :: AgentOut m e o
-                      -> AgentOut m e o
-                      -> AgentOut m e o
-agentOutMergeRightObs aoLeft aoRight 
-    = mergeAgentOut (aoObservable aoRight) aoLeft aoRight 
-
-mergeAgentOut :: o
-              -> AgentOut m e o
-              -> AgentOut m e o
-              -> AgentOut m e o
-mergeAgentOut o aoLeft aoRight = AgentOut 
-  { aoKill       = aoKill aoLeft || aoKill aoRight
-  , aoCreate     = aoCreate aoLeft ++ aoCreate aoRight
-  , aoObservable = o
-  , aoEvents     = aoEvents aoLeft ++ aoEvents aoRight
-  }
-
-broadcastEvent :: [AgentId]
-               -> e
-               -> AgentOut m e o
-               -> AgentOut m e o
-broadcastEvent rs e ao = ao'
+broadcastEventAo :: [AgentId]
+                 -> e
+                 -> AgentOut m e o
+                 -> AgentOut m e o
+broadcastEventAo rs e ao = ao'
   where
     es     = aoEvents ao
     esSend = map (swap . (,) e) rs 
     ao'    = ao { aoEvents = es ++ esSend } 
 
-sendEvents :: [(AgentId, e)]
-           -> AgentOut m e o
-           -> AgentOut m e o
-sendEvents es ao 
+sendEventsAo :: [(AgentId, e)]
+             -> AgentOut m e o
+             -> AgentOut m e o
+sendEventsAo es ao 
   -- important: respect ordering!
   = ao { aoEvents = aoEvents ao ++ es } 
 
-
--- TODO: implement andSendEventTo which takes an out
--- TODO: change sendEventTo to create a default out
-
-sendEventTo :: AgentId
-            -> e
-            -> AgentOut m e o
-            -> AgentOut m e o
-sendEventTo receiver e ao = ao'
+sendEventToAo :: AgentId
+              -> e
+              -> AgentOut m e o
+              -> AgentOut m e o
+sendEventToAo receiver e ao = ao'
   where
     es  = aoEvents ao
     -- important: respect ordering!
     ao' = ao { aoEvents = es ++ [(receiver, e)] } 
 
-isDead :: AgentOut m e o -> Bool
-isDead = aoKill
-
-kill :: AgentOut m e o -> AgentOut m e o
-kill ao = ao { aoKill = True }
-
-newAgent :: AgentDef m e o
-         -> AgentOut m e o 
-         -> AgentOut m e o
-newAgent adef ao 
+newAgentAo :: AgentDef m e o
+           -> AgentOut m e o 
+           -> AgentOut m e o
+newAgentAo adef ao 
   = ao { aoCreate = adef : aoCreate ao }
+
+isDeadAo :: AgentOut m e o -> Bool
+isDeadAo = aoKill

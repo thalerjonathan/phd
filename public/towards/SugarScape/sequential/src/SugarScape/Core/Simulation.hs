@@ -37,7 +37,7 @@ import SugarScape.Core.Init
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 
-type AgentMap g = Map.IntMap (SugAgentMSF g, SugAgentObservable)
+type AgentMap g = Map.IntMap (SugAgentMSF g, Maybe SugAgentObservable)
 type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
 
 type AgentObservable o = (AgentId, o)
@@ -94,7 +94,7 @@ initSimulationRng g0 params = (initSimState, initOut, params')
     -- initial agents and environment data
     ((initAs, initEnv, params'), g') = runRand (createSugarScape params) g0
     -- initial agent map
-    agentMap        = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, obs) am') Map.empty initAs
+    agentMap = foldr (\(aid, obs, asf) am' -> Map.insert aid (asf, Just obs) am') Map.empty initAs
     (initAis, initObs, _) = unzip3 initAs
     initOut = (0, 0, initEnv, zip initAis initObs)
     -- initial simulation state
@@ -137,33 +137,33 @@ simulationStep ss0 = (ssFinal, sao)
     g0   = simRng ss0
     (aisShuffled, gShuff) = randomShuffle g0 ais0
     -- schedule Tick messages in random order by generating event-list from shuffled agent-ids
-    el = zip aisShuffled (repeat $ Tick sugarScapeTimeDelta)
-    -- process all events
-    ssSteps = processEvents el (ss0 { simRng = gShuff })
-    -- TODO: schedule Observable messages
+    -- this will result in the agents emitting loads of additional events,
+    -- processEvents will return after all events are processed
+    tickEvents = zip aisShuffled (repeat $ Tick sugarScapeTimeDelta)
+    ssTicks    = processEvents tickEvents (ss0 { simRng = gShuff })
+    -- schedule Observe messages and process them all (agents wont schedule additional events)
+    observeEvents = [] -- zip aisShuffled (repeat Observe)
+    ssObserve     = processEvents observeEvents ssTicks
     -- run the environment
-    envFinal = runEnv ssSteps
-    ssSteps' = incrementTime ssSteps
-    ssFinal  = ssSteps' { simEnvState = envFinal }
-
+    envFinal = runEnv ssObserve
+    ssTime   = incrementTime ssObserve
+    ssFinal  = ssTime { simEnvState = envFinal }
     -- produce final output of this step
     sao = simStepOutFromSimState ssFinal
 
-    incrementTime :: SimulationState g 
-                  -> SimulationState g
+    incrementTime :: SimulationState g -> SimulationState g
     incrementTime ss = ss { simAbsState = absState' }
       where
         absState  = simAbsState ss
         absState' = absState { absTime = absTime absState + sugarScapeTimeDelta }
 
-    simStepOutFromSimState :: SimulationState g
-                           -> SimStepOut
+    simStepOutFromSimState :: SimulationState g -> SimStepOut
     simStepOutFromSimState ss = (t, steps, env, aos)
       where
         t     = absTime $ simAbsState ss
         steps = simSteps ss
         env   = simEnvState ss
-        aos   = map (\(aid, (_, ao)) -> (aid, ao)) (Map.assocs $ simAgentMap ss)
+        aos   = mapMaybe (\(aid, (_, maobs)) -> maybe Nothing (\aobs -> Just (aid, aobs)) maobs) (Map.assocs $ simAgentMap ss)
 
     processEvents :: RandomGen g
                   => EventList
@@ -183,34 +183,43 @@ simulationStep ss0 = (ssFinal, sao)
         mayAgent = Map.lookup aid am
         (asf, _) = fromJust mayAgent
         
-        (mao, asf', absState', env', g') = runAgentSF asf evt absState env g
-        (am', newEvents)                 = handleOutput mao am
+        (mao, mobs, asf', absState', env', g') = runAgentSF asf evt absState env g
+
+        am'               = updateMsfAndObservable asf' mobs am
+        (am'', newEvents) = handleAgentOut mao am'
 
         -- schedule events of the agent: will always be put infront of the list, thus processed immediately
         es' = newEvents ++ es
 
-        ss' = ss { simAgentMap = am'
+        ss' = ss { simAgentMap = am''
                  , simAbsState = absState'
                  , simEnvState = env'
                  , simRng      = g'
                  , simSteps    = steps + 1 }
 
-        handleOutput :: Maybe (SugAgentOut g) 
-                     -> AgentMap g
-                     -> (AgentMap g, EventList)
-        handleOutput Nothing am = (am, [])
-        handleOutput ao am      = (am''', newEvents)
+        updateMsfAndObservable :: SugAgentMSF g
+                               -> Maybe SugAgentObservable
+                               -> AgentMap g
+                               -> AgentMap g
+        updateMsfAndObservable asfUp mobsUp amUp = amUp'
+          where
+            -- update new signalfunction and agent-observable
+            amUp' = Map.insert aid (asfUp, mobsUp) amUp
+
+        handleAgentOut :: RandomGen g
+                       => Maybe (SugAgentOut g)
+                       -> AgentMap g
+                       -> (AgentMap g, EventList)
+        handleAgentOut Nothing amOut   = (amOut, [])
+        handleAgentOut (Just ao) amOut = (amOut'', evtsOut)
           where
             -- QUESTION: should an agent who isDead schedule events? ANSWER: yes, general solution
-            newEvents = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents ao)
-
-            -- update new signalfunction and agent-observable
-            am' = Map.insert aid (asf', aoObservable ao) am
-
+            evtsOut = map (\(receiver, domEvt) -> (receiver, DomainEvent aid domEvt)) (aoEvents ao)
+           
             -- agent is dead, remove from set (technically its a map) of agents
-            am'' = if isDead ao
-                    then Map.delete aid am'
-                    else am'
+            amOut' = if isDeadAo ao
+                    then Map.delete aid amOut
+                    else amOut
 
             -- add newly created agents
             -- QUESTION: should an agent who isDead be allowed to create new ones? 
@@ -219,11 +228,10 @@ simulationStep ss0 = (ssFinal, sao)
             --         in the agent implementation thus aoCreate will always be null in case of a isDead agent
             --         NOTE the exception (there is always an exception) is when the R (replacement) rule is active
             --              which replaces a dead agent by a random new-born, then aoCreate contains exactly 1 element
-            am''' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) am'' (aoCreate ao)
+            amOut'' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, Just $ adInitObs ad) acc) amOut' (aoCreate ao)
 
 
-runEnv :: SimulationState g
-       -> SugEnvironment
+runEnv :: SimulationState g -> SugEnvironment
 runEnv ss = eb t env
   where
     eb  = simEnvBeh ss 
@@ -236,14 +244,14 @@ runAgentSF :: RandomGen g
            -> ABSState
            -> SugEnvironment
            -> g
-           -> (SugAgentOut g, SugAgentMSF g, ABSState, SugEnvironment, g)
+           -> (Maybe (SugAgentOut g), Maybe SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
 runAgentSF sf evt absState env g
-    = (out, sf', absState', env', g') 
+    = (mao, mobs, sf', absState', env', g') 
   where
     sfAbsState = unMSF sf evt  -- to get rid of unMSF we would need to run it all in an MSF...
     sfEnvState = runStateT sfAbsState absState
     sfRand     = runStateT sfEnvState env
-    ((((out, sf'), absState'), env'), g') = runRand sfRand g
+    (((((mao, mobs), sf'), absState'), env'), g') = runRand sfRand g
 
 mkSimState :: AgentMap g
            -> ABSState

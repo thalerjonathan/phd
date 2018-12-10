@@ -74,7 +74,8 @@ data SugAgentState = SugAgentState
   , sugAgSpiceLevel   :: Double            -- floating point because regrow-rate can be set to floating point values
   , sugAgInitSpiEndow :: Double
   , sugAgSpiceMetab   :: Int               -- integer because discrete, otherwise no exact replication possible
-  
+  , sugAgTrades       :: [TradeInfo]      -- trades the agent has performed in its Tick, will be reset before each tick
+
   , sugAgBorrowed     :: [Loan]    -- contains the Loans the agent has borrowed from the lenders
   , sugAgLent         :: [Loan]    -- contains the Loans the agent has lent out to borrowers
   , sugAgNetIncome    :: Double            -- net income of sugar and spice in the most recent step

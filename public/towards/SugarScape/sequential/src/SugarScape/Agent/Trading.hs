@@ -8,11 +8,9 @@ module SugarScape.Agent.Trading
 import Data.Maybe
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 import Data.MonadicStreamFunction
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Interface
 import SugarScape.Agent.Utils
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
@@ -22,8 +20,8 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 agentTrade :: RandomGen g
-           => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-           -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+           => AgentLocalMonad g (Maybe (EventHandler g))
+           -> AgentLocalMonad g (Maybe (EventHandler g))
 agentTrade cont =
   ifThenElseM
     (not . spTradingEnabled <$> scenario)
@@ -31,9 +29,9 @@ agentTrade cont =
     (tradingRound cont [])
 
 tradingRound :: RandomGen g
-             => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+             => AgentLocalMonad g (Maybe (EventHandler g))
              -> [TradeInfo]
-             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+             -> AgentLocalMonad g (Maybe (EventHandler g))
 tradingRound cont tradeInfos = do
   myCoord <- agentProperty sugAgCoord
   -- (re-)fetch neighbours from environment, to get up-to-date information
@@ -53,21 +51,20 @@ tradingRound cont tradeInfos = do
       tradeWith cont tradeInfos False potentialTraders'
 
 tradeWith :: RandomGen g
-          => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+          => AgentLocalMonad g (Maybe (EventHandler g))
           -> [TradeInfo]
           -> Bool
           -> [SugEnvSiteOccupier]
-          -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+          -> AgentLocalMonad g (Maybe (EventHandler g))
 tradeWith cont tradeInfos tradeOccured []       -- iterated through all potential traders => trading round has finished
   | tradeOccured = tradingRound cont tradeInfos -- if we have traded with at least one agent, try another round
   | otherwise    = do
-    (ao, mhdl) <- cont
     -- NOTE: at this point we add the trades to the observable output because finished with trading in this time-step
-    let ao' = observableTrades tradeInfos ao
-    return (ao', mhdl)
+    updateAgentState (\s -> s { sugAgTrades = tradeInfos ++ sugAgTrades s })
+    cont
 
 tradeWith cont tradeInfos tradeOccured (trader : ts) = do -- trade with next one
-  myState <- get
+  myState <- agentState
 
   let myMrsBefore     = mrsState myState     -- agents mrs BEFORE trade
       traderMrsBefore = sugEnvOccMRS trader  -- trade-partners MRS BEFORE trade
@@ -89,11 +86,11 @@ tradeWith cont tradeInfos tradeOccured (trader : ts) = do -- trade with next one
     then tradeWith cont tradeInfos tradeOccured ts -- not better off, continue with next trader
     else do
       let evtHandler = tradingHandler cont tradeInfos tradeOccured ts (price, sugEx, spiEx) 
-      ao <- agentObservableM
-      return (sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter) ao, Just evtHandler)
+      sendEventTo (sugEnvOccId trader) (TradingOffer myMrsBefore myMrsAfter)
+      return $ Just evtHandler
 
 tradingHandler :: RandomGen g
-               => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+               => AgentLocalMonad g (Maybe (EventHandler g))
                -> [TradeInfo]
                -> Bool
                -> [SugEnvSiteOccupier]
@@ -103,17 +100,18 @@ tradingHandler cont0 tradeInfos tradeOccured traders (price, sugEx, spiEx) =
     continueWithAfter
       (proc evt -> 
         case evt of
-          (DomainEvent traderId (TradingReply reply)) -> 
-            arrM (uncurry $ handleTradingReply cont0) -< (traderId, reply)
+          (DomainEvent traderId (TradingReply reply)) -> do
+            mhdl <- arrM (uncurry $ handleTradingReply cont0) -< (traderId, reply)
+            returnA -< ((), mhdl)
           _ -> do
             aid <- constM myId -< ()
             returnA -< error $ "Agent " ++ show aid ++ ": received unexpected event " ++ show evt ++ " during active Trading, terminating simulation!")
   where
     handleTradingReply :: RandomGen g
-                       => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+                       => AgentLocalMonad g (Maybe (EventHandler g))
                        -> AgentId
                        -> TradingReply
-                       -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+                       -> AgentLocalMonad g (Maybe (EventHandler g))
     handleTradingReply cont _ (RefuseTrade _) =  
       -- the sender refuses the trading-offer, continue with the next trader
       tradeWith cont tradeInfos tradeOccured traders
@@ -130,28 +128,29 @@ handleTradingOffer :: RandomGen g
                    => AgentId
                    -> Double
                    -> Double
-                   -> AgentLocalMonad g (SugAgentOut g)
+                   -> AgentLocalMonad g ()
 handleTradingOffer traderId traderMrsBefore traderMrsAfter = do
-  myState <- get
+  myState <- agentState
 
   let myMrsBefore  = mrsState myState -- agents mrs BEFORE trade
       -- amount of sugar / spice to trade
       (_, sugEx, spiEx) = computeExchange myMrsBefore traderMrsBefore   
       
-      myWfBefore     = agentWelfareState myState                    -- agents welfare BEFORE trade
-      myWfAfter      = agentWelfareChangeState myState sugEx spiEx  -- agents welfare AFTER trade
-      myMrsAfter     = mrsStateChange myState sugEx spiEx           -- agents mrs AFTER trade
+      myWfBefore = agentWelfareState myState                    -- agents welfare BEFORE trade
+      myWfAfter  = agentWelfareChangeState myState sugEx spiEx  -- agents welfare AFTER trade
+      myMrsAfter = mrsStateChange myState sugEx spiEx           -- agents mrs AFTER trade
 
   if myWfAfter <= myWfBefore
      -- not better off, turn offer down
-    then sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease) <$> agentObservableM
+    then sendEventTo traderId (TradingReply $ RefuseTrade NoWelfareIncrease)
+    -- better off, check other conditions
     else
       if mrsCrossover myMrsBefore traderMrsBefore myMrsAfter traderMrsAfter
         -- MRS cross-over, turn offer down
-        then sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover) <$> agentObservableM
+        then sendEventTo traderId (TradingReply $ RefuseTrade MRSCrossover)
         else do -- all good, transact and accept offer
           transactTradeWealth sugEx spiEx
-          sendEventTo traderId (TradingReply AcceptTrade) <$> agentObservableM
+          sendEventTo traderId (TradingReply AcceptTrade)
 
 mrsCrossover :: Double
              -> Double

@@ -1,5 +1,6 @@
 module SugarScape.Core.Utils 
-  ( ifThenElse
+  ( whenM
+  , ifThenElse
   , ifThenElseM
   , orM
   , andM
@@ -26,6 +27,14 @@ import Data.List.Split
 -------------------------------------------------------------------------------
 -- MONADIC UTILITIES
 -------------------------------------------------------------------------------
+whenM :: Monad m
+      => m Bool
+      -> m ()
+      -> m ()
+whenM mp act = do
+  p <- mp
+  when p act
+  
 ifThenElse :: Monad m 
            => Bool 
            -> m a 

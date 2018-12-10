@@ -9,7 +9,16 @@ module SugarScape.Agent.Common
   , randLift
   , myId
   , scenario
-
+  , agentState
+  , updateAgentState
+  , agentProperty
+  , sendEvents
+  , broadcastEvent
+  , sendEventTo
+  , isDead
+  , kill
+  , newAgent
+  
   , neighbourAgentIds
   
   , agentWelfare
@@ -35,16 +44,11 @@ module SugarScape.Agent.Common
   
   , randomAgent
 
-  , agentObservable
-  , agentObservableM
-  , observableTrades
-  , updateAgentState
-  , agentProperty
-
   , tagToTribe
 
   , changeToRedTribe
   , changeToBlueTribe
+  , sugObservableFromState
   ) where
 
 import Data.Maybe
@@ -63,23 +67,60 @@ import SugarScape.Core.Scenario
 
 type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 
-type AgentLocalMonad g = ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g))
-type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) (Maybe (SugAgentOut g))
+type AgentLocalMonad g = StateT (SugAgentOut g) (ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g)))
+type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
 
 absStateLift :: (StateT ABSState (StateT SugEnvironment (Rand g))) a -> AgentLocalMonad g a
-absStateLift = lift . lift
+absStateLift = lift . lift . lift
 
 envLift :: StateT SugEnvironment (Rand g) a -> AgentLocalMonad g a
-envLift = lift . lift . lift
+envLift = lift . lift . lift . lift
 
 randLift :: Rand g a -> AgentLocalMonad g a
-randLift = lift . lift . lift . lift
+randLift = lift . lift . lift . lift . lift
 
 myId :: AgentLocalMonad g AgentId
-myId = asks snd
+myId = lift $ asks snd
 
 scenario :: AgentLocalMonad g SugarScapeScenario
-scenario = asks fst
+scenario = lift $ asks fst
+
+updateAgentState :: (SugAgentState -> SugAgentState)
+                 -> AgentLocalMonad g ()
+updateAgentState = lift . lift . modify
+
+agentProperty :: (SugAgentState -> p)
+              -> AgentLocalMonad g p
+agentProperty = lift . lift . gets
+
+agentState :: AgentLocalMonad g SugAgentState
+agentState = lift $ lift get
+
+sendEvents :: [(AgentId, SugEvent)] -> AgentLocalMonad g ()
+sendEvents es 
+  = state (\ao -> ((), sendEventsAo es ao))
+
+broadcastEvent :: [AgentId]
+               -> SugEvent
+               -> AgentLocalMonad g ()
+broadcastEvent rs e 
+  = state (\ao -> ((), broadcastEventAo rs e ao))
+
+sendEventTo :: AgentId
+            -> SugEvent
+            -> AgentLocalMonad g ()
+sendEventTo receiver e 
+  = state (\ao -> ((), sendEventToAo receiver e ao))
+
+isDead :: MonadState (AgentOut m e o) m => m Bool 
+isDead = gets aoKill
+
+kill :: AgentLocalMonad g ()
+kill = modify (\ao -> ao { aoKill = True })
+
+newAgent :: SugAgentDef g -> AgentLocalMonad g ()
+newAgent adef 
+  = state (\ao -> ((), newAgentAo adef ao))
 
 neighbourAgentIds :: AgentLocalMonad g [AgentId]
 neighbourAgentIds = do
@@ -101,7 +142,7 @@ sugObservableFromState as = SugAgentObservable
   , sugObsTribe      = sugAgTribe as
   , sugObsSpiLvl     = sugAgSpiceLevel as
   , sugObsSpiMetab   = sugAgSpiceMetab as
-  , sugObsTrades     = []
+  , sugObsTrades     = sugAgTrades as
   , sugObsDiseases   = sugAgDiseases as
   }
 
@@ -127,9 +168,9 @@ mrs :: Double  -- ^ sugar-wealth of agent
     -> Double  -- ^ mrs value: less than 1 the agent values sugar more, and spice otherwise
 mrs w1 w2 m1 m2 = (w2 / m2) / (w1 / m1)
 
-mrsM :: MonadState SugAgentState m => m Double
+mrsM :: AgentLocalMonad g Double
 mrsM = do
-  s <- get
+  s <- agentState
   return $ mrsState s
 
 mrsStateChange :: SugAgentState 
@@ -205,7 +246,7 @@ occupier aid as = SugEnvSiteOccupier {
 
 occupierLocal :: AgentLocalMonad g SugEnvSiteOccupier
 occupierLocal = do
-  s   <- get 
+  s   <- lift $ lift get 
   aid <- myId
   return $ occupier aid s
 
@@ -276,6 +317,7 @@ randomAgent sc (agentId, coord) asf f = do
   , sugAgSpiceLevel   = initSpice
   , sugAgInitSpiEndow = initSpice
   , sugAgSpiceMetab   = randSpiceMetab
+  , sugAgTrades       = []
   , sugAgBorrowed     = []
   , sugAgLent         = []
   , sugAgNetIncome    = 0
@@ -379,28 +421,3 @@ randomAgentAge Forever         = return Nothing
 randomAgentAge (Range from to) = do
   randMaxAge <- getRandomR (from, to)
   return $ Just randMaxAge
-
-updateAgentState :: MonadState SugAgentState m
-                 => (SugAgentState -> SugAgentState)
-                 -> m ()
-updateAgentState = modify
-
-agentProperty :: MonadState SugAgentState m
-              => (SugAgentState -> p)
-              -> m p
-agentProperty = gets
-
-agentObservable :: SugAgentState -> SugAgentOut g 
-agentObservable = agentOut . sugObservableFromState
-
-agentObservableM :: MonadState SugAgentState m
-                 => m (SugAgentOut g)
-agentObservableM 
-  = get >>= \s -> return $ agentObservable s
-
-observableTrades :: [TradeInfo] 
-                 -> SugAgentOut g 
-                 -> SugAgentOut g 
-observableTrades trades ao = ao { aoObservable = obs { sugObsTrades = trades }}
-  where
-    obs = aoObservable ao

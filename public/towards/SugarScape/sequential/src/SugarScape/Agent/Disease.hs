@@ -8,48 +8,40 @@ module SugarScape.Agent.Disease
 import Data.Maybe
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
-import SugarScape.Agent.Interface
 import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Utils
 
 agentDisease :: RandomGen g
-             => AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
-             -> AgentLocalMonad g (SugAgentOut g, Maybe (EventHandler g))
+             => AgentLocalMonad g (Maybe (EventHandler g))
+             -> AgentLocalMonad g (Maybe (EventHandler g))
 agentDisease cont =
   ifThenElseM
     (isNothing . spDiseasesEnabled <$> scenario)
     cont
     (do
       -- pass a random disease to each neighbour
-      aoTrans <- transmitDisease
+      transmitDisease
       -- imunise agent in each step
       immuniseAgent 
       -- merge continuation out
-      (aoCont, mhdl) <- cont
-      return (aoTrans `agentOutMergeRightObs` aoCont, mhdl))
+      cont)
 
-transmitDisease :: RandomGen g
-                => AgentLocalMonad g (SugAgentOut g)
+transmitDisease :: RandomGen g => AgentLocalMonad g ()
 transmitDisease = do
   nids <- neighbourAgentIds
   ds   <- agentProperty sugAgDiseases
 
-  if null ds || null nids
-    then agentObservableM -- no diseases or no neighbours
-    else do
+  unless (null ds && null nids)
+    (do
       rds <- randLift $ randomElemsM (length nids) ds
-      ao  <- agentObservableM
-
       let evts = zipWith (\nid d -> (nid, DiseaseTransmit d)) nids rds
+      sendEvents evts)
 
-      return $ sendEvents evts ao
-
-immuniseAgent :: MonadState SugAgentState m => m ()
+immuniseAgent :: AgentLocalMonad g ()
 immuniseAgent = do
     is <- agentProperty sugAgImmuneSystem
     ds <- agentProperty sugAgDiseases

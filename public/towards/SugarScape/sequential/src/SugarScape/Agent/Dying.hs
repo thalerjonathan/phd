@@ -9,7 +9,6 @@ import Control.Monad.State.Strict
 
 import SugarScape.Agent.Common
 import SugarScape.Agent.Loan
-import SugarScape.Agent.Interface
 import SugarScape.Core.Common
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
@@ -22,21 +21,19 @@ import SugarScape.Core.Utils
 -- => will happen if agent starves to death (spice or sugar) or dies from age
 agentDies :: RandomGen g
           => SugarScapeAgent g
-          -> AgentLocalMonad g (SugAgentOut g)
+          -> AgentLocalMonad g ()
 agentDies asf = do
   unoccupyPosition
-  ao  <- kill <$> agentObservableM
-  ao' <- birthNewAgent asf ao
-  inheritance ao'
+  kill
+  birthNewAgent asf
+  inheritance
 
 birthNewAgent :: RandomGen g
               => SugarScapeAgent g
-              -> SugAgentOut g
-              -> AgentLocalMonad g (SugAgentOut g)
-birthNewAgent asf ao =
- ifThenElseM
-    (not . spReplaceAgents <$> scenario)
-    (return ao)
+              -> AgentLocalMonad g ()
+birthNewAgent asf =
+  whenM
+    (spReplaceAgents <$> scenario)
     (do
       sc                  <- scenario
       newAid              <- absStateLift nextAgentId
@@ -53,7 +50,7 @@ birthNewAgent asf ao =
           
       envLift $ changeCellAtM newCoord newCell' 
 
-      return $ newAgent newA ao)
+      newAgent newA)
   where
     -- TODO: the more cells occupied the less likely an unoccupied position will be found
     -- => restrict number of recursions and if not found then take up same position
@@ -67,43 +64,36 @@ birthNewAgent asf ao =
         findUnoccpiedRandomPosition
         (return (coord, c))
 
-inheritance :: RandomGen g
-            => SugAgentOut g
-            -> AgentLocalMonad g (SugAgentOut g)
-inheritance ao0 =
-    ifThenElseM
-      ((not . spInheritance) <$> scenario)
-      (return ao0)
+inheritance :: RandomGen g => AgentLocalMonad g ()
+inheritance =
+    whenM
+      (spInheritance <$> scenario)
       (do
         sugLvl   <- agentProperty sugAgSugarLevel
         children <- agentProperty sugAgChildren
 
         ls <- agentProperty sugAgLent
         -- children inherit all loans
-        let ao  = inheritLoans ls children ao0
+        inheritLoans ls children
         -- notify borrowers that lender has died and will be inherited by children
-            ao' = notifyBorrowers ls children ao
+        notifyBorrowers ls children
 
         -- only inherit in case 
         -- 1. there is sugar left (performance optimisation) (sugLvl is 0 in case the agent starved to death)
         -- 2. there are actually children
-        if sugLvl > 0 && not (null children)
-          then do
+        when (sugLvl > 0 && not (null children))
+          (do
             let share = sugLvl / fromIntegral (length children)
-            return $ broadcastEvent children (Inherit share) ao'
-          else return ao')
+            broadcastEvent children (Inherit share)))
   where
     inheritLoans :: RandomGen g 
                  => [Loan]
                  -> [AgentId] 
-                 -> SugAgentOut g
-                 -> SugAgentOut g
-    inheritLoans ls children ao
-        = foldr inheritLoan ao ls
+                 -> AgentLocalMonad g ()
+    inheritLoans ls children 
+        = mapM_ inheritLoan ls
       where
-        inheritLoan :: Loan
-                    -> SugAgentOut g
-                    -> SugAgentOut g
+        inheritLoan :: Loan -> AgentLocalMonad g ()
         inheritLoan l = sendEvents loanMsgs
           where
             newLoans = splitLoanLent (length children) l
@@ -112,8 +102,7 @@ inheritance ao0 =
     notifyBorrowers :: RandomGen g 
                     => [Loan]
                     -> [AgentId] 
-                    -> SugAgentOut g
-                    -> SugAgentOut g
+                    -> AgentLocalMonad g ()
     notifyBorrowers ls children
         = broadcastEvent borrowerIds (LoanLenderDied children)
       where

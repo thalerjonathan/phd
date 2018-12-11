@@ -1,14 +1,12 @@
 \section{Conclusions}
 \label{sec:conclusions}
-
 Our results support the claim that pure functional programming has indeed its place in ABS but only in cases of high-impact and large-scale simulations which results might have far-reaching consequences e.g. influence policy decisions. The reason is that engineering a proper implementation of a non-trivial ABS model takes substantial effort in pure functional programming due to different approaches. This is almost never necessary for quick prototyping and small case-studies of ABS models for which NetLogo and the established object-oriented approaches using Python, Java, C++ are perfectly suitable.
 
 This approach can support TOMACS Reproducibility Board
 
 \subsection{Further Research}
-- distil the developed techniques into a general purpose ABS library so implementing models becomes much easier and quicker and makes using Haskell attractive for prototyping models as well.
+We plan on distilling the developed techniques of the case-study into a general purpose ABS library. This should make implementing models much easier and quicker and using Haskell attractive for prototyping models as well. 
 
-- distributed
-- DES and PDES
-- gintis-case study
+Often, ABS models build on an underlying DES core, especially when they follow an event-driven approach \cite{meyer_event-driven_2014} where they need to schedule actions into the future. Due to the time-driven approach of the Sugarscape model, we didn't implement this in our case-study but our pure functional simulation core is conceptually already very close to a DES approach. We plan on extending it to allow true event-based ABS, which we want to feed into our general purpose ABS library as well.
+
 - recursive simulation

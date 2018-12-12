@@ -1,12 +1,12 @@
 \section{Functional Programming}
 \label{sec:fp}
 
-Functional programming (FP) is called \textit{functional} because it makes functions the main concept of programming, promoting them to first-class citizens: functions can be assigned to variables, they can be passed as arguments to other functions and they can be returned as values from functions. The roots of FP lie in the Lambda Calculus which was first described by Alonzo Church \cite{church_unsolvable_1936}. This is a fundamentally different approach to computing than imperative programming (which includes established object-orientation)  which roots lie in the Turing Machine \cite{turing_computable_1937}. Rather than describing \textit{how} something is computed as in the more operational approach of the Turing Machine, due to the more \textit{declarative} nature of the Lambda Calculus, code in functional programming describes \textit{what} is computed.
+Functional programming (FP) is called \textit{functional} because it makes functions the main concept of programming, promoting them to first-class citizens: functions can be assigned to variables, they can be passed as arguments to other functions and they can be returned as values from functions. The roots of FP lie in the Lambda Calculus which was first described by Alonzo Church \cite{church_unsolvable_1936}. This is a fundamentally different approach to computing than imperative programming (includeing established object-orientation)  which roots lie in the Turing Machine \cite{turing_computable_1937}. Rather than describing \textit{how} something is computed as in the more operational approach of the Turing Machine, due to the more \textit{declarative} nature of the Lambda Calculus, code in functional programming describes \textit{what} is computed.
 
 In our research we are using the \textit{pure} functional programming language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
 
 \begin{itemize}
-	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm of which we explain the most important below. Further, Haskell has influenced a large number of languages, underlining its importance and influence in programming language design.
+	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm included, of which we explain the most important ones below. Further, Haskell has influenced a large number of languages, underlining its importance and influence in programming language design.
 	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
 	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
 \end{itemize}
@@ -24,14 +24,16 @@ When looking at this function we can identify the following:
 \begin{enumerate}
 	\item Declarative - we describe \textit{what} the factorial function is rather than how to compute it. This is supported by \textit{pattern matching} which allows to give multiple equations for the same function, matching on its input. 
 	\item Immutable data - in functional programming we don't have mutable variables - after a variable is assigned, it cannot change its contents. This also means that there is no destructive assignment operator which can re-assign values to a variable. To change values, we employ recursion.
-	\item Recursion - the function calls itself with a smaller argument and will eventually reach the case of 0. Recursion is the very meat of functional programming because they are the only way to implement loops in this paradigm due to immutable data.
+	\item Recursion - the function calls itself with a smaller argument and will eventually reach the base-case of 0. Recursion is the very meat of functional programming because it is the only way to implement loops in this paradigm due to immutable data.
 	\item Static Types - the first line indicates the name and the type of the function. In this case the function takes one Integer as input and returns an Integer as output. Types are static in Haskell which means that there can be no type-errors at run-time e.g. when one tries to cast one type into another because this is not supported by this kind of type-system.
 	\item Explicit input and output - all data which are required and produced by the function have to be explicitly passed in and out of it. There exists no global mutable data whatsoever and data-flow is always explicit.
 	\item Referential transparency - calling this function with the same argument will \textit{always} lead to the same result, meaning one can replace this function by its value. This means that when implementing this function one can not read from a file or open a connection to a server. This is also known as \textit{purity} and is indicated in Haskell in the types which means that it is also guaranteed by the compiler.
 \end{enumerate}
 
+% SHORTENING
 It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \cite{okasaki_purely_1999} showed that when approaching this problem with a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
 
+% SHORTENING
 For an excellent and widely used introduction to programming in Haskell we refer to \cite{hutton_programming_2016}. Other, more exhaustive books on learning Haskell are \cite{lipovaca_learn_2011,allen_haskell_2016}. For an introduction to programming with the Lambda-Calculus we refer to \cite{michaelson_introduction_2011}. For more general discussion of functional programming we refer to \cite{hughes_why_1989,maclennan_functional_1990,hudak_history_2007}.
 
 \subsection{Side-Effects}

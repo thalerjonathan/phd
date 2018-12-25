@@ -12,6 +12,8 @@ The aim of this is to see:
 after re-reading ionescu paper: too complex and out of scope, but ionescu work more directly applicable in a pure functional implementation than in e.g. c++ (that was what they used).
 
 we base our implementation on the existing gintis code from https://people.umass.edu/gintis/ 
-also we make use of the masterthesis on gintis work which revealed a few bugs
+also we make use of the \cite{evensen_extensible_2010} on gintis work which revealed a few bugs
 
-reasoning about termination is easier
+NOTE: my hypothesis is that just by having used our pure functional approach would NOT have prevented gintis to have made the bugs as reported in the masterthesis \cite{evensen_extensible_2010} because they seemed to be like copy-paste bugs. Only rigorous code-testing (unit- / property-based) would have probably revealed these problems.
+
+Roughly 10\% finished, need to implement it but there exists code for it already (gintis and java implementations)

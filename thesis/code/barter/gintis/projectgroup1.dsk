@@ -1,0 +1,114 @@
+[Closed Files]
+File_0=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\Splines.pas',0,1,426,1,433,0,0
+File_1=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\Texd.pas',0,1,750,1,758,0,0
+File_2=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\utility.pas',0,1,259,65,273,0,0
+File_3=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\figure.pas',0,1,153,43,162,0,0
+File_4=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\point.pas',0,1,166,13,177,0,0
+File_5=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\ellipse.pas',0,1,386,44,399,0,0
+File_6=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\arrow.pas',0,1,447,27,456,0,0
+File_7=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\line.pas',0,1,394,1,409,0,0
+File_8=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\bezier.pas',0,1,395,43,408,0,0
+File_9=SourceModule,'C:\Computer Languages\Delphi\Applications\texdesign\rect.pas',0,1,413,15,429,0,0
+
+[Modules]
+Count=0
+EditWindowCount=0
+
+[C:\Papers\Archives\general equilibrium\simple dynamics\simulations\ProjectGroup1.bpg]
+FormState=0
+FormOnTop=0
+
+[Watches]
+Count=0
+
+[Breakpoints]
+Count=0
+
+[AddressBreakpoints]
+Count=0
+
+[Main Window]
+Create=1
+Visible=1
+State=0
+Left=0
+Top=0
+Width=1280
+Height=105
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1272
+ClientHeight=78
+
+[ProjectManager]
+Create=1
+Visible=0
+State=0
+Left=369
+Top=372
+Width=438
+Height=303
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=430
+ClientHeight=279
+TBDockHeight=303
+LRDockWidth=438
+Dockable=1
+
+[AlignmentPalette]
+Create=1
+Visible=0
+State=0
+Left=200
+Top=107
+Width=156
+Height=82
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=150
+ClientHeight=60
+
+[PropertyInspector]
+Create=1
+Visible=1
+State=0
+Left=0
+Top=383
+Width=190
+Height=413
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=182
+ClientHeight=389
+TBDockHeight=413
+LRDockWidth=190
+Dockable=1
+SplitPos=85
+ArrangeBy=Name
+SelectedItem=
+ExpandedItems=
+HiddenCategories=
+
+[ObjectTree]
+Create=1
+Visible=1
+State=0
+Left=0
+Top=105
+Width=190
+Height=276
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=182
+ClientHeight=252
+TBDockHeight=276
+LRDockWidth=190
+Dockable=1
+
+[DockHosts]
+DockHostCount=0
+
+[ActiveProject]
+ActiveProject=0
+

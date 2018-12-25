@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<project name="mason" default="jar" basedir=".">
+
+	<property name="src.dir" value="src" />
+	<property name="test.dir" value="test" />
+	<property name="lib.dir" value="lib" />
+	<property name="build.dir" value="build" />
+
+	<property name="barter.jar" value="barterEconomy.jar" />
+
+	<path id="classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<mkdir dir="${build.dir}" />
+	</target>
+
+	<!-- Build barterEconomy.jar -->
+	<target name="jar" depends="clean">
+		<javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="classpath" />
+
+		<jar destfile="${barter.jar}" basedir="${build.dir}" includes="barter/** org/** Main.class">
+			<manifest>
+				<attribute name="Main-Class" value="Main" />
+				<attribute name="Class-Path" value="lib/mason.jar lib/jfreechart-1.0.10.jar lib/jcommon-1.0.0.jar lib/itext-1.2.jar lib/jmf.jar" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- Barter API -->
+	<target name="javadoc">
+		<javadoc destdir="doc/api" classpathref="classpath" windowtitle="BarterEconomy API">
+			<packageset dir="${src.dir}" defaultexcludes="yes">
+				<include name="org/**" />
+				<include name="barter/**" />
+			</packageset>
+			<doctitle>BarterEconomy API</doctitle>
+			<tag name="NotThreadSafe" scope="all" description="@NotThreadSafe" />
+			<tag name="ThreadSafe" scope="all" description="@ThreadSafe" />
+			<tag name="Immutable" scope="all" description="@Immutable" />
+		</javadoc>
+	</target>
+
+</project>

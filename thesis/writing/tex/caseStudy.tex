@@ -1,19 +1,36 @@
-\chapter{Case-Study}
-perform gintis case-study: apply my developed techniques of implementing ABS and testing and concurrency / parallelism to the gintis paper (and its follow ups: the ionescu paper and the masterthesis on it). 
-The aim of this is to see: 
-1. we can do DES under the hood, 2. property-based tests in a different setting, 3. could pure functional programming have prevented the failure? 4. could property based tests have prevented the failure? 5. could dependent and / or types have prevented the failure? 
+\chapter{The Gintis Case-Study}
+Apply my developed techniques to the Gintis paper (and its follow ups: the Ionescu paper \cite{botta_functional_2011} and a Masterthesis \cite{evensen_extensible_2010} on it). The aim of this study is to see:
 
-1. do the techniques transfer to this problem? 
-2. does haskell prevent making that mistake which gintis made? 
-3. how close is our implementation to ionescus functional specification? 
-4. validation and verification against gintis paper using property-based testing of individual agents and the simulation as a whole. 
-5. being more familiar with dependent types, would they help and where do they fit in in combination with the ionescu functional specification, which mentions dependent types at the end.
+\begin{enumerate}
+	\item Do the techniques transfer to this problem and model? 
+	
+	\item Could pure functional programming have prevented the bugs which Gintis made? 
+	
+	\item Would property-based tests have been of any help to preven the bugs?
+	
+	\item Could dependent and / or types have prevented the bugs which Gintis made? 
+	
+	\item How close is our (dependently typed) implementation to Ionescus functional specification? 
+	
+	\item When having Cezar Ionescu as external examiner, this chapter will be of great influence as it deals heavily with his work.
+%
+\end{enumerate}
 
-after re-reading ionescu paper: too complex and out of scope, but ionescu work more directly applicable in a pure functional implementation than in e.g. c++ (that was what they used).
+Not yet started, need to implement it but there exists code for it already (gintis and java implementations)
 
-we base our implementation on the existing gintis code from https://people.umass.edu/gintis/ 
-also we make use of the \cite{evensen_extensible_2010} on gintis work which revealed a few bugs
+%
+%after re-reading ionescu paper: too complex and out of scope, but ionescu work more directly applicable in a pure functional implementation than in e.g. c++ (that was what they used).
+%
+%we base our implementation on the existing gintis code from https://people.umass.edu/gintis/ 
+%also we make use of the \cite{evensen_extensible_2010} on gintis work which revealed a few bugs
+%
+%NOTE: my hypothesis is that just by having used our pure functional approach would NOT have prevented gintis to have made the bugs as reported in the masterthesis \cite{evensen_extensible_2010} because they seemed to be like copy-paste bugs. Only rigorous code-testing (unit- / property-based) would have probably revealed these problems.
+%
 
-NOTE: my hypothesis is that just by having used our pure functional approach would NOT have prevented gintis to have made the bugs as reported in the masterthesis \cite{evensen_extensible_2010} because they seemed to be like copy-paste bugs. Only rigorous code-testing (unit- / property-based) would have probably revealed these problems.
+\section{A pure functional implementation}
 
-Roughly 10\% finished, need to implement it but there exists code for it already (gintis and java implementations)
+\section{Exploiting property-based tests}
+
+\section{A dependently typed implementation}
+
+\section{Discussion}

@@ -1,14 +1,11 @@
 \chapter{Discussion}
-This chapter re-visits the hypotheses and puts them into perspective of the contributions.
-re-use arguments from all papers
-20\%
+This chapter re-visits the aim, objective and hypotheses of the introduction and puts them into perspective with the contributions. About 20\% exists already.
 
 \section{Generalising Research}
-TODO: maybe this should go into discussion
 We hypothesize that our research can be transferred to other related fields as well, which puts our contributions into a much broader perspective, giving it more impact than restricting it just to the very narrow field of Agent-Based Simulation. Although we don't have the time to back up our claims with in-depth research, we argue that our findings might be applicable to the following fields at least on a conceptual level.
 
 \subsection{Simulation in general}
-We already showed in the paper TODO cite PFE, that purity in a simulation leads to repeatability which is of utmost importance in scientific computation. These insights are easily transferable to simulation software in general and might be of huge benefit there. Also my approach to dependent types in ABS might be applicable to simulations in general due to the correspondence between equilibrium \& totality, in use for hypotheses formulation and specifications formulation as pointed out in section \ref{sub:dep_abs_generalconcepts}. 
+We already showed in the paper \cite{thaler_pure_2019}, that purity in a simulation leads to repeatability which is of utmost importance in scientific computation. These insights are easily transferable to simulation software in general and might be of huge benefit there. Also my approach to dependent types in ABS might be applicable to simulations in general due to the correspondence between equilibrium \& totality, in use for hypotheses formulation and specifications formulation as pointed out in section \ref{sub:dep_abs_generalconcepts}. 
 
 \subsection{System Dynamics}
 discuss pure functional system dynamics - correct by construction: benefits: strictly deterministic already at compile time, encode equations directly in code => correct by construction. Can serve as backend implementation of visual SD packages.
@@ -19,7 +16,7 @@ DES in FP: we doing it in gintis study,
 PDES, should be  conceptually easil possible using STM, optimistic approach should be conceptually easier to implement due to persistent data-structures and controlled side-effects
  
 \subsection{Recursive Simulation}
-add ideas about recursive simulation described in 1st year report and "paper". functional programming maps naturally here due to its inherently recursive nature and controlled side-effects which makes it easier to construct correct recursive simulations.
+Inspired by \cite{gilmer_recursive_2000}, add ideas about recursive simulation described in 1st year report and "paper". functional programming maps naturally here due to its inherently recursive nature and controlled side-effects which makes it easier to construct correct recursive simulations.
 recursive simulation should be conceptually easier to implememt and more likely to be correct due to recursive Nature of haskell itself, lack of sideeffeccts and mutable data
 
 \subsection{Multi Agent Systems}

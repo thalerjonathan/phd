@@ -1,14 +1,25 @@
 \chapter{Methodology}
-This chapter introduces the methodology, used in the following chapters:
+This chapter introduces the background and methodology used in the following chapters. Roughly 50\% exists already.
 
-Various types of ABs
-1. time-driven vs. event-driven ABS, 2. time-driven: start with update-strategies, 3. present pure functional approach, 4. how can we implement the 4 update-strategies of the art-iterating paper in our pure functional approach, 5. interaction between agents, 6. event-driven ABS
+\section{Agent-Based Simulation}
+History, methodology (what is the purpose of ABS: 3rd way of doing science: exploratory, helps understand real-world phenomena), classification according to \cite{macal_everything_2016}, ABS vs. MAS, event- vs. time-driven \cite{meyer_event-driven_2014}, examples: agent-based SIR, SugarScape, Gintis Bartering
 
-\begin{itemize}
-	\item Defining and introducing Agent-Based Simulation (ABS) (History, ABS vs. MAS, examples, event- vs. time-driven).
-	\item Introduce established implementation approaches to ABS (Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ, Programming: Java, Python, Correctness: ad-hoc, manual testing, test-driven development)
-	\item Introduction Verification \& Validation (V \& V in the context of ABS).
-	\item Introduction to functional Programming in Haskell (functions, types, recursion, algebraic data-types, higher-order functions, continuations, Define and explain side-effects and purity: monads, different types of effects, explain IO and that it is of fundamental importance to avoid it in our research).
-	\item Introduction to dependent types (Example, Equality as Type, Philosophical Foundations: Constructive mathematics)
-\end{itemize}
-Roughly 50\% finished
+\subsection{Traditional approaches}
+Introduce established implementation approaches to ABS. Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ. Programming: Java, Python, C++. Correctness: ad-hoc, manual testing, test-driven development.
+
+\subsection{Verification \& Validation}
+Introduction Verification \& Validation (V \& V in the context of ABS).
+
+%--------------------------------------------------------------------------
+
+\section{Pure functional programming}
+Definition, Haskell references,
+
+\subsection{Functional Reactive Programming}
+Short introduction to FRP (yampa), based on my pure functional epidemics paper.
+
+\subsection{Monadic Stream Functions}
+Short introduction to MSFs (dunai), based on my pure functional epidemics paper.
+
+\section{Dependent Types}
+Example, Equality as Type, Philosophical Foundations: Constructive mathematics

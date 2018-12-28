@@ -1,6 +1,7 @@
 module Utils 
   ( replaceElem
   , randomElem
+  , validateAmount
   ) where
 
 import Control.Monad.Random
@@ -19,3 +20,8 @@ randomElem as = do
   let n = length as
   ridx <- getRandomR (0, n - 1)
   return $ as !! ridx
+
+validateAmount :: Double -> Double
+validateAmount amount
+  | amount < 0 = error $ "Negative amount: " ++ show amount
+  | otherwise  = if amount < 0.01 then 0.0 else amount

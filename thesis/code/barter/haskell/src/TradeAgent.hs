@@ -140,34 +140,67 @@ step params s0 ss = iterateGoodPermuation tradeGoodPermutation s0
         (adjustedDemand, adustedExchange)   = adjustAmounts s wantGood 0 pg 1 amounts
         (adjustedDemand', adustedExchange') = adjustAmounts responder pg 1 wantGood 0 [adjustedDemand, adustedExchange]
 
-        exchangeGoods s wantGood adjustedDemand' pg adustedExchange'
-        exchangeGoods responder pg adustedExchange' wantGood adjustedDemand'
+        exchangeGoods wantGood adjustedDemand' pg adustedExchange' s
+        --exchangeGoods pg adustedExchange' wantGood adjustedDemand' responder
 
-exchangeGoods :: TradeAgentState
-              -> Int
+exchangeGoods :: Int
               -> Double
               -> Int 
               -> Double
               -> TradeAgentState
-exchangeGoods s inGood inAmount outGood outAmount
-    = s { inventory
-        , demand
-        , exchangeFor }
+              -> TradeAgentState
+exchangeGoods inGood inAmount outGood outAmount s0
+    = s4 { inventory   = inv
+        , demand      = dem
+        , exchangeFor = exc }
   where
-		inventory[inGood] += inAmount;
-		inventory[outGood] -= outAmount;
+    s1 = changeInventory inGood inAmount s0
+    s2 = changeInventory outGood (-outAmount) s1
 
-		demand[inGood] -= inAmount;
+    s3 = changeDemand inGood (-inAmount) s2
+    
+    -- exchangeFor[inGood] = validateAmount(price[inGood] * demand[inGood] / price[outGood]);
+    s4 = setExchange inGood (validateAmount $ price s3 !! inGood * demand s3 !! inGood / price s3 !! outGood) s3
+    -- s4 = changeExchange inGood (-outAmount) s3 -- REVERT-BUGS
 
-		// exchangeFor[inGood] = validateAmount(price[inGood] * demand[inGood] / price[outGood]);
-		exchangeFor[inGood] -= outAmount; //REVERT-BUGS
+    inv = map validateAmount (inventory s4)
+    dem = map validateAmount (demand s4)
+    exc = map validateAmount (exchangeFor s4)
 
-		for (int good = 0; good < consume.length; good++) {
-			inventory[good] = validateAmount(inventory[good]);
-			demand[good] = validateAmount(demand[good]);
-			exchangeFor[good] = validateAmount(exchangeFor[good]);
-		}
+    setStateArrayValue :: Int
+                      -> Double
+                      -> (TradeAgentState -> [Double])
+                      -> ([Double] -> TradeAgentState)
+                      -> TradeAgentState
+                      -> TradeAgentState
+    setStateArrayValue idx v proj updt s 
+        = updt arr' s
+      where
+        arr  = proj s
+        arr' = replaceElem idx v arr
 
+    setExchange idx v s
+      = setStateArrayValue idx v exchangeFor (\e -> s { exchangeFor = e })
+
+    updateStateArrayValue :: Int
+                          -> Double
+                          -> (TradeAgentState -> [Double])
+                          -> ([Double] -> TradeAgentState)
+                          -> TradeAgentState
+                          -> TradeAgentState
+    updateStateArrayValue idx v proj updt s 
+        = updt arr' s
+      where
+        arr    = proj s
+        arrVal = arr !! idx
+        arr'   = replaceElem idx (arrVal + v) arr
+
+    changeInventory idx v s 
+        = updateStateArrayValue idx v inventory (\i -> s { inventory = i })
+    changeDemand idx v s 
+        = updateStateArrayValue idx v demand (\d -> s { demand = d })
+    changeExchange idx v s 
+        = updateStateArrayValue idx v exchangeFor (\e -> s { exchangeFor = e })
 
 adjustAmounts :: TradeAgentState
               -> Int

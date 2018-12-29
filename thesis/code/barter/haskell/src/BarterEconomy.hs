@@ -28,4 +28,6 @@ init params = BarterEconomyState
     ts = createTraders  
 
 createTraders :: [Int] -> [TradeAgentState]
-createTraders ns = []
+createTraders numProducers = []
+  where
+    

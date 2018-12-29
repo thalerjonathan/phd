@@ -132,7 +132,7 @@ step params s0 ss = iterateGoodPermuation tradeGoodPermutation s0
                   -> TradeAgentState
                   -> (TradeAgentState, TradeAgentState)
     transactTrade wantGood s responder 
-        = (s, responder)
+        = (s'', responder'')
       where
         amounts = [demand s !! wantGood, exchangeFor s !! wantGood]
         pg      = produceGood s
@@ -140,8 +140,32 @@ step params s0 ss = iterateGoodPermuation tradeGoodPermutation s0
         (adjustedDemand, adustedExchange)   = adjustAmounts s wantGood 0 pg 1 amounts
         (adjustedDemand', adustedExchange') = adjustAmounts responder pg 1 wantGood 0 [adjustedDemand, adustedExchange]
 
-        exchangeGoods wantGood adjustedDemand' pg adustedExchange' s
-        --exchangeGoods pg adustedExchange' wantGood adjustedDemand' responder
+        s'         = exchangeGoods wantGood adjustedDemand' pg adustedExchange' s
+        responder' = exchangeGoods pg adustedExchange' wantGood adjustedDemand' responder
+
+        s''         = eat s'
+        responder'' = eat responder'
+
+        -- TODO: check invariants
+
+eat :: TradeAgentState -> TradeAgentState
+eat s0
+    | m == 0    = s0 -- If we have no inventory to consume, just return.
+    | otherwise = s2
+  where
+    -- Calculate utility function (See section 3, eq. 1)
+    m = foldr (\(i, c) acc -> min acc (i / c)) (1/0) (zip (inventory s0) (consume s0))
+
+    -- assert min <= 1 : "min > 1.0, was " + min;
+
+    s1 = s0 { score = score s0 + m }
+    s2 = if m < 1
+          then adjustInventory s1
+          else produce s1
+
+    adjustInventory s = s { inventory = inventory' }
+      where
+        inventory' = map (\i -> i * (1 - m)) (inventory s)
 
 exchangeGoods :: Int
               -> Double
@@ -151,17 +175,16 @@ exchangeGoods :: Int
               -> TradeAgentState
 exchangeGoods inGood inAmount outGood outAmount s0
     = s4 { inventory   = inv
-        , demand      = dem
-        , exchangeFor = exc }
+         , demand      = dem
+         , exchangeFor = exc }
   where
     s1 = changeInventory inGood inAmount s0
     s2 = changeInventory outGood (-outAmount) s1
 
     s3 = changeDemand inGood (-inAmount) s2
     
-    -- exchangeFor[inGood] = validateAmount(price[inGood] * demand[inGood] / price[outGood]);
-    s4 = setExchange inGood (validateAmount $ price s3 !! inGood * demand s3 !! inGood / price s3 !! outGood) s3
-    -- s4 = changeExchange inGood (-outAmount) s3 -- REVERT-BUGS
+    -- s4 = _setExchange inGood (validateAmount $ price s3 !! inGood * demand s3 !! inGood / price s3 !! outGood) s3
+    s4 = _changeExchange inGood (-outAmount) s3 -- REVERT-BUGS
 
     inv = map validateAmount (inventory s4)
     dem = map validateAmount (demand s4)
@@ -174,13 +197,13 @@ exchangeGoods inGood inAmount outGood outAmount s0
                       -> TradeAgentState
                       -> TradeAgentState
     setStateArrayValue idx v proj updt s 
-        = updt arr' s
+        = updt arr'
       where
         arr  = proj s
         arr' = replaceElem idx v arr
 
-    setExchange idx v s
-      = setStateArrayValue idx v exchangeFor (\e -> s { exchangeFor = e })
+    _setExchange idx v s
+      = setStateArrayValue idx v exchangeFor (\e -> s { exchangeFor = e }) s
 
     updateStateArrayValue :: Int
                           -> Double
@@ -189,18 +212,18 @@ exchangeGoods inGood inAmount outGood outAmount s0
                           -> TradeAgentState
                           -> TradeAgentState
     updateStateArrayValue idx v proj updt s 
-        = updt arr' s
+        = updt arr'
       where
         arr    = proj s
         arrVal = arr !! idx
         arr'   = replaceElem idx (arrVal + v) arr
 
     changeInventory idx v s 
-        = updateStateArrayValue idx v inventory (\i -> s { inventory = i })
+        = updateStateArrayValue idx v inventory (\i -> s { inventory = i }) s
     changeDemand idx v s 
-        = updateStateArrayValue idx v demand (\d -> s { demand = d })
-    changeExchange idx v s 
-        = updateStateArrayValue idx v exchangeFor (\e -> s { exchangeFor = e })
+        = updateStateArrayValue idx v demand (\d -> s { demand = d }) s
+    _changeExchange idx v s 
+        = updateStateArrayValue idx v exchangeFor (\e -> s { exchangeFor = e }) s
 
 adjustAmounts :: TradeAgentState
               -> Int

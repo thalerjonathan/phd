@@ -1,29 +1,17 @@
 \chapter{Introduction}
+% THE PROBLEM
 The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007} which still holds up today.
 
-This thesis challenges that metaphor and explores ways of approaching ABS with the functional programming paradigm using the language Haskell. It is the first one to do so on a \textit{systematical} level and develops a foundation by presenting fundamental concepts and advanced features to show how to leverage the benefits of it \cite{hudak_haskell_1994, hudak_history_2007} to become available when implementing ABS functionally. By doing this, the thesis both shows \textit{how} to implement ABS purely functional and \textit{why} it is of benefit of doing so, what the drawbacks are and also when a pure functional approach should \textit{not} be used. 
+% MOTIVATION and AIM
+This thesis challenges that metaphor and explores ways of approaching ABS with the \textit{pure} functional programming paradigm using the languages Haskell and Idris. It is the first one to do so on a \textit{systematical} level and develops a foundation by presenting fundamental concepts and advanced features to show how to leverage the benefits of both languages \cite{hudak_history_2007, brady_idris_2013} to become available when implementing ABS functionally. By doing this, the thesis both shows \textit{how} to implement ABS purely functional and \textit{why} it is of benefit of doing so, what the drawbacks are and also when a pure functional approach should \textit{not} be used. 
 
-This thesis claims that the agent-based simulation community needs functional programming because of its \textit{scientific computing} nature where results need to be reproducible and correct while simulations should be able to massively scale-up as well. %The established object-oriented approaches need considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing.
-This thesis will show that by using functional programming for implementing ABS it is easy to add parallelism and concurrency, the resulting simulations are easy to test and verify, suitable to apply new testing methods like property-based testing, guaranteed to be reproducible already at compile-time, have fewer potential sources of bugs and thus can raise the level of confidence in the correctness of an implementation to a new level.
+% SCOPE
+This thesis claims that the agent-based simulation community needs functional programming because of its \textit{scientific computing} nature, where results need to be reproducible and correct while simulations should be able to massively scale-up as well. %The established object-oriented approaches need considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing.
 
-In our research we are using the \textit{pure} functional programming language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
+% RESEARCH QUESTION and HYPOTHESEIS
+Thus this thesis' general research question is \textit{how to implement ABS purely functional and what the benefits and drawbacks are of doing so.} Further, it hypothesises that by using pure functional programming for implementing ABS makes it is easy to add parallelism and concurrency, the resulting simulations are easy to test and verify, applicable to property-based testing, guaranteed to be reproducible already at compile-time, have fewer potential sources of bugs and thus can raise the level of confidence in the correctness of an implementation to a new level.
 
-\begin{itemize}
-	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm included. Further, Haskell has influenced a large number of languages, underlining its importance and influence in programming language design.
-	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
-	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
-	\item Purity - Haskell is a \textit{pure} functional language and in our research it is absolutely paramount, that we focus on \textit{pure} functional ABS, which avoids any IO type under all circumstances (exceptions are when doing concurrency but there we restrict most of the concepts to STM).
-	\item It is as closest to pure functional programming, as in the lambda-calculus, as we want to get. Other languages are often a mix of paradigms and soften some criteria / are not strictly functional and have different purposes. Also Haskell is very strong rooted in Academia and lots of knowledge is available, especially at Nottingham, 
-		Lisp / Scheme was considered because it was the very first functional programming language but deemed to be not modern enough with lack of sufficient libraries. Also it would have given the 
-		Erlang was considered in prototyping and allows to map the messaging concept of ABS nicely to a concurrent language but was ultimately rejected due to its main focus on concurrency and not being purely functional.
-		Scala was considered as well and has been used in the research on the Art Of Iterating paper but is not purely functional and can be also impure.
-\end{itemize}
-
-TODO
-\begin{itemize}
-	\item Main Argument: Defining the problem, motivation, aim and scope of the Ph.D.
-	\item Hypotheses: Precisely stating the hypotheses which will form the points of reference for the whole research.
-\end{itemize}
+\newpage
 
 \section{Publications}
 Throughout the course of the Ph.D. four (4) papers were published:
@@ -38,9 +26,11 @@ Throughout the course of the Ph.D. four (4) papers were published:
 	\item Towards Pure Functional Agent-Based Simulation (TODO cite) - This paper summarizes the main benefits of using pure functional programming as in Haskell to implement ABS and discusses on a conceptual level how to implement it and also what potential drawbacks are and where the use of a functional approach is not encouraged. It is written as a conceptual / review paper, which tries to "sell" pure functional programming to the agent-based community without too much technical detail and parlance where it refers to the important technical literature from where an interested reader can start.
 \end{enumerate}
 
+\newpage
+
 \section{Contributions}
 \begin{enumerate}
-	\item This thesis is the first to \textit{systematically} investigate the use of the functional programming paradigm, as in Haskell, to ABS, laying out in-depth technical foundations and identifying its benefits and drawbacks. Due to the increased interested in functional concepts which were added to object-oriented languages in recent years because of its established benefits in concurrent programming, testing and software-development in general, presenting such foundational research gives this thesis significant impact. Also it opens the way for the benefits of FP to incorporate into scientific computing, which are explored in the contributions below.
+	\item This thesis is the first to \textit{systematically} investigate the use of the functional programming paradigm, as in Haskell, to ABS, laying out in-depth technical foundations and identifying its benefits and drawbacks. Due to the increased interested in functional concepts which were added to object-oriented languages in recent years, because of its established benefits in concurrent programming, testing and software-development in general, presenting such foundational research gives this thesis significant impact. Also it opens the way for the benefits of FP to incorporate into scientific computing, which are explored in the contributions below.
 	
 	\item This thesis is the first to show the use of Software Transactional Memory (STM) to implement concurrent ABS and its potential benefit over lock-based approaches. STM is particularly strong in pure FP because of retry-semantics can be guaranteed to exclude non-repeatable persistent side-effects already at compile time. By showing how to employ STM it is possible to implement a simulation which allows massively large-scale ABS but without the low level difficulties of concurrent programming, making it easier and quicker to develop working and correct concurrent ABS models. Due to the increasing need for massively large-scale ABS in recent years \cite{lysenko_framework_2008}, making this possible within a purely functional approach as well, gives this thesis substantial impact.
 	
@@ -49,6 +39,9 @@ Throughout the course of the Ph.D. four (4) papers were published:
 	\item This thesis is the first to outline the potential use of \textit{dependent types} to Agent-Based Simulation on a \textit{conceptual level} to investigate its usefulness for increasing the correctness of a simulation. Dependent types can help to narrow the gap between the model specification and its implementation, reducing the potential for conceptual errors in model-to-code translation. This immediately leads to fewer number of tests required due to guarantees being expressed already at compile time. Ultimately dependent types lead to higher confidence in correctness due to formal guarantees in code, making this a unique contribution with high impact.
 \end{enumerate}
 
+\newpage
+
 \section{Thesis structure}
-TODO 
-NOTE: focus on strong narrative thus all chapters are interconnected and tell the story
+This thesis focuses on a strong narrative which tells the story of \textit{how} to do ABS with pure functional programming, \textit{why} one would do so and when one should \textit{avoid} this paradigm in ABS.
+
+TODO: write when all is finished

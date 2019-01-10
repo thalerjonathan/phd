@@ -20,8 +20,8 @@ When we talk about dependently typed programs to be proofs, then we also must at
 
 In the following subsections we will discuss related work in this field (\ref{sub:dep_abs_relwork}), discuss general concepts where dependent types might be of benefit in ABS (\ref{sub:dep_abs_generalconcepts}), present a dependently typed implementation of a 2D discrete environment (\ref{sub:dep_abs_2denv}) and finally discuss potential use of dependent types in the SIR model (\ref{sub:dep_abs_sir}) and SugarScape model (\ref{sub:dep_abs_sugarscape}).
 
-\subsection{Related Work}
-\label{sub:dep_abs_relwork}
+\section{Related Work}
+\label{sec:dep_abs_relwork}
 In \cite{botta_functional_2011} the authors are using functional programming as a specification for an agent-based model of exchange markets but leave the implementation for further research where they claim that it requires dependent types. This paper is the closest usage of dependent types in agent-based simulation we could find in the existing literature and to our best knowledge there exists no work on general concepts of implementing pure functional agent-based simulations with dependent types. As a remedy to having no related work to build on, we looked into works which apply dependent types to solve real world problems from which we then can draw inspiration from. 
 
 The paper \cite{brady_correct-by-construction_2010} discusses depend types to implement correct-by-construction concurrency in the Idris language \cite{brady_idris_2013}. The authors introduce the concept of a Embedded Domain Specific Language (EDSL) for concurrently locking/unlocking and reading/writing of resources and show that an implementation and formalisation are the same thing when using dependent types. We can draw inspiration from it by taking into consideration that we might develop an EDSL in a similar fashion for specifying general commands which agents can execute. The interpreter of such a EDSL can be pure itself and doesn't have to run in the IO Monad as our previous research (see Appendix \ref{app:pfe}) has shown that ABS can be implemented pure.
@@ -53,8 +53,8 @@ The fundamental difference to all these real-world examples is that in our appro
 %Ionescus talk on Dependently-Typed Programming in Economic Modelling
 %https://www.pik-potsdam.de/members/ionescu/ee-tt.pdf
 
-\subsection{General Concepts}
-\label{sub:dep_abs_generalconcepts}
+\section{General Concepts}
+\label{sec:dep_abs_generalconcepts}
 
 We came up with the following ideas of how and where to apply dependent types in the context of agent-based simulation:
 
@@ -102,8 +102,8 @@ Models which are exploratory in nature don't have a formal ground truth where on
 
 It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very interesting application as it allows for a more formal and automatic testable approach to hypothesis checking.
 
-\subsection{Dependently Typed Discrete 2D Environment}
-\label{sub:dep_abs_2denv}
+\section{Dependently Typed Discrete 2D Environment}
+\label{sec:dep_abs_2denv}
 One of the main advantages of Agent-Based Simulation over other simulation methods e.g. System Dynamics is that agents can live within an environment. Many agent-based models place their agents within a 2D discrete NxM environment where agents either stay always on the same cell or can move freely within the environment where a cell has 0, 1 or many occupants. Ultimately this boils down to accessing a NxM matrix represented by arrays or a similar data structure. In imperative languages accessing memory always implies the danger of out-of-bounds exceptions \textit{at run-time}. With dependent types we can represent such a 2D environment using vectors which carry their length in the type (see \ref{sec:dep_background}) thus fixing the dimensions of such a 2D discrete environment in the types. This means that there is no need to drag those bounds around explicitly as data. Also by using dependent types like a finite set Fin, which depend on the dimensions we can enforce at compile-time that we can only access the data structure within bounds. If we want to we can also enforce in the types that the environment will never be an empty one where $N, M > 0$.
 
 \begin{HaskellCode}
@@ -185,8 +185,8 @@ filterNeighbourhood {w} {h} (MkDisc2dCoords x y) ns env =
                                    in  (_ ** ((coord, c) :: ret)))
 \end{HaskellCode}
 
-\subsection{Dependently Typed SIR}
-\label{sub:dep_abs_sir}
+\section{Dependently Typed SIR}
+\label{sec:dep_abs_sir}
 We plan to prototype the concepts of section \ref{sub:dep_abs_generalconcepts} in a dependently typed SIR implementation. One can object that the SIR model \cite{kermack_contribution_1927} is a very simple model but despite its simplicity it has a number of advantages. There is a theory behind it with a formal ground-truth for the dynamics which can be generated by differential equations, which allows validation of the simulation. Also, it has already many concepts of ABS in it without making it too complex: agent-behaviour as a state-machine, local agent-state (current SIR state and duration of illness), feedback, very rudimentary interaction with other agents, 2D environment if required and behaviour over time. We will also look into the SugarScape model (see \ref{sub:dep_abs_sugarscape}), which is of quite a different type and adds more complexity.
 
 The general approach of using dependent types is to specify the general commands available for an agent, where we can follow the approach of an EDSL as described in \cite{brady_correct-by-construction_2010} and write then an interpreter for it. It is of importance that the interpreter shall be pure itself and does not make use of any IO. Applying dependent types to the SIR model, we came up with the following use-cases:
@@ -254,8 +254,8 @@ sirStep : Vect s (SIRAgent Susceptible) ->
            Vect r' (SIRAgent Recovered), (s'+i'+r') = (s+i+r))
 \end{HaskellCode}
 
-\subsection{Dependently Typed Sugarscape}
-\label{sub:dep_abs_sugarscape}
+\section{Dependently Typed Sugarscape}
+\label{sec:dep_abs_sugarscape}
 The other model we will employ as a use-case for the concepts of section \ref{sub:dep_abs_generalconcepts} is the SugarScape model \cite{epstein_growing_1996}. It is an exploratory model by which social scientists tried to explain phenomena found in societies in the real world. The main complexity of this model lies in the much more complex local state of the agents and the agent-agent interactions e.g. in case of trade and mating and a pro-active environment. Opposed to the SIR model agents behaviour is not modelled as a state-machine and time-semantics is not of that much importance: the simulation is stepped in unit-steps of $\Delta t = 1.0$ and in every time-step, all agents act in random order. Although there are equilibria e.g. in case all agents die out or the carrying capacity of an environment, trading prices, we think that this model is too complex for a total implementation in the cases.
 
 \paragraph{Environment}

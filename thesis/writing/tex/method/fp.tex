@@ -1,0 +1,250 @@
+\section{Pure functional programming}
+Functional programming (FP) is called \textit{functional} because it makes functions the main concept of programming, promoting them to first-class citizens: functions can be assigned to variables, they can be passed as arguments to other functions and they can be returned as values from functions. The roots of FP lie in the Lambda Calculus which was first described by Alonzo Church \cite{church_unsolvable_1936}. This is a fundamentally different approach to computing than imperative programming (includeing established object-orientation)  which roots lie in the Turing Machine \cite{turing_computable_1937}. Rather than describing \textit{how} something is computed as in the more operational approach of the Turing Machine, due to the more \textit{declarative} nature of the Lambda Calculus, code in functional programming describes \textit{what} is computed.
+
+MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
+
+\begin{enumerate}
+	\item It is programming without the assignment-operator.
+	\item It allows for higher levels of abstraction.
+	\item It allows to develop executable specifications and prototype implementations.
+	\item It is connected to computer science theory.
+	\item Suitable for Parallel Programming.
+	\item Algebraic reasoning.
+\end{enumerate}
+
+\cite{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
+\begin{itemize}
+	\item in Functional programming programs are combinations of expressions
+	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
+\end{itemize}
+
+\cite{maclennan_functional_1990} makes the subtle distinction between \textit{applicative} and \textit{functional} programming. Applicative programming can be understood as applying values to functions where one deals with pure expressions:
+
+\begin{itemize}
+	\item Value is independent of the evaluation order.
+	\item Expressions can be evaluated in parallel.
+	\item Referential transparency.
+	\item No side effects.
+	\item Inputs to an operation are obvious from the written form.
+	\item Effects to an operation are obvious from the written form.
+\end{itemize}
+
+Note that applicative programming is not necessarily unique to the functional programming paradigm but can be emulated in an imperative language e.g. C as well. Functional programming is then defined by \cite{maclennan_functional_1990} as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone. Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
+So functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions \footnote{Object-Oriented languages like Java let you to partially work around this limitation but are still far from \textit{pure} functional programming.}.
+
+The equivalence in functional programming to to the \textit{;} operator of imperative programming which allows to compose imperative statements is function composition. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
+At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherwise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
+
+% SHORTENING
+It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \cite{okasaki_purely_1999} showed that when approaching this problem with a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
+
+% SHORTENING
+For an excellent and widely used introduction to programming in Haskell we refer to \cite{hutton_programming_2016}. Other, more exhaustive books on learning Haskell are \cite{lipovaca_learn_2011,allen_haskell_2016}. For an introduction to programming with the Lambda-Calculus we refer to \cite{michaelson_introduction_2011}. For more general discussion of functional programming we refer to \cite{hughes_why_1989,maclennan_functional_1990,hudak_history_2007}.
+
+\subsection{Side-Effects}
+One of the fundamental strengths of Haskell is its way of dealing with side-effects in functions. A function with side-effects has observable interactions with some state outside of its explicit scope. This means that its behaviour depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side-effects are (amongst others): modifying state, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random-numbers,...
+
+Obviously, to write real-world programs which interact with the outside world we need side-effects. Haskell allows to indicate in the \textit{type} of a function that it does or does \textit{not} have side-effects. Further there are a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is then ensured by the compiler which means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile. Haskell also provides mechanisms to combine multiple effects e.g. one can define a function which can draw random-numbers and modify some state. The most common side-effect types are: \textit{IO} allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections, mutable references; \textit{Rand}  allows drawing random-numbers; \textit{Reader / Writer / State} allows to read / write / both from / to an environment.
+
+A function without any side-effect type is called \textit{pure}, and the \textit{factorial} function is indeed pure. Below we give an example of a function which is not pure. The \textit{queryUser} function \textit{constructs} a computation which, when executed, asks the user for its user-name and compares it with a given user-configuration. In case the user-name matches it returns True, and False otherwise after printing a corresponding message. 
+
+\begin{HaskellCode}
+queryUser :: String -> IO Bool
+queryUser username = do
+  -- print text to console
+  putStr "Type in user-name: "
+  -- wait for user-input
+  str <- getLine
+  -- check if input matches user-name
+  if str == username
+    then do
+      putStrLn "Welcome!"			
+      return True
+    else do
+      putStrLn "Wrong user-name!"
+      return False
+\end{HaskellCode}
+
+The \textit{IO} in the first line indicates that the function runs in the IO effect and can thus (amongst others) print to the console and read input from it. What seems striking is that this looks very much like imperative code - this is no accident and intended. When we are dealing with side-effects, ordering becomes important, thus Haskell introduced the so-called do-notation which emulates an imperative style of programming. Whereas in imperative programming languages like C, commands are chained or composed together using the ; operator, in functional programming this is done using function composition: feeding the output of a function directly into the next function. The machinery behind the do-notation does exactly this and desugars this imperative-style code into function compositions which run custom code between each line, depending on the type of effect the computation runs in. This approach of function composition with custom code in between each function allows to emulate a broad range of imperative-style effects, including the above mentioned ones. For a technical, in-depth discussion of the concept of side-effects and how they are implemented in Haskell using Monads, we refer to the following papers: \cite{moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997,jones_tackling_2002}.
+
+Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in the function explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because running effects themselves is \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect execution. This allows a much easier approach to isolated testing because the history of the system is made explicit.  TODO: need maybe more explanation on how effects are executed
+
+Further, this type system allows Haskell to make a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. For a technical, in-depth discussion on Parallelism and Concurrency in Haskell we refer to the following books and papers: \cite{marlow_parallel_2013,osullivan_real_2008,harris_composable_2005,marlow_runtime_2009}.
+
+\subsection{Theoretical Foundation}
+The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.
+
+\cite{maclennan_functional_1990} defines a calculus to be "... a notation that can be manipulated mechanically to achieve some end;...". The Lambda Calculus can thus be understood to be a notation for expressing computation based on the concepts of \textit{function abstraction}, \textit{function application}, \textit{variable binding} and \textit{variable substitution}. It is fundamentally different from the notation of a Turing Machine in the way it is applicative whereas the Turing Machine is imperative / operative. To give a complete definition is out of the scope of this text, thus we will only give a basic overview of the concepts and how the Lambda Calculus works. For an exhaustive discussion of the Lambda Calculus we refer to \cite{maclennan_functional_1990} and \cite{barendregt_lambda_1984}.
+
+\paragraph{Function Abstraction}
+Function abstraction allows to define functions in the Lambda Calculus. If we take for example the function $f(x) = x^2 - 3x + a$ we can translate this into the Lambda Calculus where it denotes: $\lambda x.x^2 - 3x + a$. The $\lambda$ symbol denotes an expression of a function which takes exactly one argument which is used in the body-expression of the function to calculate something which is then the result. Functions with more than one argument are defined by using nested $\lambda$ expressions. The function $f(x, y) = x^2 + y^2$ is written in the Lambda Calculus as $\lambda x.\lambda y.x^2 + y^2$.
+
+\paragraph{Function Application}
+When wants to get the result of a function then one applies arguments to the function e.g. applying $x = 3, y = 4$ to $f(x, y) = x^2 + y^2$ results in $f(3, 4) = 25$. Function application works the same in Lambda Calculus: $((\lambda x.\lambda y.x^2 + y^2) 3) 4 = 25$ - the question is how the result is actually computed - this brings us to the next step of variable binding and substitution.
+
+\paragraph{Variable Binding}
+In the function $f(x) = x^2 - 3x + a$ the variable $x$ is \textit{bound} in the body of the function whereas $a$ is said to be \textit{free}. The same applies to the lambda expression of $\lambda x.x^2 - 3x + a$. An important property is that bound variables can be renamed within their scope without changing the meaning of the expression: $\lambda y.y^2 - 3y + a$ has the same meaning as the expression $\lambda x.x^2 - 3x + a$. Note that free variable \textit{must not be renamed} as this would change the meaning of the expression. This process is called $\alpha$-conversion and it becomes sometimes necessary to avoid name-conflicts in variable substitution.
+
+\paragraph{Variable Substitution}
+To compute the result of a Lambda Expression - also called evaluating the expression - it is necessary to substitute the bound variable by the argument to the function. This process is called $\beta$-reduction and works as follows. When we want to evaluate the expression $((\lambda x.\lambda y.x^2 + y^2) 3) 4$ we first substitute 4 for x, rendering $(\lambda y.4^2 + y^2) 3$ and then 3 for y, resulting in $(4^2 + 3^2)$ which then ultimately evaluates to 25. Sometimes $\alpha$-conversion becomes necessary e.g. in the case of the expression $((\lambda x.\lambda y.x^2 + y^2) 3) y$ we must not substitute y directly for x. The result would be $(\lambda y.y^2 + y^2) 3 = 3^2 + 3^2 = 18$ - clearly a different meaning than intended (the first y value is simply thrown away). Here we have to perform $\alpha$-conversion before substituting y for x. \\ 
+$((\lambda x.\lambda y.x^2 + y^2) 3) y = ((\lambda x.\lambda z.x^2 + z^2) 3) y$ and now we can substitute safely without risking a name-clash: $((\lambda x.\lambda z.x^2 + z^2) 3) y = (\lambda z.y^2 + z^2) 3) = (y^2 + 3^2) 3) = y^2 + 9$ where y occurs free.
+
+\subsubsection*{Examples}
+$(\lambda x.x)$ denotes the identity function - it simply evaluates to the argument. 
+
+\medskip
+
+$(\lambda x.y)$ denotes the constant function - it throws away the argument and evaluates to the free variable $y$. 
+
+\medskip
+
+$(\lambda x.xx)(\lambda x.xx)$ applies the function to itself (note that functions can be passed as arguments to functions - they are \textit{first class} in the Lambda Calculus) - this results in the same expression again and is thus a non-terminating expression.
+
+\medskip
+
+We can formulate simple arithmetic operations like addition of natural numbers using the Lambda Calculus. For this we need to find a way how to express natural numbers \footnote{In the short introduction for sake of simplicity we assumed the existence of natural numbers and the operations on them but in a pure lambda calculus they are not available. In programming languages which build on the Lambda Calculus e.g. Haskell, (natural) numbers and operations on them are built into the language and map to machine-instructions, primarily for performance reasons.}. This problem was already solved by Alonzo Church by introducing the Church numerals: a natural number is a function of an n-fold composition of an arbitrary function f. The number 0 would be encoded as $0 = \lambda f . \lambda x.x$, 1 would be encoded as $1 = \lambda f . \lambda x . f x$ and so on. This is a way of \textit{unary notation}: the natural number n is represented by n function compositions - n things denote the natural number of n.
+When we want to add two such encoded numbers we make use of the identity $f^{(m+n)}(x) = f^m(f^n(x))$. Adding 2 to 3 gives us the following lambda expressions (note that we are using a sugared version allowing multiple arguments to a function abstraction) and reduces after 7 steps to the final result:
+
+\medskip
+
+$2 = \lambda f x . f(f x)$ \\
+$3 = \lambda f x . f(f(f x))$ \\
+$ADD = \lambda m n f x . m f (n f x)$ \\
+
+ADD 2 3 \\
+$1: (\lambda m n f x. m f (n f x)) (\lambda f x.f(f(f x))) (\lambda f x.f(f x))$ \\
+$2:  (\lambda n f x. (\lambda f x.f(f(f x))) f (n f x))   (\lambda f x.f(f x))$ \\
+$3:     (\lambda f x. (\lambda f x.f(f(f x))) f ((\lambda f x.f(f x)) f x)) $ \\ 
+$4:     (\lambda f x.   (\lambda x.f(f(f x)))   ((\lambda f x.f(f x)) f x)) $ \\
+$5:     (\lambda f x.       f(f(f(\lambda f x.f(f x)) f x)))))$ \\
+$6:     (\lambda f x.       f(f(f  (\lambda x.f(f x)) x)))))$ \\
+$7:     (\lambda f x.       f(f(f     (f(f x))  )))))$
+
+\subsubsection{Types}
+The Lambda Calculus as initially introduced by Church and presented above is \textit{untyped}. This means that the data one passes around and upon one operates has no type: there are no restriction on the operations on the data, one can apply all data to all function abstractions. This allows for example to add a string to a number which behaviour may be undefined thus leading to a non-reducible expression.
+This led to the introduction of the simply typed Lambda Calculus which can be understood to add tags to a lambda-expression which identifies its type. One can then only perform function application on data which matches the given type thus ensuring that one can only operate in a defined way on data e.g. adding a string to a number is then not possible any-more because it is a semantically wrong expression.
+The simply typed lambda calculus is but only one type-system and there are much more evolved and more powerful type-system e.g. \textit{System F} and \textit{Hindley-Milner Type System} which is the type-system used in Haskell. It is completely out of the scope of this text to discuss type systems in depth but we give a short overview of the most important properties.
+
+Generally speaking, a type system defines types on data and functions. Raw data can be interpreted in arbitrary ways but a type system associates raw data with a type which tells the compiler (and the programmer) how this raw data is to be interpreted e.g. as a number, a character,... Functions have also types on their arguments and their return values which defines upon which types the function can operate. Thus ultimately the main purpose of a type system is to reduce bugs in a program. Very roughly one can distinguish between static / dynamic and strong / weak typing.
+
+\paragraph{Static and dynamic typing}
+A statically typed language performs all type checking at compile time and no type checking at runtime, thus the data has no type-information attached at all. Dynamic typing on the other hand performs type checking during run-time using type-information attached to values. Some languages use a mix of both e.g. Java performs some static type checking at compile time but also supports dynamic typing during run-time for downcasting, dynamic dispatch, late binding and reflection to implement object-orientation. Haskell on the other hand is strictly statically typed with no type checks at runtime.
+
+\paragraph{Strong and weak typing}
+A strong type system guarantees that one cannot bypass the type system in any way and can thus completely rule out type errors at runtime. Pointers as available in C are considered to be weakly typed because they can be used to completely bypass the type system e.g. by casting to and from a (void*) pointer. Other indications of weak typing are implicit type conversions and untagged unions which allow values of a given typed to be viewed as being a different type.
+There is not a general accepted definition of strong and weak typing but it is agreed that programming languages vary across the strength of their typing: e.g. Haskell is seen as very strongly typed, C very weakly, Java more strongly typed than C whereas Assembly is considered to be untyped.
+
+\subsection{Language of choice}
+In our research we are using the \textit{pure} functional programming language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
+
+\begin{itemize}
+	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm included. Further, Haskell has influenced a large number of languages, underlining its importance and influence in programming language design.
+	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_haskell_1994, hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
+	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
+	\item Purity - Haskell is a \textit{pure} functional language and in our research it is absolutely paramount, that we focus on \textit{pure} functional ABS, which avoids any IO type under all circumstances (exceptions are when doing concurrency but there we restrict most of the concepts to STM).
+	\item It is as closest to pure functional programming, as in the lambda-calculus, as we want to get. Other languages are often a mix of paradigms and soften some criteria / are not strictly functional and have different purposes. Also Haskell is very strong rooted in Academia and lots of knowledge is available, especially at Nottingham, 
+		Lisp / Scheme was considered because it was the very first functional programming language but deemed to be not modern enough with lack of sufficient libraries. Also it would have given the 
+		Erlang was considered in prototyping and allows to map the messaging concept of ABS nicely to a concurrent language but was ultimately rejected due to its main focus on concurrency and not being purely functional.
+		Scala was considered as well and has been used in the research on the Art Of Iterating paper but is not purely functional and can be also impure.
+\end{itemize}
+
+\subsection{Functional Reactive Programming}
+Short introduction to FRP (yampa), based on my pure functional epidemics paper.
+\label{sec:back_frp}
+
+Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
+
+The central concept in Arrowized FRP is the Signal Function (SF), which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps, the system is sampled with. 
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow \alpha \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
+
+\paragraph{Event}
+An event in FRP is an occurrence at a specific point in time, which has no duration e.g. the recovery of an infected agent. Yampa represents events through the \textit{Event} type, which is programmatically equivalent to the \textit{Maybe} type. 
+
+\paragraph{Dynamic behaviour}
+To change the behaviour of a signal function at an occurrence of an event during run-time, (amongst others) the combinator \textit{switch :: SF a (b, Event c) $\rightarrow$ (c $\rightarrow$ SF a b) $\rightarrow$ SF a b} is provided. It takes a signal function, which is run until it generates an event. When this event occurs, the function in the second argument is evaluated, which receives the data of the event and has to return the new signal function, which will then replace the previous one. Note that the semantics of \textit{switch} are that the signal function, into which is switched, is also executed at the time of switching.
+
+\paragraph{Randomness}
+In ABS, often there is the need to generate stochastic events, which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g $\Rightarrow$ g $\rightarrow$ Time $\rightarrow$ b $\rightarrow$ SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will lose events.
+
+Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) $\Rightarrow$ g $\rightarrow$ SF a b}, which generates a stream of noise by returning a random number in the default range for the type \textit{b}.
+
+\paragraph{Running signal functions}
+To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b $\rightarrow$ (a, [(DTime, Maybe a)]) $\rightarrow$ [b]}, which allows to run an SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
+
+\subsection{Arrowized programming}
+Yampa's signal functions are arrows, requiring us to program with arrows. Arrows are a generalisation of monads, which in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}.
+
+In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows.
+
+There exists a number of arrow combinators, which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's do-notation for arrows \cite{paterson_new_2001}, which makes code more readable as it allows us to program with points.
+
+To show how arrowized programming works, we implement a simple signal function, which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
+
+\begin{HaskellCode}
+fallingMass :: Double -> Double -> SF () Double
+fallingMass p0 v0 = proc _ -> do
+  v <- arr (+v0) <<< integral -< (-9.8)
+  p <- arr (+p0) <<< integral -< v
+  returnA -< p
+\end{HaskellCode}
+
+To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa, which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators, which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
+
+\subsection{Monadic Stream Functions}
+\label{sec:back_msf}
+
+Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function, which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016, perez_extensible_2017}:
+\begin{HaskellCode}
+newtype MSF m a b = MSF {unMSF :: MSF m a b -> a -> m (b, MSF m a b)}
+\end{HaskellCode}
+
+MSFs are also arrows, which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m $\Rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ MSF m a b} and \textit{arrM\_ :: Monad m $\Rightarrow$ m b $\rightarrow$ MSF m a b}. A part of the library Dunai is BearRiver, a wrapper, which re-implements Yampa on top of Dunai, which enables one to run arbitrary monadic computations in a signal function. BearRiver simply adds a monadic parameter \textit{m} to each SF, which indicates the monadic context this signal function runs in.
+
+To show how arrowized programming with MSFs works, we extend the falling mass example from above to incorporate monads. In this example we assume that in each step we want to accelerate our velocity \textit{v} not by the gravity constant anymore but by a random number in the range of 0 to 9.81. Further we want to count the number of steps it takes us to hit the floor, that is when position \textit{p} is less than 0. Also when hitting the floor we want to print a debug message to the console with the velocity by which the mass has hit the floor and how many steps it took.
+
+We define a corresponding monad stack with \textit{IO} as the innermost Monad, followed by a \textit{RandT} transformer for drawing random-numbers and finally a \textit{StateT} transformer to count the number of steps we compute. We can access the monadic functions using \textit{arrM} in case we need to pass an argument and \textit{\_arrM} in case no argument to the monadic function is needed:
+
+\begin{HaskellCode}
+type FallingMassStack g = StateT Int (RandT g IO)
+type FallingMassMSF g   = SF (FallingMassStack g) () Double
+
+fallingMassMSF :: RandomGen g => Double -> Double -> FallingMassMSF g
+fallingMassMSF v0 p0 = proc _ -> do
+  -- drawing random number for our gravity range
+  r <- arrM_ (lift $ lift $ getRandomR (0, 9.81)) -< ()
+  v <- arr (+v0) <<< integral -< (-r)
+  p <- arr (+p0) <<< integral -< v
+  -- count steps
+  arrM_ (lift (modify (+1))) -< ()
+  if p > 0
+    then returnA -< p
+    -- we have hit the floor
+    else do
+      -- get number of steps
+      s <- arrM_ (lift get) -< ()
+      -- write to console
+      arrM (liftIO . putStrLn) -< "hit floor with v " ++ show v ++ 
+                                  " after " ++ show s ++ " steps"
+      returnA -< p
+\end{HaskellCode}
+
+To run the \textit{fallingMassMSF} function until it hits the floor we proceed as follows:
+
+\begin{HaskellCode}
+runMSF :: RandomGen g => g -> Int -> FallingMassMSF g -> IO ()
+runMSF g s msf = do
+  let msfReaderT = unMSF msf ()
+      msfStateT  = runReaderT msfReaderT 0.1
+      msfRand    = runStateT msfStateT s
+      msfIO      = runRandT msfRand g
+  (((p, msf'), s'), g') <- msfIO
+  when (p > 0) (runMSF g' s' msf')
+\end{HaskellCode}
+
+Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double}, which carries the $\Delta t$. This is the reason why we need one extra lift for accessing \textit{StateT} and \textit{RandT}. Thus \textit{unMSF} returns a computation in the \textit{ReaderT Double} Monad, which we need to peel away using \textit{runReaderT}. This then results in a \textit{StateT Int} computation, which we evaluate by using \textit{runStateT} and the current number of steps as state. This then results in another monadic computation of \textit{RandT} Monad, which we evaluate using \textit{runRandT}. This finally returns an \textit{IO} computation, which we simply evaluate to arrive at the final result.

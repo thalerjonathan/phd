@@ -3,6 +3,14 @@
 
 As an example we discuss the black-box testing for the SIR model using property-testing. We test if the \textit{isolated} behaviour of an agent in all three states Susceptible, Infected and Recovered, corresponds to model specifications. The crucial thing though is that we are dealing with a stochastic system where the agents act \textit{on averages}, which means we need to average our tests as well. We conducted the tests on the implementation found in the paper of Appendix \ref{app:pfe}.
 
+\paragraph{Finding optimal $\Delta t$}
+The selection of the right $\Delta t$ can be quite difficult in FRP because we have to make assumptions about the system a priori. One could just play it safe with a very conservative, small $\Delta t < 0.1$ but the smaller $\Delta t$, the lower the performance as it multiplies the number of steps to calculate. Obviously one wants to select the \textit{optimal} $\Delta t$, which in the case of ABS is the largest possible $\Delta t$ for which we still get the correct simulation dynamics.
+To find out the \textit{optimal} $\Delta t$ one can make direct use of the black-box tests: start with a large $\Delta t = 1.0$ and reduce it by half every time the tests fail until no more tests fail - if for $\Delta t = 1.0$ tests already pass, increasing it may be an option. It is important to note that although isolated agent behaviour tests might result in larger $\Delta t$, in the end when they are run in the aggregate system, one needs to sample the whole system with the smallest $\Delta t$ found amongst all tests. Another option would be to apply super-sampling to just the parts which need a very small $\Delta t$ but this is out of scope of this paper.
+
+\paragraph{Agents as signals}
+Agents \textit{might} behave as signals in FRP which means that their behaviour is completely determined by the passing of time: they only change when time changes thus if they are a signal they should stay constant if time stays constant. This means that they should not change in case one is sampling the system with $\Delta t = 0$. Of course to prove whether this will \textit{always} be the case is strictly speaking impossible with a black-box verification but we can gain a good level of confidence with them also because we are staying pure. It is only through white-box verification that we can really guarantee and prove this property.
+
+
 \subsubsection{Black-Box Verification}
 The interface of the agent behaviours are defined below. When running the SF with a given $\Delta t$ one has to feed in the state of all the other agents as input and the agent outputs its state it is after this $\Delta t$.
 

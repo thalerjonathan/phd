@@ -4,17 +4,243 @@ This chapter introduces the background and methodology used in the following cha
 \section{Agent-Based Simulation}
 History, methodology (what is the purpose of ABS: 3rd way of doing science: exploratory, helps understand real-world phenomena), classification according to \cite{macal_everything_2016}, ABS vs. MAS, event- vs. time-driven \cite{meyer_event-driven_2014}, examples: agent-based SIR, SugarScape, Gintis Bartering
 
+We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. We informally assume the following about our agents:
+
+\begin{itemize}
+	\item They are uniquely addressable entities with some internal state.
+	\item They can initiate actions on their own e.g. change their internal state, send messages, create new agents, kill themselves.
+	\item They can react to messages they receive with actions as above.
+	\item They can interact with an environment they are situated in.
+\end{itemize} 
+
+An implementation of an ABS must solve two fundamental problems:
+
+\begin{enumerate}
+	\item \textbf{Source of pro-activity} How can an agent initiate actions without the external stimuli of messages?
+	\item \textbf{Semantics of Messaging} When is a message \textit{m}, sent by agent \textit{A} to agent \textit{B}, visible and processed by \textit{B}?
+\end{enumerate}
+
+In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimulus, most naturally represented by a continuous increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the agent, acting as the internal stimulus. This allows the agent then to perceive time and become pro-active depending on time. So we can understand an ABS as a discrete time-simulation where time is broken down into continuous, real-valued or discrete natural-valued time-steps. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution where there are two ways of feeding time-flow into an agent. Either it has its own thread-of-execution or the system creates the illusion of its own thread-of-execution by sharing the global thread sequentially among the agents where an agent has to yield the execution back after it has executed its step. Note the similarity to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
+
+The semantics of messaging define when sent messages are visible to the receivers and when the receivers process them. Message-processing could happen either immediately or delayed, depending on how message-delivery works. There are two ways of message-delivery: immediate or queued. In the case of immediate message-deliver the message is sent directly to the agent without any queuing in between e.g. a direct method-call. This would allow an agent to immediately react to this message as this call of the method transfers the thread-of-execution to the agent. This is not the case in the queued message-delivery where messages are posted to the message-box of an agent and the agent pro-actively processes the message-box at regular points in time.
+
+Agent-Based Simulation is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated, out of which then the aggregate global behaviour of the whole system emerges.
+
+So, the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in some neighbourhood by exchange of messages. 
+
+We informally assume the following about our agents \cite{siebers_introduction_2008, wooldridge_introduction_2009, macal_everything_2016}:
+
+\begin{itemize}
+	\item They are uniquely addressable entities with some internal state over which they have full, exclusive control.
+	\item They are pro-active, which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
+	\item They are situated in an environment and can interact with it.
+	\item They can interact with other agents situated in the same environment by means of messaging.
+\end{itemize} 
+
+Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. They exhibit the following properties:
+
+\begin{itemize}
+	\item Linearity \& Non-Linearity - actions of agents can lead to non-linear behaviour of the system.
+	\item Time - agents act over time, which is also the source of their pro-activity.
+	\item States - agents encapsulate some state, which can be accessed and changed during the simulation.
+	\item Feedback-Loops - because agents act continuously and their actions influence each other and themselves in subsequent time-steps, feedback-loops are the common in ABS. 
+	\item Heterogeneity - agents can have properties (age, height, sex,...) where the actual values can vary arbitrarily between agents.
+	\item Interactions - agents can be modelled after interactions with an environment or other agents.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2D, continuous 3D,...) or complex network environment.
+\end{itemize}
+
+Note that there doesn't exist a commonly agreed technical definition of ABS but the field draws inspiration from the closely related field of Multi-Agent Systems (MAS) \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is much more on technical details, implementing a system of interacting intelligent agents within a highly complex environment with the focus primarily on solving AI problems.
+
 \subsection{Traditional approaches}
 Introduce established implementation approaches to ABS. Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ. Programming: Java, Python, C++. Correctness: ad-hoc, manual testing, test-driven development.
+
+TODO: we need citiations here to support our claims!
+
+TODO: this is a nice blog: https://drewdevault.com/2018/07/09/Simple-correct-fast.html
+
+The established approach to implement ABS falls into three categories:
+\begin{enumerate}
+	\item Programming from scratch using object-oriented languages where Java and Python are the most popular ones.
+	\item Programming using a 3rd party ABS library using object-oriented languages where RePast and DesmoJ, both in Java, are the most popular one.
+	\item Using a high-level ABS tool-kit for non-programmers, which allow customization through programming if necessary. By far the most popular one is NetLogo with an imperative programming approach followed by AnyLogic with an object-oriented Java approach.
+\end{enumerate}
+
+In general one can say that these approaches, especially the 3rd one, support fast prototyping of simulations which allow quick iteration times to explore the dynamics of a model. Unfortunately, all of them suffer the same problems when it comes to verifying and guaranteeing the correctness of the simulation.
+
+The established way to test software in established object-oriented approaches is writing unit-tests which cover all possible cases. This is possible in approach 1 and 2 but very hard or even impossible when using an ABS tool-kit, as in 3, which is why this approach basically employs manual testing. In general, writing those tests or conducting manual tests is necessary because one cannot guarantee the correct working at compile-time which means testing ultimately tests the correct behaviour of code at run-time. The reason why this is not possible is due to the very different type-systems and paradigm of those approaches. Java has a strong but very dynamic type-system whereas Python is completely dynamic not requiring the programmer to put types on data or variables at all. This means that due to type-errors and data-dependencies run-time errors can occur which origins might be difficult to track down.
+
+It is no coincidence that JavaScript, the most widely used language for programming client-side web-applications, originally a completely dynamically typed language like Python, got additions for type-checking developed by the industry through TypeScript. This is an indicator that the industry acknowledges types as something important as they allow to rule out certain classes of bugs at run-time and express guarantees already at compile-time. We expect similar things to happen with Python as its popularity is surging and more and more people become aware of that problem. Summarizing, due to the highly dynamic nature of the type-system and imperative nature, run-time errors and bugs are possible both in Python and Java which absence must be guaranteed by exhaustive testing. 
+
+The problem of correctness in agent-based simulations became more apparent in the work of Ionescu et al \cite{ionescu_dependently-typed_2012} which tried to replicate the work of Gintis \cite{gintis_emergence_2006}. In his work Gintis claimed to have found a mechanism in bilateral decentralized exchange which resulted in walrasian general equilibrium without the neo-classical approach of a tatonement process through a central auctioneer. This was a major break-through for economics as the theory of walrasian general equilibrium is non-constructive as it only postulates the properties of the equilibrium \cite{colell_microeconomic_1995} but does not explain the process and dynamics through which this equilibrium can be reached or constructed - Gintis seemed to have found just this process. Ionescu et al. \cite{ionescu_dependently-typed_2012} failed and were only able to solve the problem by directly contacting Gintis which provided the code - the definitive formal reference. It was found that there was a bug in the code which led to the "revolutionary" results which were seriously damaged through this error. They also reported ambiguity between the informal model description in Gintis paper and the actual implementation. TODO: it is still not clear what this bug was, find out! look at the master thesis 
+
+This is supported by a talk \cite{sweeney_next_2006}, in which Tim Sweeney, CEO of Epic Games, discusses the use of main-stream imperative object-oriented programming languages (C++) in the context of Game Programming. Although the fields of games and ABS seem to be very different, in the end they have also very important similarities: both are simulations which perform numerical computations and update objects in a loop either concurrently or sequential \cite{gregory_game_2018}. Sweeney reports that reliability suffers from dynamic failure in such languages e.g. random memory overwrites, memory leaks, accessing arrays out-of-bounds, dereferencing null pointers, integer overflow, accessing uninitialized variables. He reports that 50\% of all bugs in the Game Engine Middleware Unreal can be traced back to such problems and presents dependent types as a potential rescue to those problems.
+
+TODO: general introduction %https://en.wikipedia.org/wiki/Software_bug
+
+
+TODO: list common bugs in object-oriented / imperative programming
+TODO: java solved many problems 
+TODO: still object-oriented / imperative ultimately struggle when it comes to concurrency / parallelism due to their mutable nature.
+
+TODO: \cite{vipindeep_list_2005}
+
+TODO: software errors can be costly %https://raygun.com/blog/costly-software-errors-history/
+TODO: bugs per loc %https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio
 
 \subsection{Verification \& Validation}
 Introduction Verification \& Validation (V \& V in the context of ABS).
 
+Research on TDD of ABS is quite new and thus there exist relative few publications. The work \cite{collier_test-driven_2013} is the first to discusses how to apply the TDD approach to ABS, using unit-testing to verify the correctness of the implementation up to a certain level. They show how to implement unit-tests within the RePast Framework \cite{north_complex_2013} and make the important point that such a software need to be designed to be sufficiently modular otherwise testing becomes too cumbersome and involves too many parts. The paper \cite{asta_investigation_2014} discusses a similar approach to DES in the AnyLogic software toolkit. 
+
+The paper \cite{onggo_test-driven_2016} proposes Test Driven Simulation Modelling (TDSM) which combines techniques from TDD to simulation modelling. The authors present a case study for maritime search-operations where they employ ABS. They emphasise that simulation modelling is an iterative process, where changes are made to existing parts, making a TDD approach to simulation modelling a good match. They present how to validate their model against analytical solutions from theory using unit-tests by running the whole simulation within a unit-test and then perform a statistical comparison against a formal specification. This approach will become of importance later on in our SIR case study.
+
+The paper \cite{brambilla_property-driven_2012} propose property-driven design of robot swarms. They propose a top-down approach by specifying properties a swarm of robots should have from which a prescriptive model is created, which properties are verified using model checking. Then a simulation is implemented following this prescriptive and verified model after then the physical robots are implemented. The authors identify the main difficulty of implementing such a system that the engineer must \textit{"think at the collective-level, but develop at the individual-level}. It is arguably true that this also applies to implementing agent-based models and simulations where the same collective-individual separation exists from which emergent system behaviour of simulations emerges - this is the very foundation of the ABS methodology.
+
+The paper \cite{gurcan_generic_2013} gives an in-depth and detailed overview over verification, validation and testing of agent-based models and simulations and proposes a generic framework for it. The authors present a generic UML class model for their framework which they then implement in the two ABS frameworks RePast and MASON. Both of them are implemented in Java and the authors provide a detailed description how their generic testing framework architecture works and how it utilises JUnit to run automated tests. To demonstrate their framework they provide also a case study of an agent-base simulation of synaptic connectivity where they provide an in-depth explanation of their levels of test together with code.
+
+%% TDD in MAS
+Although the work on TDD is scarce in ABS, there exists quite some research on applying TDD and unit-testing to multi-agent systems (MAS). Although MAS is a different discipline than ABS, the latter one has derived many technical concepts from the former one thus testing concepts applied to MAS might also be applicable to ABS. The paper \cite{nguyen_testing_2011} is a survey of testing in MAS. It distinguishes between unit tests which tests units that make up an agent, agent tests which test the combined functionality of units that make up an agent, integration tests which test the interaction of agents within an environment and observe emergent behaviour, system test which test the MAS as a system running at the target environment and acceptance test in which stakeholders verify that the software meets their goal. Although not all ABS simulations need acceptance and system tests, still this classification gives a good direction and can be directly transferred to ABS. 
+
+
 %--------------------------------------------------------------------------
 
 \section{Pure functional programming}
-Definition, Haskell references,
+Functional programming (FP) is called \textit{functional} because it makes functions the main concept of programming, promoting them to first-class citizens: functions can be assigned to variables, they can be passed as arguments to other functions and they can be returned as values from functions. The roots of FP lie in the Lambda Calculus which was first described by Alonzo Church \cite{church_unsolvable_1936}. This is a fundamentally different approach to computing than imperative programming (includeing established object-orientation)  which roots lie in the Turing Machine \cite{turing_computable_1937}. Rather than describing \textit{how} something is computed as in the more operational approach of the Turing Machine, due to the more \textit{declarative} nature of the Lambda Calculus, code in functional programming describes \textit{what} is computed.
 
+MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
+
+\begin{enumerate}
+	\item It is programming without the assignment-operator.
+	\item It allows for higher levels of abstraction.
+	\item It allows to develop executable specifications and prototype implementations.
+	\item It is connected to computer science theory.
+	\item Suitable for Parallel Programming.
+	\item Algebraic reasoning.
+\end{enumerate}
+
+\cite{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
+\begin{itemize}
+	\item in Functional programming programs are combinations of expressions
+	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
+\end{itemize}
+
+\cite{maclennan_functional_1990} makes the subtle distinction between \textit{applicative} and \textit{functional} programming. Applicative programming can be understood as applying values to functions where one deals with pure expressions:
+
+\begin{itemize}
+	\item Value is independent of the evaluation order.
+	\item Expressions can be evaluated in parallel.
+	\item Referential transparency.
+	\item No side effects.
+	\item Inputs to an operation are obvious from the written form.
+	\item Effects to an operation are obvious from the written form.
+\end{itemize}
+
+Note that applicative programming is not necessarily unique to the functional programming paradigm but can be emulated in an imperative language e.g. C as well. Functional programming is then defined by \cite{maclennan_functional_1990} as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone. Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
+So functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions \footnote{Object-Oriented languages like Java let you to partially work around this limitation but are still far from \textit{pure} functional programming.}.
+
+The equivalence in functional programming to to the \textit{;} operator of imperative programming which allows to compose imperative statements is function composition. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
+At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherwise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
+
+% SHORTENING
+It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \cite{okasaki_purely_1999} showed that when approaching this problem with a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
+
+% SHORTENING
+For an excellent and widely used introduction to programming in Haskell we refer to \cite{hutton_programming_2016}. Other, more exhaustive books on learning Haskell are \cite{lipovaca_learn_2011,allen_haskell_2016}. For an introduction to programming with the Lambda-Calculus we refer to \cite{michaelson_introduction_2011}. For more general discussion of functional programming we refer to \cite{hughes_why_1989,maclennan_functional_1990,hudak_history_2007}.
+
+\subsection{Side-Effects}
+One of the fundamental strengths of Haskell is its way of dealing with side-effects in functions. A function with side-effects has observable interactions with some state outside of its explicit scope. This means that its behaviour depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side-effects are (amongst others): modifying state, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random-numbers,...
+
+Obviously, to write real-world programs which interact with the outside world we need side-effects. Haskell allows to indicate in the \textit{type} of a function that it does or does \textit{not} have side-effects. Further there are a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is then ensured by the compiler which means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile. Haskell also provides mechanisms to combine multiple effects e.g. one can define a function which can draw random-numbers and modify some state. The most common side-effect types are: \textit{IO} allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections, mutable references; \textit{Rand}  allows drawing random-numbers; \textit{Reader / Writer / State} allows to read / write / both from / to an environment.
+
+A function without any side-effect type is called \textit{pure}, and the \textit{factorial} function is indeed pure. Below we give an example of a function which is not pure. The \textit{queryUser} function \textit{constructs} a computation which, when executed, asks the user for its user-name and compares it with a given user-configuration. In case the user-name matches it returns True, and False otherwise after printing a corresponding message. 
+
+\begin{HaskellCode}
+queryUser :: String -> IO Bool
+queryUser username = do
+  -- print text to console
+  putStr "Type in user-name: "
+  -- wait for user-input
+  str <- getLine
+  -- check if input matches user-name
+  if str == username
+    then do
+      putStrLn "Welcome!"			
+      return True
+    else do
+      putStrLn "Wrong user-name!"
+      return False
+\end{HaskellCode}
+
+The \textit{IO} in the first line indicates that the function runs in the IO effect and can thus (amongst others) print to the console and read input from it. What seems striking is that this looks very much like imperative code - this is no accident and intended. When we are dealing with side-effects, ordering becomes important, thus Haskell introduced the so-called do-notation which emulates an imperative style of programming. Whereas in imperative programming languages like C, commands are chained or composed together using the ; operator, in functional programming this is done using function composition: feeding the output of a function directly into the next function. The machinery behind the do-notation does exactly this and desugars this imperative-style code into function compositions which run custom code between each line, depending on the type of effect the computation runs in. This approach of function composition with custom code in between each function allows to emulate a broad range of imperative-style effects, including the above mentioned ones. For a technical, in-depth discussion of the concept of side-effects and how they are implemented in Haskell using Monads, we refer to the following papers: \cite{moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997,jones_tackling_2002}.
+
+Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in the function explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because running effects themselves is \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect execution. This allows a much easier approach to isolated testing because the history of the system is made explicit.  TODO: need maybe more explanation on how effects are executed
+
+Further, this type system allows Haskell to make a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. For a technical, in-depth discussion on Parallelism and Concurrency in Haskell we refer to the following books and papers: \cite{marlow_parallel_2013,osullivan_real_2008,harris_composable_2005,marlow_runtime_2009}.
+
+\section{Theoretical Foundation}
+The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.
+
+\cite{maclennan_functional_1990} defines a calculus to be "... a notation that can be manipulated mechanically to achieve some end;...". The Lambda Calculus can thus be understood to be a notation for expressing computation based on the concepts of \textit{function abstraction}, \textit{function application}, \textit{variable binding} and \textit{variable substitution}. It is fundamentally different from the notation of a Turing Machine in the way it is applicative whereas the Turing Machine is imperative / operative. To give a complete definition is out of the scope of this text, thus we will only give a basic overview of the concepts and how the Lambda Calculus works. For an exhaustive discussion of the Lambda Calculus we refer to \cite{maclennan_functional_1990} and \cite{barendregt_lambda_1984}.
+
+\paragraph{Function Abstraction}
+Function abstraction allows to define functions in the Lambda Calculus. If we take for example the function $f(x) = x^2 - 3x + a$ we can translate this into the Lambda Calculus where it denotes: $\lambda x.x^2 - 3x + a$. The $\lambda$ symbol denotes an expression of a function which takes exactly one argument which is used in the body-expression of the function to calculate something which is then the result. Functions with more than one argument are defined by using nested $\lambda$ expressions. The function $f(x, y) = x^2 + y^2$ is written in the Lambda Calculus as $\lambda x.\lambda y.x^2 + y^2$.
+
+\paragraph{Function Application}
+When wants to get the result of a function then one applies arguments to the function e.g. applying $x = 3, y = 4$ to $f(x, y) = x^2 + y^2$ results in $f(3, 4) = 25$. Function application works the same in Lambda Calculus: $((\lambda x.\lambda y.x^2 + y^2) 3) 4 = 25$ - the question is how the result is actually computed - this brings us to the next step of variable binding and substitution.
+
+\paragraph{Variable Binding}
+In the function $f(x) = x^2 - 3x + a$ the variable $x$ is \textit{bound} in the body of the function whereas $a$ is said to be \textit{free}. The same applies to the lambda expression of $\lambda x.x^2 - 3x + a$. An important property is that bound variables can be renamed within their scope without changing the meaning of the expression: $\lambda y.y^2 - 3y + a$ has the same meaning as the expression $\lambda x.x^2 - 3x + a$. Note that free variable \textit{must not be renamed} as this would change the meaning of the expression. This process is called $\alpha$-conversion and it becomes sometimes necessary to avoid name-conflicts in variable substitution.
+
+\paragraph{Variable Substitution}
+To compute the result of a Lambda Expression - also called evaluating the expression - it is necessary to substitute the bound variable by the argument to the function. This process is called $\beta$-reduction and works as follows. When we want to evaluate the expression $((\lambda x.\lambda y.x^2 + y^2) 3) 4$ we first substitute 4 for x, rendering $(\lambda y.4^2 + y^2) 3$ and then 3 for y, resulting in $(4^2 + 3^2)$ which then ultimately evaluates to 25. Sometimes $\alpha$-conversion becomes necessary e.g. in the case of the expression $((\lambda x.\lambda y.x^2 + y^2) 3) y$ we must not substitute y directly for x. The result would be $(\lambda y.y^2 + y^2) 3 = 3^2 + 3^2 = 18$ - clearly a different meaning than intended (the first y value is simply thrown away). Here we have to perform $\alpha$-conversion before substituting y for x. \\ 
+$((\lambda x.\lambda y.x^2 + y^2) 3) y = ((\lambda x.\lambda z.x^2 + z^2) 3) y$ and now we can substitute safely without risking a name-clash: $((\lambda x.\lambda z.x^2 + z^2) 3) y = (\lambda z.y^2 + z^2) 3) = (y^2 + 3^2) 3) = y^2 + 9$ where y occurs free.
+
+\subsection*{Examples}
+$(\lambda x.x)$ denotes the identity function - it simply evaluates to the argument. 
+
+\medskip
+
+$(\lambda x.y)$ denotes the constant function - it throws away the argument and evaluates to the free variable $y$. 
+
+\medskip
+
+$(\lambda x.xx)(\lambda x.xx)$ applies the function to itself (note that functions can be passed as arguments to functions - they are \textit{first class} in the Lambda Calculus) - this results in the same expression again and is thus a non-terminating expression.
+
+\medskip
+
+We can formulate simple arithmetic operations like addition of natural numbers using the Lambda Calculus. For this we need to find a way how to express natural numbers \footnote{In the short introduction for sake of simplicity we assumed the existence of natural numbers and the operations on them but in a pure lambda calculus they are not available. In programming languages which build on the Lambda Calculus e.g. Haskell, (natural) numbers and operations on them are built into the language and map to machine-instructions, primarily for performance reasons.}. This problem was already solved by Alonzo Church by introducing the Church numerals: a natural number is a function of an n-fold composition of an arbitrary function f. The number 0 would be encoded as $0 = \lambda f . \lambda x.x$, 1 would be encoded as $1 = \lambda f . \lambda x . f x$ and so on. This is a way of \textit{unary notation}: the natural number n is represented by n function compositions - n things denote the natural number of n.
+When we want to add two such encoded numbers we make use of the identity $f^{(m+n)}(x) = f^m(f^n(x))$. Adding 2 to 3 gives us the following lambda expressions (note that we are using a sugared version allowing multiple arguments to a function abstraction) and reduces after 7 steps to the final result:
+
+\medskip
+
+$2 = \lambda f x . f(f x)$ \\
+$3 = \lambda f x . f(f(f x))$ \\
+$ADD = \lambda m n f x . m f (n f x)$ \\
+
+ADD 2 3 \\
+$1: (\lambda m n f x. m f (n f x)) (\lambda f x.f(f(f x))) (\lambda f x.f(f x))$ \\
+$2:  (\lambda n f x. (\lambda f x.f(f(f x))) f (n f x))   (\lambda f x.f(f x))$ \\
+$3:     (\lambda f x. (\lambda f x.f(f(f x))) f ((\lambda f x.f(f x)) f x)) $ \\ 
+$4:     (\lambda f x.   (\lambda x.f(f(f x)))   ((\lambda f x.f(f x)) f x)) $ \\
+$5:     (\lambda f x.       f(f(f(\lambda f x.f(f x)) f x)))))$ \\
+$6:     (\lambda f x.       f(f(f  (\lambda x.f(f x)) x)))))$ \\
+$7:     (\lambda f x.       f(f(f     (f(f x))  )))))$
+
+\subsection{Types}
+The Lambda Calculus as initially introduced by Church and presented above is \textit{untyped}. This means that the data one passes around and upon one operates has no type: there are no restriction on the operations on the data, one can apply all data to all function abstractions. This allows for example to add a string to a number which behaviour may be undefined thus leading to a non-reducible expression.
+This led to the introduction of the simply typed Lambda Calculus which can be understood to add tags to a lambda-expression which identifies its type. One can then only perform function application on data which matches the given type thus ensuring that one can only operate in a defined way on data e.g. adding a string to a number is then not possible any-more because it is a semantically wrong expression.
+The simply typed lambda calculus is but only one type-system and there are much more evolved and more powerful type-system e.g. \textit{System F} and \textit{Hindley-Milner Type System} which is the type-system used in Haskell. It is completely out of the scope of this text to discuss type systems in depth but we give a short overview of the most important properties.
+
+Generally speaking, a type system defines types on data and functions. Raw data can be interpreted in arbitrary ways but a type system associates raw data with a type which tells the compiler (and the programmer) how this raw data is to be interpreted e.g. as a number, a character,... Functions have also types on their arguments and their return values which defines upon which types the function can operate. Thus ultimately the main purpose of a type system is to reduce bugs in a program. Very roughly one can distinguish between static / dynamic and strong / weak typing.
+
+\paragraph{Static and dynamic typing}
+A statically typed language performs all type checking at compile time and no type checking at runtime, thus the data has no type-information attached at all. Dynamic typing on the other hand performs type checking during run-time using type-information attached to values. Some languages use a mix of both e.g. Java performs some static type checking at compile time but also supports dynamic typing during run-time for downcasting, dynamic dispatch, late binding and reflection to implement object-orientation. Haskell on the other hand is strictly statically typed with no type checks at runtime.
+
+\paragraph{Strong and weak typing}
+A strong type system guarantees that one cannot bypass the type system in any way and can thus completely rule out type errors at runtime. Pointers as available in C are considered to be weakly typed because they can be used to completely bypass the type system e.g. by casting to and from a (void*) pointer. Other indications of weak typing are implicit type conversions and untagged unions which allow values of a given typed to be viewed as being a different type.
+There is not a general accepted definition of strong and weak typing but it is agreed that programming languages vary across the strength of their typing: e.g. Haskell is seen as very strongly typed, C very weakly, Java more strongly typed than C whereas Assembly is considered to be untyped.
+
+\subsection{Language of choice}
 In our research we are using the \textit{pure} functional programming language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
 
 \begin{itemize}
@@ -31,9 +257,346 @@ In our research we are using the \textit{pure} functional programming language H
 
 \subsection{Functional Reactive Programming}
 Short introduction to FRP (yampa), based on my pure functional epidemics paper.
+\label{sec:back_frp}
+
+Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
+
+The central concept in Arrowized FRP is the Signal Function (SF), which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps, the system is sampled with. 
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow \alpha \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
+
+\paragraph{Event}
+An event in FRP is an occurrence at a specific point in time, which has no duration e.g. the recovery of an infected agent. Yampa represents events through the \textit{Event} type, which is programmatically equivalent to the \textit{Maybe} type. 
+
+\paragraph{Dynamic behaviour}
+To change the behaviour of a signal function at an occurrence of an event during run-time, (amongst others) the combinator \textit{switch :: SF a (b, Event c) $\rightarrow$ (c $\rightarrow$ SF a b) $\rightarrow$ SF a b} is provided. It takes a signal function, which is run until it generates an event. When this event occurs, the function in the second argument is evaluated, which receives the data of the event and has to return the new signal function, which will then replace the previous one. Note that the semantics of \textit{switch} are that the signal function, into which is switched, is also executed at the time of switching.
+
+\paragraph{Randomness}
+In ABS, often there is the need to generate stochastic events, which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g $\Rightarrow$ g $\rightarrow$ Time $\rightarrow$ b $\rightarrow$ SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will lose events.
+
+Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) $\Rightarrow$ g $\rightarrow$ SF a b}, which generates a stream of noise by returning a random number in the default range for the type \textit{b}.
+
+\paragraph{Running signal functions}
+To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b $\rightarrow$ (a, [(DTime, Maybe a)]) $\rightarrow$ [b]}, which allows to run an SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
+
+\subsection{Arrowized programming}
+Yampa's signal functions are arrows, requiring us to program with arrows. Arrows are a generalisation of monads, which in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}.
+
+In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows.
+
+There exists a number of arrow combinators, which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's do-notation for arrows \cite{paterson_new_2001}, which makes code more readable as it allows us to program with points.
+
+To show how arrowized programming works, we implement a simple signal function, which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
+
+\begin{HaskellCode}
+fallingMass :: Double -> Double -> SF () Double
+fallingMass p0 v0 = proc _ -> do
+  v <- arr (+v0) <<< integral -< (-9.8)
+  p <- arr (+p0) <<< integral -< v
+  returnA -< p
+\end{HaskellCode}
+
+To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa, which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators, which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
 
 \subsection{Monadic Stream Functions}
-Short introduction to MSFs (dunai), based on my pure functional epidemics paper.
+\label{sec:back_msf}
+
+Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function, which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016, perez_extensible_2017}:
+\begin{HaskellCode}
+newtype MSF m a b = MSF {unMSF :: MSF m a b -> a -> m (b, MSF m a b)}
+\end{HaskellCode}
+
+MSFs are also arrows, which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m $\Rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ MSF m a b} and \textit{arrM\_ :: Monad m $\Rightarrow$ m b $\rightarrow$ MSF m a b}. A part of the library Dunai is BearRiver, a wrapper, which re-implements Yampa on top of Dunai, which enables one to run arbitrary monadic computations in a signal function. BearRiver simply adds a monadic parameter \textit{m} to each SF, which indicates the monadic context this signal function runs in.
+
+To show how arrowized programming with MSFs works, we extend the falling mass example from above to incorporate monads. In this example we assume that in each step we want to accelerate our velocity \textit{v} not by the gravity constant anymore but by a random number in the range of 0 to 9.81. Further we want to count the number of steps it takes us to hit the floor, that is when position \textit{p} is less than 0. Also when hitting the floor we want to print a debug message to the console with the velocity by which the mass has hit the floor and how many steps it took.
+
+We define a corresponding monad stack with \textit{IO} as the innermost Monad, followed by a \textit{RandT} transformer for drawing random-numbers and finally a \textit{StateT} transformer to count the number of steps we compute. We can access the monadic functions using \textit{arrM} in case we need to pass an argument and \textit{\_arrM} in case no argument to the monadic function is needed:
+
+\begin{HaskellCode}
+type FallingMassStack g = StateT Int (RandT g IO)
+type FallingMassMSF g   = SF (FallingMassStack g) () Double
+
+fallingMassMSF :: RandomGen g => Double -> Double -> FallingMassMSF g
+fallingMassMSF v0 p0 = proc _ -> do
+  -- drawing random number for our gravity range
+  r <- arrM_ (lift $ lift $ getRandomR (0, 9.81)) -< ()
+  v <- arr (+v0) <<< integral -< (-r)
+  p <- arr (+p0) <<< integral -< v
+  -- count steps
+  arrM_ (lift (modify (+1))) -< ()
+  if p > 0
+    then returnA -< p
+    -- we have hit the floor
+    else do
+      -- get number of steps
+      s <- arrM_ (lift get) -< ()
+      -- write to console
+      arrM (liftIO . putStrLn) -< "hit floor with v " ++ show v ++ 
+                                  " after " ++ show s ++ " steps"
+      returnA -< p
+\end{HaskellCode}
+
+To run the \textit{fallingMassMSF} function until it hits the floor we proceed as follows:
+
+\begin{HaskellCode}
+runMSF :: RandomGen g => g -> Int -> FallingMassMSF g -> IO ()
+runMSF g s msf = do
+  let msfReaderT = unMSF msf ()
+      msfStateT  = runReaderT msfReaderT 0.1
+      msfRand    = runStateT msfStateT s
+      msfIO      = runRandT msfRand g
+  (((p, msf'), s'), g') <- msfIO
+  when (p > 0) (runMSF g' s' msf')
+\end{HaskellCode}
+
+Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double}, which carries the $\Delta t$. This is the reason why we need one extra lift for accessing \textit{StateT} and \textit{RandT}. Thus \textit{unMSF} returns a computation in the \textit{ReaderT Double} Monad, which we need to peel away using \textit{runReaderT}. This then results in a \textit{StateT Int} computation, which we evaluate by using \textit{runStateT} and the current number of steps as state. This then results in another monadic computation of \textit{RandT} Monad, which we evaluate using \textit{runRandT}. This finally returns an \textit{IO} computation, which we simply evaluate to arrive at the final result.
 
 \section{Dependent Types}
-Example, Equality as Type, Philosophical Foundations: Constructive mathematics
+Dependent types are a very powerful addition to functional programming as they allow us to express even stronger guarantees about the correctness of programs \textit{already at compile-time}. They go as far as allowing to formulate programs and types as constructive proofs which must be \textit{total} by definition \cite{thompson_type_1991, mckinna_why_2006, altenkirch_pi_2010}. 
+
+So far no research using dependent types in agent-based simulation exists at all. We have already started to explore this for the first time and ask more specifically how we can add dependent types to our functional approach, which conceptual implications this has for ABS and what we gain from doing so. We are using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
+
+We hypothesise, that  dependent types will allow us to push the correctness of agent-based simulations to a new, unprecedented level by narrowing the gap between model specification and implementation. The investigation of dependent types in ABS will be the main unique contribution to knowledge of my Ph.D.
+
+In the following section \ref{sec:dep_background}, we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the foundational and philosophical concepts behind dependent types. In Section \ref{sec:dep_absconcepts} we briefly discuss ideas of how the concepts of dependent types could be applied to agent-based simulation and in Section \ref{sec:dep_vav_deptypes} we very shortly discuss the connection between Verification \& Validation and dependent types.
+
+There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, program_homotopy_2013, stump_verified_2016, brady_type-driven_2017, pierce_programming_2018}.
+
+Generally, dependent types add the following concepts to pure functional programming:
+
+\begin{enumerate}
+	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile-time which makes them first-class citizen. This becomes apparent in Section \ref{sub:dep_vector} where we compute the return type of a function depending on its input values.
+
+	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017} as: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. This makes run-time overhead obsolete, as one does not need to drag around additional type-information as everything can be resolved at compile-time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete. All functions in Section \ref{sub:dep_vector} are total, they terminate under all inputs in finite steps.
+
+	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags. We implement a constructive proof of showing whether two natural numbers are decidable equal in the Section \ref{sub:dep_equality}.
+\end{enumerate}
+
+\subsection{An example: Vector}
+\label{sub:dep_vector}
+To give a concrete example of dependent types and their concepts, we introduce the canonical example used in all tutorials on dependent types: the Vector.
+
+In all programming languages like Haskell or in Java, there exists a List data-structure which holds a finite number of homogeneous elements, where the type of the elements can be fixed at compile-time. Using dependent types we can implement the same but adding the length of the list to the type - we call this data-structure a vector.
+
+We define the vector as a Generalised Algebraic Data Type (GADT). A vector has a \textit{Nil} element which marks the end of a vector and a \textit{(::)} which is a recursive (inductive) definition of a linked List. We defined some vectors and we see that the length of the vector is directly encoded in its first type-variable of type Nat, natural numbers. Note that the compiler will refuse to accept \textit{testVectFail} because the type specifies that it holds 2 elements but the constructed vector only has 1 element.
+
+\begin{HaskellCode}
+data Vect : Nat -> Type -> Type where
+     Nil  : Vect Z e
+     (::) : (elem : e) -> (xs : Vect n e) -> Vect (S n) e
+	
+testVect : Vect 3 String
+testVect = "Jonathan" :: "Andreas" :: "Thaler" :: Nil
+
+testVectFail : Vect 2 Nat
+testVectFail = 42 :: Nil
+\end{HaskellCode}
+
+We can now go on and implement a function \textit{append} which simply appends two vectors. Here we directly see \textit{type-level computations} as we compute the length of the resulting vector. Also this function is \textit{total}, as it covers all input cases and recurs on a \textit{structurally smaller argument}:
+
+\begin{HaskellCode}
+append : Vect n e -> Vect m e -> Vect (n + m) e
+append Nil ys = ys
+append (x :: xs) ys = x :: append xs ys
+
+append testVect testVect
+["Jonathan", "Andreas", "Thaler", "Jonathan", "Andreas", "Thaler"] : Vect 8 String
+\end{HaskellCode}
+
+What if we want to implement a \textit{filter} function, which, depending on a given predicate, returns a new vector which holds only the elements for which the predicates returns true? How can we compute the length of the vector at compile-time? In short: we can't, but we can make us of \textit{dependent pairs} where the \textit{type} of the second element depends on the \textit{value} of the first (dependent pairs are also known as $\Sigma$ types).
+
+The function is total as well and works very similar to \textit{append} but uses dependent types as return, which are indicated by \textit{**}:
+
+\begin{HaskellCode}
+filter : Vect n e -> (e -> Bool) -> (k ** Vect k e)
+filter [] f = (Z ** Nil)
+filter (elem :: xs) f =
+  case f elem of
+    False => filter xs f
+    True  => let (_ ** xs') = filter xs f
+             in  (_ ** elem :: xs')
+             
+filter testVect (=="Jonathan")
+(1 ** ["Jonathan"]) : (k : Nat ** Vect k String)
+\end{HaskellCode}
+
+It might seem that writing a \textit{reverse} function for a Vector is very easy, and we might give it a go by writing:
+\begin{HaskellCode}
+reverse : Vect n e -> Vect n e
+reverse [] = []
+reverse (elem :: xs) = append (reverse xs) [elem]
+\end{HaskellCode}
+
+Unfortunately the compiler complains because it cannot unify 'Vect (n + 1) e' and 'Vect (S n) e'. In the end, the compiler tells us that it cannot determine that (n + 1) is the same as (1 + n). The compiler does not know anything about the commutativity of addition which is due to how natural numbers and their addition are defined.
+
+Lets take a detour. The natural numbers can be inductively defined by their initial element zero Z and the successor. The number 3 is then defined as the successor of successor of successor of zero:
+
+\begin{HaskellCode}
+data Nat = Z | S Nat
+
+three : Nat 
+three = S (S (S Z))
+\end{HaskellCode}
+
+Defining addition over the natural numbers is quite easy by pattern-matching over the first argument: 
+
+\begin{HaskellCode}
+plus : (n, m : Nat) -> Nat
+plus Z right        = right
+plus (S left) right = S (plus left right)
+\end{HaskellCode}
+
+Now we can see why the compiler cannot infer that (n + 1) is the same as (1 + n). The expression (n + 1) is translated to (plus n 1), where we pattern-match over the first argument, so we cannot reach a case in which (plus n 1) = S n. To do that we would need to define a different plus function which pattern-matches over the second argument - which is clearly the wrong way to go.
+
+To solve this problem we can exploit the fact that dependent types allow us to perform type-level computations. This should allow us to express commutativity of addition over the natural numbers as a type. For that we define a function which takes in two natural numbers and returns a proof that addition commutes. 
+
+\begin{HaskellCode}
+plusCommutative : (left : Nat) -> (right : Nat) -> left + right = right + left
+\end{HaskellCode}
+
+We now begin to understand what it means when we speak of \textit{types as proofs}: we can actually express e.g. laws of the natural numbers in types and proof them by implementing a program which inhibits the type - we speak then of a constructive proof (see more on that below \ref{sub:dep_foundations}). Note that \textit{plusCommutative} is already implemented in Idris and we omit the actual implementation as it is beyond the scope of this introduction
+
+Having our proof of commutativity of natural numbers, we can now implement a working (speak: correct) version of \textit{reverse}. The function \textit{rewrite} is provided by Idris: if we have a proof for x = y, the 'rewrite expr in' syntax will search for x in the required type of expr and replace it with y:
+
+\begin{HaskellCode}
+reverse : Vect n e -> Vect n e
+reverse [] = []
+reverse (elem :: xs) = reverseProof (append (reverse xs) [elem])
+  where
+    reverseProof : Vect (k + 1) a -> Vect (S k) a
+    reverseProof {k} result = rewrite plusCommutative 1 k in result
+\end{HaskellCode}
+
+\subsection{Equality as type}
+\label{sub:dep_equality}
+On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that, in the end, we don't have a real evidence of equality: it doesn't tell you anything about the relationship between the inputs and the output. Even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support. Even worse, always returning False / True or whether the inputs are \textit{not} equal is a valid implementation of (==), at least as far as the type is concerned.
+
+As an illustrating example we want to write a function which checks if a Vector has a given length. 
+
+\begin{HaskellCode}
+exactLength : (len : Nat) -> (input : Vect n k) -> Maybe (Vect len k)
+exactLength {n} len input = case n == len of
+                                 True  => Just input 
+                                 False => Nothing 
+\end{HaskellCode}
+
+Unfortunately this doesn't type-check ('type mismatch between n and len') because the compiler has no way of determining that $len$ is equals $n$ at compile-time. Fortunately we can solve this problem using dependent types themselves by defining \textit{decidable} equality as a type.
+
+First we need a decidable property, meaning it either holds given with some \textit{proof} or it does not hold given some proof that it does \textit{not} hold, resulting in a contradiction. Idris defines such a decidable property already as the following:
+
+\begin{HaskellCode}
+-- Decidability. A decidable property either holds or is a contradiction.
+data Dec : Type -> Type where
+  -- The case where the property holds
+  -- @ prf the proof
+  Yes : (prf : prop) -> Dec prop
+
+  -- The case where the property holding would be a contradiction
+  -- @ contra a demonstration that prop would be a contradiction
+  No  : (contra : prop -> Void) -> Dec prop
+\end{HaskellCode}
+
+With that we can implement a function which constructs a proof that two natural numbers are equal, or not. We do this simply by pattern matching over both numbers with corresponding base cases and inductions. In case they are not equal we need to construct a proof that they are actually not equal which is done by showing that given some property results in a contradiction - indicated by the type \textit{Void}. In case of \textit{zeroNotSuc} the first number is zero (Z) whereas the other one is non-zero (a successor of some k), which can never be equal, thus we return a \textit{No} instance of the decidable property for which we need to provide the contradiction. In case of \textit{sucNotZero} its just the other way around. \textit{noRec} works very similar but here we are in the induction case which says that if k equals j leads to a contradiction, (k + 1) and (j + 1) can't be equal as well (induction hypothesis).
+
+\begin{HaskellCode}
+checkEqNat : (num1 : Nat) -> (num2 : Nat) -> Dec (num1 = num2)
+checkEqNat Z Z         = Yes Refl
+checkEqNat Z (S k)     = No zeroNotSuc
+checkEqNat (S k) Z     = No sucNotZero
+checkEqNat (S k) (S j) = case checkEqNat k j of
+                              Yes prf   => Yes (cong prf)
+                              No contra => No (noRec contra)
+                              
+zeroNotSuc : (0 = S k) -> Void
+zeroNotSuc Refl impossible
+
+sucNotZero : (S k = 0) -> Void
+sucNotZero Refl impossible
+
+noRec : (contra : (k = j) -> Void) -> (S k = S j) -> Void
+noRec contra Refl = contra Refl
+\end{HaskellCode}  
+                            
+%TODO: explain cong and Refl
+
+The important thing to understand here is that our Dec property holds much more information than just a boolean flag which indicates whether Yes/No that two elements of a type are equal: in case of Yes we have a type which says that num1 is equal to num2, which can be directly used by the compiler, both elements are treated as the same. Refl stands for reflexive and is built into Idris syntax, meaning that a value is equal to itself 'Refl : x = x'. %Further, we need to use 'cong' 
+
+Finally we can implement a correct version of our initial \textit{exactLength} function by computing a proof of equality between both lengths at run-time using \textit{checkEqNat}. This proof can then be used by the compiler to infer that the lengths are indeed equal or not.
+
+\begin{HaskellCode}
+exactLength : (len : Nat) -> (input : Vect n k) -> Maybe (Vect len k)
+exactLength {n} len input = case checkEqNat n len of
+                                 -- len vanishes as compiler can unify len to n
+                                 Yes Refl  => Just input 
+                                 No contra => Nothing
+\end{HaskellCode} 
+
+\subsubsection{Kinds of Equality}
+In type theory there are different kinds of equality \footnote{We follow in these definitions mainly \url{https://ncatlab.org/nlab/show/equality}, \url{https://ncatlab.org/nlab/show/intensional+type+theory} and \url{https://ncatlab.org/nlab/show/extensional+type+theory}.}, which in turn depend on the flavour of type theory which can be either \textit{intensional} or \textit{extensional}:
+
+\begin{enumerate}
+	\item Definitional or intensional equality: the symbols '2' and 'S(S(Z))' are said to be definitional / intensionally equal terms, because their \textit{intended meaning} is the same.
+	\item Computational or judgmental equality: two terms '2 + 2' and '4' are said to be computationally equal because when the result of the addition is computed by a program then they will reduce to the same term 'S(S(Z)) + S(S(Z))' to 'S(S(S(S(Z))))'. In intensional type theory this kind of equality is treated as definitional equality, thus '2 + 2' and '4' are equal by definition.
+	\item Propositional equality: when one wants to define general rules that e.g. 'a+b' and 'b+a' are equal, we are talking about a theorem, not a definition. Computational / definitional equality does not work here as to compute it one needs to substitute a and b for concrete natural numbers. In this case we are talking about extensional equality, which is a judgement, not a proposition and thus \textit{not} internal to the formal system itself. It can be internalized through \textit{propositional} equality by adding an identity type which allows to express '2+2 = 4' as a \textit{type}. If such an expression (speak: proof) holds, then this type is inhabited, if not e.g. in the case of '2+2 = 5', this type holds no element and thus no proof exists for it (see section \ref{sub:dep_foundations}).
+\end{enumerate}
+
+Still it is not very clear what \textit{intensional} and \textit{extensional} type theory means. The HOTT Book \cite{program_homotopy_2013} says the following in Chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type...". This means, that extensional type theory treats objects to be equal if they have the same external properties. In this type of theory, two functions are equal if they give the same results on every input (extensional equality on the function space). Intensional type theory on the other hand allows to distinguish between internal definitions of objects. In this type of theory, two functions are equal if their (internal) definitions are the same.
+
+%Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
+%Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
+
+Applied to our examples this means the following: We have definitional equality through $(==)$ and $Eq$. Propositional equality is exactly what we got when we introduced the identity type above in the \textit{checkEqNat} function with \textit{Dec (num1 = num2)}. The (=) in the type is built-in into Idris and defines the propositional equality. Dhe Dec type is required to indicate that the proposition may or may not be inhabited. Thus we can also follow that Idris is intensional (and so is Agda and Coq).
+
+\subsection{Philosophical Foundations: Constructivism}
+\label{sub:dep_foundations}
+
+The main theoretical and philosophical underpinnings of dependent types as in Idris are the works of Martin-L\"of intuitionistic type theory. The view of dependently typed programs to be proofs is rooted in a deep philosophical discussion on the foundations of mathematics, which revolve around the existence of mathematical objects, with two conflicting positions known as classic vs. constructive \footnote{We follow the excellent introduction on constructive mathematics \cite{thompson_type_1991}, chapter 3.}. In general, the constructive position has been identified with realism and empirical computational content where the classical one with idealism and pragmatism.
+
+In the classical view, the position is that to prove $\exists x. P(x)$ it is sufficient to prove that $\forall x. \neg P(x)$ leads to a contradiction. The constructive view would claim that only the contradiction is established but that a proof of existence has to supply an evidence of an $x$ and show that $P(x)$ is provable. In the end this boils down whether to use proof by contradiction or not, which is sanctioned by the law of the excluded middle which says that $A \lor \neg A$ must hold. The classic position accepts that it does and such proofs of existential statements as above, which follow directly out of the law of the excluded middle, abound in mathematics \footnote{Polynomial of degree n has n complex roots; continuous functions which change sign over a compact real interval have a zero in that interval,...}. The constructive view rejects the law of the excluded middle and thus the position that every statement is seen as true or false, independently of any evidence either way. \cite{thompson_type_1991} (p. 61): \textit{The constructive view of logic concentrates on what it means to prove or to demonstrate convincingly the validity of a statement, rather than concentrating on the abstract truth conditions which constitute the semantic foundation of classical logic}.
+
+To prove a conjunction $A \land B$ we need prove both $A$ and $B$, to prove $A \lor B$ we need to prove one of $A, B$ and know which we have proved. This shows that the law of the excluded middle can not hold in a constructive approach because we have no means of going from a proof to its negation. Implication $A \Rightarrow B$ in constructive position is a transformation of a proof $A$ into a proof $B$: it is a function which transforms proofs of $A$ into proofs of $B$. The constructive approach also forces us to rethink negation, which is now an implication from some proof to an absurd proposition (bottom): $A \Rightarrow \perp$. Thus a negated formula has no computational context and the classical tautology $\neg \neg A \Rightarrow A$ is then obviously no longer valid.  Constructively solving this would require us to be able to effectively compute / decide whether a proposition is true or false - which amounts to solving the halting problem, which is not possible in the general case.
+
+A very important concept in constructivism is that of finitary representation / description. Objects which are infinite e.g. infinite sets as in classic mathematics, fail to have computational computation, they are not computable. This leads to a fundamental tenet in constructive mathematics: \cite{thompson_type_1991} (p. 62): \textit{Every object in constructive mathematics is either finite [..] or has a finitary description}
+
+Concluding, we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
+
+All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
+
+\subsection{Verification, Validation and Dependent Types}
+\label{sec:dep_vav_deptypes}
+Dependent types allow to encode specifications on an unprecedented level, narrowing the gap between specification and implementation - ideally the code becomes the specification, making it correct-by-construction. The question is ultimately how far we can formulate model specifications in types - how far we can close the gap in the domain of ABS. Unless we cannot close that gap completely, to arrive at a sufficiently confidence in correctness, we still need to test all properties at run-time which we cannot encode at compile-time in types.
+
+Nonetheless, dependent types should allow to substantially reduce the amount of testing which is of immense benefit when testing is costly. Especially in simulations, testing and validating a simulation can often take many hours - thus guaranteeing properties and correctness already at compile time can reduce that bottleneck substantially by reducing the number of test-runs to make.
+
+Ultimately this leads to a very different development process than in the established object-oriented approaches, which follow a test-driven process. There one defines the necessary interface of an object with empty implementations for a given use-case first, then writes tests which cover all possible cases for the given use-case. Obviously all tests should fail because the functionality behind it was not implemented yet. Then one starts to implement the functionality behind it  step-by-step until no test-case fails. This means that one runs all tests repeatedly to both check if the test-case one is working on is not failing anymore and to make sure that old test-cases are not broken by new code. The resulting software is then trusted to be correct because no counter examples through test hypotheses, could be found. The problem is: we could forget / not think of cases, which is the easier the more complex the software becomes (and simulations are quite complex beasts). Thus in the end this is a deductive approach.
+
+With pure functional programming and dependent types the process is now mostly constructive, type-driven (see \cite{brady_type-driven_2017}). In that approach one defines types first and is then guided by these types and the compiler in an interactive fashion towards a correct implementation, ensured at compile-time. As already noted, the ABS methodology is constructive in nature but the established object-oriented test-driven implementation approach not as much, creating an impedance mismatch. We expect that a type-driven approach using dependent types reduces that mismatch by a substantial amount.
+
+Note that \textit{validation} is a different matter here: independent of our implementation approach we still need to validate the simulation against the real-world / ground-truth. This obviously requires to run the full simulation which could take up hours in either programming paradigm, making them absolutely equal in this respect. Also the comparison of the output to the real-world / ground-truth is completely independent to the paradigm. The fundamental difference happens in case of changes made to the code during validation: in case of the established test-driven object-oriented approach for every minor change one (should) re-run all tests, which could take up a substantial amount of additional time. Using a constructive, type-driven approach this is dramatically reduced and can often be completely omitted because the correctness of the change can be either guaranteed in the type or by informally reasoning about the code.
+
+%-------------------------
+%TODO: not sure where to put this
+%ABS as a constructive / generative science, follows Poperian approach of falsification: we try to construct a model which explains a real-world (empirical) phenomenon - if validation shows that the generated dynamics match the ones of the real-world sufficiently enough, we say that we have found \textit{a} hypothesis (the model) which emergent properties explains the real-world phenomenon sufficiently enough. This is not a proof but only one possible explanation which holds for now and might be falsified in the future.
+%
+%When we implement our simulation things change a bit as we add another layer: the conceptual model, describing the phenomenon, which is an abstraction of reality. This description can be of many forms but can be regarded on a line between completely formal (economic models) to informal (sociology) but the implementation will follow that description. The fundamental difference here is that in this case we want our implementation to be exactly the same as the conceptual model. Contrary to the real-world, where it is not possible to find a \textit{true} model (as was argued by Popper), on this level we actually can construct an implementation which matches the conceptual model exactly because we have a description of the conceptual model. In the end we transform the conceptual model description in code, which is itself a formal description. In this translation process (speak: implementation / programming), one can make an endless number of mistakes. Generally we can distinguish between two classes of mistakes: 
+%1) conceptual mistakes - wrong translation of the model specifications into code due to various reasons e.g. imprecise description, human error. The more precise an unambiguous a model description is, the less probable conceptual mistakes will be.
+%2) internal mistakes - normal programming mistakes e.g. access of arrays out of bounds, ... also using correlated Random Number generators.
+%
+%Level 0: Real-World phenomenon
+%Level 1: Conceptual model of the real-world phenomenon
+%Level 2: Implementation of the conceptual model
+%
+%Note that we must speak of falsification and constructiveness on two different levels:
+%- validation level: do the results of the conceptual model match the real-world phenomenon? the conceptual model is the hypothesis which says that its mechanics are sufficient to generate / construct the real-world phenomenon. At this level we are not interested in the implementation level anymore - the implemented model \textit{is} (seen as) the conceptual model, and one only compares its output to the real-world. If the dynamics match, then we got a valid hypothesis which works for now. If the dynamics do NOT match, then the hypothesis (the model) is falsified and one needs to adjust / change the hypothesis (model). The validation will happen by tests, there is no other way, we have no formal specification of the real-world, we can only observe empirically the phenomena, so we run tests which try to falsify the outputs of the model: assuming it will generate phenomena of the real-world and test if it does.
+%- implementation \& verficiation level: in this step we are matching the code to the conceptual model. Here we are not only restricted to a test-driven approach because we have a more or less formal description of the conceptual model which we directly encode in our programming language. If the language allows to express model specifications already at compile-time then this means that the implementation narrows the gap between model specification and implementation which means it does not need to be tested at run-time because it is guaranteed for all inputs for all time. 
+%
+%The constructiveness of ABS and impendance mismatch: ABS methodology is constructive but the established implementation approach not too much, creating an impedance mismatch. this is especially visible in the test-driven development dependent types constructive nature could close this mismatch.
+%
+
+%todo: connection between black-box verification and dependent types
+%todo: connection between white-box verification and dependent types

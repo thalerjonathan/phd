@@ -151,14 +151,11 @@ Nottingham, United Kingdom \\
 \maketitle
 
 \section*{Abstract}
-%TODO: target Summer Simulation Conference: http://scs.org/summersim/
 %- there are two possible sub-tracks for it: Agent-based Modeling and Simulation (ABMS) or Verification and Validation of Computer Simulation Models (V&V).
 
 This paper presents a new and complementary approach to unit-testing the implementation of agent-based simulations, called property-based testing which allows to test specifications and laws of the implementation directly in code which is then tested using \textit{automated} test-data generation. We present two different models as case-studies in which we will show how to apply property-based testing to exploratory and explanatory agent-based models and what its limits are.
 
-We conduct our implementations in the pure functional programming language Haskell, which is the origin of property-based testing. Also we show that simply by switching to such a language one gets rid of a large class of run-time bugs and is able to make stronger guarantees of correctness already at compile time without writing tests for some parts. Further, it makes isolated unit-tests quite easier.
-
-\textbf{Keywords:} Agent-Based Simulation, Property-Based Testing, Validation \& Verification, Model Checking, Haskell.
+\textbf{Keywords:} Agent-Based Simulation, Validation \& Verification, Property-Based Testing.
 
 \maketitle
 
@@ -179,12 +176,19 @@ We conduct our implementations in the pure functional programming language Haske
 \input{./tex/furtherResearch.tex}
 
 \section*{Acknowledgments}
-The authors would like to thank
+The authors would like to thank J. Hey for valuable feedback and discussions.
 
 % Please don't change the bibliographystyle style
 \bibliographystyle{scsproc}
 % AUTHOR: Include your bib file here
 \bibliography{../../../references/phdReferences.bib}
+
+
+\appendix
+
+\newpage
+
+\input{./tex/validatingSugarscape.tex}
 
 % what a waste of space
 %\section*{Author Biographies}

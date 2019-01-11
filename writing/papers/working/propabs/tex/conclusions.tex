@@ -4,3 +4,7 @@
 We found property-based testing particularly well suited for ABS. Although it is now available in a wide range of programming languages and paradigms, propert-based testing has its origins in Haskell \cite{claessen_quickcheck_2000,claessen_testing_2002} and we argue that for that reason it really shines in pure functional programming. Property-based testing allows to formulate \textit{functional specifications} in code which then the property-testing library (e.g. QuickCheck \cite{claessen_quickcheck_2000}) tries to falsify by automatically generating random test-data covering as much cases as possible. When an input is found for which the property fails, the library then reduces it to the most simple one. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through). Also the deductive nature of falsification in property-based testing suits very well the constructive nature of ABS.
 
 Although property-based testing has its origin in Haskell, frameworks exist now in other languages as well e.g. Java, Pyhton, C++ and we hope that our research sparked an interest in applying property-based testing to the established object-oriented languages in ABS as well. 
+
+\subsection{Further Research}
+\label{sec:further}
+TODO

@@ -89,6 +89,7 @@ executable sir-prop-testing-dunai
                        -fno-warn-unused-top-binds
                        -fno-warn-unused-local-binds
                        -fno-warn-unused-imports
+                       -threaded -with-rtsopts=-N
 
 executable sir-prop-testing-yampa
   -- .hs or .lhs file containing the Main module.
@@ -108,7 +109,7 @@ executable sir-prop-testing-yampa
   
   -- Other library packages from which modules are imported.
   build-depends:        base
-                      , Yampa == 0.11.1
+                      , Yampa
                       , MonadRandom
                       , containers
                       , mtl 
@@ -134,3 +135,4 @@ executable sir-prop-testing-yampa
                        -fno-warn-unused-top-binds
                        -fno-warn-unused-local-binds
                        -fno-warn-unused-imports
+                       -threaded -with-rtsopts=-N

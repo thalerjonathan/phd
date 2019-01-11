@@ -1,7 +1,6 @@
 {-# LANGUAGE Arrows #-}
 module SIRYampaTests 
   ( sirYampaPropTests
-  , prop_yampa_sir
   ) where
 
 import Data.List
@@ -38,8 +37,10 @@ sirYampaPropTests :: RandomGen g
 sirYampaPropTests g 
   = testGroup 
       "SIR Simulation Tests" 
-      [ -- test_agents_init
-      test_sir_sim g
+      [ test_agents_init
+      , test_agent_behaviour_quickgroup g
+      , test_agent_signal_quickgroup g
+      -- test_sir_sim g -- NOTE: this doesnt work like this, can't compare it as we would like to, need to talk to statisticians
       ]
 
 test_sir_sim :: RandomGen g
@@ -50,28 +51,6 @@ test_sir_sim g
       -- TODO: generalise 
       -- always assume at least one agent
       [ QC.testProperty "SIR sim behaviour" (forAll (listOf1 arbitrary) $ prop_yampa_sir g) ]
-
-prop_initAgents :: NonNegative Int -> NonNegative Int -> Bool
-prop_initAgents (NonNegative susceptibleCount) (NonNegative infectedCount)
-    = length as == susceptibleCount + infectedCount &&
-      sc        == susceptibleCount &&
-      ic        == infectedCount &&
-      notElem Recovered as
-  where 
-    as = initAgents susceptibleCount infectedCount 0
-
-    sc = length $ filter (==Susceptible) as
-    ic = length $ filter (==Infected) as
-    
-sirYampaTests :: RandomGen g
-                 => g 
-                 -> TestTree
-sirYampaTests g 
-  = testGroup 
-      "SIR Yampa Tests" 
-      [ test_agent_behaviour_quickgroup g
-      , test_agent_signal_quickgroup g
-      ]
 
 test_agents_init :: TestTree
 test_agents_init 
@@ -93,6 +72,19 @@ test_agent_signal_quickgroup g
   = testGroup "agent signal behaviour"
       [ QC.testProperty "susceptible signal behaviour" (testCaseSusceptibleSignal g)
       , QC.testProperty "infected signal behaviour" (testCaseInfectedSignal g)]
+
+prop_initAgents :: NonNegative Int -> NonNegative Int -> Bool
+prop_initAgents (NonNegative susceptibleCount) (NonNegative infectedCount)
+    = length as == susceptibleCount + infectedCount &&
+      sc        == susceptibleCount &&
+      ic        == infectedCount &&
+      notElem Recovered as
+  where 
+    as = initAgents susceptibleCount infectedCount 0
+
+    sc = length $ filter (==Susceptible) as
+    ic = length $ filter (==Infected) as
+    
 
 -- | Testing whether a susceptible agent
 -- behaves as a signal: does the susceptible agent

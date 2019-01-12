@@ -30,80 +30,17 @@ sirPropTests :: RandomGen g
              => g 
              -> TestTree
 sirPropTests g 
-  = testGroup 
-      "SIR Simulation Tests" 
-      [ test_agents_init
-      , test_agent_behaviour_quickgroup g
-      , test_agent_signal_quickgroup g
-      ]
-
-test_agents_init :: TestTree
-test_agents_init 
-  = testGroup "agents init" 
-      [ QC.testProperty "init agents" prop_initAgents ]
+  = testGroup "SIR Simulation Tests" [ test_agent_behaviour_quickgroup g]
 
 test_agent_behaviour_quickgroup :: RandomGen g
                                 => g 
                                 -> TestTree
 test_agent_behaviour_quickgroup g
   = testGroup "agent behaviour"
-      [ QC.testProperty "susceptible behaviour" (testCaseSusceptible g)
-      , QC.testProperty "infected behaviour" (testCaseInfected g) ]
-
-test_agent_signal_quickgroup :: RandomGen g
-                             => g 
-                             -> TestTree
-test_agent_signal_quickgroup g
-  = testGroup "agent signal behaviour"
-      [ QC.testProperty "susceptible signal behaviour" (testCaseSusceptibleSignal g)
-      , QC.testProperty "infected signal behaviour" (testCaseInfectedSignal g)]
-
-prop_initAgents :: NonNegative Int -> NonNegative Int -> Bool
-prop_initAgents (NonNegative susceptibleCount) (NonNegative infectedCount)
-    = length as == susceptibleCount + infectedCount &&
-      sc        == susceptibleCount &&
-      ic        == infectedCount &&
-      notElem Recovered as
-  where 
-    as = initAgents susceptibleCount infectedCount 0
-
-    sc = length $ filter (==Susceptible) as
-    ic = length $ filter (==Infected) as
-    
-
--- | Testing whether a susceptible agent
--- behaves as a signal: does the susceptible agent
--- depend on time, more precicelsy does it NOT change
--- when time does not advance?
-testCaseSusceptibleSignal :: RandomGen g
-                          => g 
-                          -> [SIRState]
-                          -> Bool
-testCaseSusceptibleSignal g0 as
-    = 0 == countInfTotal
-  where
-    repls         = 10000
-    countInfTotal = testSusceptibleSignalAux g0 repls 0
-
-    testSusceptibleSignalAux :: RandomGen g 
-                      => g
-                      -> Int
-                      -> Int
-                      -> Int
-    testSusceptibleSignalAux _ 0 countInf = countInf
-    testSusceptibleSignalAux g n countInf
-        = testSusceptibleSignalAux g'' (n-1) countInf'
-      where
-        (g', g'')   = split g
-
-        dt          = 0
-        stepsCount  = 100
-        steps       = replicate stepsCount (dt, Nothing)
-
-        ret         = embed (testSusceptibleSF as g') ((), steps)
-        gotInfected = True `elem` ret
-
-        countInf'   = if gotInfected then countInf + 1 else countInf
+      [ QC.testProperty "infected behaviour = recovery rate" (prop_recovery_rate g) 
+      , QC.testProperty "susceptible behaviour = infection rate" (prop_infection_rate g)
+      , QC.testProperty "infected behaviour = average duration" (prop_avg_duration g)
+      ]
 
 -- | Testing behaviour of susceptible agent
 --    a susceptible agent makes on average contact
@@ -117,11 +54,11 @@ testCaseSusceptibleSignal g0 as
 --   a very small epsilon and then reduces the dt
 --   until the average falls into the epsilon environment
 -- NOTE: this is black-box verification
-testCaseSusceptible :: RandomGen g
+prop_infection_rate :: RandomGen g
                     => g 
                     -> [SIRState]
                     -> Bool
-testCaseSusceptible g0 as = diff <= eps
+prop_infection_rate g0 as = diff <= eps
   where
     repls = 10000 -- TODO: how to select a 'correct' number of runs? conjecture: n -> infinity lets go the error (eps) to 0
     eps   = 0.1   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on the ratio between dt and contact rate?
@@ -188,34 +125,6 @@ testSusceptibleSF otherAgents g = proc _ -> do
     Infected    -> returnA -< True
     Recovered   -> returnA -< False -- TODO: should never occur, can we test this? seems not so, but we can pretty easily guarantee it due to simplicity of code
 
--- | Testing signal behaviour of infected agent
-testCaseInfectedSignal :: RandomGen g 
-                       => g
-                       -> [SIRState]
-                       -> Bool
-testCaseInfectedSignal g0 as 
-    = 0 == countRecTotal
-  where
-    repls         = 10000
-    countRecTotal = testInfectedSignal g0 repls 0
-
-    testInfectedSignal :: RandomGen g 
-                    => g
-                    -> Int
-                    -> Int
-                    -> Int
-    testInfectedSignal _ 0 countRec = countRec
-    testInfectedSignal g n countRec 
-        = testInfectedSignal g'' (n-1) countRec'
-      where
-        (g', g'')    = split g
-        dt           = 0
-        stepsCount   = 100
-        steps        = replicate stepsCount (dt, Nothing)
-        evts         = embed (testInfectedSF g' as) ((), steps)
-        mayRec       = find isEvent evts
-        countRec'    = if isJust mayRec then countRec + 1 else countRec
-
 -- | Testing behaviour of infected agent
 --   run test until agent recovers, which happens
 --   on average after illnessDuration
@@ -224,11 +133,11 @@ testCaseInfectedSignal g0 as
 --   agents until their recovery
 --   should be within an epsilon of illnessDuration
 -- NOTE: this is black-box verification
-testCaseInfected :: RandomGen g 
-                 => g
-                 -> [SIRState]
-                 -> Bool
-testCaseInfected g0 as = diff <= eps
+prop_avg_duration :: RandomGen g 
+                  => g
+                  -> [SIRState]
+                  -> Bool
+prop_avg_duration g0 as = diff <= eps
   where
     repls = 10000 -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
     eps   = 0.5   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on ratio between dt and illnessduration?
@@ -258,6 +167,44 @@ testCaseInfected g0 as = diff <= eps
             -- assumption about implementation: there will always be an event, testInfectedSF will eventuall return an event 
             (Event t)    = fromJust $ find isEvent evts
             acc'         = t : acc
+
+prop_recovery_rate :: RandomGen g 
+                   => g
+                   -> Bool
+prop_recovery_rate g0 = diff <= eps
+  where
+    repls = 10000 :: Int -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
+    eps   = 0.5   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on ratio between dt and illnessduration?
+    dt    = 0.25   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
+    diff  = testInfected
+
+    testInfected :: Double   -- ^ difference to target
+    testInfected = abs (target - actual)
+      where
+        inf      = repls
+        recCount = testInfectedAux g0 inf 0
+
+        target   = fromIntegral inf / paramIllnessDuration
+        actual   = fromIntegral recCount / paramIllnessDuration
+
+        testInfectedAux :: RandomGen g 
+                        => g
+                        -> Int
+                        -> Int
+                        -> Int
+        testInfectedAux _ 0 countRec = countRec
+        testInfectedAux g n countRec 
+            = testInfectedAux g'' (n-1) countRec'
+          where
+            (g', g'')  = split g
+
+            stepsCount = floor (1.0 / dt)
+            steps      = replicate stepsCount (dt, Nothing)
+
+            evts       = embed (testInfectedSF g' []) ((), steps)
+            recovered  = isJust $ find isEvent evts
+
+            countRec'  = if recovered then countRec + 1 else countRec
 
 testInfectedSF :: RandomGen g 
               => g

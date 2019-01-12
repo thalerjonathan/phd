@@ -8,8 +8,6 @@ module SIR.SIR
   , runSIR
   , runSIRUntil
 
-  , initAgents -- expose for testing
-
   -- expose agents behaviour functions as well for testing
   , susceptibleAgent
   , infectedAgent

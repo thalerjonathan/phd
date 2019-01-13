@@ -13,6 +13,8 @@ import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
 
+import Debug.Trace
+
 instance Arbitrary SIRState where
   -- arbitrary :: Gen SIRState
   arbitrary = elements [Susceptible, Infected, Recovered]
@@ -171,21 +173,34 @@ prop_avg_duration g0 as = diff <= eps
 prop_recovery_rate :: RandomGen g 
                    => g
                    -> Bool
-prop_recovery_rate g0 = diff <= eps
+prop_recovery_rate g0 = trace ("target = " ++ show target ++ " actual = " ++ show actual) diff <= eps
   where
-    repls = 10000 :: Int -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
+    inf   = 10000 
+    repls = 100 :: Int -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
     eps   = 0.5   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on ratio between dt and illnessduration?
-    dt    = 0.25   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
-    diff  = testInfected
+    dt    = 0.1   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
+    
+    actuals = testInfected g0 repls []
+    avgActuals = fromIntegral (sum actuals) / fromIntegral (length actuals)
 
-    testInfected :: Double   -- ^ difference to target
-    testInfected = abs (target - actual)
+    -- TODO: maybe a t-test?
+
+    target = fromIntegral inf / paramIllnessDuration
+    actual = avgActuals / paramIllnessDuration
+ 
+    diff = abs (target - actual)
+
+    testInfected :: RandomGen g 
+                 => g
+                 -> Int
+                 -> [Int]
+                 -> [Int]
+    testInfected _ 0 acc = acc
+    testInfected g n acc = testInfected g'' (n-1) acc'
       where
-        inf      = repls
-        recCount = testInfectedAux g0 inf 0
-
-        target   = fromIntegral inf / paramIllnessDuration
-        actual   = fromIntegral recCount / paramIllnessDuration
+        (g', g'') = split g
+        recCount  = testInfectedAux g' inf 0
+        acc'      = recCount : acc
 
         testInfectedAux :: RandomGen g 
                         => g
@@ -193,23 +208,23 @@ prop_recovery_rate g0 = diff <= eps
                         -> Int
                         -> Int
         testInfectedAux _ 0 countRec = countRec
-        testInfectedAux g n countRec 
-            = testInfectedAux g'' (n-1) countRec'
+        testInfectedAux ga i countRec 
+            = testInfectedAux ga'' (i-1) countRec'
           where
-            (g', g'')  = split g
+            (ga', ga'') = split ga
 
-            stepsCount = floor (1.0 / dt)
-            steps      = replicate stepsCount (dt, Nothing)
+            stepsCount  = floor (1.0 / dt)
+            steps       = replicate stepsCount (dt, Nothing)
 
-            evts       = embed (testInfectedSF g' []) ((), steps)
-            recovered  = isJust $ find isEvent evts
+            evts        = embed (testInfectedSF ga' []) ((), steps)
+            recovered   = isJust $ find isEvent evts
 
-            countRec'  = if recovered then countRec + 1 else countRec
+            countRec'   = if recovered then countRec + 1 else countRec
 
 testInfectedSF :: RandomGen g 
-              => g
-              -> [SIRState]
-              -> SF () (Event Time)
+               => g
+               -> [SIRState]
+               -> SF () (Event Time)
 testInfectedSF g otherAgents = proc _ -> do
   -- note that the otheragents are fed into the infected agents
   -- but that they are ignored for checking whether the test

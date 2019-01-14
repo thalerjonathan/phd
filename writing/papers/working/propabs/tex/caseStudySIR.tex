@@ -32,7 +32,7 @@ generate on average $\beta$ make-contact events per time-unit\;
 
 Per time-unit, a susceptible agent makes \textit{on average} contact with $\beta$ other agents where in the case of a contact with an infected agent the susceptible agent becomes infected with a given probability $\gamma$. In this description there is another probability hidden, which is the probability of making contact with an infected agent which is simply the ratio of number of infected agents to number non-infected agents. We can now derive the formula for the probability of a \textit{Susceptible} agent to become infected: $\beta * \gamma * \frac{number of infected}{number of non-infected}$. When we look at the formula we can see that it is conceptually the same representation of the \textit{infection-rate} of the SD specification as shown above - except that it only considers a single \textit{Susceptible} agent instead of the aggregate of \textit{S} susceptible agents. We have now a property we can check using a property-based test.
 
-\subsection{Construct the property-based test}
+\subsection{Constructing the property-based test}
 Having a property (law), we want now to construct a property-based test for it. The formula is invariant under random population mixes and thus should hold for varying agent populations where the mix of \textit{Susceptible, Infected and Recovered} agents is random - thus we use QuickCheck to generate the population randomly, the property must still hold.
 
 Obviously we need to pay attention to the fact that we are dealing with a stochastic system thus we can only talk about averages and thus it does not suffice to only run a single agent but we are repeating this for e.g. 10.000 \textit{Susceptible} agents (all with different random-number seeds). 

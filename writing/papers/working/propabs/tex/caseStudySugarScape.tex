@@ -1,15 +1,24 @@
 \section{Case Study II: SugarScape}
 \label{sec:case_sug}
+We now look at how property-based testing can be made of use in an exploratory model. Whereas in the explanatory SIR case-study we had an analytical solution, inspired by the SD origins of the model, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a model: 
+\begin{itemize}
+	\item Agent behaviour parts.
+	\item Environment behaviour parts.
+	\item Hypotheses about emergent properties which when proved to be valid can be seen as regression tests.
+\end{itemize}
 
+For our research we undertook a \textit{full and validated} implementation of the Sugarscape model \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}}. We undertook a full validation of our implementation against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_nodate} during which we also implemented property tests. Due to lack of space we added a discussion of the validation process as an Appendix \ref{app:validation}.
+
+\subsection{Agent behaviour parts}
 We implemented a number of tests for agent functions which don't cover a whole sub-part of an agents behaviour: checks whether an agent has died of age or starved to death, the metabolism, immunisation step, check if an agent is a potential borrower or fertile, lookout, trading transaction. What all these functions have in common is that they are not pure computations like utility functions but require an agent-continuation which means they have access to the agent state, environment and random-number stream. This allows testing to capture the \textit{complete} system state in one location, which allows the checking of much more invariants than in approaches which have implicit side-effects.
-What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
-
-We tested these functions with an approach called \textit{property-based} testing. Although it is now available in a wide range of programming languages and paradigms, property-based testing has its origins in Haskell \cite{claessen_quickcheck_2000,claessen_testing_2002} and we argue that for that reason it really shines in pure functional programming. Property-based testing allows to formulate \textit{functional specifications} in code which then the property-testing library (e.g. QuickCheck \cite{claessen_quickcheck_2000}) tries to falsify by automatically generating random test-data covering as much cases as possible. When an input is found for which the property fails, the library then reduces it to the most simple one. %For a technical, in-depth discussion on property-based testing in Haskell we refer to the following papers: \cite{claessen_quickcheck_2000,claessen_testing_2002}.
 
 We implement custom data-generators for our agent state and environment and its cells and then let QuickCheck generate the random data and us running the agent with the provided data, checking for the properties. An example for such a property is that an agent has starved to death in case its sugar (or spice) level has dropped to 0. The corresponding property-test generates a random agent state and also a random sugar level which we set in the agent state. We then run the function which returns True in case the agent has starved to death. We can then check that this flag is true only if the initial random sugar level was less then or equal 0.
 
-We found that property-based testing works surprisingly well in this context because properties seem to be quite abound here. Also, it is clear to see that this kind of testing is especially well suited to ABS, firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through). Also the deductive nature of falsification in property-based testing suits very well the constructive nature of ABS.
+What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
 
-Further we undertook a full validation of our implementation against the book and TODO CITE WEAVER for which we also implemented property tests but on the simulation / model level: 
+\subsection{Environment behaviour parts}
+regrowing of sugar and spice follows some laws
+also clipping / wrapping calculations can be quite cumbersome with edge cases
 
+\subsection{Emergent Properties}
 TODO: we generate random-number seeds as input, this is what our simulation needs for checking properties of the whole simulation: under varying random-number seeds the emergent property is stable

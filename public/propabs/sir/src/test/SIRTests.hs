@@ -91,10 +91,7 @@ prop_infection_rate g0 as = diff <= eps
         -- per time-unit (we are running the agent for
         -- 1.0 time-unit)
         -- also multiply with ratio of infected to non-infected
-        --   TODO: can we extract the formula of the SD approach
-        --   here? should be possible, then we can prove that our
-        --   ABS approach is indeed a valid SD approximation
-        --   (due to averaging) 
+        --   NOTE: this is actually the recovery-rate formula from SD!
         target = infectivity * contactRate * infToNonInfRatio
 
         testSusceptibleAux :: RandomGen g 

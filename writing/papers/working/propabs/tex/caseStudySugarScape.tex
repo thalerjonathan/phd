@@ -11,3 +11,5 @@ We implement custom data-generators for our agent state and environment and its 
 We found that property-based testing works surprisingly well in this context because properties seem to be quite abound here. Also, it is clear to see that this kind of testing is especially well suited to ABS, firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through). Also the deductive nature of falsification in property-based testing suits very well the constructive nature of ABS.
 
 Further we undertook a full validation of our implementation against the book and TODO CITE WEAVER for which we also implemented property tests but on the simulation / model level: 
+
+TODO: we generate random-number seeds as input, this is what our simulation needs for checking properties of the whole simulation: under varying random-number seeds the emergent property is stable

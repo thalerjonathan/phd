@@ -36,7 +36,7 @@ instance Arbitrary StdGen where
     return $ mkStdGen seed
 
 -- OK, is using averaging
-prop_disease_dynamics_allrecover ::  RandomGen g => g -> Int -> Double IO ()
+prop_disease_dynamics_allrecover ::  RandomGen g => g -> Int -> Double -> IO ()
 prop_disease_dynamics_allrecover g0 repls confidence = 
     assertBool "Population should have recovered fully from diseases but still infected left" (allRecoveredConfidence >= confidence)
   where
@@ -81,7 +81,7 @@ prop_disease_dynamics_minorityrecover g0 repls confidence =
 -- OK, is using averaging
 prop_culture_dynamics ::  RandomGen g => g -> Int -> Double -> IO ()
 prop_culture_dynamics g0 repls confidence
-    = assertBool "Cultures not converged sufficiently" (culturalDynamicsPassConfidence >= confidence)
+    = assertBool ("Cultures not converged sufficiently with confidence reaching " ++ show culturalDynamicsPassConfidence) (culturalDynamicsPassConfidence >= confidence)
   where
     ticks    = 2700 -- according to sugarscape around this time, culture-dynamics converge
     -- always a few agents in level 1 which dont move => not participating in culture dynamics and keep initial ones

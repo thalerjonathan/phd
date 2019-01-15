@@ -6,8 +6,8 @@ import Test.Tasty
 
 import Agent.Tests
 import Discrete.Tests
---import Environment.Tests
---import Model.Tests
+import Environment.Tests
+import Model.Tests
 
 -- clear & stack test --test-arguments="--quickcheck-tests=1000 --quickcheck-replay="
 
@@ -19,7 +19,7 @@ main = do
   -- fix RNG right from the beginning, to be reproducible
   --let g = mkStdGen seed
   --setStdGen g
-  _g <- newStdGen
+  g <- newStdGen
 
   -- NOTE: only modelTests should receive RNG! Reason: they are unit-tests and
   -- thus need a RNG seed. In other unit-test cases there is no need for a RNG
@@ -27,10 +27,10 @@ main = do
   -- when agent computation never makes use of it,
   let sugarScapeTests 
         = testGroup "SugarScape Tests" 
-            [ discreteTests
+            [ modelTests g
+            , discreteTests
             , agentTests
-              -- envTests
-              -- modelTests g
+            , envTests
             ]
 
   defaultMain sugarScapeTests

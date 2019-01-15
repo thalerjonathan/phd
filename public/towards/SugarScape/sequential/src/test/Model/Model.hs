@@ -2,6 +2,7 @@ module Model.Model
   ( prop_disease_dynamics_allrecover
   , prop_disease_dynamics_minorityrecover
   , prop_trading_dynamics
+  , prop_trading_dynamics_qc
   , prop_culture_dynamics
   , prop_inheritance_gini
   , prop_terracing
@@ -15,6 +16,7 @@ import Data.Maybe
 import Control.Monad.Random
 import Control.Parallel.Strategies
 import Test.Tasty.HUnit as Unit
+import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
@@ -27,6 +29,12 @@ import SugarScape.Core.Simulation
 import Utils.StatsUtils
 
 import Debug.Trace
+
+instance Arbitrary StdGen where
+  -- arbitrary :: Gen StdGen
+  arbitrary = do
+    seed <- arbitrary 
+    return $ mkStdGen seed
 
 prop_disease_dynamics_allrecover ::  RandomGen g => g -> IO ()
 prop_disease_dynamics_allrecover g0 = 
@@ -51,6 +59,24 @@ prop_disease_dynamics_minorityrecover g0 =
     infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
     n                = fromIntegral $ length aos :: Double
     infectedMajority = ceiling $ n / 2
+
+prop_trading_dynamics_qc :: StdGen -> Bool
+prop_trading_dynamics_qc g0 = trace ("trading-prices std in QUICKCHECK case = " ++ show tradingPricesStd) tradingDynamicsPass
+  where
+    -- according to sugarscape around this time, trading-prices standard deviation is LTE 0.05
+    steps                 = 1000 
+    tradingPricesStdLimit = 0.05
+    params   = mkParamsFigureIV_3
+
+    (simState, _, _) = initSimulationRng g0 params
+    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    trades           = concatMap (sugObsTrades . snd) aos
+    tradingPricesStd = std $ map tradingPrice trades
+
+    tradingDynamicsPass = tradingPricesStd <= tradingPricesStdLimit
+    
+    tradingPrice :: TradeInfo -> Double
+    tradingPrice (TradeInfo price _ _ _ ) = price
 
 prop_trading_dynamics ::  RandomGen g => g -> IO ()
 prop_trading_dynamics g0 = do

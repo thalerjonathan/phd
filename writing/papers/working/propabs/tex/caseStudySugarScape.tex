@@ -62,12 +62,16 @@ The Sugarscape environment is a torus where the coordinates wrap around in both 
 \end{algorithm}
 \label{alg:prop_test_wrapcoords}
 
-\subsection{Emergent Properties}
-TODO: we generate random-number seeds as input, this is what our simulation needs for checking properties of the whole simulation: under varying random-number seeds the emergent property is stable
-
 \subsection{Agent behaviour parts}
 We implemented a number of tests for agent functions which just cover the part of an agents behaviour: checks whether an agent has died of age or starved to death, the metabolism, immunisation step, check if an agent is a potential borrower or fertile, lookout, trading transaction. What all these functions have in common is that they are not pure computations like utility functions but require an agent-continuation which means they have access to the agent state, environment and random-number stream. This allows testing to capture the \textit{complete} system state in one location, which allows the checking of much more invariants than in approaches which have implicit side-effects.
 
 We implement custom data-generators for our agent state and environment and its cells and then let QuickCheck generate the random data and us running the agent with the provided data, checking for the properties. An example for such a property is that an agent has starved to death in case its sugar (or spice) level has dropped to 0. The corresponding property-test generates a random agent state and also a random sugar level which we set in the agent state. We then run the function which returns True in case the agent has starved to death. We can then check that this flag is true only if the initial random sugar level was less then or equal 0.
 
 %What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
+
+\subsection{Emergent Properties}
+In our validation and verification process of our Sugarscape implementation we put informal descriptions and hypotheses about emergent properties from the Sugarscape book into formal property-tests. Examples for such hypotheses / informal descriptions of emergent properties are e.g. the carrying capacity becomes stable after 100 steps; when agents trade with each other after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures after 2700 steps either one culture dominates the other or both are equally present.
+
+The property we test for is whether \textit{the emergent property under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number generators and require that the tests all pass with arbitrary random number streams. Unfortunately this revealed that this property didn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases in for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required:
+
+Note that we are not technically speaking of a unit-test but conceptually it is still a property-test.

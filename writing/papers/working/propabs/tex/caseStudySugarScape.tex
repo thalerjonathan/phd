@@ -72,6 +72,32 @@ We implement custom data-generators for our agent state and environment and its 
 \subsection{Emergent Properties}
 In our validation and verification process of our Sugarscape implementation we put informal descriptions and hypotheses about emergent properties from the Sugarscape book into formal property-tests. Examples for such hypotheses / informal descriptions of emergent properties are e.g. the carrying capacity becomes stable after 100 steps; when agents trade with each other after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures after 2700 steps either one culture dominates the other or both are equally present.
 
-The property we test for is whether \textit{the emergent property under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number generators and require that the tests all pass with arbitrary random number streams. Unfortunately this revealed that this property didn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases in for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required:
+The property we test for is whether \textit{the emergent property under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number generators and require that the tests all pass with arbitrary random number streams. Unfortunately this revealed that this property didn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases in for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a t-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a t-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
 
-Note that we are not technically speaking of a unit-test but conceptually it is still a property-test.
+In listing \ref{alg:prop_test_trading} we show the pseudo code of a property-test for checking whether after 1000 steps the standard deviation of trading prices is less than 0.05. The test passes if out of 100 runs a 95\% confidence interval is reached using a t-test.
+
+\begin{algorithm}
+maxTicks = 1000\;
+replications = 100\;
+stdAverage = 0.05\;
+tradingPriceStdsList = empty list\;
+
+\For{$i\leftarrow 1$ \KwTo replications}{
+rng = new random number generator\;
+simContext = initSimulation rng\;
+out = runSimulation maxTicks simContext\;
+tps = extractTradingPrices out\;
+tpsStd = calculate standard deviation of tps\;
+insert tpsStd into tradingPriceStdsList\;
+}
+
+tTestPass = perform 1-sided t-test comparing stdAverage with tradingPriceStdsList on a 0.95 interval\;
+
+\eIf{tTestPass}{
+  PASS\;
+} {
+  FAIL\;
+}
+\caption{Property-based test for trading prices.}
+\end{algorithm}
+\label{alg:prop_test_trading}

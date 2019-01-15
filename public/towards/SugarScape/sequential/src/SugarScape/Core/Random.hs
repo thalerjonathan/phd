@@ -25,7 +25,9 @@ randomExpM :: MonadRandom m => Double -> m Double
 randomExpM lambda = avoidM 0 >>= (\r -> return $ (-log r) / lambda)
 
 randomElemM :: MonadRandom m => [a] -> m a
-randomElemM as = do
+randomElemM as 
+  | null as   = error "can't draw random element from empty list" 
+  | otherwise = do
   let len = length as
   idx <- getRandomR (0, len - 1) 
   return (as !! idx)

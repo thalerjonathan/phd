@@ -31,27 +31,37 @@ avgTest ys mu0 eps
   where
     mu = Utils.StatsUtils.mean ys
 
--- Performs a 2-sided t-test evaluating the null hypothesis that the mean of the population from which sample is drawn equals mu.
--- The functions returns 'Just True' in case the means are statistically equal and 'Just False' if they are not
--- In case no t-value could be calculated (in case all samples are same => no variance) Nothing is returned
---
--- To test the 2-sided hypothesis sample mean = mu at the 95% level, use 'tTest "testId" samples mu 0.05'
---
+-- Performs a t-test evaluating the null hypothesis that the mean of the population from which sample 
+-- is drawn is LT/GT/EQ mu. The functions returns 'Just True' in case the null hypothesis is accepted
 -- sources:
 --   http://www.statisticssolutions.com/manova-analysis-one-sample-t-test/
---   http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.stat.inference/TTest.java.html
---   https://commons.apache.org/proper/commons-math/javadocs/api-3.6/org/apache/commons/math3/stat/inference/TTest.html
 tTest :: String
       -> [Double]
       -> Double
       -> Double
+      -> Ordering
       -> Maybe Bool
-tTest name samples mu0 alpha 
+tTest name samples mu0 alpha LT = tTest1Sided name samples mu0 alpha True
+tTest name samples mu0 alpha GT = tTest1Sided name samples mu0 alpha False
+tTest name samples mu0 alpha EQ = tTest2Sided name samples mu0 alpha
+
+-- Performs a 2-sided t-test evaluating the null hypothesis that the mean of the population from which sample is drawn equals mu.
+-- The functions returns 'Just True' in case the means are statistically equal and 'Just False' if they are not
+-- In case no t-value could be calculated (in case all samples are same => no variance) Nothing is returned
+-- sources:
+--   http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.stat.inference/TTest.java.html
+--   https://commons.apache.org/proper/commons-math/javadocs/api-3.6/org/apache/commons/math3/stat/inference/TTest.html
+tTest2Sided :: String
+            -> [Double]
+            -> Double
+            -> Double
+            -> Maybe Bool
+tTest2Sided name samples mu0 alpha 
     = case mayP of
         Nothing -> trace (name List.++ ": cant perform t-test, t-value undefined because 0 variance!") Nothing
         Just p  -> trace (name List.++ ": p = " List.++ show p) Just $ p > alpha
   where
-    mayP = pValue tValue
+    mayP = pValue $ tValue samples mu0
 
     pValue :: Maybe Double -> Maybe Double
     pValue Nothing  = Nothing
@@ -62,23 +72,44 @@ tTest name samples mu0 alpha
         tAbs    = abs t
         p       = 2 * Distr.cumulative tDist (-tAbs)
 
-    -- note that t-value is undefined in case of 0 variance, all samples are the same
-    tValue :: Maybe Double
-    tValue
-        | sigma == 0 = trace ("n = " List.++ show n List.++ 
-                              "\nmu = " List.++ show mu List.++ 
-                              "\nsigma = " List.++ show sigma List.++
-                              "\nundefined t value, sigma = 0!!!") Nothing
-        | otherwise  = trace ("n = " List.++ show n List.++ 
-                              "\nmu = " List.++ show mu List.++ 
-                              "\nsigma = " List.++ show sigma List.++ 
-                              "\nt = " List.++ show t) Just t
-      where
-        n     = List.length samples
-        mu    = Utils.StatsUtils.mean samples
-        sigma = Utils.StatsUtils.std samples
+tTest1Sided :: String
+            -> [Double]
+            -> Double
+            -> Double
+            -> Bool
+            -> Maybe Bool
+tTest1Sided name samples mu0 alpha upper
+    = case mayP of
+        Nothing -> trace (name List.++ ": cant perform t-test, t-value undefined because 0 variance!") Nothing
+        Just p  -> trace (name List.++ ": p = " List.++ show p) (if upper then Just $ p > alpha else Just $ p < alpha)
+  where
+    mayP = pValue $ tValue samples mu0
 
-        t = (mu - mu0) / (sigma / sqrt (fromIntegral n))
+    pValue :: Maybe Double -> Maybe Double
+    pValue Nothing  = Nothing
+    pValue (Just t) = trace (name List.++ ": t = " List.++ show t) Just p
+      where
+        degFree = fromIntegral $ List.length samples - 1
+        tDist   = StudT.studentT degFree
+        p       = Distr.cumulative tDist (-t)
+
+-- note that t-value is undefined in case of 0 variance, all samples are the same
+tValue :: [Double] -> Double -> Maybe Double
+tValue samples mu0
+    | sigma == 0 = trace ("n = " List.++ show n List.++ 
+                          "\nmu = " List.++ show mu List.++ 
+                          "\nsigma = " List.++ show sigma List.++
+                          "\nundefined t value, sigma = 0!!!") Nothing
+    | otherwise  = trace ("n = " List.++ show n List.++ 
+                          "\nmu = " List.++ show mu List.++ 
+                          "\nsigma = " List.++ show sigma List.++ 
+                          "\nt = " List.++ show t) Just t
+  where
+    n     = List.length samples
+    mu    = Utils.StatsUtils.mean samples
+    sigma = Utils.StatsUtils.std samples
+
+    t = (mu - mu0) / (sigma / sqrt (fromIntegral n))
 
 -- statistics package obviously provides mean and variance implementations
 -- but they don't support simple lists ...

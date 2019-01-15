@@ -35,7 +35,7 @@ transmitDisease = do
   nids <- neighbourAgentIds
   ds   <- agentProperty sugAgDiseases
 
-  unless (null ds && null nids)
+  unless (null ds || null nids)
     (do
       rds <- randLift $ randomElemsM (length nids) ds
       let evts = zipWith (\nid d -> (nid, DiseaseTransmit d)) nids rds

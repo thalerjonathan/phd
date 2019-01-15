@@ -2,7 +2,6 @@ module Model.Model
   ( prop_disease_dynamics_allrecover
   , prop_disease_dynamics_minorityrecover
   , prop_trading_dynamics
-  , prop_trading_dynamics_qc
   , prop_culture_dynamics
   , prop_inheritance_gini
   , prop_terracing
@@ -36,126 +35,158 @@ instance Arbitrary StdGen where
     seed <- arbitrary 
     return $ mkStdGen seed
 
-prop_disease_dynamics_allrecover ::  RandomGen g => g -> IO ()
-prop_disease_dynamics_allrecover g0 = 
-    assertBool "Population should have recovered fully from diseases but still infected left" (infected == 0)
+-- OK, is using averaging
+prop_disease_dynamics_allrecover ::  RandomGen g => g -> Int -> Double IO ()
+prop_disease_dynamics_allrecover g0 repls confidence = 
+    assertBool "Population should have recovered fully from diseases but still infected left" (allRecoveredConfidence >= confidence)
   where
-    steps  = 100 
+    ticks  = 100
     params = mkParamsAnimationV_1
 
-    (simState, _, _) = initSimulationRng g0 params
-    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+    (rngs, _) = rngSplits repls g0
+    allRecovered = parMap rpar genAllRecovered rngs
+
+    allRecoveredConfidence = fromIntegral (length $ filter (==True) allRecovered) / fromIntegral repls
+
+    genAllRecovered :: RandomGen g => g -> Bool
+    genAllRecovered g = infected == 0
+      where
+        (simState, _, _) = initSimulationRng g params
+        (_, _, _, aos)   = simulateUntilLast ticks simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+        infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
     
-prop_disease_dynamics_minorityrecover ::  RandomGen g => g -> IO ()
-prop_disease_dynamics_minorityrecover g0 = 
-    assertBool "Population should have recovered fully from diseases but still infected left" (infected >= infectedMajority)
+-- OK, is using averaging
+prop_disease_dynamics_minorityrecover ::  RandomGen g => g -> Int -> Double -> IO ()
+prop_disease_dynamics_minorityrecover g0 repls confidence = 
+    assertBool "Population should have recovered fully from diseases but too many recovered" (infectedDominateConfidence >= confidence)
   where
-    steps  = 1000
+    ticks  = 1000
     params = mkParamsAnimationV_2
 
-    (simState, _, _) = initSimulationRng g0 params
-    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
-    n                = fromIntegral $ length aos :: Double
-    infectedMajority = ceiling $ n / 2
+    (rngs, _) = rngSplits repls g0
+    infectedDominate = parMap rpar genInfectedDominate rngs
 
-prop_trading_dynamics_qc :: StdGen -> Bool
-prop_trading_dynamics_qc g0 = trace ("trading-prices std in QUICKCHECK case = " ++ show tradingPricesStd) tradingDynamicsPass
+    infectedDominateConfidence = fromIntegral (length $ filter (==True) infectedDominate) / fromIntegral repls
+
+    genInfectedDominate :: RandomGen g => g -> Bool
+    genInfectedDominate g = infected >= infectedMajority
+      where
+        (simState, _, _) = initSimulationRng g params
+        -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+        (_, _, _, aos)   = simulateUntilLast ticks simState  
+        infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+        n                = fromIntegral $ length aos :: Double
+        infectedMajority = ceiling $ n / 2
+
+-- OK, is using averaging
+prop_culture_dynamics ::  RandomGen g => g -> Int -> Double -> IO ()
+prop_culture_dynamics g0 repls confidence
+    = assertBool "Cultures not converged sufficiently" (culturalDynamicsPassConfidence >= confidence)
   where
-    -- according to sugarscape around this time, trading-prices standard deviation is LTE 0.05
-    steps                 = 1000 
-    tradingPricesStdLimit = 0.05
-    params   = mkParamsFigureIV_3
-
-    (simState, _, _) = initSimulationRng g0 params
-    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    trades           = concatMap (sugObsTrades . snd) aos
-    tradingPricesStd = std $ map tradingPrice trades
-
-    tradingDynamicsPass = tradingPricesStd <= tradingPricesStdLimit
-    
-    tradingPrice :: TradeInfo -> Double
-    tradingPrice (TradeInfo price _ _ _ ) = price
-
-prop_trading_dynamics ::  RandomGen g => g -> IO ()
-prop_trading_dynamics g0 = do
-    putStrLn $ "trading-prices std = " ++ show tradingPricesStd
-    assertBool ("Trading Prices standard deviation too high, should be below 0.05, is " ++ show tradingPricesStd) tradingDynamicsPass
-  where
-    -- according to sugarscape around this time, trading-prices standard deviation is LTE 0.05
-    steps                 = 1000 
-    tradingPricesStdLimit = 0.05
-    params   = mkParamsFigureIV_3
-
-    (simState, _, _) = initSimulationRng g0 params
-    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    trades           = concatMap (sugObsTrades . snd) aos
-    tradingPricesStd = std $ map tradingPrice trades
-
-    tradingDynamicsPass = tradingPricesStd <= tradingPricesStdLimit
-    
-    tradingPrice :: TradeInfo -> Double
-    tradingPrice (TradeInfo price _ _ _ ) = price
-    
-prop_culture_dynamics ::  RandomGen g => g -> IO ()
-prop_culture_dynamics g0 = do
-    putStrLn $ "zeros-ratio = " ++ show zeroRatio
-    assertBool ("Cultures not converged sufficiently, zeros-ratio = " ++ show zeroRatio) cultureDynamicsPass
-  where
-    steps    = 2700 -- according to sugarscape around this time, culture-dynamics converge
+    ticks    = 2700 -- according to sugarscape around this time, culture-dynamics converge
     -- always a few agents in level 1 which dont move => not participating in culture dynamics and keep initial ones
     ratioDominate = 0.95 -- either one culture (red/blue) dominates completely on both hills ...
     ratioEqual    = 0.45 -- ... or each hill has a different culture
     params   = mkParamsAnimationIII_6
 
-    tagLength        = fromJust $ spCulturalProcess params
-    (simState, _, _) = initSimulationRng g0 params
-    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-    agentCultTags    = map (sugObsCultureTag . snd) aos
+    (rngs, _) = rngSplits repls g0
+    culturalDynamicsPass = parMap rpar genCulturalDynamicsPass rngs
 
-    zeroRatio      = zeroCultureRatio agentCultTags
-    -- we don't care who is dominating: zeros or ones, it just has to come to a (near) equilibrium
-    cultureDynamicsPass = if zeroRatio >= ratioDominate 
-                            then True -- zeros dominate
-                            else if zeroRatio <= (1 - ratioDominate)
-                              then True -- ones dominate
-                              else if zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual
-                                then True -- both dominate equally, each on one hill
-                                else False
+    culturalDynamicsPassConfidence = fromIntegral (length $ filter (==True) culturalDynamicsPass) / fromIntegral repls
 
-    zeroCultureRatio :: [CultureTag] -> Double
-    zeroCultureRatio tags = fromIntegral zeros / fromIntegral n
+    genCulturalDynamicsPass :: RandomGen g => g -> Bool
+    genCulturalDynamicsPass g = cultureDynamicsPass
       where
-        zeros = length $ filter zeroDominate tags
-        n     = length tags
+        tagLength        = fromJust $ spCulturalProcess params
+        (simState, _, _) = initSimulationRng g params
+        -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+        (_, _, _, aos)   = simulateUntilLast ticks simState  
+        agentCultTags    = map (sugObsCultureTag . snd) aos
 
-        zeroDominate :: CultureTag -> Bool
-        zeroDominate tag = zeroCount > (tagLength - zeroCount)
+        zeroRatio      = zeroCultureRatio agentCultTags
+        -- we don't care who is dominating: zeros or ones, it just has to come to a (near) equilibrium
+        cultureDynamicsPass = if zeroRatio >= ratioDominate 
+                                then True -- zeros dominate
+                                else if zeroRatio <= (1 - ratioDominate)
+                                  then True -- ones dominate
+                                  else if zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual
+                                    then True -- both dominate equally, each on one hill
+                                    else False
+
+        zeroCultureRatio :: [CultureTag] -> Double
+        zeroCultureRatio tags = fromIntegral zeros / fromIntegral n
           where
-            zeroCount = length $ filter (==False) tag
+            zeros = length $ filter zeroDominate tags
+            n     = length tags
 
-prop_inheritance_gini :: RandomGen g => g -> IO ()
-prop_inheritance_gini g0 = assertBool ("Gini Coefficient less than " ++ show expGini) $ gini >= expGini
+            zeroDominate :: CultureTag -> Bool
+            zeroDominate tag = zeroCount > (tagLength - zeroCount)
+              where
+                zeroCount = length $ filter (==False) tag
+
+-- OK, uses a t-test
+prop_inheritance_gini :: RandomGen g => g -> Int -> Double -> IO ()
+prop_inheritance_gini g0 repls confidence
+    = assertBool ("Gini Coefficient should be on average equals " ++ show expGini) (pass tTestRet)
   where
-    steps        = 1000
-    expGini      = 0.30 :: Double -- conservative guess, is around 0.35, would need to take average of multiple runs but takes long time
+    ticks        = 1000
+    expGini      = 0.35 :: Double -- conservative guess, is around 0.35, would need to take average of multiple runs but takes long time
     sugParams    = mkParamsFigureIII_7
-    (_, _, gini) = genPopulationWealthStats sugParams steps g0
+    
+    (rngs, _) = rngSplits repls g0
+    priceStds = parMap rpar genGiniCoefficients rngs
 
-prop_terracing :: RandomGen g => g -> IO ()
-prop_terracing g0 = assertBool 
-                      ("Terracing proportions not within 95% confidence of " ++ show terrMean ++ " / " ++ show statMean)
-                      (pass terraceTest && pass staticTest)
+    -- perform a 2-sided test because we expect it to be equal
+    tTestRet = tTest "gini coefficient avg" priceStds expGini (1 - confidence) EQ
+
+    genGiniCoefficients :: RandomGen g => g -> Double
+    genGiniCoefficients g = gini
+      where
+        (_, _, gini) = genPopulationWealthStats sugParams ticks g
+
+-- OK with t-test
+prop_trading_dynamics :: RandomGen g => g -> Int -> Double -> IO ()
+prop_trading_dynamics g0 repls confidence
+    = assertBool ("Average Trading Prices std should be on average less than " ++ show maxTradingPricesStdAvg) (pass tTestRet)
   where
-    runs        = 100
-    steps       = 100
+    -- according to sugarscape after 1000 ticks, trading-prices standard deviation is LTE 0.05
+    ticks                  = 1000 
+    maxTradingPricesStdAvg = 0.05
+    params = mkParamsFigureIV_3
+
+    (rngs, _) = rngSplits repls g0
+    priceStds = parMap rpar genTradingStdPrices rngs
+
+    -- perform a 1-sided test because if the trading-prices average is lower then we accept it as well
+    tTestRet = tTest "trading prices avg" priceStds maxTradingPricesStdAvg (1 - confidence) LT
+
+    genTradingStdPrices :: RandomGen g => g -> Double
+    genTradingStdPrices g 
+        = trace ("tradingPricesStd = " ++ show tradingPricesStd) tradingPricesStd
+      where
+        (simState, _, _) = initSimulationRng g params
+         -- must not use simulateUntil because would store all ticks => run out of memory if scenario is too complex e.g. chapter III onwards
+        (_, _, _, aos)   = simulateUntilLast ticks simState 
+        trades           = concatMap (sugObsTrades . snd) aos
+        tradingPricesStd = std $ map tradingPrice trades
+
+        tradingPrice :: TradeInfo -> Double
+        tradingPrice (TradeInfo price _ _ _ ) = price
+
+-- OK: does a t-test
+prop_terracing :: RandomGen g => g -> Int -> Double -> IO ()
+prop_terracing g0 repls confidence
+    = assertBool 
+        ("Terracing proportions not within 95% confidence of " ++ show terrMean ++ " / " ++ show statMean)
+        (pass terraceTest && pass staticTest)
+  where
+    ticks       = 100
     staticAfter = 50 :: Int
 
-    expTerraceRatio = 0.45 :: Double
-    expStaticRatio  = 0.99 :: Double
+    maxTerraceRatio = 0.45 :: Double
+    maxStaticRatio  = 0.99 :: Double
 
-    (rngs, _)   = rngSplits runs g0
+    (rngs, _)   = rngSplits repls g0
     sugParams   = mkParamsAnimationII_1
 
     ret         = parMap rpar genPopulationTerracingStats rngs
@@ -164,18 +195,17 @@ prop_terracing g0 = assertBool
     terrMean    = mean trs
     statMean    = mean srs
 
-    terraceTest = tTest "terracing" trs expTerraceRatio (2 * 0.05) -- need a 1-sided t-test
-    staticTest  = tTest "statiic" srs expStaticRatio (2 * 0.05) -- TODO: need a 1-sided t-test
+    -- both tests are 1-sided because if the ratio is lower, then we accept it as well
+    terraceTest = tTest "terracing" trs maxTerraceRatio (1 - confidence) LT
+    staticTest  = tTest "statiic" srs maxStaticRatio (1 - confidence) LT
 
-    genPopulationTerracingStats :: RandomGen g 
-                                => g
-                                -> (Double, Double)
+    genPopulationTerracingStats :: RandomGen g => g -> (Double, Double)
     genPopulationTerracingStats g 
         = trace ("terraceRatio = " ++ show terraceRatio ++ " terraceNumbers = " ++  show terraceNumbers ++ " staticRatio = " ++ show staticRatio ++ " staticNumbers = " ++ show staticNumbers) 
             (terraceRatio, staticRatio)
       where
         (simState, _, _) = initSimulationRng g sugParams
-        sos              = simulateUntil steps simState
+        sos              = simulateUntil ticks simState
 
         ((_, _, _, aosStable) : sos') = drop staticAfter sos
         (_, _, envFinal, aosFinal)    = last sos
@@ -207,25 +237,29 @@ prop_terracing g0 = assertBool
             cells       = neighbourCells coord False env
             sameLvls    = any (\c -> sugEnvSiteSugarLevel c /= selfCellLvl) cells
 
-prop_carrying_cap :: RandomGen g => g -> IO ()
-prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confidence of " ++ show expMean) $ pass tTestRet
+-- OK, uses t-test
+prop_carrying_cap :: RandomGen g => g -> Int -> Double -> IO ()
+prop_carrying_cap g0 repls confidence
+    = assertBool ("Carrying Capacity Mean not within 95% confidence of " ++ show expMean) $ pass tTestRet
   where
-    runs        = 100
-    steps       = 400
+    ticks       = 400
     stableAfter = 100
 
     _maxVariance = 4 :: Double
-    expMean     = 204 :: Double
+    expMean      = 204 :: Double
 
-    (rngs, _)   = rngSplits runs g0
+    (rngs, _)   = rngSplits repls g0
     sugParams   = mkParamsAnimationII_2
 
     ret         = parMap rpar genPopulationSizeStats rngs
 
     (_vs, ms, _mds) = unzip3 ret
-    tTestRet    = tTest "carrying cap" ms expMean 0.05
+    -- we use a 2-sided t-test because we expecet it to be equal
+    tTestRet = tTest "carrying cap" ms expMean (1 - confidence) EQ
 
-    -- TODO: perform a 1-sided https://en.wikipedia.org/wiki/Chi-squared_test on the variances to check if they are less then _maxVariance
+    -- TODO: perform a 1-sided https://en.wikipedia.org/wiki/Chi-squared_test 
+    -- on the variances to check if they are less then _maxVariance
+    -- this would be an additional ensurance
 
     genPopulationSizeStats :: RandomGen g 
                            => g
@@ -235,45 +269,48 @@ prop_carrying_cap g0 = assertBool ("Carrying Capacity Mean not within 95% confid
             (popSizeVariance, popSizeMean, popSizeMedian)
       where
         (simState, _, _) = initSimulationRng g sugParams
-        sos              = simulateUntil steps simState
+        sos              = simulateUntil ticks simState
         sos'             = drop stableAfter sos
         popSizes         = map (\(_, _, _, aos) -> fromIntegral $ length aos) sos'
         popSizeVariance  = std popSizes
         popSizeMean      = mean popSizes
         popSizeMedian    = median popSizes
 
-prop_wealth_dist :: RandomGen g => g -> IO ()
-prop_wealth_dist g0 = assertBool ("Wealth Distribution average skewness less than " ++ show expSkew) $ pass tTestSkew && pass tTestKurt && pass tTestGini
+-- OK does a t-test
+prop_wealth_dist :: RandomGen g => g -> Int -> Double -> IO ()
+prop_wealth_dist g0 repls confidence
+    = assertBool ("Wealth Distribution average skewness less than " ++ show expSkew) $ pass tTestSkew && pass tTestKurt && pass tTestGini
   where
-    runs      = 100
-    steps     = 200
+    ticks     = 200
 
     expSkew   = 1.5 :: Double
     expKurt   = 2.0 :: Double
     expGini   = 0.48 :: Double
 
-    (rngs, _) = rngSplits runs g0
+    (rngs, _) = rngSplits repls g0
     sugParams = mkParamsAnimationII_3
 
-    ret       = parMap rpar (genPopulationWealthStats sugParams steps) rngs
+    ret       = parMap rpar (genPopulationWealthStats sugParams ticks) rngs
 
     (sks, ks, gs) = unzip3 ret
 
-    tTestSkew     = tTest "skewness wealth distr" sks expSkew 0.05
-    tTestKurt     = tTest "kurtosis wealth distr" ks expKurt 0.05
-    tTestGini     = tTest "gini wealth distr" gs expGini 0.05
+    -- all are 2-sided t-tests because has to be the expected mean
+    tTestSkew     = tTest "skewness wealth distr" sks expSkew (1 - confidence) EQ
+    tTestKurt     = tTest "kurtosis wealth distr" ks expKurt (1 - confidence) EQ
+    tTestGini     = tTest "gini wealth distr" gs expGini (1 - confidence) EQ
 
 genPopulationWealthStats :: RandomGen g 
                           => SugarScapeScenario
                           -> Int
                           -> g
                           -> (Double, Double, Double)
-genPopulationWealthStats params steps g 
+genPopulationWealthStats params ticks g 
     = trace ("skewness = " ++ show skew ++ ", kurtosis = " ++ show kurt ++ " gini = " ++ show gini) 
         (skew, kurt, gini)
   where
     (simState, _, _) = initSimulationRng g params
-    (_, _, _, aos)   = simulateUntilLast steps simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
+    (_, _, _, aos)   = simulateUntilLast ticks simState  
     agentWealths     = map (sugObsSugLvl . snd) aos
 
     skew = skewness agentWealths
@@ -291,67 +328,3 @@ giniCoeff xs = numer / denom
 
 pass :: Maybe Bool -> Bool
 pass = fromMaybe False
-
-  
-{-
-  let xs = [219.9468438538206
-            , 202.1627906976744
-            , 205.74418604651163 
-            , 198.2890365448505
-            , 205.99003322259136
-            , 205.57142857142858 
-            , 203.1860465116279
-            , 202.77408637873754
-            , 200.62458471760797
-            , 204.48504983388705
-            , 208.156146179402
-            , 196.58139534883722
-            , 206.09634551495017
-            , 196.9435215946844
-            , 206.49169435215947
-            , 204.1063122923588
-            , 207.66445182724252
-            , 216.734219269103
-            , 214.82059800664453
-            , 204.7375415282392
-            , 203.64119601328903
-            , 201.6013289036545
-            , 192.10963455149502
-            , 198.55149501661128
-            , 202.58471760797343
-            , 211.54817275747507
-            , 196.3687707641196 
-            , 205.51162790697674
-            , 204.19601328903656
-            , 216.35215946843854 
-            , 203.41860465116278
-            , 198.3953488372093
-            , 208.91029900332225
-            , 211.95016611295682
-            , 214.42857142857142 
-            , 190.80730897009965 
-            , 200.3156146179402 
-            , 195.27242524916943 
-            , 203.29900332225913 
-            , 201.3654485049834 
-            , 207.34883720930233 
-            , 195.68106312292358 
-            , 213.33554817275748 
-            , 194.78737541528238 
-            , 200.1029900332226 
-            , 213.14617940199335 
-            , 219.531561461794 
-            , 201.265780730897 
-            , 213.32558139534885]
-
-  print $ tTest "carrying caps" xs 200 0.05
-
-  --print $ tTest "test1" [1..10] 5.5 0.05
-  --print $ tTest "test2" [1..10] 0.0 0.05
--}
-
-{-
-  putStrLn ""
-  x <- generate arbitrary :: IO (Discrete2d SugEnvCell)
-  print x
--}

@@ -1,9 +1,8 @@
 \section{Case Study I: SIR}
 \label{sec:case_SIR}
+As first use-case we discuss property-based testing for the \textit{explanatory} agent-based SIR model. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles spreading through a population. We implemented an agent-based version of this model \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/propabs/sir}}, which is inspired by \cite{macal_agent-based_2010}.
 
-As first use-case we discuss property-based testing for the agent-based SIR model. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles spreading through a population. We implemented an agent-based version of this model \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/propabs/sir}}, which is inspired by \cite{macal_agent-based_2010}.
-
-In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. Due to the models origins in System Dynamics (SD) \cite{porter_industrial_1962}, there exists a top-down formalisation in SD with the following equations:
+In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. Due to the models' origin in System Dynamics (SD) \cite{porter_industrial_1962}, there exists a top-down formalisation in SD with the following equations:
 
 \begin{equation}
 \frac{\mathrm d S}{\mathrm d t} = -infectionRate \\ 
@@ -46,19 +45,18 @@ populationCount     = length \textit{randAs}\;
 infectedCount       = count \textit{Infected} in \textit{randAs}\;
 infectionRate       = infectivity * contactRate * (infectedCount / populationCount)\;
 
-susceptibles = 10000\;
+susceptibles = create 10000 \textit{Susceptible} agents\;
 countInfected = 0\;
-\For{$i\leftarrow 1$ \KwTo $susceptibles$}{
-  create \textit{Susceptible} agent sa\;
+\For{each agent sa in susceptibles}{
   run agent sa for 1.0 time-unit, with list \textit{randAs} as input\;
   \If{agent sa became \textit{Infected} }{
 	countInfected = countInfected + 1\;
   }
 }
 
-actualInfectionRate = countInfected / susceptibles\;
+averageInfectionRate = countInfected / (length susceptibles)\;
 $\epsilon$ = 0.1\;
-\eIf{abs (actualInfectionRate - infectionRate) $\leq \epsilon$}{
+\eIf{abs (averageInfectionRate - infectionRate) $\leq \epsilon$}{
   PASS\;
 } {
   FAIL\;
@@ -69,7 +67,7 @@ $\epsilon$ = 0.1\;
 
 When running, QuickCheck generates 100 random test-cases by randomly generating 100 different \textit{randAs} inputs to the test. All have to pass for the whole property-test to pass, which should be the case with an $\epsilon = 0.1$. 
 
-This is the very power which property-based testing is offering us: we directly express the specification of the original SD model in a test of our agent-based implementation and let QuickCheck generate random test cases for us. This closely ties our implementation to the original specification and "proves" that it is actually a valid implementation.
+This is the very power which property-based testing is offering us: we directly express the specification of the original SD model in a test of our agent-based implementation and let QuickCheck generate random test cases for us. This closely ties our implementation to the original specification and raises the confidence to a very high level that it is actually a valid and correct implementation.
 
 %\subsection{Infected Behaviour}
 %An infected agent will \textit{always} recover after some finite time, which is \textit{on average} after $\delta$ time-units. Note that this property involves stochastics too, so to test this property we run a large number of infected agents e.g. $N = 10.000$ (all with different random-number seeds) until they recover, record the time of each agents recovery and then average over all recovery times. To check whether this test has passed we compare the average recovery times to $\delta$ and if they lie within some small $\epsilon$ then we accept the test as passed (note again that we could use a t-test for better stochastic robustness but this is not the point of this paper).

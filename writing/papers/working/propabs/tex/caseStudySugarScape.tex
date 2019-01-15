@@ -1,24 +1,73 @@
 \section{Case Study II: SugarScape}
 \label{sec:case_sug}
-We now look at how property-based testing can be made of use in an exploratory model. Whereas in the explanatory SIR case-study we had an analytical solution, inspired by the SD origins of the model, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a model: 
+We now look at how property-based testing can be made of use in the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996}. It was one of the first models in ABS, with the aim to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon observed in real-world societies. In this model a population of agents move around in a discrete 2D environment, where sugar grows, and interact with each other and the environment in many different ways. The main features of this model are (amongst others): searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology. For our research we undertook a \textit{full and validated} implementation of the Sugarscape model \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}}. We undertook a full validation of our implementation against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_nodate} during which we also implemented property tests. Due to lack of space we added a discussion of the validation process as an Appendix \ref{app:validation}.
+
+Whereas in the explanatory SIR case-study we had an analytical solution, inspired by the SD origins of the model, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a model: 
 \begin{itemize}
-	\item Agent behaviour parts.
 	\item Environment behaviour parts.
+	\item Agent behaviour parts.
 	\item Hypotheses about emergent properties which when proved to be valid can be seen as regression tests.
 \end{itemize}
 
-For our research we undertook a \textit{full and validated} implementation of the Sugarscape model \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}}. We undertook a full validation of our implementation against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_nodate} during which we also implemented property tests. Due to lack of space we added a discussion of the validation process as an Appendix \ref{app:validation}.
+\subsection{Environment behaviour}
+The environment in the Sugarscape model has some very simple behaviour: each site has a sugar level and when harvested by an agent, it regrows back to the full level over time. Depending on the configuration of the model it either grows back immediately within 1 tick or over multiple ticks. We can construct simple property-based tests for these behaviours. In the case the sugar grows back immediately we let QuickCheck generate a random environment and then run the environment behaviour for 1 tick and then check the property that all sites have to be back to their maximum sugar level. In the case of regrow over multiple ticks, we also use QuickCheck to generate a random environment but additionally a random \textit{positive} rate (which is a floating point number) which we then use to calculate the number of steps until full regrowth. After running the random environment for the given number of steps all sites have to be back to full sugar level - we provided pseudo code for this case, see \ref{alg:prop_test_rateregwroth}.
 
-\subsection{Agent behaviour parts}
-We implemented a number of tests for agent functions which don't cover a whole sub-part of an agents behaviour: checks whether an agent has died of age or starved to death, the metabolism, immunisation step, check if an agent is a potential borrower or fertile, lookout, trading transaction. What all these functions have in common is that they are not pure computations like utility functions but require an agent-continuation which means they have access to the agent state, environment and random-number stream. This allows testing to capture the \textit{complete} system state in one location, which allows the checking of much more invariants than in approaches which have implicit side-effects.
+Note that QuickCheck initially doesn't know how to generate a random environment because each site consists of a custom data-structure for which QuickCheck is not able to generate random instances by default. This problem is solved by writing a custom data-generator, for which existing QuickCheck functions can be used e.g. picking the current sugar level of a site from a random range.
 
-We implement custom data-generators for our agent state and environment and its cells and then let QuickCheck generate the random data and us running the agent with the provided data, checking for the properties. An example for such a property is that an agent has starved to death in case its sugar (or spice) level has dropped to 0. The corresponding property-test generates a random agent state and also a random sugar level which we set in the agent state. We then run the function which returns True in case the agent has starved to death. We can then check that this flag is true only if the initial random sugar level was less then or equal 0.
+%\begin{algorithm}
+%\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+%\Input{Random environment \textit{env} generated by QuickCheck}
+%env' = runEnvironmentTicks 1 env\;
+%sites = getEnvironmentSites env'\;
+%
+%\eIf{all sites maxSugarLevel}{
+%  PASS\;
+%} {
+%  FAIL\;
+%}
+%\caption{Property-based test for immediate regrow of sugar on all sites.}
+%\end{algorithm}
+%\label{alg:prop_test_fullregrowth}
 
-What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
+\begin{algorithm}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{Random environment \textit{env} generated by QuickCheck}
+\Input{Regrowth rate \textit{randRate} (positive floating point) generated by QuickCheck}
+maxTicks = maxSugarCapacityOnSites / randRate\;
+env' = runEnvironmentTicks maxTicks env\;
+sites = getEnvironmentSites env'\;
 
-\subsection{Environment behaviour parts}
-regrowing of sugar and spice follows some laws
-also clipping / wrapping calculations can be quite cumbersome with edge cases
+\eIf{all sites maxSugarLevel}{
+  PASS\;
+} {
+  FAIL\;
+}
+\caption{Property-based test for rate-based regrow of sugar on all sites.}
+\end{algorithm}
+\label{alg:prop_test_rateregwroth}
+
+The Sugarscape environment is a torus where the coordinates wrap around in both dimensions. To check whether the implementation of the wrapping-calculation is correct we used both unit- and property-tests. With the unit-tests we carefully constructed all possible cases we could think of and came up with 13 test-cases. With the property-based test we simply defined a single test-case where we expressed the property that after wrapping \textit{any} coordinates, supplied by QuickCheck, the wrapped coordinates have to be within bounds. See pseudo code \ref{alg:prop_test_wrapcoords}.
+
+\begin{algorithm}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{Random 2d discrete coordinate \textit{randCoord} generated by QuickCheck}
+(x, y) = wrapCoordinates randCoord\;
+
+\eIf{(x $\geq$ 0 and x $\leq$ environmentDimX) and (y $\geq$ 0 and y $\leq$ environmentDimY)}{
+  PASS\;
+} {
+  FAIL\;
+}
+\caption{Property-based test for wrap-coordinates functionality.}
+\end{algorithm}
+\label{alg:prop_test_wrapcoords}
 
 \subsection{Emergent Properties}
 TODO: we generate random-number seeds as input, this is what our simulation needs for checking properties of the whole simulation: under varying random-number seeds the emergent property is stable
+
+\subsection{Agent behaviour parts}
+We implemented a number of tests for agent functions which just cover the part of an agents behaviour: checks whether an agent has died of age or starved to death, the metabolism, immunisation step, check if an agent is a potential borrower or fertile, lookout, trading transaction. What all these functions have in common is that they are not pure computations like utility functions but require an agent-continuation which means they have access to the agent state, environment and random-number stream. This allows testing to capture the \textit{complete} system state in one location, which allows the checking of much more invariants than in approaches which have implicit side-effects.
+
+We implement custom data-generators for our agent state and environment and its cells and then let QuickCheck generate the random data and us running the agent with the provided data, checking for the properties. An example for such a property is that an agent has starved to death in case its sugar (or spice) level has dropped to 0. The corresponding property-test generates a random agent state and also a random sugar level which we set in the agent state. We then run the function which returns True in case the agent has starved to death. We can then check that this flag is true only if the initial random sugar level was less then or equal 0.
+
+%What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.

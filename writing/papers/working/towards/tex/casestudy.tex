@@ -68,7 +68,7 @@ data Observable = Observable { agentAgeObs :: Int, ... }
 data AgentOut   = AgentOut
   { kill       :: Bool
   , observable :: Observable
-  , messages   :: [(AgentId, Message)] 
+  , messages   :: [(AgentId, Message)] -- list of messages with receiver
   }
 -- agent continuation has different types for input and output
 newtype AgentCont inp out = AgentCont (in -> (out, AgentCont inp out))
@@ -87,7 +87,7 @@ The simulation kernel keeps track of the existing agents and the message-queue a
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
 \Input{All agents \textit{as}}
 \Input{List of agent observables}
-shuffle all agents\;
+shuffle all agents as\;
 messageQueue = schedule Tick to all agents\;
 agentObservables = empty List\;
 \While{messageQueue not empty} {

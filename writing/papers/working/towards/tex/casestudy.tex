@@ -1,24 +1,20 @@
 \section{Case-Study: Pure Functional SugarScape}
 \label{sec:case_study}
 
-To explore how to approach ABS based on pure functional programming concepts as introduced before, we did a \textit{full and verified} implementation of the seminal Sugarscape model \cite{epstein_growing_1996}. We chose the model because it is quite well known in the ABS community, it was highly influential in sparking the interest in ABS, it is quite complex with non-trivial agent-interactions and it used object-oriented techniques and explicitly advocates them as a good fit to ABS. 
+To explore how to approach ABS based on pure FP concepts as introduced before, we did a full implementation \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape}} of the seminal Sugarscape model \cite{epstein_growing_1996}. We chose this model because it is quite well known in the ABS community, it was highly influential in sparking the interest in ABS, it is quite complex with non-trivial agent-interactions and it used object-oriented techniques and explicitly advocates them as a good fit to ABS, which begged the question whether and how well we could do an FP implementation of it.
 
-Our goal was first to develop techniques and concepts to show \textit{how} to engineer a clean, maintainable and robust ABS in Haskell. The second step was then to identify benefits and drawbacks to identify \textit{why} one would follow such an approach. In a third step we pushed the benefits of pure functional programming further and tried to find a remedy for the drawbacks. Absolutely paramount in our research was, that we are being \textit{pure}, which avoids the IO effect type under all circumstances because we would practically lose all strong compile time guarantees \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape}}. More specifically, in this case-study:
+Our goal was first to develop techniques and concepts to show \textit{how} to engineer a clean, maintainable and robust ABS in Haskell. The second step was then to discuss \textit{why} and why not one would follow such an approach by identifying benefits and drawbacks. Absolutely paramount in our research was being \textit{pure}, avoiding the \textit{IO} effect type under all circumstances. More specifically, in this case-study:
 
 \begin{itemize}
-	\item We developed techniques for engineering a clean, maintainable, general and reusable \textit{sequential} implementation in Haskell. Those techniques are directly applicable to other ABS implementations as well.
+	\item We developed techniques for engineering a clean, maintainable, general and reusable \textit{sequential} implementation in Haskell. Those techniques are directly applicable to other ABS implementations as well and are discussed in this paper.
 	
-	\item We explored ways of exploiting data-parallelism to speed up the execution in our sequential implementation. Further we explored techniques for a \textit{concurrent} implementation using Software Transactional Memory (STM). We refer to (TODO: cite our own TOMACS paper) for an in-depth discussion of this work as we can only discuss it very briefly here due to lack of space.
-	
-	\item We explored ways of code-testing our implementation. We show how to use property-based testing for ensuring the correctness of individual agent parts, and unit-testing of the whole simulation which serves both as regression test and to check model hypotheses.
-	
-	\item Our Sugarscape implementation is fully validated against the dynamics reported in the book \cite{epstein_growing_1996} and an already existing NetLogo replication \cite{weaver_replicating_nodate}. Due to lack of space we cannot include the discussion of the validation process in the regular paper but added it as an Appendix \ref{app:validation}.
+	\item We explored techniques for a \textit{concurrent} implementation using Software Transactional Memory in Haskell \cite{harris_composable_2005} and data-parallelism to speed up the execution in our sequential implementation. Due to lack of space, we refer to (TODO: cite our own TOMACS paper) for an in-depth discussion of this work.
+
+	\item We explored ways of fully validating our implementation using code-testing. We showed how to apply property-based testing from Haskell \cite{claessen_quickcheck_2000} to ABS for a specification based checking of the correctness of the simulation. Due to lack of space, we refer to (TODO: cite our other submission to this conference) for a more detailed discussion of this work.
 \end{itemize}
 
-TODO: \cite{macal_everything_2016} sugarscape is level 3, chapter 2 is level 2
-
 \subsection{A Functional View}
-Due to the fundamentally different approaches of functional programming (FP) an ABS needs to be implemented fundamentally different, compared to established object-oriented (OO) approaches. We face the following challenges:
+Due to the fundamentally different approaches of FP, an ABS needs to be implemented fundamentally different, compared to established OOP approaches. We face the following challenges:
 
 \begin{enumerate}
 	\item How can we represent an Agent, its local state and its interface?
@@ -26,18 +22,86 @@ Due to the fundamentally different approaches of functional programming (FP) an 
 	\item How can we implement an environment and agent-to-environment interactions? 
 \end{enumerate}
 
-The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations in turn are functions which allow to encapsulate the execution state of a program by capturing local variables and pick up computation from that point later on by returning a new function.
-
-Thus we implement an agent as a continuation: this lets us encapsulate arbitrary complex agent-state which is only visible and accessible from within the continuation - the agent has exclusive access to it. This allows also to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state-machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured.
-
-The fact that we design an agent as a function, raises the question of the interface of it: what are the inputs and the output? Note that the type of the function has to stay the same although we might switch into different continuations - our interface needs to capture all possible cases of behaviour. The way we define the interface is strongly determined by the direct agent-agent interaction. In case of Sugarscape, agents need to be able to conduct two types of direct agent-agent interaction: 1. one-directional, where agent A sends a message to agent B without requiring agent B to synchronously reply to that message e.g. repaying a loan or inheriting money to children; 2. bi-directional, where two agents negotiate over multiple steps e.g. accepting a trade, mating or lending.
-Thus it seems reasonable to define as input type an algebraic data-type which defines all possible incoming messages and agent handles. The agents continuation is then called every time the agent receives a message and can process it, update its local state and might change its behaviour.
-As output we define a data-structure which allows the agent to communicate to the simulation kernel 1. whether it wants to be removed from the system or not, 2. a list of new agents it wants to spawn, 3. a list of messages the agent wants to send to other agents. Further because the data is completely local, the agent also returns a data-structure which holds all \textit{observable} information, the agent wants to share with the outside world. Together with the continuation this guarantees that the agent is in full control over its local state, which no one can mutate or access from outside. This also implies that one can only get information out of the agent by running its function. It also means that the output type of the function has to cover all possible input cases - it cannot change or depend on the input. 
-
-The simulation kernel keeps track of the existing agents and the message-queue and processes the queue one element at a time. The new messages of an agent are inserted \textit{at the front} of the queue, ensuring that synchronous bi-directional messages are possible without violating resources constraints. The Sugarscape model specifies that in each tick or time-step all agents run in random order and do their thing. Thus to start the agent-behaviour in a new time-step, the core inserts a Tick message to each agent in random order which then results in them being executed and emitting new messages. The current time-step has finished when all messages in the queue have been processed.
+\subsubsection{Agent representation}
+The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations are functions which allow to encapsulate the execution state of a program by capturing local variables (known as closure) and pick up computation from that point later on by returning a new function. As an illustratory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value for the current step:
 
 \begin{HaskellCode}
-TODO: give a short example of continuation agent
+-- define the type of the continuation: it takes an arbitrary type a 
+-- and returns a type a with a new continuation
+newtype Cont a = Cont (a -> (a, Cont a))
+
+-- an instance of a continuation with type a fixed to Int
+-- takes an initial value x and sums up the values passed to it
+-- note that it returns adder with the new sum recursively as 
+-- the new continuation
+adder :: Int -> Cont Int
+adder x = Cont (\x' -> (x + x', adder (x + x')))
+
+-- this function runs the given continuation for a given number of steps
+-- and always passes 1 as input and prints the continuations output
+runCont :: Int -> Cont Int -> IO ()
+runCont 0 _ = return () -- finished
+runCont n (Cont cont) = do -- pattern match to extract the function
+  -- run the continuation with 1 as input, cont' is the new continuation
+  let (x, cont') = cont 1
+  print x
+  -- recursive call, run next step
+  runCont (n-1) cont'
+
+-- main entry point of a Haskell program
+-- run the continuation adder with initial value of 0 for 100 steps 
+main :: IO ()
+main = runCont 100 (adder 0)
 \end{HaskellCode}
 
-Obviously the agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well. All of this low level continuation plumbing is not necessary to implement and there exists a high quality library called dunai, based on research on Functional Reactive Programming  \cite{hudak_arrows_2003} and Monadic Stream Functions \cite{perez_functional_2016,perez_extensible_2017}.
+We implement an agent as a continuation: this lets us encapsulate arbitrary complex agent-state which is only visible and accessible from within the continuation - the agent has exclusive access to it. This allows also to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state-machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
+
+The fact that we design an agent as a function, raises the question of the interface of it: what are the inputs and the output? Note that the type of the function has to stay the same (type \textit{a} in the example above) although we might switch into different continuations - our interface needs to capture all possible cases of behaviour. The way we define the interface is strongly determined by the direct agent-agent interaction. In case of Sugarscape, agents need to be able to conduct two types of direct agent-agent interaction: 1. one-directional, where agent A sends a message to agent B without requiring agent B to synchronously reply to that message e.g. repaying a loan or inheriting money to children; 2. bi-directional, where two agents negotiate over multiple steps e.g. accepting a trade, mating or lending. Thus it seems reasonable to define as input type an enumeration (algebraic data-type in Haskell, see example below) which defines all possible incoming messages the agent can handle. The agents continuation is then called every time the agent receives a message and can process it, update its local state and might change its behaviour.
+
+As output we define a data-structure which allows the agent to communicate to the simulation kernel 1. whether it wants to be removed from the system, 2. a list of new agents it wants to spawn, 3. a list of messages the agent wants to send to other agents. Further because the agents data is completely local, it also returns a data-structure which holds all \textit{observable} information the agent wants to share with the outside world. Together with the continuation this guarantees that the agent is in full control over its local state, no one can mutate or access from outside. This also implies that information can only get out of the agent by actually running its continuation. It also means that the output type of the function has to cover all possible input cases - it cannot change or depend on the input. 
+
+\begin{HaskellCode}
+type AgentId    = Int
+data Message    = Tick Int | MatingRequest AgentGender ... 
+data AgentState = AgentState { agentAge :: Int, ... }             
+data Observable = Observable { agentAgeObs :: Int, ... } 
+data AgentOut   = AgentOut
+  { kill       :: Bool
+  , observable :: Observable
+  , messages   :: [(AgentId, Message)] 
+  }
+-- agent continuation has different types for input and output
+newtype AgentCont inp out = AgentCont (in -> (out, AgentCont inp out))
+-- taking the initial AgentState as input and returns the continuation
+sugarscapeAgent :: AgentState -> AgentCont (AgentId, Message) AgentOut
+sugarscapeAgent asInit = AgentCont (\ (sender, msg) -> 
+  case msg of
+    agentCont (sender, Tick t) = ... handle tick
+    agentCont (sender, MatingRequest otherGender) = ... handle mating request)
+\end{HaskellCode}
+
+\subsubsection{Stepping the simulation}
+The simulation kernel keeps track of the existing agents and the message-queue and processes the queue one element at a time. The new messages of an agent are inserted \textit{at the front} of the queue, ensuring that synchronous bi-directional messages are possible without violating resources constraints. The Sugarscape model specifies that in each tick or time-step all agents run in random order and do their thing. Thus to start the agent-behaviour in a new time-step, the core inserts a Tick message to each agent in random order which then results in them being executed and emitting new messages. The current time-step has finished when all messages in the queue have been processed. See algorithm \ref{alg:stepping_simulation} for the pseudo-code for the simulation stepping.
+
+\begin{algorithm}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{All agents \textit{as}}
+\Input{List of agent observables}
+shuffle all agents\;
+messageQueue = schedule Tick to all agents\;
+agentObservables = empty List\;
+\While{messageQueue not empty} {
+  msg = pop message from messageQueue\;
+  a = lookup receiving agent in as\;
+  (out, a') = runAgent a msg\;
+  update agent with continuation a' in as\;
+  add agent observable from out to agentObservables\;
+  add messages of agent at front of messageQueue\;
+}
+return agentObservables\;
+\caption{Stepping the simulation.}
+\end{algorithm}
+\label{alg:stepping_simulation}
+
+\subsubsection{Environment and agent-environment interaction}
+Obviously the agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well. All of this low level continuation plumbing exists already as a high quality library called Dunai, based on research on Functional Reactive Programming  \cite{hudak_arrows_2003} and Monadic Stream Functions \cite{perez_functional_2016,perez_extensible_2017}.

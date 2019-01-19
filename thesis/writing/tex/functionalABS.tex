@@ -1,27 +1,28 @@
 \chapter{Pure Functional ABS}
 \label{ch:pfABS}
 
-Is the main chapter of the thesis to discuss \textit{how} can we do pure functional ABS. Roughly 75\% exists already.
+In this chapter we discuss \textit{how} to implement ABS from a pure functional perspective. In General, an ABS implementation must solve the following fundamental problems:
 
+\begin{enumerate}
+	\item How can we represent an Agent, its local state and its interface?
+	\item How can we implement direct agent-to-agent interactions?
+	\item How can we implement an environment and agent-to-environment interactions?
+	\item How can we step the Simulation: make the agents and environment active?
+	
+	\item \textbf{Source of pro-activity} How can an agent initiate actions without the external stimuli of messages?
+	\item \textbf{Semantics of Messaging} When is a message \textit{m}, sent by agent \textit{A} to agent \textit{B}, visible and processed by \textit{B}?
+\end{enumerate}
+
+In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimulus, most naturally represented by a continuous increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the agent, acting as the internal stimulus. This allows the agent then to perceive time and become pro-active depending on time. So we can understand an ABS as a discrete time-simulation where time is broken down into continuous, real-valued or discrete natural-valued time-steps. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution where there are two ways of feeding time-flow into an agent. Either it has its own thread-of-execution or the system creates the illusion of its own thread-of-execution by sharing the global thread sequentially among the agents where an agent has to yield the execution back after it has executed its step. Note the similarity to an operating system with cooperative multitasking in the latter case and real multi-processing in the former. Generally, there rexist time- and event-driven approaches to ABS \cite{meyer_event-driven_2014}. In both time is of fundamental importance but modelled differently. We discuss how to implement both approaches in-depth in subsequent sections.
+
+The semantics of messaging define when sent messages are visible to the receivers and when the receivers process them. Message-processing could happen either immediately or delayed, depending on how message-delivery works. There are two ways of message-delivery: immediate or queued. In the case of immediate message-deliver the message is sent directly to the agent without any queuing in between e.g. a direct method-call. This would allow an agent to immediately react to this message as this call of the method transfers the thread-of-execution to the agent. This is not the case in the queued message-delivery where messages are posted to the message-box of an agent and the agent pro-actively processes the message-box at regular points in time. It turns out that the problem of messaging / interacting of agents is the most subtle problem when approaching ABS from a pure functional perspective.
 
 TODO: can we derive an agent-monad?
 
 TODO: what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. TODO: stopped at comonad section, continue from there. TODO understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/
 
-\section{Time-Driven ABS}
-Following pure functional ABS, also discuss how can we implement the 4 update-strategies of the art-iterating paper in our pure functional approach.
+independent of time-driven or event-driven, our agents are MSFs.
 
-\subsection{A hybrid approach}
-TODO: discuss using sdhaskell paper
+\input{./tex/fpabs/timedriven.tex}
 
-\subsection{Super-Sampling}
-discuss using PFE paper and FrABS report, also show superSampling function implementation from PFE paper and FrABS with full body implementation
-
-\section{Event-Driven ABS}
-Following towards papers SugarScape implementation
-\subsection{Synchronised Agent-Interactions}
-Following towards papers SugarScape implementation
-
-% direct MSF call, Problem is recursive nature. maybe try it with gintis Implementation. I just learned that what i want to achieve is actually: https://en.wikipedia.org/wiki/This_(computer_programming)#Open_recursion AND OPEN RECURSION IS PRETTY BAD
-
-%Although there are similarities to the work of \cite{botta_time_2010} (the use of messages and the problem of when to advance time in models with arbitrary number synchronised agent-interactions), we approach our agents differently. First in our approach an agent is only a single MSF and thus can not be directly queried for its internal state / its id or outgoing messages, instead of taking a list of messages, our agents take a single event/message and can produce an arbitrary number of outgoing messages together with an observable state - note that this would allow to query the agent for its id and its state as well by simply sending a corresponding message to the agents MSF and requiring the agent to implement message handling for it. Also the state of our agents is \textit{completely} localised and there is no means of accessing the state from outside the agent, they are thus "fully encapsulated agents" \cite{botta_time_2010}. Note that the authors of \cite{botta_time_2010} define their agents with a polymorphic agent-state type \textit{s}, which implies that without knowledge of the specific type of \textit{s} there would be no way of accessing the state, rendering it in fact also fully encapsulated. The problem of advancing time in our approach is solved not exactly the same but conceptually it is the same: after sending a tick message to each agent (in random order), we process all agents until they are idle: there are no more enqueued messages / events in the queue.
+\input{./tex/fpabs/eventdriven.tex}

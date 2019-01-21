@@ -40,6 +40,8 @@ In this strategy there exists a globally synchronized time-flow and in each time
 \end{figure}
 
 \subsection{Parallel Strategy}
+\label{sub:par_strategy}
+
 This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates them in parallel. Messages sent and changes to the environment made by agents are visible in the next global step. We can think about this strategy in a way that all agents make their moves at the same time.  If one wants to change the environment in a way that it would be visible to other agents this is regarded as a systematic error in this strategy. First it is not logical because all actions are meant to happen at the same time and also it would implicitly induce an ordering, violating the \textit{happens at the same time} idea. 
 It does not make a difference if the agents are really executed in parallel or just sequentially - due to the isolation of information, this has the same effect. Also it will make no difference if we iterate over the agents sequentially or randomly, the outcome has to be the same: the strategy is event-ordering invariant as all events and updates happen \textit{virtually at the same time}. This is the strategy used for the implementation of the agent-based SIR model, see below. See Figure \ref{fig:strategy_par} for a visualisation of the control flow in this strategy.
 

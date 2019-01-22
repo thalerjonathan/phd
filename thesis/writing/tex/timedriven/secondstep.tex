@@ -1,0 +1,31 @@
+\section{Second Step: Going Monadic}
+A part of the library Dunai is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which should allow us to easily replace Yampa with MSFs. This will enable us to run arbitrary monadic computations in a signal function, solving our problem of correlated random numbers through the use of the Random Monad.
+
+\subsection{Identity Monad}
+We start by making the transition to BearRiver by simply replacing Yampas signal function by BearRivers', which is the same but takes an additional type parameter \textit{m}, indicating the monadic context. If we replace this type-parameter with the Identity Monad, we should be able to keep the code exactly the same, because BearRiver re-implements all necessary functions we are using from Yampa. We simply re-define the agent signal function, introducing the monad stack our SIR implementation runs in:
+
+\begin{HaskellCode}
+type SIRMonad = Identity
+type SIRAgent = SF SIRMonad [SIRState] SIRState
+\end{HaskellCode}
+
+\subsection{Random Monad}
+Using the Identity Monad does not gain us anything but it is a first step towards a more general solution. Our next step is to replace the Identity Monad by the Random Monad, which will allow us to run the whole simulation within the Random Monad with the full features of FRP, finally solving the problem of correlated random numbers in an elegant way. We start by re-defining the SIRMonad and SIRAgent:
+
+\begin{HaskellCode}
+type SIRMonad g = Rand g
+type SIRAgent g = SF (SIRMonad g) [SIRState] SIRState
+\end{HaskellCode}
+
+The question is now how to access this Random Monad functionality within the MSF context. For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a MonadRandom type-class. Because we are now running within a MonadRandom instance we simply replace \textit{occasionally} with \textit{occasionallyM}. 
+
+\begin{HaskellCode}
+occasionallyM :: MonadRandom m => Time -> b -> SF m a (Event b)
+-- can be used through the use of arrM and lift
+randomBoolM :: RandomGen g => Double -> Rand g Bool
+-- this can be used directly as a SF with the arrow notation
+drawRandomElemSF :: MonadRandom m => SF m [a] a
+\end{HaskellCode}
+
+\subsection{Discussion} 
+Running in the Random Monad solved the problem of correlated random numbers and elegantly guarantees us that we won't have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of an explicit discrete 2D environment.

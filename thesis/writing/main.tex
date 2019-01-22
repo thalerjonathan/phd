@@ -11,8 +11,22 @@
 \usepackage{amsmath} % Required for some math elements 
 \usepackage{pdflscape}
 \usepackage{pdfpages}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{verbatim}
+\usepackage{epigraph}
+\usepackage{titlesec}
 
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
+
+\makeatletter
+\titleformat{\part}[display]
+  {\Huge\scshape\filright}
+  {\partname~\thepart:}
+  {20pt}
+  {\thispagestyle{epigraph}}
+\makeatother
+\setlength\epigraphwidth{.6\textwidth}
 
 \begin{document}
 
@@ -52,6 +66,10 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 \input{./tex/acknowledgements.tex}
 
+% PART I: Beginnings
+\epigraphhead[450]{}
+\part{Beginnings}
+
 \input{./tex/introduction.tex}
 
 \input{./tex/literature.tex}
@@ -60,8 +78,18 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 \input{./tex/implAbs.tex}
 
-\input{./tex/fpabs.tex}
+% PART II: How
+\epigraphhead[450]{}
+\part{How}
+\input{./tex/timedriven.tex}
 
+\input{./tex/eventdriven.tex}
+
+\input{./tex/generalising.tex}
+
+% PART III: Why
+\epigraphhead[450]{}
+\part{Why}
 \input{./tex/parallelabs.tex}
 
 \input{./tex/verification.tex}
@@ -70,6 +98,9 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 \input{./tex/caseStudy.tex}
 
+% PART IV: Reflections
+\epigraphhead[450]{}
+\part{Reflections}
 \input{./tex/discussion.tex}
 
 \input{./tex/conclusions.tex}

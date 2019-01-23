@@ -78,10 +78,3 @@ Despite the strengths and benefits we get by leveraging on FRP, there are errors
 In our pure functional approach, agent identity is not as clear as in traditional object-oriented programming, where there is a quite clear concept of object-identity through the encapsulation of data and methods. Signal functions don't offer this strong identity and one needs to build additional identity mechanisms on top e.g. when sending messages to specific agents.
 
 We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents, which is a direct consequence of the issue with agent identity. Agent interaction is straight-forward in object-oriented programming, where it is achieved using method-calls mutating the internal state of the agent, but that comes at the cost of a new class of bugs due to implicit data flow. In pure functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general. We have added further mechanisms of agent interaction which we had to omit due to lack of space.
-
-\subsection{Other approaches}
-Sequential: see event-driven
-Concurrent: see STM chapter
-Actor: not discussed in this thesis but briefly 
-
-\subsection{Super-Sampling}

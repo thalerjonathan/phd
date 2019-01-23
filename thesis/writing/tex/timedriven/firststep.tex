@@ -196,17 +196,26 @@ In Yampa there exists a function \textit{embed} which allows to run a given sign
 \begin{HaskellCode}
 import FRP.Yampa.InternalCore
 
+-- SF is the signal-function defined for time t = 0 and returns
+-- a continuation of type SF' which is the signal-function 
+-- defined for t > 0: it receives an additional time-delta
+-- data SF a b  = SF { sfTF :: a -> (SF' a b, b) }
+-- data SF' a b = DTime -> a -> (SF' a b, b)
+
 superSampling :: Int -> SF a b -> SF a [b]
 superSampling n sf0 = SF { sfTF = tf0 }
   where
     -- no supersampling at time 0
+    tf0 :: a -> (SF' a b, [b])
     tf0 a0 = (tfCont, [b0])
       where
-        (sf', b0) = sfTF sf0 a0
+        (sf', b0) = sfTF sf0 a0 -- running a SF
         tfCont    = superSamplingAux sf'
 
+    superSamplingAux :: SF' a [b]
     superSamplingAux sf' = SF' tf
       where
+      	tf0 :: DTime -> a -> (SF' a b, [b])
         tf dt a = (tf', bs)
           where
             (sf'', bs) = superSampleRun n dt sf' a
@@ -214,17 +223,17 @@ superSampling n sf0 = SF { sfTF = tf0 }
 
     superSampleRun :: Int -> DTime -> SF' a b -> a -> (SF' a b, [b])
     superSampleRun n dt sf a 
-        | n <= 1 = superSampleMulti 1 dt sf a []
+        | n <= 1    = superSampleMulti 1 dt sf a []
         | otherwise = (sf', reverse bs)  -- reverse due to accumulator
       where
         superDt = dt / fromIntegral n
         (sf', bs) = superSampleMulti n superDt sf a []
 
     superSampleMulti :: Int -> DTime -> SF' a b -> a -> [b] -> (SF' a b, [b])
-    superSampleMulti 0 _ sf _ acc = (sf, acc)
+    superSampleMulti 0 _ sf _ acc  = (sf, acc)
     superSampleMulti n dt sf a acc = superSampleMulti (n-1) dt sf' a (b:acc) 
       where
-        (sf', b) = sfTF' sf dt a
+        (sf', b) = sfTF' sf dt a -- running a SF'
 \end{HaskellCode}
 
 It evaluates the \textit{SF} argument for \textit{n} times, each with $\Delta t = \frac{\Delta t}{n}$ and the same input argument \textit{a} for all \textit{n} evaluations. At time 0 no super-sampling is performed and just a single output of the \textit{SF} argument is calculated. A list of \textit{b} is returned with length of \textit{n} containing the result of the \textit{n} evaluations of the \textit{SF} argument. If 0 or less super samples are requested exactly one is calculated. We could then wrap the occasionally function which would then generate a list of events. 

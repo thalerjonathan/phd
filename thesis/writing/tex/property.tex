@@ -1,8 +1,9 @@
-\chapter{Verification}
-\label{ch:verification}
+\chapter{Property-Based Testing in ABS}
+\label{ch:property}
 
 Exploring ways in which pure functional ABS can be of benefit to verification \& validation and increasing correctness of an ABS implementation. 
 
+\section{Verification in ABS}
 General there are the following basic verification \& validation requirements to ABS \cite{robinson_simulation:_2014}, which all can be addressed in our \textit{pure} functional approach as described in the paper in Appendix \ref{app:pfe}:
 
 \begin{itemize}
@@ -24,23 +25,21 @@ General there are the following basic verification \& validation requirements to
 	\item Concurrency and parallelism - due to its pure and 'stateless' nature, functional programming is extremely well suited for massively large-scale applications as it allows adding parallelism without any side-effects and provides very powerful and convenient facilities for concurrent programming. The paper of (TODO: cite my own paper on STM) explores the use Haskell for concurrent and parallel ABS in a deeper way.
 \end{enumerate}
 
-\section{Debugging}
 TODO: haskell-titan
 TODO: Testing and Debugging Functional Reactive Programming \cite{perez_testing_2017}
 
-\section{Using the Type-System}
 Static type system eliminates a large number run-time bugs.
 
-\section{Reasoning}
 TODO: can we apply equational reasoning? Can we (informally) reason about various properties e.g. termination?
 
-\section{Unit-Testing}
 Follow unit-testing of the whole simulation as prototyped for towards paper.
+
+in this we explore something new: property-based testing in ABS
 
 \section{Property-Based Testing}
 Follow property-based testing as prototyped for towards paper. Also discuss property-based testing as explored in the SIR (time-driven) and Sugarscape (event-driven) case.
 
-\subsection{SIR}
+\section{SIR: Explanatory Model Testing}
 \paragraph{Finding optimal $\Delta t$}
 The selection of the right $\Delta t$ can be quite difficult in FRP because we have to make assumptions about the system a priori. One could just play it safe with a very conservative, small $\Delta t < 0.1$ but the smaller $\Delta t$, the lower the performance as it multiplies the number of steps to calculate. Obviously one wants to select the \textit{optimal} $\Delta t$, which in the case of ABS is the largest possible $\Delta t$ for which we still get the correct simulation dynamics.
 To find out the \textit{optimal} $\Delta t$ one can make direct use of the black-box tests: start with a large $\Delta t = 1.0$ and reduce it by half every time the tests fail until no more tests fail - if for $\Delta t = 1.0$ tests already pass, increasing it may be an option. It is important to note that although isolated agent behaviour tests might result in larger $\Delta t$, in the end when they are run in the aggregate system, one needs to sample the whole system with the smallest $\Delta t$ found amongst all tests. Another option would be to apply super-sampling to just the parts which need a very small $\Delta t$ but this is out of scope of this paper.
@@ -111,9 +110,15 @@ All these invariants can be guaranteed when reasoning about the code. An additio
 
 We will only look at the recovered behaviour as it is the simplest one. We leave the susceptible and infected behaviours for further research / the final thesis because the conceptual idea becomes clear from looking at the recovered agent.
 
-\subsection{Sugarsape}
+\section{Sugarsape: Explanatory Model Testing}
 We implemented a number of tests for agent functions which just cover the part of an agents behaviour: checks whether an agent has died of age or starved to death, the metabolism, immunisation step, check if an agent is a potential borrower or fertile, lookout, trading transaction. What all these functions have in common is that they are not pure computations like utility functions but require an agent-continuation which means they have access to the agent state, environment and random-number stream. This allows testing to capture the \textit{complete} system state in one location, which allows the checking of much more invariants than in approaches which have implicit side-effects.
 
 We implement custom data-generators for the agents and let QuickCheck generate the random data and us running the agent with the provided data, checking for the properties. An example for such a property is that an agent has starved to death in case its sugar (or spice) level has dropped to 0. The corresponding property-test generates a random agent state and also a random sugar level which we set in the agent state. We then run the function which returns True in case the agent has starved to death. We can then check that this flag is true only if the initial random sugar level was less then or equal 0.
 
 What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
+
+\subsection{Agent-Interactions}
+PropABS future research http://www.well-typed.com/blog/2019/01/qsm-in-depth/ with quickcheck-state-machine
+
+\section{Discussion}
+There is a strong relation between property-based tests and dependent types: in property-based testing we express specifications / properties / laws in code and test their invariance at run-time by random sampling the space. In dependent-types it is possible to express such properties already statically in types. This is the subject of the next part of the thesis which tries to move towards dependent types in ABS.

@@ -3,10 +3,9 @@
 
 Establish how concurrency and parallelism can be made easily available in ABS using pure functional programming. Mostly follow STM paper and add pure parallelism in ABS. Make clear that Haskell allows to distinguish between pure, deterministic parallelism and impure, non-deterministic concurrency.
 
-About 50\% finished.
+Also discuss where there is potential for adding parallelism: using data-parallel data-structures for the environment so cells can be updated in parallel, in time-driven ABS agents can be updated in parallel using parMap because they all act conceptually at the same time (and if they don't run in monadic code). 0\% finished.
 
-\section{Data-Parallelism}
-Discusses where there is potential for adding parallelism: using data-parallel data-structures for the environment so cells can be updated in parallel, in time-driven ABS agents can be updated in parallel using parMap because they all act conceptually at the same time (and if they don't run in monadic code). 0\% finished.
-
-\section{Software Transactional Memory}
 use the STM paper but provide more haskell code
+
+\section{Discussion}
+Further research: implementing synchronous agent-interactions in a concurrent implementation with STM

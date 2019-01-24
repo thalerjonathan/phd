@@ -56,6 +56,15 @@
 This thesis shows how to implement Agent-Based Simulations (ABS) using the \textit{pure} functional programming paradigm and what the benefits and drawbacks are when doing so. As language of choice, Haskell is used due to its modern nature, increasing use in real-world applications and \textit{pure} nature. The thesis presents various implementation techniques to ABS and then discusses concurrency and parallelism and verification and validation in ABS in a pure functional setting. Additionally the thesis briefly discusses the use of dependent types in ABS, to close the gap between specification and implementation - something the presented implementation techniques don't focus on.
 Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS. 
 
+\\
+TODO research
+
+\begin{enumerate}
+	\item Generalising ABS: extract the foundational properties: agents as monad / comonad / arrow and discuss their implications from an abstract poitn of view
+	\item Agent-Interaction Property-Based testing using quickcheck-state-machine and \url{http://www.well-typed.com/blog/2019/01/qsm-in-depth/}
+	\item Gintis Case-Study without dependent types
+	\item Dependent types: a full treatment of them in context of ABS is beyond the scope of this phd (and also don't have enough knowledge and time), and would be enough for a new phd / habilitation. Can we outline basics and ideas without going too much into depth or is this not possible in a phd?
+\end{enumerate}
 %TODO: from the 2nd annual review i got the feedback that i need to come up with a more coherent thesis structure which tells a story: i need to make myself clear what story i want to tell with my phd and what research and publications i still need to do for that (identify chapters and to which extent they are already finished). Also I need to come up with a precise publication plan, focusing on writing papers early than doing research for a too long time and starting an early thesis writing. This is because any unpublished research is lost and every published research is a contribution to knowledge. "A good PhD is asking more questions than it answers."
 
 \clearpage
@@ -92,10 +101,16 @@ Finally a case-study is presented which tries to bring together the insights of 
 \part{Why}
 \input{./tex/parallelabs.tex}
 
-\input{./tex/verification.tex}
+\input{./tex/property.tex}
 
+% Part IV: Towards Dependent Types
+\epigraphhead[450]{}
+\part{Towards Dependent Types}
 \input{./tex/dependent.tex}
 
+% Part V: A Case Study
+\epigraphhead[450]{}
+\part{A Case Study}
 \input{./tex/caseStudy.tex}
 
 % PART IV: Reflections

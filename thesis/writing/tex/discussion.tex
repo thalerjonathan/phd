@@ -1,36 +1,12 @@
 \chapter{Discussion}
 \label{ch:discussion}
 
-This chapter re-visits the aim, objective and hypotheses of the introduction and puts them into perspective with the contributions. Also additional ideas, worth mentioning here (see below) will be discussed here. About 20\% exists already.
+This chapter re-visits the aim, objective and hypotheses of the introduction and puts them into perspective with the contributions. Also additional ideas, worth mentioning here (see below) will be discussed here.
 
-\section{Benefits}
+\input{./tex/discussion/benefits.tex}
 
-\section{Drawbacks}
+\input{./tex/discussion/drawbacks.tex}
 
-\section{Generalising Research}
-We hypothesize that our research can be transferred to other related fields as well, which puts our contributions into a much broader perspective, giving it more impact than restricting it just to the very narrow field of Agent-Based Simulation. Although we don't have the time to back up our claims with in-depth research, we argue that our findings might be applicable to the following fields at least on a conceptual level.
+\input{./tex/discussion/generalising.tex}
 
-\subsection{Simulation in general}
-We already showed in the paper \cite{thaler_pure_2019}, that purity in a simulation leads to repeatability which is of utmost importance in scientific computation. These insights are easily transferable to simulation software in general and might be of huge benefit there. Also my approach to dependent types in ABS might be applicable to simulations in general due to the correspondence between equilibrium \& totality, in use for hypotheses formulation and specifications formulation as pointed out in Chapter \ref{ch:dependent}. 
-
-\subsection{System Dynamics}
-\label{sub:generalising_system_dynamics}
-discuss pure functional system dynamics - correct by construction: benefits: strictly deterministic already at compile time, encode equations directly in code => correct by construction. Can serve as backend implementation of visual SD packages.
-
-\subsection{Discrete Event Simulation}
-pure functional DES easily possible with my developed synchronous messaging ABS
-DES in FP: we doing it in gintis study, 
-PDES, should be  conceptually easil possible using STM, optimistic approach should be conceptually easier to implement due to persistent data-structures and controlled side-effects
- 
-\subsection{Recursive Simulation}
-Inspired by \cite{gilmer_recursive_2000}, add ideas about recursive simulation described in 1st year report and "paper". functional programming maps naturally here due to its inherently recursive nature and controlled side-effects which makes it easier to construct correct recursive simulations.
-recursive simulation should be conceptually easier to implememt and more likely to be correct due to recursive Nature of haskell itself, lack of sideeffeccts and mutable data
-
-\subsection{Multi Agent Systems}
-The fields of Multi Agent Systems (MAS) and ABS are closely related where ABS has drawn much inspiration from MAS \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is more on technical details, implementing a system of interacting intelligent agents within a highly complex environment with the focus on solving AI problems.
-
-Because in both fields, the concept of interacting agents is of fundamental importance, we expect our research also to be applicable in parts to the field of MAS. Especially the work on dependent types should be very useful there because MAS is very interested in correctness, verification and formally reasoning about a system and their agents, to show that a system follows a formal specifications.
-
-\section{Peers Framework}
-TODO: discusses if and how peers object-oriented agent-based modelling framework can be applied to our pure functional approach. TODO: i need to re-read peers framework specifications / paper from the simulation bible book.
-Although peers framework uses UML and OO techniques to create an agent-based model, we realised from a short case-study with him that most of the framework can be directly applied to our pure functional approach as well, which is not a huge surprise, after all the framework is more a modelling guide than an implementation one. E.g. a class diagram identifies the main datastructures, their operations and relations, which can be expressed equally in our approach - though not that directly as in an oo language but at least the class diagram gives already a good outline and understanding of the required datafields and operations of the respective entities (e.g. agents, environment, actors,...). A state diagram expresses internal states of e.g. an agent, which we discussed how to do in both our time- and even-driven approach. A sequence diagram e.g. expresses the (synchronous) interactions between agents or with their environment, something for which we developed techniques in our event-driven approach and we discuss in depth there. 
+\input{./tex/discussion/oopmodelling.tex}

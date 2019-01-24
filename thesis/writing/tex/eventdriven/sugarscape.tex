@@ -1,0 +1,40 @@
+\section{Sugarscape}
+One of the first models in Agent-Based Simulation was the seminal Sugarscape model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon observed in real-world societies. In this model a population of agents move around in a discrete 2D environment, where sugar grows, and interact with each other and the environment in many different ways. The main features of this model are (amongst others): searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology.
+
+In the ABS classification of \cite{macal_everything_2016}, the Sugarscape can be seen as an \textit{Adaptive ABMS}: agents are individual heterogeneous agents with diverse set characteristics; they have autonomic, dynamic, endogenously defined behaviour; interactions happen between other agents and the environment through observed states and behaviours of other agents and the state of the environment; and agents can change their behaviour during the simulation through observing their own state, learning and populations can adjust their composition.
+
+The full specification of the Sugarscape model itself fills a small book of about 200 pages so we will only give a very brief overview of the model in terms of actions which happen. Generally, the model is stepped in discrete, natural number time-steps, where in each step the following actions happens:
+
+\begin{enumerate}
+	\item The agent ages by 1 tick. An agent might have a maximum age and when reached will result in the removal of the agent (see below).
+	
+	\item Shuffle all agents and process them sequentially. The reason why the agents are shuffled is to even out the odds of being scheduled at a specific position - it is equally probable of being scheduled in any position. In other words: \textit{run the agents sequentially but make them statistically behave in parallel}. Every agent executes the following actions, where agents executed after in the same tick, can already see the changes and interactions with preceding agents:
+	
+	\begin{enumerate}
+		\item Move to the nearest unoccupied site in sight with highest resource. In case of combat also sites occupied with agents from a different tribe are potential targets. Harvest all the resources on the site and in case of combat also reap the enemies resources or gather some combat reward.
+
+		\item Apply the agents' metabolism. Each agent needs to consume a given number of resources in each tick to satisfy its metabolism. The gathered resources can be stocked up during the harvesting process but if the agent does not have enough resources to satisfy its metabolism, it will be removed from the simulation (see next step).
+		
+		\item Apply pollution of the environment through the agent. Depending on how much the agent has harvested during its movement and consumed in its metabolism process, it will leave a small fraction of pollution in the environment.
+		
+		\item Check if the agent has died from age or starved to death, in case it removes itself from the simulation and does not execute the next steps (the previous steps are executed independently from the age of the agent) TODO why?. Note that depending on the model configuration this could also lead to the re-spawning of a new agent which replaces the died agent.
+		
+		\item Engage with other neighbours in mating which involves multiple synchronous interaction-steps happening in the same tick: exchange of information and both agents agreeing on the mating action. If both agents agree to mate, the initiating agent spawns a new agent, with characteristics inherited from both parents.
+		
+		\item Engage in the cultural process where cultural tags are picked up from other agents and passed on to other agents. This action is a one-way interaction where the neighbours do not reply synchronously.
+		
+		\item Engage in trading with neighbours where the initiating agent offers a given resource (sugar) in exchange for another resource (spice). The agent asks every neighbour and a trade will transact if it makes both agents better off. This action involves multiple synchronous interaction-steps within the same tick because of exchange of information and agreeing on the final transaction.
+		
+		\item Engage in lending and borrowing where the agent offers loans to neighbours. This action also involves multiple synchronous interaction-steps within the same tick because of exchange of information and agreeing on the final transaction.
+		
+		\item Engage in disease processes where the agent passes on diseases it has to other neighbour agents. This action is a one-way interaction where the neighbours do not reply synchronously.
+	\end{enumerate}
+		
+	\item Run the environment which consists of a NxN discrete grid
+		\begin{enumerate}
+			\item Regrow resources on each site according to the model configuration: either with a given rate per tick or immediately. Depending on whether seasons are enabled, the regrowing rate varies in different sections of the environment.
+			\item Apply diffusion of pollution where the pollution generated by the agents spread slowly evenly across the whole environment.
+		\end{enumerate}
+\end{enumerate}
+
+Note that depending on the configuration of the simulation, some actions of the agent might be skipped as nearly all actions can be turned on or off e.g. pollution, dying from age, mating, trading, lending, diseases.

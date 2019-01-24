@@ -1,0 +1,32 @@
+\section{Verification in ABS}
+General there are the following basic verification \& validation requirements to ABS \cite{robinson_simulation:_2014}, which all can be addressed in our \textit{pure} functional approach as described in the paper in Appendix \ref{app:pfe}:
+
+\begin{itemize}
+	%\item Modelling progress of time - achieved using functional reactive programming (FRP)
+	%\item Modelling variability - achieved using FRP
+	\item Fixing random number streams to allow simulations to be repeated under same conditions - ensured by \textit{pure} functional programming and Random Monads
+	\item Rely only on past - guaranteed with \textit{Arrowized} FRP
+	\item Bugs due to implicitly mutable state - reduced using pure functional programming
+	\item Ruling out external sources of non-determinism / randomness - ensured by \textit{pure} functional programming
+	\item Deterministic time-delta - ensured by \textit{pure} functional programming
+	\item Repeated runs lead to same dynamics - ensured by \textit{pure} functional programming
+\end{itemize}
+
+\begin{enumerate}
+	\item Run-Time robustness by compile-time guarantees - by expressing stronger guarantees already at compile-time we can restrict the classes of bugs which occur at run-time by a substantial amount due to Haskell's strong and static type system.  This implies the lack of dynamic types and dynamic casts \footnote{Note that there exist casts between different numerical types but they are all safe and can never lead to errors at run-time.} which removes a substantial source of bugs.  Note that we can still have run-time bugs in Haskell when our functions are partial.
+	\item Purity - By being explicit and polymorphic in the types about side-effects and the ability to handle side-effects explicitly in a controlled way allows to rule out non-deterministic side-effects which guarantees reproducibility due to guaranteed same initial conditions and deterministic computation. Also by being explicit about side-effects e.g. Random-Numbers and State makes it easier to verify and test.
+	\item Explicit Data-Flow and Immutable Data - All data must be explicitly passed to functions thus we can rule out implicit data-dependencies because we are excluding IO. This makes reasoning of data-dependencies and data-flow much easier as compared to traditional object-oriented approaches which utilize pointers or references.
+	\item Declarative - describing \textit{what} a system is, instead of \textit{how} (imperative) it works. In this way it should be easier to reason about a system and its (expected) behaviour because it is more natural to reason about the behaviour of a system instead of thinking of abstract operational details.
+	\item Concurrency and parallelism - due to its pure and 'stateless' nature, functional programming is extremely well suited for massively large-scale applications as it allows adding parallelism without any side-effects and provides very powerful and convenient facilities for concurrent programming. The paper of (TODO: cite my own paper on STM) explores the use Haskell for concurrent and parallel ABS in a deeper way.
+\end{enumerate}
+
+TODO: haskell-titan
+TODO: Testing and Debugging Functional Reactive Programming \cite{perez_testing_2017}
+
+Static type system eliminates a large number run-time bugs.
+
+TODO: can we apply equational reasoning? Can we (informally) reason about various properties e.g. termination?
+
+Follow unit-testing of the whole simulation as prototyped for towards paper.
+
+in this we explore something new: property-based testing in ABS

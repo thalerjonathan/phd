@@ -4824,8 +4824,8 @@ The simulation was translated into the Netlogo language by Iain Weaver as a summ
 	file = {arXiv\:1710.09756 PDF:/home/io.nathan/Zotero/storage/6334NGQZ/Bernardy et al. - 2017 - Linear Haskell practical linearity in a higher-or.pdf:application/pdf;arXiv.org Snapshot:/home/io.nathan/Zotero/storage/ZAHXMBHM/1710.html:text/html}
 }
 
-@misc{de_vries_well-typed_2019,
-	title = {Well-{Typed}},
+@misc{de_vries_-depth_2019,
+	title = {An in-depth look at quickcheck-state-machine},
 	url = {http://www.well-typed.com/blog/2019/01/qsm-in-depth/},
 	abstract = {Stateful APIs are everywhere: file systems, databases, widget libraries, the list goes on. Automated testing of such APIs requires generating sequences of API calls, and when we find a failing test, ideally shrinking such a sequence to a minimal test case. Neither the generation nor the shrinking of such sequences is trivial. After all, it is the very nature of stateful systems that later calls may depend on earlier calls: we can only add rows to a database table after we create it, we can only write to a file after we open it, etc. Such dependencies need to be tracked carefully. Moreover, in order to verify the responses we get back from the system, the test needs to maintain some kind of internal representation of what it thinks the internal state of the system is: when we read from a file, we need to know what was in the file in order to be able to verify if the response was correct or not.
 
@@ -4835,7 +4835,7 @@ We will not show the full development in this blog post, and instead focus on ex
 available for download. We will assume version 0.6 of quickcheck-state-machine, which was recently released. If you are using an older version, it is recommended to upgrade, since the newer version includes some important bug fixes, especially in the shrinker.},
 	language = {English},
 	urldate = {2019-02-24},
-	journal = {An in-depth look at quickcheck-state-machine},
+	journal = {Well-Typed},
 	author = {De Vries, Edsko},
 	month = jan,
 	year = {2019}

@@ -1,18 +1,95 @@
-\section{Implementation}
+\section{Implementation Concepts}
 \label{sec:eventdriven_implementation}
 
-We follow the same approach as in the time-driven approach of Chapter \ref{sec:timedriven_monadic} and use an MSF to define our agent. The reason for this is that we are much more compelled to use monads in event-driven ABS due to the following: 
-- drawing random numbers (same as in time-driven) => Rand Monad
-- accessing a MUTABLE environment, different from time-driven because we can also change it, not only read it => State monad
-- accessing a MUTABLE local agent-state, also different from time-driven where the state was implicit => State Monad
-- accessing read-only properties of the agent (its id) and the model configuration => Reader Monad
-- sending messages to other agents, completely different from time-driven where no direct agent-interactions in form of messages where possible => Writer Monad
+In the next sections we derive implementation concepts of pure functional event-driven ABS. Due to the complexity of the Sugarscape model we don't provide a full implementation but only present concepts derived from our implementation and present small parts of the Sugarscape implementation when necessary.
 
-Further the interface of the agent changes now substantially with very different inputs and outputs
-- input is the current event
-- output is the agentout (TODO: discuss)
+\subsection{Agent Representation}
+We follow the same approach as in the time-driven approach of Chapter \ref{sec:timedriven_monadic} and use an MSF to define our agent. The reason for this is that we are much more compelled to use monads in event-driven ABS due to the following requirements:
 
+\begin{itemize}
+	\item As in the time-driven approach, we need to be able to random numbers within our agents, for which we will make use of the  \textit{Rand} monad.
+	
+	\item In the Sugarscape, the agents act on an environment which they both read and write, which is different from time-driven. We will make use of the \textit{State} monad for this functionality. 
+	
+	\item The agents state in the Sugarscape model is much more complex than in the time-driven example where it was implicit. In this approach the agents have an explicit data-structure which they can mutate whenever they are acting. We will make use of the \textit{State} monad for this functionality.
+	
+	\item For synchronous and one-way agent-interactions, agents send messages to other agents. This is completely different from the time-driven approach where no direct agent-interactions in form of messages where possible because agents were all acting at the same time and synchronous agent-interactions would violate that principle. We will make use of the \textit{Writer} monad for this functionality.
+
+	\item Due to the agent-interaction through messaging we need a clearly defined concept of agent identity, which is immutable for each agent and fixed at agent-creation time. At the same time we also need to generate new agent identities e.g. when an agent needs to create a new born from mating action. Further we need to access the read-only model configuration which defines if e.g. trading is turned on or off. We will make use of the \textit{Reader} and \textit{State} monad for this functionality.
+\end{itemize}
+
+The interface of an agent changes now substantially with very different inputs and outputs due to the fundamental different model and ABS type. Because we are dealing with events now, it makes very much sense to define the input-type of an agent as the event-type: this indicates that an agent always needs an event to run, to which it will react. As output we need a much richer structure than simply the current state the agent is in as in the time-driven approach: we need to be able to communicate to the simulation kernel whether the agent should be removed from the simulation, what new agents this agent wants to create and what messages it sends to other agents. Additionally we need to communicate the observable properties of an agent to the simulation kernel for visualisation purposes. We will show below how to conveniently construct such an output in a monadic way through the \textit{Writer} monad. Note that many additional inputs and outputs are implicitly covered by the monadic context as will be shown below, e.g. we could also pass the environment as input and returning it as output instead providing it through a State monad but the latter is much more convenient to program with.
+
+\subsubsection{A generic MSF for event-driven ABS}
+We start with defining the basic types for a general event-driven agent. Besides the obligatory Time and $\Delta t$ which are defined in this case as Ints we define an \textit{AgentId} as Integer for uniquely identifying agents in the process of messaging. Further an event type is defined which is either a Tick with a given $\Delta t$ or a \textit{DomainEvent} from a given sender with the given event where the type of the actual \textit{DomainEvent} is generic. As already mentioned we need a way of generating new agent identities which happens through the \textit{ABSState} data structure which holds the next agent-id plus the current virtual simulation time so that agents don't need to keep track of it themselves. Now we can define the initial \textit{AgentT} monad-transformer for which we start with a \textit{StateT} and the previously defined \textit{ABSState}. 
+
+Finally we define the type of the Agent MSF as a simple monadic stream function (MSF) with the monadic context \textit{AgentT} and the \textit{ABSEvent} as input. The output is the previously mentioned structure and the observable properties of the agent. The Agent MSF is parametrised by \textit{m} indicating the type of (additional) monadic context, \textit{e} indicating the type of the \textit{DomainEvent} and \textit{o} indicating the type of the observable properties.
+
+\begin{HaskellCode}
+type Time  = Int
+type DTime = Int
+
+type AgentId = Integer
+
+data ABSEvent e = Tick DTime | DomainEvent AgentId e
+                
+data ABSState = ABSState
+  { absNextId :: AgentId -- holds the next agent-id 
+  , absTime   :: Time
+  }
+
+type AgentT m = StateT ABSState m
+type AgentMSF m e o = MSF (AgentT m) (ABSEvent e) (AgentOut m e o, o)
+
+data AgentDef m e o = AgentDef
+  { adId      :: AgentId
+  , adSf      :: AgentMSF m e o
+  , adInitObs :: o
+  }
+
+data AgentOut m e o = AgentOut 
+  { aoKill   :: Bool
+  , aoCreate :: [AgentDef m e o]
+  , aoEvents :: [(AgentId, e)]   -- event receiver, (DomainEvent) event
+  }
+\end{HaskellCode}
+
+What is striking, and underlines the even-driven approach, is that we are using an MSF and not a monadic SF (Streamfunction) from Bearriver as we did in Chapter \ref{sec:timedriven_monadic} of the time-driven approach. This means that there is no inherent notion of a $\Delta t$ available to the agent which is precisely what we need in event-driven ABS. Time only advances through specific events, in this case it is the \textit{Tick DTime} event.
+
+\begin{HaskellCode}
+type SugAgentMonad g  = StateT SugEnvironment (Rand g)
+type SugAgentMonadT g = AgentT (SugAgentMonad g)
+
+type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
+type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
+
+type AgentLocalMonad g = WriterT (SugAgentOut g) (ReaderT (SugarScapeScenario, AgentId) (StateT SugAgentState (SugAgentMonadT g)))
+type EventHandler g    = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
+
+agentMsf :: RandomGen g => SugarScapeAgent g
+agentMsf params aid s0 = feedback s0 (proc (evt, s) -> do
+  -- WriterT for the AgentOut, the agent never reads from it!
+  (s', (ao', _)) <- runStateS (runReaderS (runWriterS generalEventHandler)) -< (s, ((params, aid), evt))
+  let obs = sugObservableFromState s
+  returnA -< ((ao', obs), s'))
+  
+generalEventHandler :: RandomGen g => EventHandler g
+generalEventHandler = ...
+\end{HaskellCode}
+
+\subsection{Handling of Events}
+
+\subsection{Environment Representation}
+
+\subsection{Synchronous Agent-Interactions}
+explain switching into different continuations (and back) in case of a synchronous multi-step agent-interaction
+
+% direct MSF call, Problem is recursive nature. maybe try it with gintis Implementation. I just learned that what i want to achieve is actually: https://en.wikipedia.org/wiki/This_(computer_programming)#Open_recursion AND OPEN RECURSION IS PRETTY BAD
+
+
+\subsection{The Simulation kernel}
 Also the way the simulation kernel iterates the simulation is very different
 1. schedule tick event to every agent in random order
 2. new events of agent are appeneded at the front of the message-list
 3. process the message-list in order front-to-back => could result in infinite loop
+

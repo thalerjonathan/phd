@@ -1,0 +1,18 @@
+\section{Implementation}
+\label{sec:eventdriven_implementation}
+
+We follow the same approach as in the time-driven approach of Chapter \ref{sec:timedriven_monadic} and use an MSF to define our agent. The reason for this is that we are much more compelled to use monads in event-driven ABS due to the following: 
+- drawing random numbers (same as in time-driven) => Rand Monad
+- accessing a MUTABLE environment, different from time-driven because we can also change it, not only read it => State monad
+- accessing a MUTABLE local agent-state, also different from time-driven where the state was implicit => State Monad
+- accessing read-only properties of the agent (its id) and the model configuration => Reader Monad
+- sending messages to other agents, completely different from time-driven where no direct agent-interactions in form of messages where possible => Writer Monad
+
+Further the interface of the agent changes now substantially with very different inputs and outputs
+- input is the current event
+- output is the agentout (TODO: discuss)
+
+Also the way the simulation kernel iterates the simulation is very different
+1. schedule tick event to every agent in random order
+2. new events of agent are appeneded at the front of the message-list
+3. process the message-list in order front-to-back => could result in infinite loop

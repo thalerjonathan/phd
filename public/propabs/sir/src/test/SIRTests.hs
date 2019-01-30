@@ -138,9 +138,9 @@ prop_avg_duration :: RandomGen g
                   -> Bool
 prop_avg_duration g0 as = diff <= eps
   where
-    repls = 10000 -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
-    eps   = 0.5   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on ratio between dt and illnessduration?
-    dt    = 0.25   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
+    repls = 10000 
+    eps   = 0.5 
+    dt    = 0.25
     diff  = testInfected
 
     testInfected :: Double   -- ^ difference to target
@@ -173,9 +173,9 @@ prop_recovery_rate :: RandomGen g
 prop_recovery_rate g0 = trace ("target = " ++ show target ++ " actual = " ++ show actual) diff <= eps
   where
     inf   = 10000 
-    repls = 100 :: Int -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
-    eps   = 0.5   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on ratio between dt and illnessduration?
-    dt    = 0.1   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
+    repls = 100 :: Int 
+    eps   = 0.5
+    dt    = 0.1
     
     actuals = testInfected g0 repls []
     avgActuals = fromIntegral (sum actuals) / fromIntegral (length actuals)

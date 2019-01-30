@@ -16,7 +16,7 @@ Our goal was first to develop techniques and concepts to show \textit{how} to en
 \end{itemize}
 
 \subsection{A Functional View}
-Due to the fundamentally different approaches of FP, an ABS needs to be implemented fundamentally different, compared to established OOP approaches. We face the following challenges:
+Due to the fundamentally different approaches of FP, an ABS needs to be implemented fundamentally differently, compared to established OOP approaches. We face the following challenges:
 
 \begin{enumerate}
 	\item How can we represent an Agent, its local state and its interface?
@@ -56,7 +56,7 @@ main :: IO ()
 main = runCont 100 (adder 0)
 \end{HaskellCode}
 
-We implement an agent as a continuation: this lets us encapsulate arbitrary complex agent-state which is only visible and accessible from within the continuation - the agent has exclusive access to it. This allows also to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state-machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
+We implement an agent as a continuation: this lets us encapsulate arbitrary complex agent-state which is only visible and accessible from within the continuation - the agent has exclusive access to it. Further, with a continuation it becomes possible to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state-machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
 
 The fact that we design an agent as a function, raises the question of the interface of it: what are the inputs and the output? Note that the type of the function has to stay the same (type \textit{a} in the example above) although we might switch into different continuations - our interface needs to capture all possible cases of behaviour. The way we define the interface is strongly determined by the direct agent-agent interaction. In case of Sugarscape, agents need to be able to conduct two types of direct agent-agent interaction: 1. one-directional, where agent A sends a message to agent B without requiring agent B to synchronously reply to that message e.g. repaying a loan or inheriting money to children; 2. bi-directional, where two agents negotiate over multiple steps e.g. accepting a trade, mating or lending. Thus it seems reasonable to define as input type an enumeration (algebraic data-type in Haskell, see example below) which defines all possible incoming messages the agent can handle. The agents continuation is then called every time the agent receives a message and can process it, update its local state and might change its behaviour.
 
@@ -83,7 +83,7 @@ sugarscapeAgent asInit = AgentCont (\ (sender, msg) ->
 \end{HaskellCode}
 
 \subsubsection{Stepping the simulation}
-The simulation kernel keeps track of the existing agents and the message-queue and processes the queue one element at a time. The new messages of an agent are inserted \textit{at the front} of the queue, ensuring that synchronous bi-directional messages are possible without violating resources constraints. The Sugarscape model specifies that in each tick or time-step all agents run in random order and do their thing. Thus to start the agent-behaviour in a new time-step, the core inserts a Tick message to each agent in random order which then results in them being executed and emitting new messages. The current time-step has finished when all messages in the queue have been processed. See algorithm \ref{alg:stepping_simulation} for the pseudo-code for the simulation stepping.
+The simulation kernel keeps track of the existing agents and the message-queue and processes the queue one element at a time. The new messages of an agent are inserted \textit{at the front} of the queue, ensuring that synchronous bi-directional messages are possible without violating resources constraints. The Sugarscape model specifies that in each tick all agents run in random order, thus to start the agent-behaviour in a new time-step, the core inserts a \textit{Tick} message to each agent in random order which then results in them being executed and emitting new messages. The current time-step has finished when all messages in the queue have been processed. See algorithm \ref{alg:stepping_simulation} for the pseudo-code for the simulation stepping.
 
 \begin{algorithm}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
@@ -106,4 +106,4 @@ return agentObservables\;
 \label{alg:stepping_simulation}
 
 \subsubsection{Environment and agent-environment interaction}
-Obviously the agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well. All of this low level continuation plumbing exists already as a high quality library called Dunai, based on research on Functional Reactive Programming  \cite{hudak_arrows_2003} and Monadic Stream Functions \cite{perez_functional_2016,perez_extensible_2017}.
+The agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well. All of this low level continuation plumbing exists already as a high quality library called Dunai, based on research on Functional Reactive Programming  \cite{hudak_arrows_2003} and Monadic Stream Functions \cite{perez_functional_2016,perez_extensible_2017}.

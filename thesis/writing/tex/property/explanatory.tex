@@ -68,3 +68,25 @@ All these invariants can be guaranteed when reasoning about the code. An additio
 %Lets start with looking at the recovered behaviour as it is the simplest one. We then continue with the infected behaviour and end with the susceptible behaviour as it is the most complex one.
 
 We will only look at the recovered behaviour as it is the simplest one. We leave the susceptible and infected behaviours for further research / the final thesis because the conceptual idea becomes clear from looking at the recovered agent.
+
+%\subsection{Infected Behaviour}
+%An infected agent will \textit{always} recover after some finite time, which is \textit{on average} after $\delta$ time-units. Note that this property involves stochastics too, so to test this property we run a large number of infected agents e.g. $N = 10.000$ (all with different random-number seeds) until they recover, record the time of each agents recovery and then average over all recovery times. To check whether this test has passed we compare the average recovery times to $\delta$ and if they lie within some small $\epsilon$ then we accept the test as passed (note again that we could use a t-test for better stochastic robustness but this is not the point of this paper).
+%
+%TODO: clearly state the property we test
+%
+%TODO: produce some pseudo-code of how the property-test conceptually works
+%
+%in the infected agent test we check if the average duration is as specified. does this resemble the recovery rate? or in other words: can we somehow test the recovery rate?
+%durationsAvg = sum durations / fromIntegral (length durations)
+%
+%We use property-testing with QuickCheck in this case as well to generate the set of other agents as input for the infected agents. Strictly speaking this would not be necessary as an infected agent never makes contact with other agents and simply ignores them - we could as well just feed in an empty list. We opted for using QuickCheck for the following reasons:
+%
+%\begin{itemize}
+%	\item We wanted to stick to the interface specification of the agent-implementation as close as possible which asks to pass the states of all agents as input.
+%	\item We shouldn't make any assumptions about the actual implementation and if it REALLY ignores the other agents, so we strictly stick to the interface which requires us to input the states of all the other agents.
+%	\item The set of other agents is ignored when determining whether the test has failed or not which indicates by construction that the behaviour of an infected agent does not depend on other agents.
+%	\item We are not just running a single replication over 10.000 agents but 100 of them which should give black-box verification more strength.
+%\end{itemize}
+%
+%\subsection{Recovered Behaviour}
+%A recovered agent will stay recovered \textit{forever}. Obviously we cannot write a property-based test that truly verifies that because it had to run in fact \textit{forever}. In this case we need to resort to white-box verification and look directly at the code and reason whether this property holds true.

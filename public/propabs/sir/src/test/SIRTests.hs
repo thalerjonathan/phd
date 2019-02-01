@@ -96,14 +96,14 @@ prop_infection_rate g0 as
     (rngs, _) = rngSplits g0 reps []
     irs = map infectionRateRun rngs
 
-    -- perform a 2-sided test because we test the rates for equality
-    confidence = 0.8
-    tTestRet   = tTest "infection rate" irs targetRate (1 - confidence) EQ
+    -- perform a 1-sided test because we test the difference of the rates
+    confidence = 0.9
+    tTestRet   = tTest "infection rate" irs 0.05 (1 - confidence) LT
 
     infectionRateRun :: RandomGen g
                      => g
                      -> Double
-    infectionRateRun gRun = infRatio
+    infectionRateRun gRun = abs (targetRate - infRatio)
       where
         repls    = 10000
         dt       = 0.01

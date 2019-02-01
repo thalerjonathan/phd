@@ -3,6 +3,6 @@
 
 We found property-based testing particularly well suited for ABS firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and often exploratory nature of ABS. 
 
-Although propert-based testing has its origins in Haskell, there exist now libraries for it in other languages e.g. Java, Pyhton, C++ as well and we hope that our research sparked an interest in applying property-based testing to the established object-oriented languages in ABS as well.
+Although property-based testing has its origins in Haskell, similar libraries have been developed for other languages e.g. Java, Pyhton, C++ as well and we hope that our research has sparked an interest in applying property-based testing to the established object-oriented languages in ABS as well.
 
 We didn't look into testing full agent and interacting agent behaviour using property-tests due to its complexity which would justify a whole paper alone. Due to its inherent stateful nature with complex dependencies between valid states and agents actions we need a more sophisticated approach as outlined in \cite{de_vries_-depth_2019}, where the authors show how to build a meta-model and commands which allow to specify properties and valid state-transitions which can be generated automatically. We leave this for further research.

@@ -1,1 +1,4 @@
 \section{Drawbacks}
+
+\subsection{Space-Leaks}
+discuss the problem (and potential) of lazy evaluation for ABS: can under some circumstances really increase performance when some stuff is not evaluated (see STM study) but mostly it causes problems by piling up unevaluated thunks leading to crazy memory usage which is a crucial problem in simulation. Using strict pragmas, annotations and data-structures solves the problem but is not trivial and involves carefully studying the code / getting it right from the beginning / and using the haskell profiling tools (which are fucking great at least).

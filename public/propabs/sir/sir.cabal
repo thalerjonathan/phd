@@ -81,7 +81,8 @@ Test-Suite sir-test
   type:                 exitcode-stdio-1.0
 
   other-modules:        SIRTests
-
+                      , StatsUtils
+                      
                       , SIR.SIR
                       , SIR.Utils
 
@@ -94,10 +95,12 @@ Test-Suite sir-test
                       , Yampa == 0.11.1
                       , MonadRandom
                       , random
+                      , statistics
                       , tasty
                       , tasty-hunit
                       , tasty-smallcheck
                       , tasty-quickcheck
+                      , vector
                       
   ghc-options:        -O2
                       -Wall 

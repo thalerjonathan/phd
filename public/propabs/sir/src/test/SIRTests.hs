@@ -12,6 +12,8 @@ import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
+import SIR.Utils
+import StatsUtils
 
 import Debug.Trace
 
@@ -39,9 +41,9 @@ test_agent_behaviour_quickgroup :: RandomGen g
                                 -> TestTree
 test_agent_behaviour_quickgroup g
   = testGroup "agent behaviour"
-      [ QC.testProperty "infected behaviour = recovery rate" (prop_recovery_rate g) 
-      , QC.testProperty "susceptible behaviour = infection rate" (prop_infection_rate g)
-      , QC.testProperty "infected behaviour = average duration" (prop_avg_duration g)
+      [ QC.testProperty "susceptible behaviour = infection rate" (prop_infection_rate g)
+      --, QC.testProperty "infected behaviour = average duration" (prop_avg_duration g)
+      --, QC.testProperty "infected behaviour = recovery rate" (prop_recovery_rate g) 
       ]
 
 -- | Testing behaviour of susceptible agent
@@ -60,48 +62,62 @@ prop_infection_rate :: RandomGen g
                     => g 
                     -> [SIRState]
                     -> Bool
-prop_infection_rate g0 as = diff <= eps
+prop_infection_rate g0 as 
+    -- in case of nothing, there is no variance in the rate-samples and all are the same
+    -- thus we assume that it is equal the target-rate and simply take the first element
+    | isNothing tTestRet = head irs == targetRate
+    -- t-test resulted in Just
+    | otherwise = if fromJust tTestRet
+                    then True
+                    else trace ("as = " ++ show as ++ "\nirs = " ++ show irs ++ "\ntargetRate = " ++ show targetRate) False
   where
-    repls = 10000 -- TODO: how to select a 'correct' number of runs? conjecture: n -> infinity lets go the error (eps) to 0
-    eps   = 0.1   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on the ratio between dt and contact rate?
-    dt    = 0.125   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
-    diff  = testSusceptible
+    -- we have n other agents, each in one of the states
+    -- this means, that this susceptible agent will pick
+    -- on average an Infected with a probability of 1/n
+    otherAgentsCount  = length as
+    infOtherAgents    = length $ filter (Infected==) as
+    infToNonInfRatio
+      -- prevent division by zero
+      = if 0 == otherAgentsCount 
+          then 0
+          else fromIntegral infOtherAgents / fromIntegral otherAgentsCount
 
+    -- multiply with contactRate because we make on 
+    -- average contact with contactRate other agents 
+    -- per time-unit (we are running the agent for
+    -- 1.0 time-unit)
+    -- also multiply with ratio of infected to non-infected
+    --   NOTE: this is actually the recovery-rate formula from SD!
     infectivity = paramInfectivity
     contactRate = paramContactRate
+    targetRate  = infectivity * contactRate * infToNonInfRatio
 
-    testSusceptible :: Double -- ^ returns difference to target
-    testSusceptible = abs (target - countFract)
+    reps = 10
+    (rngs, _) = rngSplits g0 reps []
+    irs = map infectionRateRun rngs
+
+    -- perform a 2-sided test because we test the rates for equality
+    confidence = 0.60
+    tTestRet   = tTest "infection rate" irs targetRate (1 - confidence) EQ
+
+    infectionRateRun :: RandomGen g
+                     => g
+                     -> Double
+    infectionRateRun gRun = infRatio
       where
-        -- we have n other agents, each in one of the states
-        -- this means, that this susceptible agent will pick
-        -- on average an Infected with a probability of 1/n
-        otherAgentsCount  = length as
-        infOtherAgents    = length $ filter (Infected==) as
-        infToNonInfRatio
-          -- prevent division by zero
-          = if 0 == otherAgentsCount 
-              then 0
-              else fromIntegral infOtherAgents / fromIntegral otherAgentsCount
-
-        countTotal = testSusceptibleAux g0 repls 0
-        countFract = fromIntegral countTotal / fromIntegral repls
-        -- multiply with contactRate because we make on 
-        -- average contact with contactRate other agents 
-        -- per time-unit (we are running the agent for
-        -- 1.0 time-unit)
-        -- also multiply with ratio of infected to non-infected
-        --   NOTE: this is actually the recovery-rate formula from SD!
-        target = infectivity * contactRate * infToNonInfRatio
-
-        testSusceptibleAux :: RandomGen g 
-                          => g
-                          -> Int
-                          -> Int
-                          -> Int
-        testSusceptibleAux _ 0 countInf = countInf
-        testSusceptibleAux g n countInf 
-            = testSusceptibleAux g'' (n-1) countInf'
+        repls    = 10000
+        dt       = 0.125
+        inf      = infectionRateRunAux gRun repls 0
+        infRatio = fromIntegral inf / fromIntegral repls
+        
+        infectionRateRunAux :: RandomGen g 
+                            => g
+                            -> Int
+                            -> Int
+                            -> Int
+        infectionRateRunAux _ 0 countInf = countInf
+        infectionRateRunAux g n countInf 
+            = infectionRateRunAux g'' (n-1) countInf'
           where
             (g', g'')   = split g
 
@@ -132,11 +148,11 @@ testSusceptibleSF otherAgents g = proc _ -> do
 --   agents until their recovery
 --   should be within an epsilon of illnessDuration
 -- NOTE: this is black-box verification
-prop_avg_duration :: RandomGen g 
+_prop_avg_duration :: RandomGen g 
                   => g
                   -> [SIRState]
                   -> Bool
-prop_avg_duration g0 as = diff <= eps
+_prop_avg_duration g0 as = diff <= eps
   where
     repls = 10000 
     eps   = 0.5 
@@ -167,10 +183,10 @@ prop_avg_duration g0 as = diff <= eps
             (Event t)    = fromJust $ find isEvent evts
             acc'         = t : acc
 
-prop_recovery_rate :: RandomGen g 
+_prop_recovery_rate :: RandomGen g 
                    => g
                    -> Bool
-prop_recovery_rate g0 = trace ("target = " ++ show target ++ " actual = " ++ show actual) diff <= eps
+_prop_recovery_rate g0 = trace ("target = " ++ show target ++ " actual = " ++ show actual) diff <= eps
   where
     inf   = 10000 
     repls = 100 :: Int 

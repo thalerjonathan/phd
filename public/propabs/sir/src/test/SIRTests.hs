@@ -97,7 +97,7 @@ prop_infection_rate g0 as
     irs = map infectionRateRun rngs
 
     -- perform a 2-sided test because we test the rates for equality
-    confidence = 0.60
+    confidence = 0.8
     tTestRet   = tTest "infection rate" irs targetRate (1 - confidence) EQ
 
     infectionRateRun :: RandomGen g
@@ -106,7 +106,7 @@ prop_infection_rate g0 as
     infectionRateRun gRun = infRatio
       where
         repls    = 10000
-        dt       = 0.125
+        dt       = 0.01
         inf      = infectionRateRunAux gRun repls 0
         infRatio = fromIntegral inf / fromIntegral repls
         

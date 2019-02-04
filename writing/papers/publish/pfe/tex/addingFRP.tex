@@ -197,15 +197,6 @@ By following the FRP approach we assume a continuous flow of time, which means t
 
 For tackling this issue we have two options. The first one is to use a smaller $\Delta t$ as can be seen in \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The other option is to implement super-sampling and apply it to \textit{occasionally}, which would allow us to run the whole simulation with $\Delta t = 1.0$ and only sample the \textit{occasionally} function with a much higher frequency.
 
-% NOTE: ran out of space
-%An approach to super-sampling would be to introduce a new combinator to Yampa which allows us to super-sample other signal functions. 
-%
-%\begin{HaskellCode}
-%superSampling :: Int -> SF a b -> SF a [b]
-%\end{HaskellCode}
-%
-%It evaluates the \textit{SF} argument for \textit{n} times, each with $\Delta t = \frac{\Delta t}{n}$ and the same input argument \textit{a} for all \textit{n} evaluations. At time 0 no super-sampling is performed and just a single output of the \textit{SF} argument is calculated. A list of \textit{b} is returned with length of \textit{n} containing the result of the \textit{n} evaluations of the \textit{SF} argument. If 0 or less super samples are requested exactly one is calculated. We could then wrap the occasionally function which would then generate a list of events. We have investigated super-sampling more in-depth but have to omit this due to lack of space.
-
 \subsubsection{Discussion}
 We can conclude that our first step already introduced most of the fundamental concepts of ABS:
 \begin{itemize}

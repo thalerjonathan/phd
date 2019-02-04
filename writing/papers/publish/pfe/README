@@ -1,0 +1,1 @@
+To build the pdf, use the build script provided by build.hs. Note that the pdf requires 'pygments' for pretty-printing the code snippets.

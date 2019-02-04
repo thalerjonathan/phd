@@ -77,7 +77,7 @@ To create an arrow, the \textit{proc} keyword is used, which binds a variable af
 \subsection{Monadic Stream Functions}
 \label{sec:back_msf}
 
-Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function, which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016, perez_extensible_2017}:
+Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function, which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016}:
 \begin{HaskellCode}
 newtype MSF m a b = MSF {unMSF :: MSF m a b -> a -> m (b, MSF m a b)}
 \end{HaskellCode}

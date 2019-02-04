@@ -119,25 +119,23 @@ susceptibleAgent :: RandomGen g
                  -> SIRAgent
 susceptibleAgent contactRate infectivity illnessDuration g0 = 
     switch 
-      -- delay the switching by 1 step, otherwise could
-      -- make the transition from Susceptible to Recovered within time-step
-      --(susceptible g0 >>> iPre (Susceptible, NoEvent))
-      (susceptible g0)
-      (const $ infectedAgent illnessDuration g0)
+      susceptible
+      (const $ infectedAgent illnessDuration gInf)
   where
-    susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())
-    susceptible g = proc as -> do
-      makeContact <- occasionally g (1 / contactRate) () -< ()
+    -- avoid correlation of RNG-streams
+    (gOcc, g1)    = split g0
+    (gCont, g2)   = split g1
+    (gBool, gInf) = split g2
 
-      -- NOTE: strangely if we are not splitting all if-then-else into
-      -- separate but only a single one, then it seems not to work,
-      -- dunno why
+    susceptible :: SF [SIRState] (SIRState, Event ())
+    susceptible = proc as -> do
+      makeContact <- occasionally gOcc (1 / contactRate) () -< ()
       if isEvent makeContact
         then (do
-          a <- drawRandomElemSFSafe g -< as
+          a <- drawRandomElemSFSafe gCont -< as
           case a of
             Just Infected -> do
-              i <- randomBoolSF g -< infectivity
+              i <- randomBoolSF gBool -< infectivity
               if i
                 then returnA -< (Infected, Event ())
                 else returnA -< (Susceptible, NoEvent)
@@ -149,10 +147,7 @@ infectedAgent :: RandomGen g
               -> g 
               -> SIRAgent
 infectedAgent illnessDuration g = 
-    switch 
-      -- delay the switching by 1 step, otherwise could
-      -- make the transition from Susceptible to Recovered within time-step
-      --(infected >>> iPre (Infected, NoEvent))
+    switch
       infected
       (const recoveredAgent)
   where
@@ -163,7 +158,7 @@ infectedAgent illnessDuration g =
       returnA -< (a, recEvt)
 
 recoveredAgent :: SIRAgent
-recoveredAgent = arr (const Recovered)
+recoveredAgent = constant Recovered
 
 randomBoolSF :: RandomGen g => g -> SF Double Bool
 randomBoolSF g = proc p -> do
@@ -194,7 +189,7 @@ defaultSIRCtx :: RandomGen g
               => g
               -> SIRSimCtx g 
 defaultSIRCtx g = SIRSimCtx {
-    syCtxTimeLimit   = 200
+    syCtxTimeLimit   = 150
   , syCtxTimeDelta   = 0.01
 
   , syCtxRng         = g

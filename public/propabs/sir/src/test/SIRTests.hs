@@ -98,15 +98,15 @@ prop_infection_rate g0 as
 
     confidence = 0.95
     -- perform a 1-sided test because we test the difference of the rates
-    tTestRet   = tTest "infection rate" irs 0.05 (1 - confidence) LT
+    -- tTestRet   = tTest "infection rate" irs 0.05 (1 - confidence) LT
     -- perform a 2-sided test because we test if the means are statistically equal
     -- put in other words: if the difference of the means is statistically insignificant
-    --tTestRet   = tTest "infection rate" irs targetRate (1 - confidence) EQ
+    tTestRet = tTest "infection rate" irs targetRate (1 - confidence) EQ
 
     infectionRateRun :: RandomGen g
                      => g
                      -> Double
-    infectionRateRun gRun = abs (targetRate - infRatio)
+    infectionRateRun gRun = infRatio -- abs (targetRate - infRatio)
       where
         repls    = 100
         dt       = 0.01

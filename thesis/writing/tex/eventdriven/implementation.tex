@@ -51,7 +51,7 @@ data AgentDef m e o = AgentDef
   }
 
 data AgentOut m e o = AgentOut 
-  { aoKill   :: Bool             -- True if this agent should be removed 
+  { aoKill   :: Any              -- True if this agent should be removed 
   , aoCreate :: [AgentDef m e o] -- a list of agents to create
   , aoEvents :: [(AgentId, e)]   -- a list of events (receiver, event)
   }

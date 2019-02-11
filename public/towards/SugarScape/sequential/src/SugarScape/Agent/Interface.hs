@@ -18,6 +18,7 @@ module SugarScape.Agent.Interface
   , isDeadAo
   ) where
 
+import Data.Monoid
 import Data.Tuple
 
 import Control.Monad.State.Strict
@@ -37,14 +38,14 @@ data AgentDef m e o = AgentDef
   }
 
 data AgentOut m e o = AgentOut 
-  { aoKill   :: Bool
+  { aoKill   :: Any
   , aoCreate :: [AgentDef m e o]
   , aoEvents :: [(AgentId, e)]   -- event receiver, (DomainEvent) event
   }
 
 instance Semigroup (AgentOut m e o) where
   (<>) = mergeAgentOut
-  
+
 -- NOTE: an AgentOut is a Monoid, this will be exploited with WriterT
 instance Monoid (AgentOut m e o) where
   mappend = mergeAgentOut
@@ -52,44 +53,36 @@ instance Monoid (AgentOut m e o) where
 
 mkAgentOut :: AgentOut m e o
 mkAgentOut = AgentOut 
-  { aoKill       = False
-  , aoCreate     = []
-  , aoEvents     = []
+  { aoKill   = Any False
+  , aoCreate = []
+  , aoEvents = []
   }
 
-mergeAgentOut :: AgentOut m e o
-              -> AgentOut m e o
-              -> AgentOut m e o
+mergeAgentOut :: AgentOut m e o -> AgentOut m e o -> AgentOut m e o
 mergeAgentOut ao0 ao1 = AgentOut {
-    aoKill   = aoKill ao0 || aoKill ao1
-  , aoCreate = aoCreate ao0 ++ aoCreate ao1 
-  , aoEvents = aoEvents ao0 ++ aoEvents ao1 -- important: respect ordering
+    aoKill   = aoKill ao0 <> aoKill ao1
+  , aoCreate = aoCreate ao0 <> aoCreate ao1 
+  , aoEvents = aoEvents ao0 <> aoEvents ao1
   }
 
 -- NOTE: all these functions are intended to be used through WriterT and thus
 -- construct a new AgentOut which will be merged using Monoid properties
-broadcastEventAo :: [AgentId]
-                 -> e
-                 -> AgentOut m e o
-broadcastEventAo rs e  = mkAgentOut { aoEvents = es } 
+broadcastEventAo :: [AgentId] -> e -> AgentOut m e o
+broadcastEventAo rs e = mkAgentOut { aoEvents = es } 
   where
     es = map (swap . (,) e) rs 
 
-sendEventsAo :: [(AgentId, e)]
-             -> AgentOut m e o
+sendEventsAo :: [(AgentId, e)] -> AgentOut m e o
 sendEventsAo es = mkAgentOut { aoEvents = es } 
   
-sendEventToAo :: AgentId
-              -> e
-              -> AgentOut m e o
+sendEventToAo :: AgentId -> e -> AgentOut m e o
 sendEventToAo receiver e = mkAgentOut { aoEvents = [(receiver, e)] } 
 
-newAgentAo :: AgentDef m e o
-           -> AgentOut m e o 
+newAgentAo :: AgentDef m e o -> AgentOut m e o 
 newAgentAo adef = mkAgentOut { aoCreate = [adef] }
 
 killAo :: AgentOut m e o 
-killAo = mkAgentOut { aoKill = True }
+killAo = mkAgentOut { aoKill = Any True }
 
 isDeadAo :: AgentOut m e o -> Bool
-isDeadAo = aoKill
+isDeadAo = getAny . aoKill

@@ -1,0 +1,44 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "ghc",
+      "request": "launch",
+      "name": "Debug Render Animation II-3",
+      "internalConsoleOptions": "openOnSessionStart",
+      "workspace": "${workspaceRoot}",
+      "startup": "/home/jonathan/phd/public/towards/SugarScape/sequential/src/SugarScape/Main.hs",
+      "startupFunc": "",
+      "startupArgs": "",
+      "stopOnEntry": false,
+      "mainArgs": "-s \"Animation II-3\" -v 0 --ac Default --sc Resource -r 42",
+      "ghciPrompt": "Debug> ",
+      "ghciInitialPrompt": "Prelude>",
+      "ghciCmd": "stack ghci --main-is TARGET --ghci-options -fprint-evld-with-show",
+      "ghciEnv": {},
+      "logFile": "${workspaceRoot}/.vscode/phoityne.log",
+      "logLevel": "INFO"
+    },
+    {
+      "type": "ghc",
+      "request": "launch",
+      "name": "Debug Export Animation II-3",
+      "internalConsoleOptions": "openOnSessionStart",
+      "workspace": "${workspaceRoot}",
+      "startup": "/home/jonathan/phd/public/towards/SugarScape/sequential/src/SugarScape/Main.hs",
+      "startupFunc": "",
+      "startupArgs": "",
+      "stopOnEntry": false,
+      "mainArgs": "-s \"Animation II-3\" -f 1000 -o export/dynamics.m -r 42",
+      "ghciPrompt": "Debug> ",
+      "ghciInitialPrompt": "Prelude>",
+      "ghciCmd": "stack ghci --main-is TARGET --ghci-options -fprint-evld-with-show",
+      "ghciEnv": {},
+      "logFile": "${workspaceRoot}/.vscode/phoityne.log",
+      "logLevel": "INFO"
+    }
+  ]
+}

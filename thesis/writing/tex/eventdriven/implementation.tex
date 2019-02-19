@@ -243,3 +243,6 @@ Also the way the simulation kernel iterates the simulation is very different
 2. new events of agent are appeneded at the front of the message-list
 3. process the message-list in order front-to-back => could result in infinite loop
 
+\subsection{Discussion}
+maybe refactor sugarscape: write more pure functions which make the distinction between read only and write only of the agent state clear e.g. is agent fertile can be a pure function with state passed explicitly. also always make clear that we can write functions which are monadic but access e.g. only the agent state or the Environment state Without the full monad Transformer stack: try to refactor more in this direction and make thus very clear in the discussion
+

@@ -10,9 +10,9 @@ Our goal was first to develop techniques and concepts to show \textit{how} to en
 \begin{itemize}
 	\item We developed techniques for engineering a clean, maintainable, general and reusable \textit{sequential} implementation in Haskell. Those techniques are directly applicable to other ABS implementations as well and are discussed in this paper.
 	
-	\item We explored techniques for a \textit{concurrent} implementation using Software Transactional Memory in Haskell \cite{harris_composable_2005} and data-parallelism to speed up the execution in our sequential implementation. Due to lack of space, we refer to (TODO: cite our own TOMACS paper) for an in-depth discussion of this work.
+	\item We explored techniques for a \textit{concurrent} implementation using Software Transactional Memory (STM) in Haskell \cite{harris_composable_2005} and data-parallelism to speed up the execution in our sequential implementation. Due to lack of space, we refer our paper \cite{thaler_tale_2018} for an in-depth discussion of this work, which is currently under review.
 
-	\item We explored ways of fully validating our implementation using code-testing. We showed how to apply property-based testing from Haskell \cite{claessen_quickcheck_2000} to ABS for a specification based checking of the correctness of the simulation. Due to lack of space, we refer to (TODO: cite our other submission to this conference) for a more detailed discussion of this work.
+	\item We explored ways of fully validating our implementation using code-testing. We showed how to apply property-based testing from Haskell \cite{claessen_quickcheck_2000} to ABS for a specification based checking of the correctness of the simulation. Due to lack of space, we refer to our other submission to this conference for a more detailed discussion of this work.
 \end{itemize}
 
 \subsection{A Functional View}

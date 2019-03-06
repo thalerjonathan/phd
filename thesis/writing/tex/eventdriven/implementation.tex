@@ -311,11 +311,72 @@ Generally, one can distinguish between four different types of environments in A
 	\item \textit{Active read-only} - can be implemented as above but instead of providing the environment data through a State Monad, a Reader Monad is used. The environment data is owned by the Simulation kernel and the process runs as a pure function as before but the data is provided in a read-only way through the Reader Monad.
 \end{enumerate}
 
-\subsection{The Simulation kernel}
-Also the way the simulation kernel iterates the simulation is very different
-1. schedule tick event to every agent in random order
-2. new events of agent are appeneded at the front of the message-list
-3. process the message-list in order front-to-back => could result in infinite loop
+\subsection{The simulation kernel}
+The simulation kernel is the heart of the simulation mechanism: it holds the full simulation state and iterates the simulation step-by-step through virtual time. The full simulation state is comprised of the following: 
+
+\begin{itemize}
+	\item A mapping of agent MSFs to their id.
+	\item A list of the current observable state of each agent.
+	\item The state of the environment.
+	\item A random-number generator.
+	\item A step counter.
+\end{itemize}
+
+In each step the simulation state is used to compute the next step of the simulation and is thus updated after a state has been computed. Using pure functional programming, where we have persistent data-structures and immutable data, we can easily keep record of the simulation state for each step for debugging purposes e.g. instead of overwriting the state after each step, we can keep the state of each step and can go backwards and forwards in the time-series of steps.
+
+The very heart of the simulation kernel is the step function, which computes the next step of the simulation. It is a \textit{pure} function, taking the current simulation state and returns a new simulation state together with the output of the new step. The output of a step is the current simulation time, the number of events processed, the environment state and a list of the observable states of all agents.
+
+\begin{HaskellCode}
+type SimStepOut = (Time, Int, SugEnvironment, [AgentObservable SugAgentObservable])
+-- Need RandomGen g because holding a random-number generator in SimulationState
+simulationStep :: RandomGen g => SimulationState g -> (SimulationState g, SimStepOut)
+\end{HaskellCode}
+
+The working horse behind \textit{simulationStep} is another \textit{pure} function which processes all events scheduled in the current step. It takes the list of events to process and the simulation state and returns the simulation state.
+
+\begin{HaskellCode}
+type EventList  = [(AgentId, ABSEvent SugEvent)]  -- from, to, event
+processEvents :: RandomGen g => EventList -> SimulationState g -> SimulationState g
+\end{HaskellCode}
+
+To void getting too technical and mixed up in implementation details, we provide the internals of \textit{processEvents} in terms of steps done instead of code. The function does the following:
+
+\begin{enumerate}
+	\item Extract the event at the front of the \textit{EventList}. In case the list is empty, return the simulation state.
+	\item Look up the receivers' agent MSF in the agent mapping of the simulation state.
+	\item If the receiver was not found, the function ignores this and processes the next event through a recursive call.
+	\item If the receiver is found: run the agents' MSF and get the result.
+	\item Update the agents' current MSF in the mapping (note that an MSF produces a new MSF as a result!).
+	\item Update the agents' current observable state.
+	\item Handle the agents' output: create new agents and remove the agent from the simulation if it killed itself.
+	\item Prepend the events the agent has emitted through its output to the front \textit{EventList} and do a recursive call to \textit{processEvents}.
+\end{enumerate}
+
+The initial \textit{EventList} passed to \textit{processEvents} is a list with \textit{Tick} events scheduled for every agent, in random order. It is very important to understand that the events an agent emits, are prepended to the front of the \textit{EventList}. This ensures that those events are processed next, which is of utmost importance for a correct working of the synchronous agent-interactions. This also implies that \textit{processEvents} is a potentially non-terminating function, in case there is at least one agent which produces at least one event for every event it receives.
+
+Finally we have a look at how to actually run an agents' MSF using the function \textit{runAgentSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in 5 arguments and get a 6-tuple as result but this is the price we have to pay for pure functional programming: everything is explicit, with all its benefits and drawbacks.
+
+\begin{HaskellCode}
+runAgentSF :: RandomGen g        -- ^ RandomGen typeclass, g is a random-number generator
+           => SugAgentMSF g      -- ^ The agents MSF to run.
+           -> ABSEvent SugEvent  -- ^ The event it receives.
+           -> ABSState           -- ^ The ABSState (next agent id and current time)
+           -> SugEnvironment     -- ^ The environment state
+           -> g                  -- ^ The random-number generator
+           -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
+runAgentSF msf evt absState env g = (ao, obs, msf', absState', env', g') 
+  where
+    -- extract the monadic function to run
+    msfAbsState = unMSF msf evt
+    -- peel away one State layer: ABSState
+    msfEnvState = runStateT msfAbsState absState
+    -- peel away the second State layer: SugEnvironment
+    msfRand     = runStateT msfEnvState env
+    -- peel away the 3rd and last layer: Rand Monad
+    (((((ao, obs), msf'), absState'), env'), g') = runRand msfRand g
+\end{HaskellCode}
+
+Note that we run only the 3 \textit{global} monadic layers in here, the 3 \textit{local} layers are indeed completely local to the agent itself as shown above.
 
 \subsection{Discussion}
 maybe refactor sugarscape: write more pure functions which make the distinction between read only and write only of the agent state clear e.g. is agent fertile can be a pure function with state passed explicitly. also always make clear that we can write functions which are monadic but access e.g. only the agent state or the Environment state Without the full monad Transformer stack: try to refactor more in this direction and make thus very clear in the discussion

@@ -226,7 +226,6 @@ simulationStep ss0 = (ssFinal, sao)
             --              which replaces a dead agent by a random new-born, then aoCreate contains exactly 1 element
             amOut'' = foldr (\ad acc -> Map.insert (adId ad) (adSf ad, adInitObs ad) acc) amOut' (aoCreate aoOut)
 
-
 runEnv :: SimulationState g -> SugEnvironment
 runEnv ss = eb t env
   where
@@ -241,13 +240,13 @@ runAgentSF :: RandomGen g
            -> SugEnvironment
            -> g
            -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
-runAgentSF sf evt absState env g
-    = (ao, obs, sf', absState', env', g') 
+runAgentSF msf evt absState env g
+    = (ao, obs, msf', absState', env', g') 
   where
-    sfAbsState = unMSF sf evt  -- to get rid of unMSF we would need to run it all in an MSF...
-    sfEnvState = runStateT sfAbsState absState
-    sfRand     = runStateT sfEnvState env
-    (((((ao, obs), sf'), absState'), env'), g') = runRand sfRand g
+    msfAbsState = unMSF msf evt  -- to get rid of unMSF we would need to run it all in an MSF...
+    msfEnvState = runStateT msfAbsState absState
+    msfRand     = runStateT msfEnvState env
+    (((((ao, obs), msf'), absState'), env'), g') = runRand msfRand g
 
 mkSimState :: AgentMap g
            -> ABSState

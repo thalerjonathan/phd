@@ -136,7 +136,7 @@ type AgentLocalMonad g = WriterT (SugAgentOut g)
 -- FULLY EXPANDS TO (one step replacement of SugAgentMonadT):
 -- WriterT (SugAgentOut g) 
 --  (ReaderT (SugarScapeScenario, AgentId) 
- --   (StateT SugAgentState 
+--    (StateT SugAgentState 
 --      (StateT ABSState 
 --        (StateT SugEnvironment 
 --          (Rand g)))  
@@ -299,7 +299,17 @@ Environment representation is quite simpl, after we have solved the problem of h
 \subsubsection{Environment Behaviour}
 We must make a clear distinction between the environments data-structure and how agents access it and the environments behaviour. In the Sugarscape model, the behaviour of the environment is quite trivial: it simply regrows resources over time and diffuses pollution in case pollution is turned on. This behaviour is achieved by providing a pure function without any monadic context or MSF. This is not necessary because the environment how we implement it, does not encapsulate local state and it does not interact with agents through messages and vice versa. Thus a pure function which maps the environment to the environment is enough: \textit{Time $\rightarrow$ SugEnvironment $\rightarrow$ SugEnvironment}. Further it also takes the current simulation time so it can implement seasons, where the speed of regrowth of resources is different in different regions and swaps after some time. This function is called in the simulation kernel after every Tick (see below).
 
-TODO: the 4 types of environment as written down in pfe extended paper
+Generally, one can distinguish between four different types of environments in ABS:
+
+\begin{enumerate}
+	\item \textit{Passive read-only} - implemented in Chapter \ref{sec:timedriven_firststep}, where the environment itself is not modelled as an active process and is static information, e.g. a list of neighbours, passed to each agent. The agents cannot change the environment actively - in the case of Chapter \ref{sec:timedriven_firststep} this is enforced at compile time by simply excluding it from the data an agent can emit. Note the agents change the environment implicitly by changing their state but there is no notion of an active environment process.
+	
+	\item \textit{Passive read/write} - implemented in Chapter \ref{sec:adding_env}. The environment is just shared data, which can be accessed and manipulated by the agents. Note that this forces some arbitration mechanism to prevent conflicting updates e.g. running the agents sequentially one after the other, to ensure that only one agent has access at a time.
+	
+	\item \textit{Active read/write} - as implemented above. To make it active a pure function is used where the environment data is owned by the simulation kernel and then made available to the agents through a State Monad. Another approach would be to implement the environment process as an agent, which is run together with all the other agents. This allows the environment to send and receive messages but the guarantees about when the environment will be run is lost if agents are run random sequentially.
+	
+	\item \textit{Active read-only} - can be implemented as above but instead of providing the environment data through a State Monad, a Reader Monad is used. The environment data is owned by the Simulation kernel and the process runs as a pure function as before but the data is provided in a read-only way through the Reader Monad.
+\end{enumerate}
 
 \subsection{The Simulation kernel}
 Also the way the simulation kernel iterates the simulation is very different

@@ -377,10 +377,3 @@ runAgentSF msf evt absState env g = (ao, obs, msf', absState', env', g')
 \end{HaskellCode}
 
 Note that we run only the 3 \textit{global} monadic layers in here, the 3 \textit{local} layers are indeed completely local to the agent itself as shown above.
-
-\subsection{Discussion}
-maybe refactor sugarscape: write more pure functions which make the distinction between read only and write only of the agent state clear e.g. is agent fertile can be a pure function with state passed explicitly. also always make clear that we can write functions which are monadic but access e.g. only the agent state or the Environment state Without the full monad Transformer stack: try to refactor more in this direction and make thus very clear in the discussion
-
-synchronous agent-interactions are cumbersome and clearly more complex than direct method invocation in oop which does the same. with the goal of staying pure we dont have much other options.
-
-% direct MSF call, Problem is recursive nature. maybe try it with gintis Implementation. I just learned that what i want to achieve is actually: https://en.wikipedia.org/wiki/This_(computer_programming)#Open_recursion AND OPEN RECURSION IS PRETTY BAD

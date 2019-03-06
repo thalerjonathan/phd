@@ -1,4 +1,5 @@
-{-# LANGUAGE Arrows     #-}
+{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Strict #-}
 module Main where
 
 import           Data.IORef
@@ -41,7 +42,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentGridSize :: (Int, Int)
-agentGridSize = (51, 51)
+agentGridSize = (31, 31)
 
 winSize :: (Int, Int)
 winSize = (800, 800)
@@ -54,7 +55,7 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let visualise = False
-      t         = 100
+      t         = 150
       dt        = 0.1
       seed      = 123 -- 123 -- 42 leads to recovery without any infection
       
@@ -275,7 +276,7 @@ sirAgent _     Infected    = infectedAgent
 sirAgent _     Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
-susceptibleAgent coord
+susceptibleAgent _coord
     = switch 
       -- delay the switching by 1 step, otherwise could
       -- make the transition from Susceptible to Recovered within time-step
@@ -290,8 +291,8 @@ susceptibleAgent coord
       if not $ isEvent makeContact 
         then returnA -< (Susceptible, NoEvent)
         else (do
-          let ns = neighbours env coord agentGridSize moore
-          --let ns = allNeighbours e
+          --let ns = neighbours env coord agentGridSize moore
+          let ns = allNeighbours env
           s <- drawRandomElemS -< ns
           case s of
             Infected -> do

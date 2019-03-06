@@ -22,7 +22,7 @@ maxEvents = -1
 
 -- use 1 / 0 for unrestricted time
 maxTime :: Double
-maxTime = 160.0
+maxTime = 150.0
 
 main :: IO ()
 main = do

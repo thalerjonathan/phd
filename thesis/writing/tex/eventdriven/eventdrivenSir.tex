@@ -1,4 +1,55 @@
 \section{Event-Driven SIR}
 \label{sec:eventdriven_sir}
+This short section shows how to implement the SIR model, as introduced in Chapter \ref{sec:sir_model}, with an event-driven approach. This is in stark contrast to the time-driven implementation in Chapter \ref{sec:timedriven_firststep}. The solutions are quantitatively equal as they produce the same class of dynamics. Qualitatively they fundamentally differ though in terms of expressivity and performance as we will see below.
 
-can show how we extend it to include time-stamps, also show its MUCH faster
+To keep this section simple, we reduce code-examples as far as possible and focus on the most fundamental differences to the approach used in Sugarscape. An agent in the event-driven SIR has no output (that is: the return-type of the MSF is the empty tuple ()), because the SIR model is much less dynamic than the Sugarscape one: agents don't spawn other agents and agents can't die. Further there is no environment (see Chapter \ref{sec:timedriven_firststep} how to add an environment to the SIR model) and observable dynamics happen not through agent-output but through side-effects.
+
+The very heart of this implementation is the simulation state which holds (amongst others) a priority queue and a tuple with the number of susceptible, infected and recovered agents. Agents schedule events with a time-stamp and receiver agent id, using this priority queue, which the simulation kernel processes then in order of the time-stamps to run the next agent. This is conceptionally very close to the Sugarscape implementation but events have now an additional time-stamp which indicates the time when they are about to be scheduled - the priority queue is sorted according to the time-stamps and the simulation kernel simply processes them in order. When agents change their state they also increment / decrement the number of susceptible / infected / recovered agents, depending on which transition they make.
+
+To get a feeling on the different approach between the Sugarscape and the SIR we show the initial function of the SIR agent. It is called by the simulation kernel to schedule initial events, adjust the simulation state and get the agents MSF.
+
+\begin{HaskellCode}
+-- | A sir agent is in one of three states
+sirAgent :: RandomGen g 
+         => SIRState    -- ^ the initial state of the agent
+         -> SIRAgent g  -- ^ the continuation
+sirAgent Susceptible aid = do
+    modifyDomainState incSus -- increment number of susceptible agents
+    scheduleEvent aid MakeContact makeContactInterval -- schedule make contact event to self
+    return (susceptibleAgent aid) -- return susceptible MSF
+sirAgent Infected aid = do
+    modifyDomainState incInf -- increment number of infected agents
+    dt <- lift (randomExpM (1 / illnessDuration)) -- draw random illness duration
+    scheduleEvent aid Recover dt -- schedule recovery to self
+    return (infectedAgent aid) -- returns infected MSF 
+sirAgent Recovered _ = do
+    modifyDomainState incRec -- increment number of recovered agents
+    return recoveredAgent -- return recovered MSF
+\end{HaskellCode}
+
+In the next sections we have a quick look at how we translate the time-driven susceptible, infected and recovered behaviours of into event-driven behaviours.
+
+\subsection{Susceptible Agent}
+We use the same switch mechanism of making the transition from a susceptible to an infected agent in case of an infection but how a susceptible agent gets infected works now different:
+
+\begin{itemize}
+	\item A susceptible agent initially schedules a \textit{MakeContact} event with $\Delta t = 1$ to itself.
+	\item When receiving \textit{MakeContact}, the agent sends a \textit{Contact} event to 5 random other agents with $\Delta t = 0$. This will result in these events to be scheduled immediately. Further the agent schedules \textit{MakeContact} with $\Delta t = 1$ to itself.
+	\item When the agent receives a \textit{Contact} event, it checks if it is from an infected agent. If the event is not from an infected agent, it ignores it. Otherwise it becomes infected with a given probability. In case of infection the agent decrements the number of susceptible and increments the number of infected agents.
+\end{itemize}
+
+\subsection{Infected Agent}
+We use the same switch mechanism of making the transition from an infected to a recovered agent after the illness duration. The main difference is that agents send \textit{Contact} events to each other to indicate that contacts have happened. Thus susceptible and infected agents need to react to incoming \textit{Contact} events.
+
+\begin{itemize}
+	\item An infected agent initially schedules a \textit{Recover} event with a random $\Delta t$ (following exponential distribution) to itself.
+	\item When the agent receives a \textit{Contact} event, it checks if it is from a susceptible agent. If the event is not from a susceptible agent, it ignores it. Otherwise it simply replies to this susceptible agent with a \textit{Contact} event with $\Delta t = 0$.
+\end{itemize}
+
+\subsection{Recovered Agent}
+The recovered agent does not change any more, reacts to no incoming events and schedules no events - it stays constant forever and thus outputs the empty tuple forever.
+
+\subsection{Discussion}
+Transforming a time-driven into an event-driven approach should always be possible because the ability to schedule events with time-stamps allows to map all features of time-driven ABS to an event-driven one - the discussion above should give a good direction of how this process works. Still for some models one can argue that the time-driven approach is much more expressive than an event-driven one, and we think this is certainly the case for the SIR model. The event-driven approach leads to much more fragmented logical flow and agent behaviour. 
+
+The event-driven implementation from this Chapter is around 18\% faster than the time-driven implementation from Chapter \ref{sec:timedriven_firststep} which is non-monadic and uses the FRP library Yampa. For the monadic time-driven approach of Chapter \ref{sec:adding_env} the difference is quite dramatic: the event-driven implementation outperforms it by nearly 800\%. This shows that a non-monadic approach using Yampa as in Chapter \ref{sec:timedriven_firststep} is feasible to implement ABS. On the other hand, when making use of monadic stream functions as in Chapter \ref{sec:adding_env} a time-driven approach becomes extremely expensive in terms of performance and one should consider an event-driven approach. In case the model is specified in a time-driven way, a transformation into an event-driven approach should always be possible as outlined above.

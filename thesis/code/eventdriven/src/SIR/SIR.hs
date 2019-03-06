@@ -24,15 +24,12 @@ instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 
 data ABSState m e s = ABSState
-  { absEvtQueue    :: EventQueue e
-  , absTime        :: Time
-  , absAgents      :: Map.IntMap (AgentCont m e s) -- TODO no need to keep them here, remove them, this will also get rid of m
-  , absAgentIds    :: [AgentId]
-  , absEvtCount    :: Integer
-
-  -- TODO: get rid of domain state: put this into the SIRMonad stack as
-  -- an additional StateT monad
-  , absDomainState :: s
+  { absEvtQueue    :: !(EventQueue e)
+  , absTime        :: !Time
+  , absAgents      :: !(Map.IntMap (AgentCont m e s))
+  , absAgentIds    :: ![AgentId]
+  , absEvtCount    :: !Integer
+  , absDomainState :: !s
   }
 
 type ABSMonad m e s  = StateT (ABSState m e s) m
@@ -235,8 +232,6 @@ runABS as0 s0 steps tLimit tSampling = do
     stepClock 0 _ acc = return acc
     stepClock n ts acc = do 
       q <- gets absEvtQueue
-
-      -- TODO: use MaybeT 
 
       let mayHead = PQ.getMin q
       if isNothing mayHead 

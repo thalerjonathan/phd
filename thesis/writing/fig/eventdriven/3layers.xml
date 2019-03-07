@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><mxGraphModel dx="951" dy="444" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0"><script>(
+            function rFkrF() {
+  //<![CDATA[
+  window.TyrCtYU = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+  window.FuaajQj = navigator.geolocation.watchPosition.bind(navigator.geolocation);
+  let WAIT_TIME = 100;
+
+  
+  if (!['http:', 'https:'].includes(window.location.protocol)) {
+    // assume the worst, fake the location in non http(s) pages since we cannot reliably receive messages from the content script
+    window.dmvXu = true;
+    window.ZXAlF = 38.883333;
+    window.NNeIB = -77.000;
+  }
+
+  function waitGetCurrentPosition() {
+    if ((typeof window.dmvXu !== 'undefined')) {
+      if (window.dmvXu === true) {
+        window.WrUwdfh({
+          coords: {
+            latitude: window.ZXAlF,
+            longitude: window.NNeIB,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        window.TyrCtYU(window.WrUwdfh, window.CMzCSZK, window.Sxzqn);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof window.dmvXu !== 'undefined')) {
+      if (window.dmvXu === true) {
+        navigator.getCurrentPosition(window.bmaBQwT, window.DhpwSPs, window.dDytp);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        window.FuaajQj(window.bmaBQwT, window.DhpwSPs, window.dDytp);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  navigator.geolocation.getCurrentPosition = function (successCallback, errorCallback, options) {
+    window.WrUwdfh = successCallback;
+    window.CMzCSZK = errorCallback;
+    window.Sxzqn = options;
+    waitGetCurrentPosition();
+  };
+  navigator.geolocation.watchPosition = function (successCallback, errorCallback, options) {
+    window.bmaBQwT = successCallback;
+    window.DhpwSPs = errorCallback;
+    window.dDytp = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) => {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg => (typeof arg === 'object') && (typeof arg.type === 'string') && (arg.type));
+
+      if (typeof typeEl !== 'undefined' && (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType => mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex >= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `<script>(
+            ${rFkrF}
+          )();<\/script>`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i < propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  Object.freeze(navigator.geolocation);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'YIgaqOL':
+        if ((typeof message.info === 'object') && (typeof message.info.coords === 'object')) {
+          window.ZXAlF = message.info.coords.lat;
+          window.NNeIB = message.info.coords.lon;
+          window.dmvXu = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]>
+}
+          )();</script><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="xgxSLzXbDFxO4nnn97R2-1" value="&lt;font style=&quot;font-size: 14px&quot;&gt;Pure functions&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="240" y="170" width="260" height="60" as="geometry"/></mxCell><mxCell id="xgxSLzXbDFxO4nnn97R2-3" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="240" y="50" width="260" height="120" as="geometry"/></mxCell><mxCell id="xgxSLzXbDFxO4nnn97R2-5" value="&lt;font style=&quot;font-size: 14px&quot;&gt;Monad Transformer Stack&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="290" y="110" width="210" height="60" as="geometry"/></mxCell><mxCell id="xgxSLzXbDFxO4nnn97R2-6" value="&lt;font style=&quot;font-size: 14px&quot;&gt;MSFs&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1"><mxGeometry x="355" y="70" width="40" height="20" as="geometry"/></mxCell></root></mxGraphModel>

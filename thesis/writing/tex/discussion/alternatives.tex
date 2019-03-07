@@ -1,4 +1,6 @@
 \section{Alternatives}
+\label{sec:alternatives}
+
 Shortly discuss alternative implementation directions which we didn't / couldn't follow because of not enough time / not enough experience / developed experience too late. 
 
 Freer Monads: \url{https://reasonablypolymorphic.com/blog/freer-monads/}. They aim to separate Definition from implementation by writing a domain-specific language using GADTs which are then interpreted. This allows to strictly separate implementation from specification, composes very well and thus is easier to test as parts can be easily mocked. Also Freer Monads free one from the order of effects imposed through Monad Transformers. In general Freer Monads seem to aim for the same abstraction what modern interface-based oop does.

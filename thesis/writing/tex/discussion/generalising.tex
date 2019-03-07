@@ -10,7 +10,8 @@ discuss pure functional system dynamics - correct by construction: benefits: str
 
 \subsection{Discrete Event Simulation}
 pure functional DES easily possible with my developed synchronous messaging ABS
-DES in FP: we doing it in gintis study, 
+DES in FP: we doing part of it in event-driven SIR. this is a potential hint at how to achieve DES in pure FP: arrowized FRP seems to be perfect for it because it allows to express data-flow networks, which is exactly what DES is as well. The problem with pure FP is that it will be more involved to propagate events through the network especially when they don't originate from the source but e.g. after a time-out from a queue. Generally all the techniques are there as discussed in the event-driven chapter but it would be interesting to do research on how to achieve the same in DES. Because data-flow networks of DES generally don't change at runtime, they are fixed already at compile time - it would be interesting to see what dependent types could offer for additional compile-time guarantees.
+
 PDES, should be  conceptually easil possible using STM, optimistic approach should be conceptually easier to implement due to persistent data-structures and controlled side-effects
  
 \subsection{Recursive Simulation}

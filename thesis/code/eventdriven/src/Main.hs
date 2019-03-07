@@ -2,8 +2,6 @@ module Main where
 
 import System.Random
 
-import Control.Monad.Random
-
 import SIR.SIR
 import SIR.Export
 
@@ -26,13 +24,11 @@ maxTime = 150.0
 
 main :: IO ()
 main = do
-  -- let g0 = mkStdGen seed
-  g0 <- getStdGen
+  let g0 = mkStdGen seed
+  -- g0 <- getStdGen
 
   let as = initAgents agentCount infectedCount
-
-      absRand = runABS as (0, 0, 0) maxEvents maxTime 1.0
-      ((t, evtCount, ss), _) = runRand absRand g0
+      (t, evtCount, ss) = runABS as g0 maxEvents maxTime 1.0
 
   print $ "Finished at t = " ++ show t ++ 
           ", after " ++ show evtCount ++ 

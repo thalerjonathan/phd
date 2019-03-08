@@ -1,15 +1,17 @@
 \chapter{Parallel ABS}
 \label{ch:parallel_abs}
+Functional programming as in Haskell is well known and accepted as a remedy against the problems of imperative programming in implementing parallel software TODO: cite ?. The reason for it is clear: immutable data and explicit control of side-effects removes a large class of bugs due to data-conflicts, data-races, and blablabla TODO: we are claiming things here, which we need to clearly back up, also data-races ARE possible in Haskell! A fundamental benefit and strength of Haskell is, that it clearly distinguishes between parallelism and concurrency \cite{jones_tackling_2002} and it is very important for us to do so as well:
 
-Establish how concurrency and parallelism can be made easily available in ABS using pure functional programming. Mostly follow STM paper and add pure parallelism in ABS. Make clear that Haskell allows to distinguish between pure, deterministic parallelism and impure, non-deterministic concurrency.
+\begin{itemize}
+	\item \textbf{Parallelism} - In parallelism, code runs in parallel without interfering with other code through shared data (references, mutexes, semaphores,...). An example is the function \textit{map :: (a $\rightarrow$ b) $\rightarrow$ [a] $\rightarrow$ [b]}, which maps each element of type \textit{a} to \textit{b} using the function \textit{(a $\rightarrow$ b)}. It is a pure function and thus no sharing of data either through some monadic context or through the function \textit{(a $\rightarrow$ b)} is possible. This allows to run it in parallel: each function evaluation \textit{(a $\rightarrow$ b)} could potentially be executed at the same time, if we had enough CPU cures. Whether it runs actually in parallel or not, has no influence on the outcome, it is not subject to any non-deterministic influences. Thus we identify parallelism with pure and deterministic execution of data-transformations (data-parallelism).
+	
+	\item Concurrency - In concurrency, code runs in parallel but can potentially interfere with other code through shared data (references, mutexes, semaphores, ...). An example are two threads, running in parallel, which share data through \textit{IORefs}. In concurrency there is no option: code has to run in parallel through the use of threads but now the outcome of the program very much depends on the ordering in which the threads are scheduled. This gives rise to very different access patterns to the shared data, with the potential for race conditions, dirty reads and so on... The challenge of implementing concurrent programs, is to write the program in a way that despite of these non-deterministic influences it is still a correctly working program. Thus we identify concurrency with impure and non-deterministic execution of imperative-style monadic command execution.
+\end{itemize}
 
-Also discuss where there is potential for adding parallelism: using data-parallel data-structures for the environment so cells can be updated in parallel, in time-driven ABS agents can be updated in parallel using parMap because they all act conceptually at the same time (and if they don't run in monadic code). 0\% finished.
+In this chapter we use the phrase \textit{parallel ABS} or \textit{parallel programming} to talk about both concepts together and distinguish between them when necessary. This chapter explores another hypothesis of this thesis, namely that the benefits of using Haskell for parallel programming transfer to our ABS approaches as well. More specifically, this chapter looks into adding parallelism to existing implementations and implementing concurrent ABS with the focus on Software Transactional Memory.
 
-we can implement everything except synchronous direct agent-interactions atm: if agent-interaction is one-way e.g. paying back a loan then this is no problem. thus the following parts of the Sugarscape are not possible with our current STM approach: mating, trading and lending  because all 3 require direct agent-to-agent interaction over multiple steps. We leave the problem of developing such an algorithm / implementation for further research.
+\input{./tex/parallelabs/parallelism.tex}
 
-use the STM paper but provide more haskell code
+\input{./tex/parallelabs/concurrency.tex}
 
-
-
-\section{Discussion}
-Further research: implementing synchronous agent-interactions in a concurrent implementation with STM, the approach of executing dependent functions in different layers \url{https://academic.oup.com/bib/article/11/3/334/225993} might allow even further speed-up, also the same paper: "Mobile discrete simulations consisting of agents navigating a grid like environment are less well-suited to a GPU implementation as they are traditionally implemented in sequential environments. Parallel implementations of discrete mobile systems on the GPU must explicitly handle collision conditions which result from agents simultaneously moving to the same discrete location."
+\input{./tex/parallelabs/discussion.tex}

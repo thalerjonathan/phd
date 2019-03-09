@@ -1,0 +1,25 @@
+\section{Parallelism in ABS}
+The promise of parallelism is compelling: speeding up the execution but retaining all static compile-time guarantees about determinism. In other words, using parallelism could give us a substantial performance improvement without sacrificing the static guarantees of reproducible outputs from repeated runs.
+
+We keep this section rather short and exemplary and only try to apply parallelism techniques directly to our existing implementations and measure the speed-up. We follow the book \cite{marlow_parallel_2013}, which can be seen as the main authority for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
+
+Generally parallelism can be applied whenever the execution of code is order-independent, that is, it is referential transparent and has no implicit or explicit side-effects. In ABS we have the following potential directions we can follow:
+
+\begin{itemize}
+	\item \textit{Parallel map} - can be used without any second thoughts wherever \textit{map} is encountered. This can be on a very local scale within an agent, like mapping a simple function, or it can be global like executing the agents through map where much more work will be done in parallel due to the higher complexity of an agent function. Note that the latter one is only possible in non-monadic code.
+	
+	\item \textit{Data-parallel data-structures} - an environment could be organised and accessed through such a data-structure, which could potentially lead to big speed ups. Agents could locally read the data-structure data-parallel and the simulation kernel could feed the output of the agents data-parallel back into this structure.
+	
+	\item Par Monad: what for? not possible in yampa, but in dunai?
+\end{itemize}
+
+\subsection{Parallelism in non-monadic time-driven ABS}
+here is obvious potential for adding (data-)parallelism to ABS e.g. u, in time-driven ABS agents can be updated in parallel using parMap because they all act conceptually at the same time as shown already in Yampa \cite{perez_60_2014}.
+
+par monad not possible in yampa
+
+\subsection{Parallelism in monadic time-driven ABS}
+par monad potentially possible in dunai
+
+\subsection{Parallelism in event-driven ABS}
+very restricted here beause environment is shared. we will show in the chapter on concurrency how to parallelise this properly. in this case we only have very local opportunities for adding parallelism

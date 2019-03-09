@@ -1,0 +1,17 @@
+\chapter{Parallel ABS}
+\label{ch:parallel_abs}
+Functional programming as in Haskell is well known and accepted as a remedy against the problems of imperative programming in implementing parallel software TODO: cite ?. The reason for it is clear: immutable data and explicit control of side-effects removes a large class of bugs due to data-conflicts, data-races, and blablabla TODO: we are claiming things here, which we need to clearly back up, also data-races ARE possible in Haskell! A fundamental benefit and strength of Haskell is, that it clearly distinguishes between parallelism and concurrency \cite{jones_tackling_2002} and it is very important for us to do so as well:
+
+\begin{itemize}
+	\item \textbf{Parallelism} - In parallelism, code runs in parallel without interfering with other code through shared data (references, mutexes, semaphores,...). An example is the function \textit{map :: (a $\rightarrow$ b) $\rightarrow$ [a] $\rightarrow$ [b]}, which maps each element of type \textit{a} to \textit{b} using the function \textit{(a $\rightarrow$ b)}. It is a pure function and thus no sharing of data either through some monadic context or through the function \textit{(a $\rightarrow$ b)} is possible. This allows to run it in parallel: each function evaluation \textit{(a $\rightarrow$ b)} could potentially be executed at the same time, if we had enough CPU cures. Whether it runs actually in parallel or not, has no influence on the outcome, it is not subject to any non-deterministic influences. Thus we identify parallelism with pure and deterministic execution of data-transformations (data-parallelism).
+	
+	\item \textbf{Concurrency} - In concurrency, code runs in parallel but can potentially interfere with other code through shared data (references, mutexes, semaphores, ...). An example are two threads, running in parallel, which share data through \textit{IORefs}. In concurrency there is no option: code has to run in parallel through the use of threads but now the outcome of the program very much depends on the ordering in which the threads are scheduled. This gives rise to very different access patterns to the shared data, with the potential for race conditions, dirty reads and so on... Ordering suddenly becomes important and the challenge of implementing concurrent programs, is to write the program in a way that despite of these non-deterministic influences it is still a correctly working program. Thus we identify concurrency with impure and non-deterministic execution of imperative-style (ordered) monadic command execution.
+\end{itemize}
+
+In this chapter we investigate the application of both parallelism and concurrency to our pure functional ABS approach. In general, we want to test if the benefits of parallel and concurrent programming in Haskell are transferable to pure functional ABS. In particular we are interested in speeding up the existing implementations and derive general concepts from that. Note that we use the term \textit{parallel} to identify both \textit{parallelism} and \textit{concurrency} and we distinguish between them whenever possible with the respective terms.
+
+\input{./tex/parallelabs/parallelism.tex}
+
+\input{./tex/parallelabs/concurrent.tex}
+
+\input{./tex/parallelabs/discussion.tex}

@@ -9,6 +9,10 @@ The paper \cite{discolo_lock_2006} gives a good indication how difficult and com
 
 We present two case studies using the already introduced SIR (Chapter \ref{sec:sir_model}) and Sugarscape (Chapter \ref{sec:sugarscape}) models. We compare the performance of lock-based and STM implementations in each case where we investigate both the scaling performance under increasing number of CPUs and agents. We show that the STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services.
 
+Note that there exists also the actor model of concurrency, which is especially well suited to implement concurrent applications in functional languages. We give a short overview over it, existing research and its use in ABS in the section \ref{sec:actors} but leave it for further research as it has very different implications, which are beyond the focus of this thesis.
+
 \input{./tex/parallelabs/concurrent/stm.tex}
 
 \input{./tex/parallelabs/concurrent/stmabs.tex}
+
+\input{./tex/parallelabs/concurrent/actors.tex}

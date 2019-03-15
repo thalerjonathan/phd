@@ -1,2 +1,5 @@
 \subsection{Reflection}
-TODO
+In general we aimed at running agents in parallel using the various techniques. Because of the quite sequential nature of the agent behaviours themselves, there is much less potential for parallelism \textit{within} an agent, thus the obvious idea was to run them all in parallel because they are an obvious unit of partitioning, have considerable workload and can indeed be run in parallel under given circumstances.
+Unfortunately it is not possible applying parallelism in case the agents run within a monadic context: we have side-effects which imposes ordering e.g. in the case of a
+
+We see a direct consequence of this that types also reflect the semantics of our model: when our agents are pure they can be run indeed in parallel and independent from each other, if they are monadic, then this is not applicable to parallelism. In the next section, we show how to approach this problem and come up with a solution where we can run monadic agents in parallel. This is obviously only possible within a concurrent setting which means we have to sacrifice determinism in our solution. Still we reach considerable speed ups using Software Transactional Memory.

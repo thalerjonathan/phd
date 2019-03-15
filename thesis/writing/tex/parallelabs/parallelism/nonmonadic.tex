@@ -1,10 +1,1 @@
 \subsection{Parallelism in non-monadic time-driven ABS}
-here is obvious potential for adding (data-)parallelism to ABS e.g. u, in time-driven ABS agents can be updated in parallel using parMap because they all act conceptually at the same time as shown already in Yampa \cite{perez_60_2014}.
-
-parMap
-can be used without any second thoughts wherever \textit{map} is encountered. This can be on a very local scale within an agent, like mapping a simple function, or it can be global like executing the agents through map where much more work will be done in parallel due to the higher complexity of an agent function. Note that the latter one is only possible in non-monadic code.
-	
-% http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/
-% https://www.reddit.com/r/haskell/comments/2jbl78/from_60_frames_per_second_to_500_in_haskell/
-
-par monad not possible in yampa

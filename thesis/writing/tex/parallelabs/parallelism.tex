@@ -1,25 +1,26 @@
 \section{Parallelism in ABS}
-The promise of parallelism is compelling: speeding up the execution but retaining all static compile-time guarantees about determinism. In other words, using parallelism could give us a substantial performance improvement without sacrificing the static guarantees of reproducible outputs from repeated runs.
+The promise of parallelism in Haskell is compelling: speeding up the execution but retaining all static compile-time guarantees about determinism. In other words, using parallelism could give us a substantial performance improvement without sacrificing the static guarantees of reproducible outputs from repeated runs with initial conditions.
 
-Generally, parallelism can be applied whenever the execution of code is order-independent, that is, referential transparent and has no implicit or explicit side-effects. We follow the book \cite{marlow_parallel_2013}, which can be seen as the main authority for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell. From this reference, we can derive the following potential directions for parallelism in ABS:
+Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side-effects. Without going into too much technical detail, in this section we outline the parallelism techniques available in Haskell and briefly discuss how they can be used in our approaches or to ABS in general. We follow the book \cite{marlow_parallel_2013}, which can be seen as the main source for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
 
-\begin{itemize}
-	\item \textit{Evaluation parallelism} - Without going into too much technical detail, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}. This is achieved using the \textit{Eval Monad} which is then run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). The implication of its pure execution is, that although it is expressed using the \textit{Eval Monad}, we can make use of it within pure computations like the non-monadic SIR implementation built on Yampa from Chapter \ref{sec:timedriven_firststep}.
+\subsection{Evaluation parallelism}
+Put short, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}, which is called \textit{parMap}. This is achieved using the \textit{Eval Monad} which is run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). Obviously this gives huge potential for speeding up programs because maps are omnipresent in a lot of functional code.
 
-	\item \textit{Data-flow parallelism } - Par Monad: what for? not possible in yampa, but in dunai?
+Although \textit{parMap} can be applied in all cases where a map us used, we are particularly interested in running agents in parallel. With \textit{parMap} this should become possible in our non-monadic SIR implementation built on Yampa from Chapter \ref{sec:timedriven_firststep}. Even thought the Eval Monad is used under the hood and Yampa is non-monadic, it is still applicable because running the monad is pure, resulting in a pure result - \textit{parMap} is a pure function. TODO: how can we apply this?
+
+Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which uses map vs one that uses parMap.
+
+
+% http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/
+% https://www.reddit.com/r/haskell/comments/2jbl78/from_60_frames_per_second_to_500_in_haskell/\\
+
+Unfortunately \textit{parMap} is not applicable to the monadic SIR version of Chapter \ref{sec:adding_env} because of the use of mapM, which cannot be replaced due to its inherent sequential nature: mapM runs monadic actions which have side-effects thus ordering matters. Even if the implementation in that chapter behaves as if the agents are run in parallel, technically they are run sequentially because of the need for the Random Monad effect.
+
+\subsection{Data-flow parallelism}
+Par Monad: what for? not possible in yampa, but in dunai?
 	
-	\item \textit{Data-structure parallelism} - an environment could be organised and accessed through such a data-structure, which could potentially lead to big speed ups. Agents could locally read the data-structure data-parallel and the simulation kernel could feed the output of the agents data-parallel back into this structure.
-	
-
-\end{itemize}
-
-We keep this section rather short and exemplary and only try to apply the outlined parallelism techniques directly to our existing implementations and measure the speed-up. 
-
-\input{./tex/parallelabs/parallelism/nonmonadic.tex}
-
-\input{./tex/parallelabs/parallelism/monadic.tex}
-
-\input{./tex/parallelabs/parallelism/eventdriven.tex}
+\subsection{Data-structure parallelism}
+An environment could be organised and accessed through such a data-structure, which could potentially lead to big speed ups. Agents could locally read the data-structure data-parallel and the simulation kernel could feed the output of the agents data-parallel back into this structure.
 
 \input{./tex/parallelabs/parallelism/parallelruns.tex}
 

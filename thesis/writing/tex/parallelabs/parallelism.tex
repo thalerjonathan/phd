@@ -3,24 +3,40 @@ The promise of parallelism in Haskell is compelling: speeding up the execution b
 
 Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side-effects. Without going into too much technical detail, in this section we outline the parallelism techniques available in Haskell and briefly discuss how they can be used in our approaches or to ABS in general. We follow the book \cite{marlow_parallel_2013}, which can be seen as the main source for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
 
-\subsection{Evaluation parallelism}
-Put short, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}, which is called \textit{parMap}. This is achieved using the \textit{Eval Monad} which is run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). Obviously this gives huge potential for speeding up programs because maps are omnipresent in a lot of functional code.
+general solution we opt for is  to run agents in parallel in our approaches. in other abs models we could apply data-structure parallelism and/or data-flow parallelism with huge Performance potential but thats always highly model dependent thus we dont go in depth here
 
+\paragraph{Evaluation parallelism}
+Put short, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}, which is called \textit{parMap}. This is achieved using the \textit{Eval Monad} which is run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). Obviously this gives huge potential for speeding up programs because maps are omnipresent in a lot of functional code. Not only parmap! explain a little bit more in detail without going into too much technical stuff.
+%https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch02.html
+%https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch03.html
+
+\paragraph{Data-flow parallelism}
+Par Monad: how does it work?
+%https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch04.html
+
+\paragraph{Data-structure parallelism}
+An environment could be organised and accessed through such a data-structure, which could potentially lead to big speed ups. Agents could locally read the data-structure data-parallel and the simulation kernel could feed the output of the agents data-parallel back into this structure.
+
+%https://learning.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch05.html
+
+
+\subsection{Use-Cases}
+
+\subsubsection{Non-Monadic SIR}
 Although \textit{parMap} can be applied in all cases where a map us used, we are particularly interested in running agents in parallel. With \textit{parMap} this should become possible in our non-monadic SIR implementation built on Yampa from Chapter \ref{sec:timedriven_firststep}. Even thought the Eval Monad is used under the hood and Yampa is non-monadic, it is still applicable because running the monad is pure, resulting in a pure result - \textit{parMap} is a pure function. TODO: how can we apply this?
 
-Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which uses map vs one that uses parMap.
+Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which makes use of evaluation parallelism to run agents in parallel.
 
 
-% http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/
 % https://www.reddit.com/r/haskell/comments/2jbl78/from_60_frames_per_second_to_500_in_haskell/\\
 
-Unfortunately \textit{parMap} is not applicable to the monadic SIR version of Chapter \ref{sec:adding_env} because of the use of mapM, which cannot be replaced due to its inherent sequential nature: mapM runs monadic actions which have side-effects thus ordering matters. Even if the implementation in that chapter behaves as if the agents are run in parallel, technically they are run sequentially because of the need for the Random Monad effect.
+\subsubsection{Monadic SIR}
+Unfortunately \textit{parMap} is not applicable to the monadic SIR version of Chapter \ref{sec:adding_env} because of the use of mapM, which cannot be replaced due to its inherent sequential nature: mapM runs monadic actions which have side-effects thus ordering matters. Even if the implementation in that chapter behaves as if the agents are run in parallel, technically they are run sequentially because of the need for the Random Monad effect. This leaves us basically without any options of parallelism for the monadic SIR model, we will come back to this use-case in the concurrency section, where we will show that by using concurrency it is possible to achieve a substantial speed up of orders of magnitude.
 
-\subsection{Data-flow parallelism}
-Par Monad: what for? not possible in yampa, but in dunai?
-	
-\subsection{Data-structure parallelism}
-An environment could be organised and accessed through such a data-structure, which could potentially lead to big speed ups. Agents could locally read the data-structure data-parallel and the simulation kernel could feed the output of the agents data-parallel back into this structure.
+\subsubsection{Sugarscape}
+use parmap for updating Pollution/regrow resources. still agents can't be run in parallel because of monadic effects, we show in the concurrent section how we can use concurrency to achieve a substantial speed up using STM.
+
+compare Environment parallelism between sequential and concurrent sugarscape: should see alarger speedup in conc bcs the sequential percentage is larger there
 
 \input{./tex/parallelabs/parallelism/parallelruns.tex}
 

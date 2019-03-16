@@ -1,9 +1,10 @@
 \section{Parallelism in ABS}
 The promise of parallelism in Haskell is compelling: speeding up the execution but retaining all static compile-time guarantees about determinism. In other words, using parallelism could give us a substantial performance improvement without sacrificing the static guarantees of reproducible outputs from repeated runs with initial conditions.
 
-Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side-effects. Without going into too much technical detail, in this section we outline the parallelism techniques available in Haskell and briefly discuss how they can be used in our approaches or to ABS in general. We follow the book \cite{marlow_parallel_2013}, which can be seen as the main source for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
+Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side-effects. Without going into too much technical detail, in this section we outline the parallelism techniques available in Haskell and briefly discuss how they can be used in ABS in general. We also discuss if and how parallelism can be added to our previously discussed use-cases of Chapters \ref{sec:timedriven_firststep}, \ref{sec:adding_env} and Sugarscape TODO and report the performance improvements where applicable.
 
-general solution we opt for is  to run agents in parallel in our approaches. in other abs models we could apply data-structure parallelism and/or data-flow parallelism with huge Performance potential but thats always highly model dependent thus we dont go in depth here
+\subsection{Parallelism in Haskell}
+We follow the book \cite{marlow_parallel_2013}, which can be seen as the main source for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
 
 \paragraph{Evaluation parallelism}
 Put short, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}, which is called \textit{parMap}. This is achieved using the \textit{Eval Monad} which is run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). Obviously this gives huge potential for speeding up programs because maps are omnipresent in a lot of functional code. Not only parmap! explain a little bit more in detail without going into too much technical stuff.
@@ -19,6 +20,7 @@ An environment could be organised and accessed through such a data-structure, wh
 
 %https://learning.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch05.html
 
+general solution we opt for is  to run agents in parallel in our approaches. in other abs models we could apply data-structure parallelism and/or data-flow parallelism with huge Performance potential but thats always highly model dependent thus we dont go in depth here
 
 \subsection{Use-Cases}
 

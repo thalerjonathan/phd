@@ -22,7 +22,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 -- stack build --profile --flag Yampa:expose-core
--- stack exec -- SIR-Yampa +RTS -p -h -s -N4
+-- stack exec -- SIR-Yampa +RTS -p -ls -N4
 
 main :: IO ()
 main = do

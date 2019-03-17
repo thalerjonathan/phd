@@ -1,16 +1,21 @@
 {-# LANGUAGE Arrows #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
+import GHC.Generics (Generic)
 import System.IO
 import Text.Printf
 
+import Control.DeepSeq
+import Control.Parallel.Strategies
 import Control.Monad.Random
+
 import FRP.Yampa
 
-import ParDpSwitch
-
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+data SIRState = Susceptible | Infected | Recovered deriving (Generic, Show, Eq)
 type SIRAgent = SF [SIRState] SIRState
+
+instance NFData SIRState
 
 contactRate :: Double
 contactRate = 5.0
@@ -21,8 +26,7 @@ infectivity = 0.05
 illnessDuration :: Double
 illnessDuration = 15.0
 
--- stack build --profile --flag Yampa:expose-core
--- stack exec -- SIR-Yampa +RTS -p -ls -N4
+-- stack exec -- SIR-Yampa +RTS -ls -p -N
 
 main :: IO ()
 main = do
@@ -104,8 +108,7 @@ rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
 
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
 stepSimulation sfs as =
-    -- dpSwitch
-    dpSwitchParEval  
+    dpSwitch
       (\_ sfs' -> map (\sf -> (as, sf)) sfs')
       sfs
       -- if we switch immediately we end up in endless switching, so always wait for 'next'
@@ -114,7 +117,10 @@ stepSimulation sfs as =
 
   where
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
-    switchingEvt = arr (\(_, newAs) -> Event newAs)
+    switchingEvt = arr (\(_, newAs) -> Event $ _evaluateParallel newAs)
+
+    _evaluateParallel :: [SIRState] -> [SIRState]
+    _evaluateParallel = parMap rpar id
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g

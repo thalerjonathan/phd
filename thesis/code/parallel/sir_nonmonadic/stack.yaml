@@ -39,7 +39,7 @@ resolver: lts-13.11
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
-- ./Yampa
+# - ./Yampa
 # - location:
 #    git: https://github.com/ivanperez-keera/Yampa.git
 #    commit: 729d730c83ccede7405508be8014faa795b5f178
@@ -47,7 +47,7 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: 
-# - Yampa-0.13
+- Yampa-0.13
 - simple-affine-space-0.1@sha256:09e582f2e12ce9feb251cbdacec57fa1f4a838ec63928026d98b758e89f9abd7
 
 # Override default flag values for local packages and extra-deps

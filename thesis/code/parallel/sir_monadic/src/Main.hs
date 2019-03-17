@@ -1,26 +1,31 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE Strict #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
-import           Data.IORef
-import           System.IO
-import           Text.Printf
+import Data.IORef
+import GHC.Generics (Generic)
+import System.IO
+import Text.Printf
 
-import           Control.Monad.Par
-import           Control.Monad.Random
-import           Control.Monad.Reader
-import           Control.Monad.Trans.MSF.Random
-import           Data.Array.IArray
-import           FRP.BearRiver
+import Control.DeepSeq
+import Control.Monad.Random
+import Control.Monad.Reader
+import Control.Monad.Trans.MSF.Random
+import Control.Parallel.Strategies
+import Data.Array.IArray
+import FRP.BearRiver
 import qualified Graphics.Gloss as GLO
 import qualified Graphics.Gloss.Interface.IO.Animate as GLOAnim
 
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+data SIRState = Susceptible | Infected | Recovered deriving (Generic, Show, Eq)
+
+instance NFData SIRState
 
 type Disc2dCoord  = (Int, Int)
 type SIREnv       = Array Disc2dCoord SIRState
 
-type SIRMonad g   = RandT g Par
+type SIRMonad g   = Rand g
 type SIRAgent g   = SF (SIRMonad g) SIREnv SIRState
 
 type SimSF g = SF (SIRMonad g) () SIREnv
@@ -71,7 +76,7 @@ main = do
     else do
       --let ret = runSimulationUntil t dt ctx
       --writeAggregatesToFile "SIR_DUNAI.m" ret 
-      writeSimulationUntil t dt ctx "SIR_DUNAI_dt001.m" 
+      writeSimulationUntil t dt ctx "SIR_DUNAI_dt01.m" 
 
 runSimulationUntil :: RandomGen g
                    => Time
@@ -227,8 +232,7 @@ runStepCtx dt ctx = ctx'
 
     sfReader            = unMSF sf ()
     sfRand              = runReaderT sfReader dt
-    sfPar               = runRandT sfRand g
-    ((env, simSf'), g') = runPar sfPar
+    ((env, simSf'), g') = runRand sfRand g
 
     steps = simSteps ctx + 1
     t     = simTime ctx + dt
@@ -266,19 +270,23 @@ simulationStep sfsCoords env = MSF $ \_ -> do
     -- read-only: it is shared as input with all agents
     -- and thus cannot be changed by the agents themselves
     -- run agents sequentially but with shared, read-only environment
-    ret <- mapM (\sf -> (unMSF sf env) ) sfs
+    ret <- mapM (`unMSF` env) sfs
     
     -- construct new environment from all agent outputs for next step
     let (as, sfs') = unzip ret
+        as' = _evaluateParallel as
         -- env' = foldr (\(coord, a) envAcc -> _updateCell coord a envAcc) env (zip coords as)
         -- NOTE: if using not using update but constructing new will lead
         -- to very minor performance increase of ~ 6 - 10%.
-        env' = array ((0, 0), (fst agentGridSize - 1, snd agentGridSize - 1)) (zip coords as)
+        env' = array ((0, 0), (fst agentGridSize - 1, snd agentGridSize - 1)) (zip coords as')
 
         sfsCoords' = zip sfs' coords
         cont       = simulationStep sfsCoords' env'
     return (env', cont)
   where
+    _evaluateParallel :: [SIRState] -> [SIRState]
+    _evaluateParallel = parMap rpar force
+
     _updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
     _updateCell c s e = e // [(c, s)]
 

@@ -58,16 +58,17 @@ executable SIR-Dunai
   
   -- Other library packages from which modules are imported.
   build-depends:        base
-                      , bearriver
-                      , dunai
-                      , MonadRandom
-                      , containers
-                      , mtl 
-                      , gloss
                       , array
-                      , parallel
+                      , bearriver
+                      , containers
+                      , dunai
+                      , deepseq
+                      , gloss
+                      , mtl 
                       , monad-par
-                      
+                      , MonadRandom
+                      , parallel
+
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src

@@ -4,19 +4,27 @@ The promise of parallelism in Haskell is compelling: speeding up the execution b
 Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side-effects. Without going into too much technical detail, in this section we outline the parallelism techniques available in Haskell and briefly discuss how they can be used in ABS in general. We also discuss if and how parallelism can be added to our previously discussed use-cases of Chapters \ref{sec:timedriven_firststep}, \ref{sec:adding_env} and Sugarscape TODO and report the performance improvements where applicable.
 
 \subsection{Parallelism in Haskell}
+parallelism in haskell builds on laziness
+
 We follow the book \cite{marlow_parallel_2013}, which can be seen as the main source for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
 
 \paragraph{Evaluation parallelism}
+The basis are the following functions: \textit{rpar :: a -> Eval a} and \textit{rseq :: a -> Eval a}, where Eval is a Monad which can be run with \textit{runEval :: Eval a -> a}. rpar runs the computation in parallel and immediately returns without waiting for the evaluation of the thunk - this will happen behind the sences. rseq runs the computation in parallel as well but waits for the evaluation to WFNF. Using this we can start evaluating multiple expressions in parallel with rpar and then wait for their result with rseq. Note that both cases evaluate their argument to weak head normal form (WHNF), thus if the argument is already in WHNF, then the computation does nothing. This becomes important when to understand how far we can to in evaluation of parallelism. TODO: need to say a bit about haskell as a lazy language. TODO: isnt this all the very basics of haskells parallelism together with lazy evaluation?
+
 Put short, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}, which is called \textit{parMap}. This is achieved using the \textit{Eval Monad} which is run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). Obviously this gives huge potential for speeding up programs because maps are omnipresent in a lot of functional code. Not only parmap! explain a little bit more in detail without going into too much technical stuff.
+
 
 Very important: "In the previous two chapters, we looked at the Eval monad and Strategies, which work in conjunction with lazy evaluation to express parallelism. A Strategy consumes a lazy data structure and evaluates parts of it in parallel. This model has some advantages: it allows the decoupling of the algorithm from the parallelism, and it allows parallel evaluation strategies to be built compositionally. But Strategies and Eval are not always the most convenient or effective way to express parallelism. We might not want to build a lazy data structure, for example. Lazy evaluation brings the nice modularity properties that we get with Strategies, but on the flip side, lazy evaluation can make it tricky to understand and diagnose performance."
 Its laziness which allows that.
+
 
 %https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch02.html
 %https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch03.html
 
 \paragraph{Data-flow parallelism}
 Par Monad: how does it work? can express data-flow networks where tasks are forked and then results are synchronised. all this happens deterministically by building on the same mechanics the Eval monad is using thus technically speaking they are equivalent. 
+
+can use both par and eval monad but which is applicable? par seems to require strict data, eval works on lazy data-structure. can we use both inside an msf? what is the Advantage over simple rpar or rseq?\\
 
 %https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch04.html
 

@@ -1,6 +1,8 @@
 \subsection{Reflection}
 Despite high hopes, there were very few opportunities to apply parallelism to our pure functional ABS. This has three reasons: it is often highly model specific and our models simply didn't offer a lot of suitable parallelisations, the data-structures have to support parallelism e.g. map doesn't, but we also have to say that the sequential nature of ABS in general seems to be less suited to parallelism. We will see that concurrency offers a remedy against that.
 
+the difficulties / low ausbeute von parallelism just Shows how difficult it is to parallelise abs. also maybe our approach is not very well.suited e.g. not very functional?
+
 In general we aimed at running agents in parallel using the various techniques. Because of the quite sequential nature of the agent behaviours themselves, there is much less potential for parallelism \textit{within} an agent, thus the obvious idea was to run them all in parallel because they are an obvious unit of partitioning, have considerable workload and can indeed be run in parallel under given circumstances.
 Unfortunately it is not possible applying parallelism in case the agents run within a monadic context: we have side-effects which imposes ordering e.g. in the case of a
 

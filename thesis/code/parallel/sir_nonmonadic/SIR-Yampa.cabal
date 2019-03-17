@@ -51,7 +51,7 @@ executable SIR-Yampa
   main-is:             Main.hs
   
   -- Modules included in this executable, other than Main.
-  other-modules:       ParDpSwitch
+  -- other-modules: 
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
@@ -59,6 +59,7 @@ executable SIR-Yampa
   -- Other library packages from which modules are imported.
   build-depends:        base
                       , containers
+                      , deepseq
                       , mtl
                       , MonadRandom
                       , parallel

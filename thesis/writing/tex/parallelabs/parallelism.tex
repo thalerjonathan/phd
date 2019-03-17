@@ -8,11 +8,16 @@ We follow the book \cite{marlow_parallel_2013}, which can be seen as the main so
 
 \paragraph{Evaluation parallelism}
 Put short, evaluation parallelism allows to build functions which run in parallel e.g. a parallel version of \textit{map}, which is called \textit{parMap}. This is achieved using the \textit{Eval Monad} which is run using a parallel evaluation strategy, arriving at a pure value - the evaluation of the \textit{Eval Monad} itself is pure and does not require the IO (this is exactly what we expect from parallelism: to be deterministic). Obviously this gives huge potential for speeding up programs because maps are omnipresent in a lot of functional code. Not only parmap! explain a little bit more in detail without going into too much technical stuff.
+
+Very important: "In the previous two chapters, we looked at the Eval monad and Strategies, which work in conjunction with lazy evaluation to express parallelism. A Strategy consumes a lazy data structure and evaluates parts of it in parallel. This model has some advantages: it allows the decoupling of the algorithm from the parallelism, and it allows parallel evaluation strategies to be built compositionally. But Strategies and Eval are not always the most convenient or effective way to express parallelism. We might not want to build a lazy data structure, for example. Lazy evaluation brings the nice modularity properties that we get with Strategies, but on the flip side, lazy evaluation can make it tricky to understand and diagnose performance."
+Its laziness which allows that.
+
 %https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch02.html
 %https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch03.html
 
 \paragraph{Data-flow parallelism}
-Par Monad: how does it work?
+Par Monad: how does it work? can express data-flow networks where tasks are forked and then results are synchronised. all this happens deterministically by building on the same mechanics the Eval monad is using thus technically speaking they are equivalent. 
+
 %https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch04.html
 
 \paragraph{Data-structure parallelism}
@@ -29,16 +34,28 @@ Although \textit{parMap} can be applied in all cases where a map us used, we are
 
 Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which makes use of evaluation parallelism to run agents in parallel.
 
+TODO: compare performance of non-parallel implementation WITH threaded an -N option to non-parallel implementation without threaded and / or N1 to make sure that no performance improvement happens automatically by using threaded e.g. GCs or something else...
 
 % https://www.reddit.com/r/haskell/comments/2jbl78/from_60_frames_per_second_to_500_in_haskell/\\
 
+TODO: should be applicable to the par monad as well? 
+
 \subsubsection{Monadic SIR}
 Unfortunately \textit{parMap} is not applicable to the monadic SIR version of Chapter \ref{sec:adding_env} because of the use of mapM, which cannot be replaced due to its inherent sequential nature: mapM runs monadic actions which have side-effects thus ordering matters. Even if the implementation in that chapter behaves as if the agents are run in parallel, technically they are run sequentially because of the need for the Random Monad effect. This leaves us basically without any options of parallelism for the monadic SIR model, we will come back to this use-case in the concurrency section, where we will show that by using concurrency it is possible to achieve a substantial speed up of orders of magnitude.
+
+TODO: can't we run with the Par monad? in the end its just a data-flow graph! see the update-strategies. Should be possible, only problem is how to deal with rand then? we use split. the marlow book says: don't do repeated calls to runPar. we can because we implemented the agent-running loop  by our selves. so we can use Eval and Par
+
+TODO: following idea: instead of updating the environment, we simply build a new one, no need to update because we update all of them anyway, so very expensive. Also simply split RNGs for every agent, then we can run them in parallel 
+
+use ThreadScope to analyse performance
+
 
 \subsubsection{Sugarscape}
 use parmap for updating Pollution/regrow resources. still agents can't be run in parallel because of monadic effects, we show in the concurrent section how we can use concurrency to achieve a substantial speed up using STM.
 
 compare Environment parallelism between sequential and concurrent sugarscape: should see alarger speedup in conc bcs the sequential percentage is larger there
+
+unfortunately its a Map datastructure, so we cannot operate in parallel e.g. map. but we can compute pollution because it uses map
 
 \input{./tex/parallelabs/parallelism/parallelruns.tex}
 

@@ -62,10 +62,16 @@ TODO: can't we run with the Par monad? in the end its just a data-flow graph! se
 
 TODO: following idea: instead of updating the environment, we simply build a new one, no need to update because we update all of them anyway, so very expensive. Also simply split RNGs for every agent, then we can run them in parallel 
 
-use ThreadScope to analyse performance
+
+NOTE: running the agents in parallel with par doesn't work because we use mapM and are thus monadic, which involves sequencing. so this is really out of the window here. Also we cannot put a Par in a transformer stack because the library doesn't support it, what actually makes sense. But we can do the following: we can run an agents MSF only within the Par monad which gives agents the ability to spawn data-flow parallel computations - random-number streams are handled like in the non-monadic version. Note that this is only possible with the MSFs of dunai and not the SF because the latter one adds already the a ReaderT DTime which makes it impossible already. 
+What is actually possible would be to write a combined monad for Par and ReaderT because the latter one is a read-only value and could thus potentially run in parallel - we leave this for further research. There exists also a combination of the Par with the Rand monad, so if the time-driven approach is not needed then this could be used to give the agents the ability to both draw random numbers AND do deterministic data-parallel computations. The agents can then be run in parallel through the par monad.
 
 
 \subsubsection{Sugarscape}
+The same case as in the monadic SIR: running the agents with evaluation or data-flow parallelism is not possible in a monadic context  \textit{in general}. We have shortly discussed how it could be achieved in specific circumstances where then agents are running in the Par monad only, but this is highly model specific and for the Sugarscape this approach does not work. 
+
+There is though one tiny thing we could optimise.
+
 use parmap for updating Pollution/regrow resources. still agents can't be run in parallel because of monadic effects, we show in the concurrent section how we can use concurrency to achieve a substantial speed up using STM.
 
 compare Environment parallelism between sequential and concurrent sugarscape: should see alarger speedup in conc bcs the sequential percentage is larger there

@@ -6,6 +6,7 @@ import           Data.IORef
 import           System.IO
 import           Text.Printf
 
+import           Control.Monad.Par
 import           Control.Monad.Random
 import           Control.Monad.Reader
 import           Control.Monad.Trans.MSF.Random
@@ -19,7 +20,7 @@ data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 type Disc2dCoord  = (Int, Int)
 type SIREnv       = Array Disc2dCoord SIRState
 
-type SIRMonad g   = Rand g
+type SIRMonad g   = RandT g Par
 type SIRAgent g   = SF (SIRMonad g) SIREnv SIRState
 
 type SimSF g = SF (SIRMonad g) () SIREnv
@@ -55,9 +56,9 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let visualise = False
-      t         = 150
+      t         = 50
       dt        = 0.1
-      seed      = 123 -- 123 -- 42 leads to recovery without any infection
+      seed      = 42
       
       g         = mkStdGen seed
       (as, env) = initAgentsEnv agentGridSize
@@ -226,7 +227,8 @@ runStepCtx dt ctx = ctx'
 
     sfReader            = unMSF sf ()
     sfRand              = runReaderT sfReader dt
-    ((env, simSf'), g') = runRand sfRand g
+    sfPar               = runRandT sfRand g
+    ((env, simSf'), g') = runPar sfPar
 
     steps = simSteps ctx + 1
     t     = simTime ctx + dt
@@ -247,6 +249,12 @@ initAgentsEnv (xd, yd) = (as, e)
 
     e = array ((0, 0), (xd - 1, yd - 1)) as
 
+rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
+rngSplits g 0 acc = (acc, g)
+rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
+  where
+    (g', g'') = split g
+
 simulationStep :: RandomGen g
                => [(SIRAgent g, Disc2dCoord)]
                -> SIREnv
@@ -258,17 +266,21 @@ simulationStep sfsCoords env = MSF $ \_ -> do
     -- read-only: it is shared as input with all agents
     -- and thus cannot be changed by the agents themselves
     -- run agents sequentially but with shared, read-only environment
-    ret <- mapM (`unMSF` env) sfs
+    ret <- mapM (\sf -> (unMSF sf env) ) sfs
+    
     -- construct new environment from all agent outputs for next step
     let (as, sfs') = unzip ret
-        env' = foldr (\(coord, a) envAcc -> updateCell coord a envAcc) env (zip coords as)
-        
+        -- env' = foldr (\(coord, a) envAcc -> _updateCell coord a envAcc) env (zip coords as)
+        -- NOTE: if using not using update but constructing new will lead
+        -- to very minor performance increase of ~ 6 - 10%.
+        env' = array ((0, 0), (fst agentGridSize - 1, snd agentGridSize - 1)) (zip coords as)
+
         sfsCoords' = zip sfs' coords
         cont       = simulationStep sfsCoords' env'
     return (env', cont)
   where
-    updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
-    updateCell c s e = e // [(c, s)]
+    _updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
+    _updateCell c s e = e // [(c, s)]
 
 sirAgent :: RandomGen g => Disc2dCoord -> SIRState -> SIRAgent g
 sirAgent coord Susceptible = susceptibleAgent coord
@@ -291,8 +303,8 @@ susceptibleAgent _coord
       if not $ isEvent makeContact 
         then returnA -< (Susceptible, NoEvent)
         else (do
-          --let ns = neighbours env coord agentGridSize moore
-          let ns = allNeighbours env
+          let ns = neighbours env _coord agentGridSize moore
+          --let ns = allNeighbours env
           s <- drawRandomElemS -< ns
           case s of
             Infected -> do

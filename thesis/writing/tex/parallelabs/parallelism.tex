@@ -4,7 +4,7 @@ The promise of parallelism in Haskell is compelling: speeding up the execution b
 Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side-effects. Without going into too much technical detail, in this section we outline the parallelism techniques available in Haskell and briefly discuss how they can be used in ABS in general. We also discuss if and how parallelism can be added to our previously discussed use-cases of Chapters \ref{sec:timedriven_firststep}, \ref{sec:adding_env} and Sugarscape TODO and report the performance improvements where applicable.
 
 \subsection{Parallelism in Haskell}
-parallelism in haskell builds on laziness
+parallelism in haskell builds on laziness and two functions seq and par
 
 We follow the book \cite{marlow_parallel_2013}, which can be seen as the main source for parallelism and concurrency in Haskell and refer to it for an in-depth discussions of parallel Haskell.
 
@@ -36,6 +36,7 @@ An environment could be organised and accessed through such a data-structure, wh
 general solution we opt for is  to run agents in parallel in our approaches. in other abs models we could apply data-structure parallelism and/or data-flow parallelism with huge Performance potential but thats always highly model dependent thus we dont go in depth here
 
 \subsection{Use-Cases}
+Note: all timings are rough averages over multiple runs and not precise measurements because that is not the point here. we are only interested in showing what rough potential there is for speedup or if there is none - we are not interested in high performance computation here but rather in conceptual comparisons.
 
 \subsubsection{Non-Monadic SIR}
 Although \textit{parMap} can be applied in all cases where a map us used, we are particularly interested in running agents in parallel. With \textit{parMap} this should become possible in our non-monadic SIR implementation built on Yampa from Chapter \ref{sec:timedriven_firststep}. Even thought the Eval Monad is used under the hood and Yampa is non-monadic, it is still applicable because running the monad is pure, resulting in a pure result - \textit{parMap} is a pure function. TODO: how can we apply this?
@@ -69,6 +70,9 @@ Unfortunately in our non-monadic Yampa implementation we see a negligible speedu
 
 \subsubsection{Monadic SIR}
 Unfortunately \textit{parMap} is not applicable to the monadic SIR version of Chapter \ref{sec:adding_env} because of the use of mapM, which cannot be replaced due to its inherent sequential nature: mapM runs monadic actions which have side-effects thus ordering matters. Even if the implementation in that chapter behaves as if the agents are run in parallel, technically they are run sequentially because of the need for the Random Monad effect. This leaves us basically without any options of parallelism for the monadic SIR model, we will come back to this use-case in the concurrency section, where we will show that by using concurrency it is possible to achieve a substantial speed up of orders of magnitude.
+
+We can try to do the same as we did in the non-monadic SIR version but we can expect our approach to be doomed already. Although we collect a list of agent-outputs in the end, the way it is constructed is not lazy but sequential due to monadic execution. Thus we expect to see no speedup but a decreasing of performance due to overhead of parallelism. And indeed: the parallel version runs at the same speed as the non-parallel one. The reason is as follows: the list which is consumed by the mechanism for evaluation parallelism is indeed a lazy one but the elements are created sequentially one after another due to the monadic sequencing of mapM. 
+Thus even though parallelism is happening it is of no use because the elements are already in whnf
 
 TODO: the marlow book says: don't do repeated calls to runPar, so although the agent can in fact do that it should avoid it and if there is heavy parallel work in each agent then one should consider running the agent in the par monad with a single runPar outside
 

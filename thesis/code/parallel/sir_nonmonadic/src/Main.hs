@@ -42,11 +42,18 @@ main = do
 
       as   = initAgents agentCount infectedCount
       
-      --ass  = runSimulationUntil g t dt as
-      --dyns = aggregateAllStates ass
+      ass  = runSimulationUntil g t dt as
+      dyns = aggregateAllStates ass
+  
+  -- NOTE: a problem is the output to the file which due to lazy evaluation 
+  -- ties it to the production of in the parallel evaluation, which obviously
+  -- leads to terrible parallel performance because when doing IO this slows down
+  -- and leads to the spark being evaluated by main thread already before
+  -- parallelism kicks in
+  print $ last dyns
 
-  --writeAggregatesToFile "SIR_YAMPA.m" dyns
-  writeSimulationUntil g t dt as "SIR_YAMPA.m"
+  --writeAggregatesToFile "SIR_YAMPA.m" dt dyns
+  --writeSimulationUntil g t dt as "SIR_YAMPA.m"
 
 runSimulationUntil :: RandomGen g 
                    => g 
@@ -117,10 +124,15 @@ stepSimulation sfs as =
 
   where
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
-    switchingEvt = arr (\(_, newAs) -> Event $ _evaluateParallel newAs)
-
-    _evaluateParallel :: [SIRState] -> [SIRState]
-    _evaluateParallel = parMap rpar id
+    switchingEvt = arr (\(_, newAs) -> parEvalAgents newAs)
+      where
+        -- NOTE: need a seq here otherwise would lead to GC'd sparks because
+        -- the main thread consumes the output already when aggregating
+        parEvalAgents :: [SIRState] -> Event [SIRState]
+        parEvalAgents newAs = newAs' `seq` Event newAs' 
+          where
+            -- NOTE: chunks of 200 agents seem to deliver the best performance
+            newAs' = withStrategy (parListChunk 200 rdeepseq) newAs
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g

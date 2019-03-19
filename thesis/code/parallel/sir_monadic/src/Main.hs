@@ -1,9 +1,10 @@
 {-# LANGUAGE Arrows #-}
-{-# LANGUAGE Strict #-}
+-- {-# LANGUAGE Strict #-}
 {-# LANGUAGE DeriveGeneric #-}
 module Main where
 
 import Data.IORef
+import Data.Maybe
 import GHC.Generics (Generic)
 import System.IO
 import Text.Printf
@@ -74,9 +75,10 @@ main = do
   if visualise
     then visualiseSimulation dt ctx
     else do
-      --let ret = runSimulationUntil t dt ctx
+      let ret = runSimulationUntil t dt ctx
+      print $ last ret
       --writeAggregatesToFile "SIR_DUNAI.m" ret 
-      writeSimulationUntil t dt ctx "SIR_DUNAI_dt01.m" 
+      --writeSimulationUntil t dt ctx "SIR_DUNAI_dt01.m" 
 
 runSimulationUntil :: RandomGen g
                    => Time
@@ -91,7 +93,7 @@ runSimulationUntil tMax dt ctx0 = runSimulationAux 0 ctx0 []
                       -> [(Double, Double, Double)]
                       -> [(Double, Double, Double)]
     runSimulationAux t ctx acc 
-        | t >= tMax = acc
+        | t >= tMax = reverse acc
         | otherwise = runSimulationAux t' ctx' acc'
       where
         env  = simEnv ctx
@@ -274,7 +276,7 @@ simulationStep sfsCoords env = MSF $ \_ -> do
     
     -- construct new environment from all agent outputs for next step
     let (as, sfs') = unzip ret
-        as' = _evaluateParallel as
+        as' = fromJust $ parEvalAgents as
         -- env' = foldr (\(coord, a) envAcc -> _updateCell coord a envAcc) env (zip coords as)
         -- NOTE: if using not using update but constructing new will lead
         -- to very minor performance increase of ~ 6 - 10%.
@@ -284,8 +286,16 @@ simulationStep sfsCoords env = MSF $ \_ -> do
         cont       = simulationStep sfsCoords' env'
     return (env', cont)
   where
-    _evaluateParallel :: [SIRState] -> [SIRState]
-    _evaluateParallel = parMap rpar force
+    -- using parListChunk creates a spark for every element in the list AND 
+    -- deepseqs it. the documentation says that parListChunk 1 is the same
+    -- as parList with the given strategy. Strangely I get the following:
+    --    parList rdeepseq does not do any parallel evaluation (this i don't understand)
+    --    parList rpar does not do any rdeepseq but leads to all sparks being GC'd (this i understand)
+    parEvalAgents :: [SIRState] -> Maybe [SIRState]
+    parEvalAgents newAs = newAs' `seq` Just newAs'
+      where
+        --newAs' = withStrategy (parList rpar) newAs
+        newAs' = withStrategy (parListChunk 2 rdeepseq) newAs
 
     _updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
     _updateCell c s e = e // [(c, s)]

@@ -1,21 +1,16 @@
 {-# LANGUAGE Arrows #-}
-{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
-import GHC.Generics (Generic)
 import System.IO
 import Text.Printf
 
-import Control.DeepSeq
 import Control.Parallel.Strategies
 import Control.Monad.Random
 
 import FRP.Yampa
 
-data SIRState = Susceptible | Infected | Recovered deriving (Generic, Show, Eq)
+data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 type SIRAgent = SF [SIRState] SIRState
-
-instance NFData SIRState
 
 contactRate :: Double
 contactRate = 5.0
@@ -26,7 +21,9 @@ infectivity = 0.05
 illnessDuration :: Double
 illnessDuration = 15.0
 
--- stack exec -- SIR-Yampa +RTS -ls -p -N
+-- NOTE: use this to run it in parallel on max cores, generating 
+-- Run-Time Statistics including events 
+-- stack exec -- SIR-Yampa +RTS -ls -N
 
 main :: IO ()
 main = do
@@ -44,15 +41,17 @@ main = do
       
       ass  = runSimulationUntil g t dt as
       dyns = aggregateAllStates ass
-  
+
   -- NOTE: a problem is the output to the file which due to lazy evaluation 
   -- ties it to the production of in the parallel evaluation, which obviously
   -- leads to terrible parallel performance because when doing IO this slows down
   -- and leads to the spark being evaluated by main thread already before
   -- parallelism kicks in
+  -- through this output, we force the full simulation to evaluate before writing
+  -- it to the file
   print $ last dyns
 
-  --writeAggregatesToFile "SIR_YAMPA.m" dt dyns
+  writeAggregatesToFile "SIR_YAMPA.m" dt dyns
   --writeSimulationUntil g t dt as "SIR_YAMPA.m"
 
 runSimulationUntil :: RandomGen g 
@@ -132,7 +131,11 @@ stepSimulation sfs as =
         parEvalAgents newAs = newAs' `seq` Event newAs' 
           where
             -- NOTE: chunks of 200 agents seem to deliver the best performance
-            newAs' = withStrategy (parListChunk 200 rdeepseq) newAs
+            -- when we are purely CPU bound and don't have any IO
+            --newAs' = withStrategy (parListChunk 200 rseq) newAs
+            -- NOTE: alternative is to run every agent in parallel
+            -- only use when IO of simulation output is required
+            newAs' = withStrategy (parList rseq) newAs
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g
@@ -262,38 +265,3 @@ sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
   ++ "," ++ printf "%f" infectedCount
   ++ "," ++ printf "%f" recoveredCount
   ++ ";"
-
--- NOTE: this code demonstrates that an agent could 
--- indeed make the transition from Susceptible to
--- Recovered within a single time-step because
--- switch applies the SF to switch into immediately.
--- Using delayed switch (dSwitch) does NOT help, it
--- only delays the OBSERVATION but does also apply
--- the new SF immediately, thus the solution is 
--- to use iPre which delays by 1 step by
--- 'consuming' the immediate switching 
-{-
-sirTest :: SIRAgent
-sirTest = switch
-            susceptible --  >>> iPre (Susceptible, NoEvent))
-            (const infected)
-  where
-    susceptible :: SF [SIRState] (SIRState, Event ())
-    susceptible = proc _ -> returnA -< (Infected, Event ())
-
-    infected :: SIRAgent
-    infected = switch
-            (infectedAux >>> iPre (Infected, NoEvent))
-            (const recovered)
-      where
-        infectedAux :: SF [SIRState] (SIRState, Event ())
-        infectedAux = proc _ -> returnA -< (Recovered, Event ())
-
-    recovered :: SIRAgent
-    recovered = arr (const Recovered)
-
-main :: IO ()
-main = do
-  let ret = embed (sirTest) ([], [(0.1, Nothing), (0.1, Nothing)])
-  print ret
--}

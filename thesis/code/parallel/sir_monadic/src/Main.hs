@@ -1,15 +1,11 @@
 {-# LANGUAGE Arrows #-}
--- {-# LANGUAGE Strict #-}
-{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
 import Data.IORef
 import Data.Maybe
-import GHC.Generics (Generic)
 import System.IO
 import Text.Printf
 
-import Control.DeepSeq
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Trans.MSF.Random
@@ -19,9 +15,7 @@ import FRP.BearRiver
 import qualified Graphics.Gloss as GLO
 import qualified Graphics.Gloss.Interface.IO.Animate as GLOAnim
 
-data SIRState = Susceptible | Infected | Recovered deriving (Generic, Show, Eq)
-
-instance NFData SIRState
+data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 
 type Disc2dCoord  = (Int, Int)
 type SIREnv       = Array Disc2dCoord SIRState
@@ -57,12 +51,16 @@ winSize = (800, 800)
 winTitle :: String
 winTitle = "Agent-Based SIR on 2D Grid"
 
+-- NOTE: use this to run it in parallel on max cores, generating 
+-- Run-Time Statistics including events 
+-- stack exec -- SIR-Yampa +RTS -ls -N
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
   let visualise = False
-      t         = 50
+      t         = 150
       dt        = 0.1
       seed      = 42
       
@@ -295,7 +293,7 @@ simulationStep sfsCoords env = MSF $ \_ -> do
     parEvalAgents newAs = newAs' `seq` Just newAs'
       where
         --newAs' = withStrategy (parList rpar) newAs
-        newAs' = withStrategy (parListChunk 2 rdeepseq) newAs
+        newAs' = withStrategy (parListChunk 2 rseq) newAs
 
     _updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
     _updateCell c s e = e // [(c, s)]

@@ -80,4 +80,5 @@ executable SIR-Dunai
                        -Wall
                        -Werror
                        -eventlog
-                       -threaded -with-rtsopts=-N
+                       -threaded 
+                       

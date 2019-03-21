@@ -1,1 +1,85 @@
-\subsection{Parallelism in non-monadic time-driven ABS}
+\subsubsection{Non-Monadic SIR}
+\label{parallel_nonmonadic_sir}
+As outlined above we want to apply parallelism to agent evaluation by composing the output with parallel evaluation by slightly changing the function \textit{switchingEvt}. This function receives the output of all agents from the current simulation step and generates an event to recursively switch back into \textit{stepSimulation} to compute the next simulation step. The code is as follows:
+
+\begin{HaskellCode}
+switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
+switchingEvt = arr (\ (_, newAs) -> parEvalAgents newAs)
+  where
+    -- NOTE: need a seq here otherwise would lead to GC'd sparks because
+    -- the main thread consumes the output already when aggregating, so using seq 
+    -- will force parallel evaluation at that point 
+    parEvalAgents :: [SIRState] -> Event [SIRState]
+    parEvalAgents newAs = newAs' `seq` Event newAs' 
+      where
+        -- NOTE: chunks of 200 agents seem to deliver the best performance
+        -- when we are purely CPU bound and don't have any IO
+        newAs' = withStrategy (parListChunk 200 rseq) newAs
+        -- NOTE: alternative is to run every agent in parallel
+        -- only use when IO of simulation output is required
+        -- newAs' = withStrategy (parList rseq) newAs
+\end{HaskellCode}
+
+Which evaluation strategy resulted in the best performance increase turned out to depend on how we observe the results of the simulation. Due to Haskells non-strict nature, as long as no output is \textit{observed}, nothing would get computed ever. We have developed three (3) different ways to observe the output of this simulation and thus we measured the timings for all of them:
+
+\begin{enumerate}
+	% Parallel : 3.86, 3.77, 3.87, 3.83, 4.13, 3.77, 3.88, 4.15 = 3.9 (0.15 std)
+	% Sequential: 16.74, 16.54, 16.69, 16.33, 16.68, 16.42, 16.57, 16.38 = 16.54 (0.15 std)
+	% Factor = 4.24
+	
+	\item Printing the output of the last simulation step. This requires to run the simulation for the whole 150 time-steps because each step depends on the output of the previous one. Because the simulation is completely CPU bound, the best performance increase turned out to run agents in batches where for this model 200 seems to deliver the best performance. If each agent is run in parallel, we still achieved a substantial performance increase but not as high as the batched version. An analysis showed that around 1.5 million (!) sparks got created but most of them were never evaluated. There is a limit in the spark pool and we have obviously hit that.
+	
+	% Parallel: 9.37, 9.18, 9.2, 9.2, 9.3, 9.7, 9.95, 9.44 = 9.4175 (0.27541 std)
+	% Sequential: 10.13, 10.42, 10.2, 10.12, 10.0, 10.2, 10.1, 10.2 = 10.171 (0.12135 std)
+	% Factor = 1.08
+	\item Writing the aggregated output of the whole simulation to an export file. This requires in principle to run the simulation through but due to non-strictness, the writing to the export file begins straight away. This interferes with parallelism due to system calls which get interleaved with parallelism, leading to less performance increase than the previous one. It turned out that in this case running each agent in parallel didn't lead to reduced performance, because we are IO bound (see below).
+	
+	% Parallel: 9.24, 9.44, 9.35, 9.61, 10.16, 10.45, 10.25, 9.4 =  9.7375 (0.47286 std)
+	% Sequential: 10.07, 10.05, 10.0, 10.03, 10.04, 9.95, 10.06, 10.144 = 10.043 (0.055990 std)
+	% Factor = 1.03
+	\item Appending the aggregated output of the current step to an export file. This is necessary when we have a very long running simulation for which we want to write each step out (more or less) as soon as it is computed. The function which runs this simulation is tail-recursive and can thus run forever, which is not possible in the previous case where the function is not necessarily tail-recursive and aggregates the outputs. Here we use a strategy which evaluates each agent in parallel as well.
+\end{enumerate}
+
+The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All timings were measured with 1000 agents running for 150 time-steps, and $\Delta = 0.1$. We performed 8 runs and report the timings in seconds. The parallel version was compiled with the '-threaded' option and used all 8 cores with the '-N' option. For the sequential implementation the '-threaded' option was removed as well as the evaluation strategies - it is purely sequential code. All experiments were carried out on the same machine \footnote{Dell XPS 13 (9370) with Intel Core i7-8550U (8 cores), 16 GB Ram (plugged in).}
+
+\begin{table}
+	\centering
+	\begin{tabular}{ c || c | c | c }
+		Output type                   & Parallel & Sequential & Factor \\ \hline
+		Print of last step (1)        & 3.9      & 16.38      & 4.24 \\ \hline
+		Writing simulation output (2) & 9.41     & 10.17      & 1.08 \\ \hline
+		Appending current step (3)    & 9.73     & 10.04      & 1.03 \\ \hline
+	\end{tabular}
+	
+	\caption{Timings of parallel vs. sequential non-monadic SIR.}
+	\label{tab:parallel_nonmonadic_sir_timings}
+\end{table}
+
+The table clearly indicates, that in case we are purely CPU bound we get a quite impressive speed up of 4.24 on 8 cores - parallelism clearly pays off here, especially after it is so easy to add. On the other hand it seems that as soon as we are IO bound, the parallelism performance benefit is completely wasted. This does not come as a surprise and it is well established that generally as soon as IO is involved, performance benefits from parallelism will suffer. This point will be addressed by the use of concurrency where due to concurrent evaluation the IO is decoupled from the computation, making the latter one completely CPU bound and resulting in an impressive speed-up in such a case as well.
+
+What comes a bit as a surprise is that in the case of the sequential implementation, the CPU bound implementation, which does no IO is actually slower than the ones which do IO. This can be attributed to lazy evaluation which seems to increase performance . TODO why?
+
+% NOTE: THESE ARE OLD COMMENTS, MADE OBSOLETE BECAUSE I MADE IT ACTUALLY WORK
+%Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which makes use of evaluation parallelism to run agents in parallel.
+%
+%OK, rephrase: compare performance of non-parallel implementation WITH threaded an -N option to non-parallel implementation without threaded and / or N1 to make sure that no performance improvement happens automatically by using threaded e.g. GCs or something else...
+%I observed the behaviour in the following code: \url{https://github.com/thalerjonathan/phd/tree/master/public/purefunctionalepidemics/code/SIR_Yampa}
+%
+%I analysed a bit more using the threadscope tool. I ran the same program twice with different ghc-options:
+%1. -O2 -Wall -Werror -eventlog 
+%2. -O2 -Wall -Werror -eventlog -threaded -with-rtsopts=-N
+%
+%When looking at the event logs with threadscope it becomes appartent, that parallel garbage collection is the cause of the CPU usage above 100%:
+%-  In the single-threaded case 0 sparks are created and everything runs indeed only on one core. There are two Garbage Collectors (Gen0 and Gen1) but nothing runs in parallel (Par collections are 0 for both).
+%- In the multi-threaded case also 0 sparks are created but now 8 cores are used: all 'running' activity happens on only 1 core as expected but garbage collection happens on all 8 cores: the diagrams and the number of Par collections clearly indicates that. The time spent on parallel GC work is 10.76% (0 is completely serial and 100% is completely parallel).
+%
+%Now when we compare the timing between both runs we see the following: 
+%- single-threaded: 11.68s total, 7.35s mutator, 4.34s GC,
+%- multi-threaded: 10.70s total, 7.03s mutator, 3.68s GC
+%
+%This adds up: the ~ 10\% of parallel GC work done in multi-threaded are also the ~ 10\% it is faster over the single-threaded one. Of course I only did a single run in each case but I think the analysis is still valid and the point was made: when running a Haskell program which does not use any parallel features, running it with the -threaded option can lead to an increase in performance due to parallel GC.
+%
+%% https://www.reddit.com/r/haskell/comments/2jbl78/from_60_frames_per_second_to_500_in_haskell/\\
+%
+%Our use case:
+%Unfortunately in our non-monadic Yampa implementation we see a negligible speedup of less than 10\% between running it on 1 or 8 cores and this difference is probably due to garbage collection. When analysing the problem more in-depth it becomes clear that 50\% of the parallel evaluation sparks (todo explain) are duplications and get never evaluated, which is due to the thunk being already evaluated before thus no need to run it actually in parallel. Unfortunately this seems reasonable in this example: the way the agent-behaviour is implemented forces the values, including the output, due to lots of comparisons, which results basically in a strict behaviour with the output already evaluated for many agents. It seems that it depends on the current state the agent is in otherwise we could not explain why some sparks are duplications and others not. Further it seems, that although work happens in parallel, the overhead eats up the benefit and thus we arrive at roughly the same performance of the non-parallel version. This might be completely different for much more computational intensive agent behaviour with a more complex agent-output data-structure - but we leave this for further research.

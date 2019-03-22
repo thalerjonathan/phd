@@ -30,7 +30,7 @@ illnessDuration = 15.0
 
 -- NOTE: use this to run it in parallel on max cores, generating 
 -- Run-Time Statistics including events 
--- stack exec -- SIR-Yampa +RTS -ls -N
+-- stack exec -- SIR-Yampa +RTS -lfs -N
 
 main :: IO ()
 main = do
@@ -45,8 +45,8 @@ main = do
       infectedCount = 1
 
       as   = initAgents agentCount infectedCount
-      ass  = runSimulationUntil g t dt as
-      dyns = aggregateAllStates ass
+      --ass  = runSimulationUntil g t dt as
+      --dyns = aggregateAllStates ass
 
   -- NOTE: a problem is the output to the file which due to lazy evaluation 
   -- ties it to the production of in the parallel evaluation, which obviously
@@ -55,10 +55,10 @@ main = do
   -- parallelism kicks in
   -- through this output, we force the full simulation to evaluate before writing
   -- it to the file
-  print $ last dyns
-  writeAggregatesToFile "SIR_YAMPA.m" dt dyns
+  --print $ last dyns
+  -- writeAggregatesToFile "SIR_YAMPA.m" dt dyns
 
-  --writeSimulationUntil g t dt as "SIR_YAMPA.m"
+  writeSimulationUntil g t dt as "SIR_YAMPA.m"
 
 runSimulationUntil :: RandomGen g 
                    => g 
@@ -129,7 +129,7 @@ stepSimulation sfs as =
 
   where
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
-    switchingEvt = arr (\(_, newAs) -> Event newAs) -- _parEvalAgents newAs) -- parMonadAgents newAs) --parEvalAgents newAs)
+    switchingEvt = arr (\(_, newAs) -> _parMonadAgents newAs) -- parMonadAgents newAs) parEvalAgents newAs) Event newAs) 
       where
         -- NOTE: need a seq here otherwise would lead to GC'd sparks because
         -- the main thread consumes the output already when aggregating
@@ -143,6 +143,8 @@ stepSimulation sfs as =
             -- only use when IO of simulation output is required
             --newAs' = withStrategy (parList rseq) newAs
 
+        -- NOTE: with the Par monad, splitting the list into chunks seems not 
+        -- to be necessary - we get the same speed up as in evaluation strategies
         _parMonadAgents :: [SIRState] -> Event [SIRState]
         _parMonadAgents newAs = Event $ runPar $ do
            ivs <- mapM (spawn . return) newAs

@@ -75,5 +75,5 @@ executable SIR-Yampa
   ghc-options:         -O2
                        -Wall
                        -Werror
-                       -- -threaded
-                      -- -eventlog
+                       -threaded
+                       -- -eventlog

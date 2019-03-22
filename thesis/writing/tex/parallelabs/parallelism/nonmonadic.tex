@@ -1,5 +1,7 @@
 \subsubsection{Non-Monadic SIR}
 \label{parallel_nonmonadic_sir}
+
+\paragraph{Evaluation Strategies}
 As outlined above we want to apply parallelism to agent evaluation by composing the output with parallel evaluation by slightly changing the function \textit{switchingEvt}. This function receives the output of all agents from the current simulation step and generates an event to recursively switch back into \textit{stepSimulation} to compute the next simulation step. The code is as follows:
 
 \begin{HaskellCode}
@@ -39,9 +41,9 @@ Which evaluation strategy resulted in the best performance increase turned out t
 	% Factor = 1.03
 	\item Appending the aggregated output of the current step to an export file. This is necessary when we have a very long running simulation for which we want to write each step out (more or less) as soon as it is computed. The function which runs this simulation is tail-recursive and can thus run forever, which is not possible in the previous case where the function is not necessarily tail-recursive and aggregates the outputs. Here we use a strategy which evaluates each agent in parallel as well.
 	
-	% Parallel: TODO
-	% Sequential: TODO
-	% Factor = TODO
+	% Parallel: 5.1, 4.9, 4.88, 4.99, 5.08, 4.89, 4.94, 5.38 = 5.0200 (0.16810 std)
+	% Sequential: 20.11, 19.55, 19.53, 19.46, 19.61, 19.46, 19.58, 20.18 = 19.685 (0.28928 std)
+	% Factor = 3.92
 	\item A combined approach of 1 and 2 where the output of the last simulation step is printed and then the aggregate is written to a file.
 \end{enumerate}
 
@@ -54,7 +56,7 @@ The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All
 		Print of last step (1)        & 3.9      & 16.38      & 4.24 \\ \hline
 		Writing simulation output (2) & 9.41     & 10.17      & 1.08 \\ \hline
 		Appending current step (3)    & 9.73     & 10.04      & 1.03 \\ \hline
-		(1) and (2) combined			 & TODO     & TODO       & TODO \\ \hline
+		(1) and (2) combined	          & 5.02     & 19.68      & 3.92 \\ \hline
 	\end{tabular}
 	
 	\caption{Timings of parallel vs. sequential non-monadic SIR.}
@@ -63,9 +65,21 @@ The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All
 
 The table clearly indicates, that in case we are purely CPU bound we get a quite impressive speed up of 4.24 on 8 cores - parallelism clearly pays off here, especially after it is so easy to add. On the other hand it seems that as soon as we are IO bound, the parallelism performance benefit is completely wasted. This does not come as a surprise and it is well established that generally as soon as IO is involved, performance benefits from parallelism will suffer. This point will be addressed by the use of concurrency where due to concurrent evaluation the IO is decoupled from the computation, making the latter one completely CPU bound and resulting in an impressive speed-up in such a case as well.
 
-What comes a bit as a surprise is that in the case of the sequential implementation, the CPU bound implementation, which does no IO is actually slower than the ones which do IO. This can be attributed to lazy evaluation which seems to increase performance . TODO why?
-Thus when comparing the parallel CPU bound approach (1) to the IO bound sequential ones (2) and (3) results in a lower speed up factor of roughly 2.6.
+What comes a bit as a surprise is that in the case of the sequential implementation, the CPU bound implementation, which does no IO is actually slower than the ones which do IO. This can be attributed to lazy evaluation which seems to increase performance because IO can be performed actually while the simulation computes the next step, interleaving the evaluation and IO. Thus when comparing the parallel CPU bound approach (1) to the IO bound sequential ones (2) and (3) results in a lower speed up factor of roughly 2.6.
 The combined approach (4) then shows that we actually can have the substantial speed up of CPU bound (1) but still write the result to the file like in (2). This is of fundamental importance in simulation, because after all they often produce massive amounts of data which need to be stored somewhere.
+
+\paragraph{Par Monad} The book \cite{marlow_parallel_2013} mentions that Par Monad and evaluation strategies result roughly in the same performance in most of the benchmarks. And indeed: we also applied Par Monad here to run the agents in parallel by evaluating their output and we get about the same speed up in cases (1) and (4). The IO bound cases (2) and (3) perform slower: (2) is nearly 50\% slower than its evaluation strategy pendant and (3) is about 25\% slower. What is interesting is, that running all agents in their own task seems to be fine here in any case whereas it was slower in the evaluation strategy in the CPU bound case:
+
+\begin{HaskellCode}
+-- NOTE: with the Par monad, splitting the list into chunks seems not 
+-- to be necessary - we get the same speed up as in evaluation strategies
+parMonadAgents :: [SIRState] -> Event [SIRState]
+parMonadAgents newAs = Event (runPar (do
+  -- simply return the value of the agent, resulting in a deepseq due to
+  -- NFData instance of put in IVar
+  ivs <- mapM (spawn . return) newAs
+  mapM get ivs))
+\end{HaskellCode}
 
 % NOTE: THESE ARE OLD COMMENTS, MADE OBSOLETE BECAUSE I MADE IT ACTUALLY WORK
 %Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which makes use of evaluation parallelism to run agents in parallel.
@@ -89,5 +103,5 @@ The combined approach (4) then shows that we actually can have the substantial s
 %
 %% https://www.reddit.com/r/haskell/comments/2jbl78/from_60_frames_per_second_to_500_in_haskell/\\
 %
-%Our use case:
+%Our use case: NOTE THIS IS OUTDATED ! I COULD GET IT TO WORK!!
 %Unfortunately in our non-monadic Yampa implementation we see a negligible speedup of less than 10\% between running it on 1 or 8 cores and this difference is probably due to garbage collection. When analysing the problem more in-depth it becomes clear that 50\% of the parallel evaluation sparks (todo explain) are duplications and get never evaluated, which is due to the thunk being already evaluated before thus no need to run it actually in parallel. Unfortunately this seems reasonable in this example: the way the agent-behaviour is implemented forces the values, including the output, due to lots of comparisons, which results basically in a strict behaviour with the output already evaluated for many agents. It seems that it depends on the current state the agent is in otherwise we could not explain why some sparks are duplications and others not. Further it seems, that although work happens in parallel, the overhead eats up the benefit and thus we arrive at roughly the same performance of the non-parallel version. This might be completely different for much more computational intensive agent behaviour with a more complex agent-output data-structure - but we leave this for further research.

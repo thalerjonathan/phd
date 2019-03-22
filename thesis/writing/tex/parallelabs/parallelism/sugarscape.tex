@@ -7,4 +7,8 @@ use parmap for updating Pollution/regrow resources. still agents can't be run in
 
 compare Environment parallelism between sequential and concurrent sugarscape: should see alarger speedup in conc bcs the sequential percentage is larger there
 
-unfortunately its a Map datastructure, so we cannot operate in parallel e.g. map. but we can compute pollution because it uses map
+unfortunately its a Map datastructure, so we cannot operate in parallel e.g. map. but we can compute pollution because it uses map:
+- (as a side note, folds can be parallelized only when the operation being folded is associative, and then the linear fold can be turned into a tree)
+- IntMap traverseWithKey :: Applicative t => (Key -> a -> t b) -> IntMap a -> t (IntMap b):
+	m <- Map.traverseWithKey (\i jmap -> spawn (return (shortmap i jmap))) g
+	

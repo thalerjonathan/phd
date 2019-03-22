@@ -38,6 +38,11 @@ Which evaluation strategy resulted in the best performance increase turned out t
 	% Sequential: 10.07, 10.05, 10.0, 10.03, 10.04, 9.95, 10.06, 10.144 = 10.043 (0.055990 std)
 	% Factor = 1.03
 	\item Appending the aggregated output of the current step to an export file. This is necessary when we have a very long running simulation for which we want to write each step out (more or less) as soon as it is computed. The function which runs this simulation is tail-recursive and can thus run forever, which is not possible in the previous case where the function is not necessarily tail-recursive and aggregates the outputs. Here we use a strategy which evaluates each agent in parallel as well.
+	
+	% Parallel: TODO
+	% Sequential: TODO
+	% Factor = TODO
+	\item A combined approach of 1 and 2 where the output of the last simulation step is printed and then the aggregate is written to a file.
 \end{enumerate}
 
 The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All timings were measured with 1000 agents running for 150 time-steps, and $\Delta = 0.1$. We performed 8 runs and report the timings in seconds. The parallel version was compiled with the '-threaded' option and used all 8 cores with the '-N' option. For the sequential implementation the '-threaded' option was removed as well as the evaluation strategies - it is purely sequential code. All experiments were carried out on the same machine \footnote{Dell XPS 13 (9370) with Intel Core i7-8550U (8 cores), 16 GB Ram (plugged in).}
@@ -49,6 +54,7 @@ The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All
 		Print of last step (1)        & 3.9      & 16.38      & 4.24 \\ \hline
 		Writing simulation output (2) & 9.41     & 10.17      & 1.08 \\ \hline
 		Appending current step (3)    & 9.73     & 10.04      & 1.03 \\ \hline
+		(1) and (2) combined			 & TODO     & TODO       & TODO \\ \hline
 	\end{tabular}
 	
 	\caption{Timings of parallel vs. sequential non-monadic SIR.}
@@ -58,6 +64,8 @@ The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All
 The table clearly indicates, that in case we are purely CPU bound we get a quite impressive speed up of 4.24 on 8 cores - parallelism clearly pays off here, especially after it is so easy to add. On the other hand it seems that as soon as we are IO bound, the parallelism performance benefit is completely wasted. This does not come as a surprise and it is well established that generally as soon as IO is involved, performance benefits from parallelism will suffer. This point will be addressed by the use of concurrency where due to concurrent evaluation the IO is decoupled from the computation, making the latter one completely CPU bound and resulting in an impressive speed-up in such a case as well.
 
 What comes a bit as a surprise is that in the case of the sequential implementation, the CPU bound implementation, which does no IO is actually slower than the ones which do IO. This can be attributed to lazy evaluation which seems to increase performance . TODO why?
+Thus when comparing the parallel CPU bound approach (1) to the IO bound sequential ones (2) and (3) results in a lower speed up factor of roughly 2.6.
+The combined approach (4) then shows that we actually can have the substantial speed up of CPU bound (1) but still write the result to the file like in (2). This is of fundamental importance in simulation, because after all they often produce massive amounts of data which need to be stored somewhere.
 
 % NOTE: THESE ARE OLD COMMENTS, MADE OBSOLETE BECAUSE I MADE IT ACTUALLY WORK
 %Inspired by the work of \cite{perez_60_2014}, which shows the potential of speeding up real-world Haskell programs using Yampa We conducted a comparison of an implementation which makes use of evaluation parallelism to run agents in parallel.

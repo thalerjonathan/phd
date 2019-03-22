@@ -60,6 +60,7 @@ executable SIR-Yampa
   build-depends:        base
                       , containers
                       , deepseq
+                      , monad-par
                       , mtl
                       , MonadRandom
                       , parallel
@@ -74,5 +75,5 @@ executable SIR-Yampa
   ghc-options:         -O2
                        -Wall
                        -Werror
-                       -threaded
+                       -- -threaded
                       -- -eventlog

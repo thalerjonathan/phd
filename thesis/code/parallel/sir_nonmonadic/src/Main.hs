@@ -1,16 +1,23 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows        #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
 import System.IO
 import Text.Printf
 
+import Control.DeepSeq
 import Control.Parallel.Strategies
+import Control.Monad.Par
 import Control.Monad.Random
+import GHC.Generics (Generic)
 
 import FRP.Yampa
 
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+data SIRState = Susceptible | Infected | Recovered deriving (Generic, Show, Eq)
 type SIRAgent = SF [SIRState] SIRState
+
+-- needed for Par monad parallelisation
+instance NFData SIRState
 
 contactRate :: Double
 contactRate = 5.0
@@ -38,7 +45,6 @@ main = do
       infectedCount = 1
 
       as   = initAgents agentCount infectedCount
-      
       ass  = runSimulationUntil g t dt as
       dyns = aggregateAllStates ass
 
@@ -50,8 +56,8 @@ main = do
   -- through this output, we force the full simulation to evaluate before writing
   -- it to the file
   print $ last dyns
-
   writeAggregatesToFile "SIR_YAMPA.m" dt dyns
+
   --writeSimulationUntil g t dt as "SIR_YAMPA.m"
 
 runSimulationUntil :: RandomGen g 
@@ -123,19 +129,24 @@ stepSimulation sfs as =
 
   where
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
-    switchingEvt = arr (\(_, newAs) -> parEvalAgents newAs)
+    switchingEvt = arr (\(_, newAs) -> Event newAs) -- _parEvalAgents newAs) -- parMonadAgents newAs) --parEvalAgents newAs)
       where
         -- NOTE: need a seq here otherwise would lead to GC'd sparks because
         -- the main thread consumes the output already when aggregating
-        parEvalAgents :: [SIRState] -> Event [SIRState]
-        parEvalAgents newAs = newAs' `seq` Event newAs' 
+        _parEvalAgents :: [SIRState] -> Event [SIRState]
+        _parEvalAgents newAs = newAs' `seq` Event newAs' 
           where
             -- NOTE: chunks of 200 agents seem to deliver the best performance
             -- when we are purely CPU bound and don't have any IO
-            --newAs' = withStrategy (parListChunk 200 rseq) newAs
+            newAs' = withStrategy (parListChunk 200 rseq) newAs
             -- NOTE: alternative is to run every agent in parallel
             -- only use when IO of simulation output is required
-            newAs' = withStrategy (parList rseq) newAs
+            --newAs' = withStrategy (parList rseq) newAs
+
+        _parMonadAgents :: [SIRState] -> Event [SIRState]
+        _parMonadAgents newAs = Event $ runPar $ do
+           ivs <- mapM (spawn . return) newAs
+           mapM get ivs
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g

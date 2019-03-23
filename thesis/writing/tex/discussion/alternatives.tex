@@ -9,7 +9,7 @@ Problem: Yes, freer monads are today somewhere around 30x slower than the equiva
 ContT is Not an Algebraic Effect so it seems to be difficult to implement continuations in freer monads. Unfortunately this is what we really need as shown in Event driven ABS and generalising structure chapters.
 Other criticism of Freer Monads are: \url{https://medium.com/barely-functional/freer-doesnt-come-for-free-c9fade793501} are: boilerplate code which though can be generated automatically by some libraries, performance when not IO based because the program is bascially a data-structure which is interpreted, concurrency seems to be tricky, 
 
-TODO: it seems that Final Tagless is another alternative. Look into it
+TODO: it seems that Final Tagless is another alternative. Look into it: \url{https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html}
 
 \subsection{Languages}
 We precisely pointed out in the beginning of this thesis why we chose Haskell as language of choice. Obviously Haskell is not the only (pure) functional language and there exist a number of other alternatives which would be equally worth of systematic investigation of their use for ABS. Shortly we can conclude that the use of Haskell moves the nature of the structure of ABS computation into the light, together with compile-time guarantees, and benefits in testing and parallel implementations. Depending on each language though we get a very different direction:

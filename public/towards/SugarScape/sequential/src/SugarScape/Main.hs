@@ -40,6 +40,8 @@ data Options = Options
 -- clear & stack exec -- sugarscape -s "Animation II-3" -f 1000 -o export/dynamics.m -r 42
 -- clear & stack exec -- sugarscape -s "Animation II-3" -v 0 --ac Default --sc Resource -r 42
 
+-- clear & stack exec -- sugarscape -s "Animation II-8" -f 1000 -o export/dynamics.m -r 42
+
 -- PROFILING
 -- clear & stack exec -- sugarscape -s "Animation II-3" -f 1000 -o export/dynamics.m -r 42 +RTS -p -h -s
 
@@ -47,6 +49,9 @@ data Options = Options
 -- TESTING: can we add some tests which check for memory-leaks? e.g. running
 --  various scenarios and check if memory-consumption is 'normal'? Can we use
 --  criterion for that?
+
+-- 100 steps, with last output print to console (Animation II-8)
+-- sqeuential 4.73, 4.69, 4.68, 4.7
 
 main :: IO ()
 main = do
@@ -82,7 +87,9 @@ runSugarscape opts = do
       putStrLn "--------------------------------------------------"
 
       case output of 
-        Console steps     -> print $ simulateUntil steps initSimState
+        Console steps     -> do
+          let (t, _, _, _) = last $ simulateUntil steps initSimState
+          print t
         File steps file   -> writeSimulationUntil file steps initSimState
         Visual freq av cv -> runGloss scenario' initSimState initOut freq av cv
 

@@ -86,10 +86,9 @@ executable sugarscape
                       , containers
                       , dunai
                       , gloss
-                      , MonadRandom
                       , mtl
+                      , MonadRandom
                       , optparse-applicative
-                      , parallel
                       , random
                       , split
                       , transformers
@@ -105,7 +104,8 @@ executable sugarscape
   ghc-options:        -O2 
                       -Wall 
                       -Werror 
-                      -fwarn-tabs 
+                      -- -threaded
+                      -- -eventlog
 
 Test-Suite sugarscape-test
   default-language:     Haskell2010
@@ -176,8 +176,8 @@ Test-Suite sugarscape-test
   ghc-options:        -O2
                       -Wall 
                       -Werror 
-                      -fwarn-tabs 
+        
                       -fno-warn-orphans
                       -fno-warn-unused-local-binds
 
-                      -- -threaded -with-rtsopts=-N
+                      -- -threaded

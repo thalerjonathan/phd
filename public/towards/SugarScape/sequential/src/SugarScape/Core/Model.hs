@@ -1,4 +1,5 @@
-module SugarScape.Core.Model 
+-- {-# LANGUAGE DeriveGeneric #-}
+module SugarScape.Core.Model
   ( AgentGender (..)
   , CultureTag
   , AgentTribe (..)
@@ -36,8 +37,10 @@ module SugarScape.Core.Model
   , envSpec
   ) where
 
+-- import Control.DeepSeq
 import Control.Monad.Random
 import Control.Monad.State.Strict
+-- import GHC.Generics (Generic)
 
 import SugarScape.Agent.Interface
 import SugarScape.Core.Common
@@ -125,6 +128,11 @@ data SugEnvSite = SugEnvSite
   , sugEnvSitePolutionLevel :: Double
   , sugEnvSiteOccupier      :: Maybe SugEnvSiteOccupier
   } deriving (Show, Eq)
+
+-- needed for Par monad parallelisation
+-- instance NFData SugEnvSite
+-- instance NFData SugEnvSiteOccupier
+-- instance NFData AgentTribe
 
 data TradingRefuse = NoWelfareIncrease  -- refuse trade because no increase in welfare
                    | MRSCrossover       -- refuse trade because MRS cross-over

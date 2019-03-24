@@ -5,6 +5,7 @@ module SugarScape.Core.Environment
   , sugEnvBehaviour
   ) where
 
+--import Control.Parallel.Strategies
 import Data.Foldable
 
 import SugarScape.Core.Common
@@ -42,10 +43,15 @@ polutionDiffusion (Just d) t env
     timeForDiffusion = 0 == mod t d
 
     cs = allCellsWithCoords env
+    -- NOTE: can't use a traverseWithKey (or similary) because we need to
+    -- compute the diffusion on the old state without updating it!
     fs = map (\(coord, _) -> do
           let ncs  = neighbourCells coord True env
           let flux = sum (map sugEnvSitePolutionLevel ncs) / fromIntegral (length ncs)
           flux) cs
+
+    -- does actually lead to worse performance
+    --fs' = withStrategy (parList rseq) fs
 
     env' = foldr' (\((coord, c), flux) acc -> do
             let c' = c { sugEnvSitePolutionLevel = flux }

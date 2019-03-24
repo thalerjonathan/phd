@@ -59,6 +59,7 @@ module SugarScape.Core.Discrete
 import Data.Maybe
 
 import qualified Data.IntMap.Strict as Map 
+--import Control.Monad.Par
 import Control.Monad.Random
 import Control.Monad.State.Strict
 
@@ -132,12 +133,15 @@ updateCells f e = e { envDisc2dCells = m' }
   where
     m  = envDisc2dCells e
     m' = Map.map forceStrict m
+    -- m' = runPar $ do
+    --   mIvar <- Map.traverseWithKey (\_ (coord, c) -> spawn (return (coord, f c))) m
+    --   traverse Control.Monad.Par.get mIvar
 
     -- NOTE: by using this function and {-# LANGUAGE Strict #-}
     -- we were able to remove a serious memory-leak 
     -- The crucial part is that we make c' explicit which seems
     -- to force the result as well, just implementing as
-    -- forceStrict (coord, c) = (coord, f $! c) STILL LEAKS!
+    --forceStrict (coord, c) = (coord, f $! c) STILL LEAKS!
     forceStrict (coord, c) = (coord, c')
       where
         -- crucial bit is here

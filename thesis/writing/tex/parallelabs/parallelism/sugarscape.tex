@@ -1,14 +1,8 @@
 \subsection{Sugarscape}
-The same case as in the monadic SIR: running the agents with evaluation or data-flow parallelism is not possible in a monadic context  \textit{in general}. We have shortly discussed how it could be achieved in specific circumstances where then agents are running in the Par monad only, but this is highly model specific and for the Sugarscape this approach does not work. 
+As already shown in the case of the monadic SIR implementation from the previous section, running agents in parallel within a monadic context does not bring us any speed up - on the contrary, we get penalised with a substantial performance loss due to the overhead incurred by adding parallelism. Further, running the agents in the Par monad alone incurs also a substantial overhead, thus ultimately these roads are dead ends for our Sugarscape implementation as well.
 
-There is though one tiny thing we could optimise.
+This leaves us only with a very minor thing we could optimize in the Sugarscape model: the behaviour of the environment, which is a pure computation, using maps and folds \footnote{In general, folds can be parallelized only when the operation being folded is associative, and then the linear fold can be turned into a tree. Although applicable, we don't follow that approach here and leave it for further research.} over an \textit{IntMap}. It might look like we are out of luck as it seem that we cannot parallelise the updating of an IntMap but the work of \cite{marlow_parallel_2013} shows that it is indeed possible through a combination of the Par monad and the \textit{Applicative} typeclass. The \textit{IntMap} provides the function \textit{traverseWithKey :: Applicative t $\Rightarrow$ (Key $\rightarrow$ a $\rightarrow$ t b) $\rightarrow$ IntMap a $\rightarrow$ t (IntMap b)}. We can use this whenever we need to traverse the whole IntMap to update every cell in the list. The obvious use-case for this is the regrowing of resources (sugar and spice) in every step. Unfortunately, this parallelism makes the performance worse than the sequential - obviously the regrowing of resources is not computation heavy and the parallelism incurs more overhead than the speed up it provides.
 
-use parmap for updating Pollution/regrow resources. still agents can't be run in parallel because of monadic effects, we show in the concurrent section how we can use concurrency to achieve a substantial speed up using STM.
+Another thing we can parallelise is the computation of the pollution diffusion which uses a standard map to compute the new pollution level of each cell. Using \textit{'withStrategy (parList rseq)'} is applied to the list of all cells but the parallelism is too fine-grained: we actually get worse performance than without it - another case for premature optimisation without hard facts profiling.
 
-compare Environment parallelism between sequential and concurrent sugarscape: should see alarger speedup in conc bcs the sequential percentage is larger there
-
-unfortunately its a Map datastructure, so we cannot operate in parallel e.g. map. but we can compute pollution because it uses map:
-- (as a side note, folds can be parallelized only when the operation being folded is associative, and then the linear fold can be turned into a tree)
-- IntMap traverseWithKey :: Applicative t => (Key -> a -> t b) -> IntMap a -> t (IntMap b):
-	m <- Map.traverseWithKey (\i jmap -> spawn (return (shortmap i jmap))) g
-	
+Thus we end up with the same conclusion as with the monadic SIR implementations: there is practically no opportunity to parallelise the implementation and we refer to the concurrency chapter where we show how to achieve performance improvements in orders of magnitude when we employ concurrency instead of parallelism.

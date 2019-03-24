@@ -1,26 +1,34 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows        #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
 import Data.IORef
-import Data.Maybe
+--import Data.Maybe
 import System.IO
 import Text.Printf
 
+import Control.DeepSeq
+import Control.Monad.Par
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Trans.MSF.Random
 import Control.Parallel.Strategies
 import Data.Array.IArray
 import FRP.BearRiver
+import GHC.Generics (Generic)
 import qualified Graphics.Gloss as GLO
 import qualified Graphics.Gloss.Interface.IO.Animate as GLOAnim
 
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+data SIRState = Susceptible | Infected | Recovered deriving (Generic, Show, Eq)
+
+-- needed for Par monad parallelisation
+instance NFData SIRState
 
 type Disc2dCoord  = (Int, Int)
 type SIREnv       = Array Disc2dCoord SIRState
 
-type SIRMonad g   = Rand g
+type SIRMonad g   = (RandT g Par)
+--type SIRMonad g   = (Rand g)
 type SIRAgent g   = SF (SIRMonad g) SIREnv SIRState
 
 type SimSF g = SF (SIRMonad g) () SIREnv
@@ -232,7 +240,9 @@ runStepCtx dt ctx = ctx'
 
     sfReader            = unMSF sf ()
     sfRand              = runReaderT sfReader dt
-    ((env, simSf'), g') = runRand sfRand g
+    sfPar               = runRandT sfRand g
+    ((env, simSf'), g') = runPar sfPar
+    --((env, simSf'), g') = runRand sfRand g
 
     steps = simSteps ctx + 1
     t     = simTime ctx + dt
@@ -274,7 +284,7 @@ simulationStep sfsCoords env = MSF $ \_ -> do
     
     -- construct new environment from all agent outputs for next step
     let (as, sfs') = unzip ret
-        as' = fromJust $ parEvalAgents as
+        as' = as -- fromJust $ _parMonadAgents as
         -- env' = foldr (\(coord, a) envAcc -> _updateCell coord a envAcc) env (zip coords as)
         -- NOTE: if using not using update but constructing new will lead
         -- to very minor performance increase of ~ 6 - 10%.
@@ -289,14 +299,25 @@ simulationStep sfsCoords env = MSF $ \_ -> do
     -- as parList with the given strategy. Strangely I get the following:
     --    parList rdeepseq does not do any parallel evaluation (this i don't understand)
     --    parList rpar does not do any rdeepseq but leads to all sparks being GC'd (this i understand)
-    parEvalAgents :: [SIRState] -> Maybe [SIRState]
-    parEvalAgents newAs = newAs' `seq` Just newAs'
+    _parEvalAgents :: [SIRState] -> Maybe [SIRState]
+    _parEvalAgents newAs = newAs' `seq` Just newAs'
       where
         --newAs' = withStrategy (parList rpar) newAs
         newAs' = withStrategy (parListChunk 2 rseq) newAs
 
+    -- NOTE: with the Par monad, splitting the list into chunks seems not 
+    -- to be necessary - we get the same speed up as in evaluation strategies
+    _parMonadAgents :: [SIRState] -> Maybe [SIRState]
+    _parMonadAgents newAs = Just $ runPar $ do
+        ivs <- mapM (spawn . return) newAs
+        mapM get ivs
+
     _updateCell :: Disc2dCoord -> SIRState -> SIREnv -> SIREnv
     _updateCell c s e = e // [(c, s)]
+
+-- Sequential: 41.86, 41.84, 41.67, 41.69 => 41.765 (0.098826 std)
+-- Eval Strat: 48.9, 48.81, 50.29, 50.54 => 49.635 (0.90718 std)
+-- Par Monad: 53.30, 53.80, 52.74, 52.10 => 52.985 (0.73182 std)
 
 sirAgent :: RandomGen g => Disc2dCoord -> SIRState -> SIRAgent g
 sirAgent coord Susceptible = susceptibleAgent coord
@@ -304,7 +325,7 @@ sirAgent _     Infected    = infectedAgent
 sirAgent _     Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
-susceptibleAgent _coord
+susceptibleAgent coord
     = switch 
       -- delay the switching by 1 step, otherwise could
       -- make the transition from Susceptible to Recovered within time-step
@@ -319,7 +340,8 @@ susceptibleAgent _coord
       if not $ isEvent makeContact 
         then returnA -< (Susceptible, NoEvent)
         else (do
-          let ns = neighbours env _coord agentGridSize moore
+          let ns = neighbours coord agentGridSize moore env
+          --ns <- arrM (lift . lift . neighbours coord agentGridSize moore) -< env
           --let ns = allNeighbours env
           s <- drawRandomElemS -< ns
           case s of
@@ -356,15 +378,44 @@ drawRandomElemS = proc as -> do
   let a =  as !! floor idx
   returnA -< a
 
-randomBoolM :: RandomGen g => Double -> Rand g Bool
+--randomBoolM :: RandomGen g => Double -> Rand g Bool
+--randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
+
+randomBoolM :: (Monad m, RandomGen g) => Double -> RandT g m Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
-neighbours :: SIREnv 
-           -> Disc2dCoord 
+-- Par neighbours timings:
+
+-- 65.95, 64.77, 68.23, 67.77 => 66.680 (1.6095 std)
+-- Par monad overhade timings (not running neighbours in par)
+--  without -threaded (-N1 is basically equivalent)
+--  45.529, 45.49, 45.48, 45.74  => 45.560 (0.12201 std)
+--  WITH -threaded and -N
+--  55.26, 55.46, 57.00, 55.88 => 55.900 (0.77752 std)
+
+-- neighbours :: Disc2dCoord 
+--            -> Disc2dCoord
+--            -> [Disc2dCoord] 
+--            -> SIREnv
+--            -> Par [SIRState]
+-- neighbours (x, y) (dx, dy) n e
+--     = do
+--       --map (e !) nCoords'
+--       ivs <- mapM (\c -> spawn $ return $ e ! c) nCoords'
+--       mapM get ivs
+--   where
+--     nCoords  = map (\(x', y') -> (x + x', y + y')) n
+--     nCoords' = filter (\(nx, ny) -> nx >= 0 && 
+--                                     ny >= 0 && 
+--                                     nx <= (dx - 1) &&
+--                                     ny <= (dy - 1)) nCoords
+
+neighbours :: Disc2dCoord 
            -> Disc2dCoord
            -> [Disc2dCoord] 
+           -> SIREnv
            -> [SIRState]
-neighbours e (x, y) (dx, dy) n = map (e !) nCoords'
+neighbours (x, y) (dx, dy) n e = map (e !) nCoords'
   where
     nCoords  = map (\(x', y') -> (x + x', y + y')) n
     nCoords' = filter (\(nx, ny) -> nx >= 0 && 

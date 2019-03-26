@@ -23,10 +23,20 @@ STM comes with a number of primitives to share transactional data. Amongst other
 
 \begin{itemize}
 	\item \textit{TVar} - A transactional variable which can be read and written arbitrarily;
-	\item \textit{TArray} - A transactional array where each cell is an individual shared data, allowing much finer-grained transactions instead of e.g. having the whole array in a \textit{TVar};
-	\item \textit{TChan} - A transactional channel, representing an unbounded FIFO channel;
-	\item \textit{TMVar} - A transactional \textit{synchronising} variable which is either empty or full. To read from an empty or write to a full \textit{TMVar} will cause the current thread to block and retry its transaction when the variable has changed.
+	\item \textit{TMVar} - A transactional \textit{synchronising} variable which is either empty or full. To read from an empty or write to a full \textit{TMVar} will cause the current thread to block and retry its transaction when \textit{any} transactional primitive of this block has changed.
+	\item \textit{TArray} - A transactional array where each cell is an individual transactional variable \textit{TVar}, allowing much finer-grained transactions instead of e.g. having the whole array in a \textit{TVar};
+	\item \textit{TChan} - A transactional channel, representing an unbounded FIFO channel, based on a linked list of \textit{TVar}.
 \end{itemize}
+
+Further STM also provides combinators to deal with blocking and composition:
+
+\begin{itemize}
+	\ite \textit{retry :: STM ()} - Retries an \textit{STM} block. This will cause to abort the current transaction and block the thread it is running in. When \textit{any} of the transactional data primitives has changed, the block will be run again. This is useful to await the arrival of data in a \textit{TVar} or put more concretely, to block on arbitrary conditions. 
+	
+	\iten \textit{orElse :: STM a -> STM a -> STM a}
+\end{itemize}
+
+TODO: describe retry and orElse
 
 To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context, either within the main-thread or an explicitly forked thread.
 

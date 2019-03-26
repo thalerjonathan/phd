@@ -28,8 +28,7 @@ STM comes with a number of primitives to share transactional data. Amongst other
 	\item \textit{TMVar} - A transactional \textit{synchronising} variable which is either empty or full. To read from an empty or write to a full \textit{TMVar} will cause the current thread to block and retry its transaction when the variable has changed.
 \end{itemize}
 
-% NOTE: too technical
-To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which can be seen as the STM effect-runner as it performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context. TODO: this io context is provided through a thread. TODO: yes we are running in IO but not the agent behaviour itself, which is a fundamental difference.
+To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context, either within the main-thread or an explicitly forked thread.
 
 STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not: whether other threads have written to memory it has read. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
 

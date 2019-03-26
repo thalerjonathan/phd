@@ -1,8 +1,10 @@
 \section{STM in ABS}
 \label{sec:stm_abs}
-In this section we give a short overview of how we apply STM in our ABS. We fundamentally follow a time-driven approach in both case-studies where the simulation is advanced by some given $\Delta t$ and in each step all agents are executed. To employ parallelism, each agent runs within its own thread and agents are executed in lock-step, synchronising between each $\Delta t$ which is controlled by the main thread. This way of stepping the simulation is introduced in \cite{thaler_art_2017} on a conceptual level, where the authors name it \textit{concurrent update-strategy}. See Figure \ref{fig:stm_abs_structure} for a visualisation of our concurrent, time-driven lock-step approach.
+In this section we give a short overview of how we apply STM in our ABS. In both case-studies we fundamentally follow a time-driven, parallel approach as introduced in Chapter \ref{sub:par_strategy}, where the simulation is advanced by a given $\Delta t$ and in each step all agents are executed. To employ parallelism, each agent runs within its own thread and agents are executed in lock-step, synchronising between each $\Delta t$, which is controlled by the main thread. See Figure \ref{fig:stm_abs_structure} for a visualisation of our concurrent, time-driven lock-step approach.
 
-An agent thread will block until the main thread sends the next $\Delta t$ and runs the STM action atomically with the given $\Delta t$. When the STM action has been committed, the thread will send the output of the agent action to the main-thread to signal it has finished. The main thread awaits the results of all agents to collect them for output of the current step e.g. visualisation or writing to a file.
+By running each agent in a thread will guarantee the execution in parallel even if the agent has a monadic context. This is forces us to evaluate each agents monadic context separately instead of running them all in a common context. Note that ultimately we are ending up in the \textit{IO} context because \textit{STM} can be only transacted from within an \textit{IO} context due to non-deterministic side-effects. This is no contradiction to our original claim: yes we are running in IO but not the agent behaviour itself, which is a fundamental difference.
+
+An agent thread will block until the main-thread sends the next $\Delta t$ and runs the \textit{STM} action atomically with the given $\Delta t$. When the \textit{STM} action has been committed, the thread will send the output of the agent action to the main-thread to signal it has finished. The main thread awaits the results of all agents to collect them for output of the current step e.g. visualisation or writing to a file.
 
 As will be described in subsequent sections, central to both case-studies is an environment which is shared between the agents using a \textit{TVar} or \textit{TArray} primitive through which the agents communicate concurrently with each other. To get the environment in each step for visualisation purposes, the main thread can access the \textit{TVar} and \textit{TArray} as well. 
 
@@ -13,5 +15,52 @@ As will be described in subsequent sections, central to both case-studies is an 
 	\label{fig:stm_abs_structure}
 \end{figure}
 
-TODO: 
-we can implement everything except synchronous direct agent-interactions atm: if agent-interaction is one-way e.g. paying back a loan then this is no problem. thus the following parts of the Sugarscape are not possible with our current STM approach: mating, trading and lending  because all 3 require direct agent-to-agent interaction over multiple steps. We leave the problem of developing such an algorithm / implementation for further research.
+\subsection{Adding and running the STM Monad}
+We briefly show how to add STM to agents and run them within their own threads. We use the SIR implementation as example - applying it to the Sugarscape implementation works exactly the same way and is left as a trivial exercise to the reader.
+
+The first step is to simply add the \textit{STM} to the existing transformer stack as the innermost monad. Note that it can only be the \textit{innermost} one as \textit{STM} does not provide a transformer implementation. This is for the same reason \textit{IO} needs to be the innermost monad: impure actions have to come last as otherwise pure values would depend on impure values. Further, \textit{IO} can only be evaluated within the surrounding \textit{IO} context, originating from main.
+
+TODO: discuss the ordering of execution in a transformer stack and make it clear that STM comes last when and because it is the inner most
+
+TODO: add STM
+
+\begin{HaskellCode}
+agentThread :: RandomGen g 
+            => Int
+            -> SIRAgent g
+            -> g
+            -> MVar SIRState
+            -> MVar DTime
+            -> IO ()
+agentThread 0 _ _ _ _ = return () -- all steps computed, terminate thread
+agentThread n sf rng retVar dtVar = do
+  -- wait for dt to compute current step
+  dt <- takeMVar dtVar
+
+  -- compute output of current step
+  let sfReader = unMSF sf ()
+      sfRand   = runReaderT sfReader dt
+      sfSTM    = runRandT sfRand rng
+  ((ret, sf'), rng') <- atomically sfSTM -- run the STM action atomically within IO
+
+  -- post result to main thread
+  putMVar retVar ret
+  
+  -- to next step
+  agentThread (n - 1) sf' rng retVar dtVar
+\end{HaskellCode}
+
+\begin{HaskellCode}
+simulationStep :: TVar SIREnv
+               -> [MVar DTime]
+               -> [MVar SIRState]
+               -> DTime
+               -> IO SIREnv
+simulationStep env dtVars retVars dt = do
+  -- tell all threads to continue with the corresponding DTime
+  mapM_ (`putMVar` dt) dtVars
+  -- wait for results but ignore them, SIREnv contains all states
+  mapM_ takeMVar retVars
+  -- return state of environment when step has finished
+  readTVarIO env
+\end{HaskellCode}

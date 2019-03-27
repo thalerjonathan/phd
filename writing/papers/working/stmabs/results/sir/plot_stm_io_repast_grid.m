@@ -6,15 +6,16 @@ rep = [10.822, 107.40, 464.017, 1227.68, 3283.63];
 agents = [2601, 10201, 22801, 40401, 63001];
 
 figure;
-loglog (agents, stm, '-', "color", [0, 0.7, 0]);
+plot (agents, stm, '-', "color", [0, 0.7, 0]);
 hold on;
-loglog (agents, io4, ':', "color", [0.7, 0, 0]);
-hold on;
-loglog (agents, io3, '--', "color", [0.7, 0.7, 0]);
-hold on;
-loglog (agents, rep, '-.', "color", [0, 0, 0.7]);
+plot (agents, io4, ':', "color", [0.7, 0, 0]);
+%hold on;
+%loglog (agents, io3, '--', "color", [0.7, 0.7, 0]);
+%hold on;
+%loglog (agents, rep, '-.', "color", [0, 0, 0.7]);
 
-legend ("STM 4 cores", "IO 4 cores", "IO 3 cores", "RePast 1 core");
+%legend ("STM 4 cores", "IO 4 cores", "IO 3 cores", "RePast 1 core");
+legend ("STM", "IO");
 xlabel ("Agents");
 ylabel ("Average Time sec.");
 

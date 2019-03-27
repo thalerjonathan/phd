@@ -15,17 +15,23 @@ As will be described in subsequent sections, central to both case-studies is an 
 	\label{fig:stm_abs_structure}
 \end{figure}
 
-\subsection{Adding and running the STM Monad}
-We briefly show how to add STM to agents and run them within their own threads. We use the SIR implementation as example - applying it to the Sugarscape implementation works exactly the same way and is left as a trivial exercise to the reader.
+\subsection{Adding STM to agents}
+We briefly discuss how to add STM to agents on a technical level and also show how to run them within their own threads. We use the SIR implementation as example - applying it to the Sugarscape implementation works exactly the same way and is left as a trivial exercise to the reader.
 
-The first step is to simply add the \textit{STM} to the existing transformer stack as the \textit{innermost} monad. Further the environment is passed as a transactional data primitive to the agent. Thus the agent does not receive the \textit{SIREnv} as input any more but receives it through currying when constructing the initial Signal Function. Further, the agent modifies the \textit{SIREnv} directly through the \textit{TVar}, e.g. in the case of the infected agent recovering.
+The first step is to simply add the \textit{STM} monad on the \textit{innermost} level to already the existing transformer stack. Further, the environment is now passed as a transactional data primitive to the agent at \textit{construction time}. Thus the agent does not receive the \textit{SIREnv} as input any more but receives it through currying when constructing its initial Signal Function. Further, the agent modifies the \textit{SIREnv} directly through the \textit{TVar}, as demonstrated in the case of the infected agent.
 
 \begin{HaskellCode}
+-- Make Rand a transformer to be able to add STM as innermost monad
 type SIRMonad g = RandT g STM
+-- Input to agent is now an empty tuple instead of the Environment
 type SIRAgent g = SF (SIRMonad g) () SIRState
 
+-- The signal function construction function takes now the TVar
+-- with the environment.
 sirAgent :: RandomGen g => TVar SIREnv -> Disc2dCoord -> SIRState -> SIRAgent g
 
+-- The infected agent behaviour is nearly the same except that
+-- the agent modifies the environment through the TVar
 infected :: RandomGen g => SF (SIRMonad g) () (SIRState, Event ())
 infected = proc _ -> do
   recovered <- occasionally illnessDuration () -< ()
@@ -37,13 +43,15 @@ infected = proc _ -> do
     else returnA -< (Infected, NoEvent)
 \end{HaskellCode}
 
+The agent thread is straight forward: it takes \textit{MVar} synchronisation primitives to synchronise with the main-thread and simply runs the agent behaviour each time it receives the next \textit{DTime}:
+
 \begin{HaskellCode}
 agentThread :: RandomGen g 
-            => Int
-            -> SIRAgent g
-            -> g
-            -> MVar SIRState
-            -> MVar DTime
+            => Int             -- ^ Number of steps to compute
+            -> SIRAgent g      -- ^ Agent behaviour signal function
+            -> g               -- ^ Random-number of the agent
+            -> MVar SIRState   -- ^ Synchronisation back to main-thread
+            -> MVar DTime      -- ^ Receiving DTime for next step
             -> IO ()
 agentThread 0 _ _ _ _ = return () -- all steps computed, terminate thread
 agentThread n sf rng retVar dtVar = do
@@ -54,7 +62,8 @@ agentThread n sf rng retVar dtVar = do
   let sfReader = unMSF sf ()
       sfRand   = runReaderT sfReader dt
       sfSTM    = runRandT sfRand rng
-  ((ret, sf'), rng') <- atomically sfSTM -- run the STM action atomically within IO
+  -- run the STM action atomically within IO
+  ((ret, sf'), rng') <- atomically sfSTM 
 
   -- post result to main thread
   putMVar retVar ret
@@ -62,6 +71,8 @@ agentThread n sf rng retVar dtVar = do
   -- to next step
   agentThread (n - 1) sf' rng retVar dtVar
 \end{HaskellCode}
+
+Computing a simulation step is now trivial within the main-thread: all agent threads \textit{MVar}s are signalled to unblock followed by an immediate block on the \textit{MVar}s into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \textit{TVar} which the agent threads have updated.
 
 \begin{HaskellCode}
 simulationStep :: TVar SIREnv
@@ -78,4 +89,4 @@ simulationStep env dtVars retVars dt = do
   readTVarIO env
 \end{HaskellCode}
 
-\subsection{An IO variation}
+The difference to an implementation which uses IO are minor but far reaching. Instead of using \textit{STM} as innermost monad, we use \textit{IO}, thus running the whole agent behaviour within the IO monad. Instead of receiving the environment through a \textit{TVar}, the agent receives it through an \textit{IORef}. It also receives an \textit{MVar} which is the synchronisation primitive to synchronise the access to the environment in the \textit{IORef} amongst all agents. Agents grab and release the synchronisation lock of the \textit{MVar} when they enter and leave a critical section in which they operate on the environment stored in the \textit{IORef}.

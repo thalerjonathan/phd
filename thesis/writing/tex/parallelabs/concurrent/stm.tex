@@ -41,3 +41,57 @@ To run an \textit{STM} action the function \textit{atomically :: STM a $\rightar
 STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not: whether other threads have written to memory it has read. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
 
 In the paper \cite{heindl_modeling_2009} the authors use a model of STM to simulate optimistic and pessimistic STM behaviour under various scenarios using the AnyLogic simulation package. They conclude that optimistic STM may lead to 25\% less retries of transactions. The authors of \cite{perfumo_limits_2008} analyse several Haskell STM programs with respect to their transactional behaviour. They identified the roll-back rate as one of the key metric which determines the scalability of an application. Although STM might promise better performance, they also warn of the overhead it introduces which could be quite substantial in particular for programs which do not perform much work inside transactions as their commit overhead appears to be high.
+
+\subsection{An example}
+We provide a short example to demonstrate the use of STM. To make it more interesting and to show the retry semantics, we use it within a \textit{StateT} transformer where \textit{STM} is the innermost monad. It is important to understand that STM does not provide a transformer instance for very good reasons. If it would provide a transformer then we could make \textit{IO} the innermost monad and perform IO actions within STM. This would violate the retry semantics as in case of a retry, STM is unable to undo the effects of IO actions in general. This stems from the fact, that the IO type is simply too powerful and we cannot distinguish between different kinds of IO actions in the type, be it simply reading from a file or actually launching a missile. % Note that this would not only apply to the IO monad but to other monads as well, for example if the STM would be placed on a higher stack level, the levels below would not be subject to a retry. For monads like the \textit{ReaderT} this would not matter because they are read-only but for a StateT this fact would matter a lot. 
+Lets look at the example code:
+
+\begin{HaskellCode}
+stmAction :: TVar Int -> StateT Int STM Int 
+stmAction = do
+  -- print a debug output and increment the value in StateT 
+  Debug.trace "increment!" (modify (+1))
+  -- read from the TVar
+  n <- lift (readTVar v)
+  -- await a condition: content of the TVar >= 42
+  if n < 42
+    -- condition not met: retry
+    then lift retry
+    -- condition met: return content ot TVar
+    else return n
+\end{HaskellCode}
+
+In this example, the \textit{STM} is the innermost monad in a stack with a \textit{StateT} transformer. When the \textit{stmAction} is run, it prints an "increment!" debug message to the console and increments the value in the \textit{StateT} transformer. Then it awaits a condition: as long as \textit{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \textit{TVar}. We see the combined effects of using the transformer stack: we have both the \textit{StateT} and the \textit{STM} effects available. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
+
+\begin{HaskellCode}
+stmThread :: TVar Int -> IO ()
+stmThread v = do
+  -- the initial state of the StateT transformer
+  let s = 0
+  -- run the state transformer with initial value of s (0)
+  let ret = runStateT stmAction s
+  -- atomically run the STM block
+  (a, s') <- atomically ret
+  
+  putStr ("final StateT state     = " ++ show s')
+  putStrLn (", STM computation result = " ++ show a)
+\end{HaskellCode}
+
+The thread simply runs the \textit{StateT} transformer layer with the initial value of 0 and then the STM computation through \textit{atomically} and prints the result to the console. Note that \textit{a} is the result of \textit{stmAction} and \textit{s'} is the final state of the \textit{StateT} computation. To actually run this example we need the main-thread to updated the \textit{TVar} until the condition is met within \textit{stmAction}:
+
+\begin{HaskellCode}
+main :: IO ()
+main = do
+  -- create a new TVar with initial value of 0
+  v <- newTVarIO 0 
+  -- start the stmThread and pass the TVar
+  forkIO (stmThread v)
+
+  forM_ [1..42] (\i -> do
+    -- use delay to 'make sure' that a retry is happening for ever increment
+    threadDelay 10000
+    -- write new value to TVar using atomically
+    atomically (writeTVar v i))
+\end{HaskellCode}
+
+If we run this program, we will see "increment!" printed 43 times, followed by "final StateT state = 1, STM computation result = 42". This clearly demonstrates the retry semantics: \textit{stmAction} is retried 42 times and thus prints "increment" 43 times to the console. The \textit{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data-structure: simply throw away the new value and retry with the original value. This example also demonstrates that any IO actions which happen within an STM block are persistent and can obviously not be rolled back - Debug.trace is an IO action masked as pure using \textit{unsafePerformIO}.

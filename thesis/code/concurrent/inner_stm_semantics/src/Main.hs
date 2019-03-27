@@ -22,20 +22,20 @@ main = do
 
   (a, s) <- takeMVar m
 
-  putStrLn $ "final StateT state     = " ++ show s
-  putStrLn $ "stm computation result = " ++ show a
+  putStr $ "final StateT state = " ++ show s
+  putStrLn $ ", STM computation result = " ++ show a
 
 testThread :: TVar Int -> MVar (Int, Int) -> IO ()
 testThread v m = do
     let s = 0
-    let stmAction = runStateT testAction 0
+    let stmAction = runStateT testAction s
     (a, s') <- atomically stmAction
     putMVar m (a, s')
 
   where
     testAction :: StateT Int STM Int 
     testAction = do
-      trace "retrying, increment!" $ modify (+1)
+      trace "increment!" $ modify (+1)
       n <- lift $ readTVar v
       if n < 42
         then lift retry

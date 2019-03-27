@@ -18,37 +18,24 @@ As will be described in subsequent sections, central to both case-studies is an 
 \subsection{Adding and running the STM Monad}
 We briefly show how to add STM to agents and run them within their own threads. We use the SIR implementation as example - applying it to the Sugarscape implementation works exactly the same way and is left as a trivial exercise to the reader.
 
-The first step is to simply add the \textit{STM} to the existing transformer stack as the \textit{innermost} monad. The reason why we make it the innermost is to guarantee that in case of a retry \textit{all} outer monadic effects are retried as well - if the STM would be placed on a higher stack level, the levels below would not be subject to a retry. For monads like the \textit{ReaderT} this would not matter because they are read-only but for a StateT this fact would matter a lot. Note that STM does not provide a transformer instance, so this is not an option anyway. If STM would provide a transformer then we could make \textit{IO} the innermost monad and do \textit{IO} within STM, which should be prevented under all circumstances because then rolling back a transaction cannot guarantee to undo the effects. To better understand the semantics of retries consider the following example:
+The first step is to simply add the \textit{STM} to the existing transformer stack as the \textit{innermost} monad. Further the environment is passed as a transactional data primitive to the agent. Thus the agent does not receive the \textit{SIREnv} as input any more but receives it through currying when constructing the initial Signal Function. Further, the agent modifies the \textit{SIREnv} directly through the \textit{TVar}, e.g. in the case of the infected agent recovering.
 
 \begin{HaskellCode}
+type SIRMonad g = RandT g STM
+type SIRAgent g = SF (SIRMonad g) () SIRState
 
+sirAgent :: RandomGen g => TVar SIREnv -> Disc2dCoord -> SIRState -> SIRAgent g
+
+infected :: RandomGen g => SF (SIRMonad g) () (SIRState, Event ())
+infected = proc _ -> do
+  recovered <- occasionally illnessDuration () -< ()
+  if isEvent recovered
+    then (do
+    	  -- updated the environment through the TVar
+      arrM_ (lift $ lift $ modifyTVar env (changeCell coord Recovered)) -< ()
+      returnA -< (Recovered, Event ()))
+    else returnA -< (Infected, NoEvent)
 \end{HaskellCode}
-
-
-
-\begin{HaskellCode}
-innerSTMAction :: RandomGen g => StateT SomeState (RandT g STM) SomeResult
-
-let randAction = runStateT innerSTMAction initState
-let stmAction  = runRandT randAction (mkStdGen 42)
-let ioAction   = atomically stmAction
-((someResult, someState), g) <- ioAction
-\end{HaskellCode}
-
-In this case the STM is the \textit{innermost} monad thus it will be run last. This means that all the outer monads are subject to re-computation due to retries.
-
-\begin{HaskellCode}
-outerSTMAction :: STMT (StateT Environment (Rand g)) SomeResult
-
-let ioAction = runSTMT outerSTMAction
-stateAction <- ioAction
-let randAction = runStateT stateAction initState
-let ((someResult, someState), g) = runRandT randAction (mkStdGen 42)
-\end{HaskellCode}
-
-In this case, the STM is the \textit{outermost} monad, thus it will be run first. This means that it will return a StateT computation which will be computed \textit{after} the STM has transacted. The computation construction is subject to the retries but the computation itself won't be repeated in case of retries.
-
-TODO: add STM
 
 \begin{HaskellCode}
 agentThread :: RandomGen g 
@@ -90,3 +77,5 @@ simulationStep env dtVars retVars dt = do
   -- return state of environment when step has finished
   readTVarIO env
 \end{HaskellCode}
+
+\subsection{An IO variation}

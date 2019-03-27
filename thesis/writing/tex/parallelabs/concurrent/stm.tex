@@ -31,14 +31,12 @@ STM comes with a number of primitives to share transactional data. Amongst other
 Further STM also provides combinators to deal with blocking and composition:
 
 \begin{itemize}
-	\ite \textit{retry :: STM ()} - Retries an \textit{STM} block. This will cause to abort the current transaction and block the thread it is running in. When \textit{any} of the transactional data primitives has changed, the block will be run again. This is useful to await the arrival of data in a \textit{TVar} or put more concretely, to block on arbitrary conditions. 
+	\item \textit{retry :: STM ()} - Retries an \textit{STM} block. This will cause to abort the current transaction and block the thread it is running in. When \textit{any} of the transactional data primitives has changed, the block will be run again. This is useful to await the arrival of data in a \textit{TVar} or put more concretely, to block on arbitrary conditions. 
 	
-	\iten \textit{orElse :: STM a -> STM a -> STM a}
+	\item \textit{orElse :: STM a $\rightarrow$ STM a $\rightarrow$ STM a} - Allows to combine two blocking operations where either one is executed but not both. The first operation is run and if it is successful its result is returned. If it retries, then the second is run and if that one is successful its result is returned. If the second one retries, the whole orElse retries. This can be used to implement alternatives in blocking conditions, which can be obviously nested arbitrarily.
 \end{itemize}
 
-TODO: describe retry and orElse
-
-To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context, either within the main-thread or an explicitly forked thread.
+To run an \textit{STM} action the function \textit{atomically :: STM a $\rightarrow$ IO a} is provided, which performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context, either within the main-thread or an explicitly forked thread.
 
 STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not: whether other threads have written to memory it has read. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
 

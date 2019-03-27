@@ -71,6 +71,8 @@ Although it might seem very restrictive at first, we get a number of benefits fr
 
 Further, this type system allows Haskell to make a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. For a technical, in-depth discussion on Parallelism and Concurrency in Haskell we refer to the following books and papers: \cite{marlow_parallel_2013,osullivan_real_2008,harris_composable_2005,marlow_runtime_2009}.
 
+TODO: explain monad transformers because I am using them heavily throughout the thesis
+
 \subsection{Theoretical Foundation}
 The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.
 

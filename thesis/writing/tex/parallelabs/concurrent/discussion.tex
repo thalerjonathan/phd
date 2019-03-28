@@ -4,3 +4,6 @@ Marlow Book: "In general, the class of operations that STM cannot express are th
 
 
 further research: the approach of executing dependent functions in different layers \url{https://academic.oup.com/bib/article/11/3/334/225993} might allow even further speed-up, also the same paper: "Mobile discrete simulations consisting of agents navigating a grid like environment are less well-suited to a GPU implementation as they are traditionally implemented in sequential environments. Parallel implementations of discrete mobile systems on the GPU must explicitly handle collision conditions which result from agents simultaneously moving to the same discrete location."
+
+
+Evaluation Order: Of course, this aspect is not the main focus of the article, but at minimum there should be an evaluation of the simulation output statistics to check for a reasonable correspondence among the simulator implementations. Further, the underlying subject of update order and conflict resolution is central enough to the manuscript to deserve a dedicated discussion, particularly since there is a tension between correctness and performance. The related work section currently focuses on STM and Haskell. In my view, the problem of contention for the agents' environment, for which the lock-based and STM approach provide solutions, should be discussed first.

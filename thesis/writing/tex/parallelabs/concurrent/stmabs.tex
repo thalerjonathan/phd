@@ -90,7 +90,3 @@ simulationStep env dtVars retVars dt = do
 \end{HaskellCode}
 
 The difference to an implementation which uses IO are minor but far reaching. Instead of using \textit{STM} as innermost monad, we use \textit{IO}, thus running the whole agent behaviour within the IO monad. Instead of receiving the environment through a \textit{TVar}, the agent receives it through an \textit{IORef}. It also receives an \textit{MVar} which is the synchronisation primitive to synchronise the access to the environment in the \textit{IORef} amongst all agents. Agents grab and release the synchronisation lock of the \textit{MVar} when they enter and leave a critical section in which they operate on the environment stored in the \textit{IORef}.
-
-\medskip
-
-In the next two sections we look into two case-studies to see what speed up STM allows. TODO: a little bit more

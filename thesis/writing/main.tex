@@ -58,10 +58,9 @@ This thesis shows how to implement Agent-Based Simulations (ABS) using the \text
 Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS. \\
 
 
-TODO "first draft" milestone until June 2019
+TODO "first draft" milestone until end of May 2019
 \begin{enumerate}
 	\item finish parallel ABS chapter: finish parallelism, write concurrency chapter but different story: don't focus on comparison to IO lock based but the main punch line is: "we can do concurrency with still static guarantees about side-effects which guarantee that they are ONLY due to concurrency and nothing else: STM" - a very convenient side-effect is that our STM approach is much faster than the IO based in SIR and in sugarscape. leave indexed Array of IORefs for further research
-	´
 	\item Write property-based testing chapter with same narrative like in the summer sim paper but with much more technical detail
 	
 	\item Agent-Interaction Property-Based testing using quickcheck-state-machine and \cite{de_vries_-depth_2019} \url{http://www.well-typed.com/blog/2019/01/qsm-in-depth/}
@@ -71,11 +70,13 @@ TODO "first draft" milestone until June 2019
 	\item Write all chapters of discussion part	
 	
 	\item Write a first draft of conclusions	
+
+	\item Write an "Introduction" and "Discussion" section for each chapter
 	
 	\item Read full first draft twice and refine it
 \end{enumerate}
 
-TODO "filling in holes" milestone until August 2019
+TODO "filling in holes" milestone until end of July 2019
 \begin{enumerate}
 	\item Do work left over from "first draft" milestone
 	
@@ -90,7 +91,7 @@ TODO "filling in holes" milestone until August 2019
 	\item optional:  implement Gintis Case-Study with Idris if time (problably there wont be)
 \end{enumerate}
 
-TODO "cleaning up / polishing" milestone until September 2019
+TODO "cleaning up / polishing" milestone until beginning of September 2019
 \begin{enumerate}
 	\item consistency of words / expressions
 		\begin{itemize}

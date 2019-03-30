@@ -60,18 +60,13 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 TODO "first draft" milestone until end of May 2019
 \begin{enumerate}
-	\item finish parallel ABS chapter: finish parallelism, write concurrency chapter but different story: don't focus on comparison to IO lock based but the main punch line is: "we can do concurrency with still static guarantees about side-effects which guarantee that they are ONLY due to concurrency and nothing else: STM" - a very convenient side-effect is that our STM approach is much faster than the IO based in SIR and in sugarscape. leave indexed Array of IORefs for further research
-	\item Write property-based testing chapter with same narrative like in the summer sim paper but with much more technical detail
+	\item Write property-based testing chapter with same narrative like in the summer sim paper but with much more technical detail and code replaced by actual haskell code and monadic code-testing refined with monadic quickcheck	
 	
-	\item Agent-Interaction Property-Based testing using quickcheck-state-machine and \cite{de_vries_-depth_2019} \url{http://www.well-typed.com/blog/2019/01/qsm-in-depth/}
-	
-	\item Even-driven SIR testing?
-	
-	\item Write all chapters of discussion part	
-	
-	\item Write a first draft of conclusions	
+	\item Agent-Interaction Property-Based testing using quickcheck-state-machine and \cite{de_vries_-depth_2019} \url{http://www.well-typed.com/blog/2019/01/qsm-in-depth/} e.g. what about Even-driven SIR testing as simple use case and then extend it to Sugarscape?
 
-	\item Write an "Introduction" and "Discussion" section for each chapter
+	\item Draft all chapters of discussion part.
+	
+	\item Write a first draft of conclusions.
 	
 	\item Read full first draft twice and refine it
 \end{enumerate}

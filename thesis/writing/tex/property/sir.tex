@@ -19,9 +19,9 @@ recoveryRate = \frac{I}{\delta}
 
 The idea is to generate random population mixes and compute the theoretical infection- and recovery rate. Then the simulation is run for 1 time unit to get the numbers of S, I and R. We compare the differences to the expected infection and recovery rate. The distribution should average at the expected theoretical means. TODO: use Rand approach to guarantee uncorrelated RNGS. Note that we need to run the whole test multiple times with different rngs because it is a  
 
-TODO: do we we need to test it against the SD implementation? Estimation parameters are: time of infection peak, number of infected at peak, time when number of infected < 1
-
 can we really do it? is it really possible to compare SD and agent-based simulation? 
+
+TODO: a bit more than 1000 seconds for 100 tests
 
 TODO: can use this test to derive an optimally small dt: the lowest dt for which all tests go through. start with 1.0 and always half it until all tests go through
 

@@ -45,9 +45,11 @@ tTest name samples mu0 alpha LT = tTest1Sided name samples mu0 alpha True
 tTest name samples mu0 alpha GT = tTest1Sided name samples mu0 alpha False
 tTest name samples mu0 alpha EQ = tTest2Sided name samples mu0 alpha
 
--- Performs a 2-sided t-test evaluating the null hypothesis that the mean of the population from which sample is drawn equals mu.
--- The functions returns 'Just True' in case the means are statistically equal and 'Just False' if they are not
--- In case no t-value could be calculated (in case all samples are same => no variance) Nothing is returned
+-- Performs a 2-sided t-test evaluating the null hypothesis that the mean of 
+-- the population from which sample is drawn equals mu. The functions returns 
+-- 'Just True' in case the means are statistically equal and 'Just False' if 
+-- they are not. In case no t-value could be calculated (in case all samples 
+-- are same => no variance) Nothing is returned.
 -- sources:
 --   http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.stat.inference/TTest.java.html
 --   https://commons.apache.org/proper/commons-math/javadocs/api-3.6/org/apache/commons/math3/stat/inference/TTest.html

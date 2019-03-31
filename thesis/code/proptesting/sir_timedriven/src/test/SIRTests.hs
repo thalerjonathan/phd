@@ -5,6 +5,7 @@ module SIRTests
 import Control.Parallel.Strategies hiding (r0)
 import Data.Maybe
 import FRP.Yampa
+import Text.Printf
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
@@ -28,6 +29,8 @@ paramInfectivity = 0.05
 paramIllnessDuration :: Double
 paramIllnessDuration = 15.0
 
+--clear & stack test --test-arguments="--quickcheck-tests=100 --quickcheck-replay=67991"
+
 sirPropTests :: RandomGen g
              => g 
              -> TestTree
@@ -45,12 +48,12 @@ prop_sd_rates :: RandomGen g
               => g 
               -> [SIRState]
               -> Bool
-prop_sd_rates g0 as = trace ("---------------------------------------------------------------------------------------" ++
-                             "\n s0 = " ++ show s0 ++ ", i0 = " ++ show i0 ++ ", r0 = " ++ show r0 ++ ", n = " ++ show n ++
-                             -- "\n ir = " ++ show ir ++ ", rr = " ++ show rr ++ 
-                             "\n s = " ++ show s ++ ", i = " ++ show i ++ ", r = " ++ show r ++
-                             "\n ss mean = " ++ show ssMean ++ ", is mean = " ++ show isMean ++ ", rs mean = " ++ show rsMean) 
-                             allPass
+prop_sd_rates g0 as
+  = trace ( "---------------------------------------------------------------------------------------" ++
+            "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
+            "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
+            "\n ss = " ++ printf "%.2f" ssMean ++ ", \t is = " ++ printf "%.2f" isMean ++ ", \t rs = " ++ printf "%.2f" rsMean) 
+            allPass
   where
     s0 = fromIntegral $ length $ filter (==Susceptible) as
     i0 = fromIntegral $ length $ filter (==Infected) as
@@ -88,7 +91,7 @@ prop_sd_rates g0 as = trace ("--------------------------------------------------
     (rngs, _) = rngSplits g0 repls []
     -- compute simulated values for s, i and r
     sir  = map (last . runSIRFor dur dt as beta gamma delta) rngs
-    -- 
+    -- apply evaluation parallelism to speed up
     sir' = withStrategy (parListChunk 200 rseq) sir
     (ss, is, rs) = unzip3 sir'
 
@@ -99,24 +102,24 @@ prop_sd_rates g0 as = trace ("--------------------------------------------------
     -- Perform a 2-sided test because we test if the means are statistically equal
     -- put in other words: if the difference of the means is statistically insignificant.
     -- Thus use a 2-sided t-test because we check for hypothetical equality(EQ) of the mean
-    confidence = 0.95
-    sTest = tTest "susceptible mean t-test" ss s (1 - confidence) EQ
-    iTest = tTest "infected mean t-test" is i (1 - confidence) EQ
-    rTest = tTest "recovered mean t-test" rs r (1 - confidence) EQ
+    alpha = 0.95
+    sTest = tTest "susceptible mean t-test" ss s (1 - alpha) EQ
+    iTest = tTest "infected mean t-test" is i (1 - alpha) EQ
+    rTest = tTest "recovered mean t-test" rs r (1 - alpha) EQ
 
     sTestPass
       | isNothing sTest = True
-      | isJust sTest    = True
+      | fromJust sTest  = True
       | otherwise       = trace "suscepible t-test failed!" False
 
     iTestPass
       | isNothing iTest = True
-      | isJust iTest    = True
+      | fromJust iTest  = True
       | otherwise       = trace "infected t-test failed!" False
 
     rTestPass
       | isNothing rTest = True
-      | isJust rTest    = True
+      | fromJust rTest  = True
       | otherwise       = trace "recovered t-test failed!" False
 
     allPass = sTestPass && iTestPass && rTestPass

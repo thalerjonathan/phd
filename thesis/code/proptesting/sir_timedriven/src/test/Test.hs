@@ -2,9 +2,10 @@ module Main where
 
 import System.Random
 
-import Test.Tasty
+--import Test.Tasty
 
-import SIRTests
+--import SIRTests
+import StatsUtils
 
 seed :: Int
 seed = 42
@@ -25,9 +26,10 @@ main = do
 -}
 
   --print $ std [10,2,38,23,38,23,21]
-  --print $ tTest "test" [1..10] 6 0.05
-  --let t = tTest [1, 1, 1, 1] 5 0.05
-  --print t 
+  putStrLn ""
+  print $ tTest "test" [1..10] 10 0.05 EQ
+  print $ tTest "test" [1, 1, 1, 1] 5 0.05 EQ
+  putStrLn ""
   --print $ prop_yampa_sir g [Infected] --[Infected,Recovered,Recovered]
 
-  defaultMain $ sirPropTests g
+  --defaultMain $ sirPropTests g

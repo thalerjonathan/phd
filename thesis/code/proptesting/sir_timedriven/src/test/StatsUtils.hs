@@ -1,26 +1,221 @@
 module StatsUtils 
-  ( avgTest
-  
-  , tTest
+  ( TTestTail (..)
+  , tTestSamples
+
+  , tTestTwoTailed
+  , tTestLowerTailed
+  , tTestUpperTailed
+
+  , pValueTwoTailed
+  , pValueUpperTailed
+  , pValueLowerTailed
+  , tValue
+
+  , avgTest
 
   , StatsUtils.mean
   , StatsUtils.std
 
   , median
-  
+
   , StatsUtils.skewness
   , StatsUtils.kurtosis
   ) where
 
+import Data.Maybe
 import Data.List                        as List
 import Data.Vector.Generic              as Vect
 
 import Statistics.Distribution          as Distr
 import Statistics.Distribution.StudentT as StudT
---import Statistics.Sample.Histogram      as Hist
 import Statistics.Sample                as Sample
 
---import Debug.Trace
+--------------------------------------------------------------------------------
+-- NOTE: THIS MODULE WAS VALIDATED AND SHOULD BE CORRECT!
+-- Sources
+--   http://www.statisticssolutions.com/manova-analysis-one-sample-t-test/
+--   https://en.wikibooks.org/wiki/Statistics/Testing_Data/t-tests 
+--   
+-- let mu0   = 60
+--     mu    = 50.2
+--     s     = 2.5
+--     n     = 20
+--     alpha = 0.05 :: Double
+
+--     (Just t) = tValue mu0 mu s n
+--     pLow     = pValueLowerTailed t n
+--     pUpper   = pValueUpperTailed t n
+--     pTwo     = pValueTwoTailed t n
+--     tLow     = tTestLowerTailed mu0 mu s n alpha
+--     tUpper   = tTestUpperTailed mu0 mu s n alpha
+--     tTwo     = tTestTwoTailed mu0 mu s n alpha
+
+-- print $ "t value = " ++ show t
+
+-- print $ "p lower tail value = " ++ show pLow
+-- print $ "p upper tail value = " ++ show pUpper
+-- print $ "p two tail value = " ++ show pTwo
+
+-- print $ "t-test lower tail = " ++ show tLow
+-- print $ "t-test upper tail = " ++ show tUpper
+-- print $ "t-test two tail = " ++ show tTwo
+-- "t value = -17.530772943598347"
+-- "p lower tail value = 1.72194932735935e-13"
+-- "p upper tail value = 0.9999999999998278"
+-- "p two tail value = 3.4438986547187e-13"
+-- "t-test lower tail = Just False"
+-- "t-test upper tail = Just True"
+-- "t-test two tail = Just False"
+
+-- EXPLANATION OF t-test
+-- There are two kinds of hypotheses for a one sample t-test, the null hypothesis 
+-- and the alternative hypothesis. The alternative hypothesis assumes that some 
+-- difference exists between the true mean (μ) and the comparison value (m0), 
+-- whereas the null hypothesis assumes that no difference exists. 
+-- The purpose of the one sample t-test is to determine if the null hypothesis 
+-- should be rejected, given the sample data. The alternative hypothesis can
+-- assume one of three forms depending on the question being asked. If the goal 
+-- is to measure any difference, regardless of direction, a two-tailed hypothesis 
+-- is used. 
+
+-- The null hypothesis (H0) assumes that the difference between the true mean 
+-- (μ) and the comparison value (m0) is equal to zero.
+
+-- The two-tailed alternative hypothesis (H1) assumes that the difference between 
+-- the true mean (μ) and the comparison value (m0) is not equal to zero.
+
+-- The upper-tailed alternative hypothesis (H1) assumes that the true mean (μ) 
+-- of the sample is greater than the comparison value (m0).
+
+-- The lower-tailed alternative hypothesis (H1) assumes that the true mean (μ)
+-- of the sample is less than the comparison value (m0).
+
+-- The p-value gives the probability of observing the test results under the 
+-- null hypothesis. The lower the p-value, the lower the probability of 
+-- obtaining a result like the one that was observed if the null hypothesis 
+-- was true. Thus, a low p-value indicates decreased support for the null hypothesis. 
+-- However, the possibility that the null hypothesis is true and that we simply
+-- obtained a very rare result can never be ruled out completely. The cutoff 
+-- value for determining statistical significance is ultimately decided on by 
+-- the researcher, but usually a value of .05 or less is chosen. This 
+-- corresponds to a 5% (or less) chance of obtaining a result like the one 
+-- that was observed if the null hypothesis was true.
+
+-- On the meaning of the p-value https://www.statsdirect.com/help/basics/p_values.htm:
+-- "If your P value is less than the chosen significance level then you reject 
+-- the null hypothesis i.e. accept that your sample gives reasonable evidence 
+-- to support the alternative hypothesis."
+-- => because we want to return (Just True) for our t-tests in case the test 
+-- accepts the null hypothesis, we need to check if the computed p value is
+-- larger than the significance level (alpha)
+
+-- MORE ON THE MEANING OF the p-value:
+--     A small p-value (typically ≤ 0.05) indicates strong evidence against the 
+--        null hypothesis, so you reject the null hypothesis.
+
+--     A large p-value (> 0.05) indicates weak evidence against the null 
+--        hypothesis, so you fail to reject the null hypothesis.
+--------------------------------------------------------------------------------
+
+data TTestTail = LowerTail | UpperTail | TwoTail deriving Eq
+
+tTestSamples :: TTestTail
+             -> Double
+             -> Double
+             -> [Double]
+             -> Maybe Bool
+tTestSamples tt mu0 alpha xs
+    = case tt of
+        LowerTail -> tTestTwoTailed mu0 mu s n alpha
+        UpperTail -> tTestUpperTailed mu0 mu s n alpha
+        TwoTail   -> tTestLowerTailed mu0 mu s n alpha
+  where
+    n  = List.length xs
+    mu = StatsUtils.mean xs
+    s  = StatsUtils.std xs
+
+tTestTwoTailed :: Double      -- ^ expected mean
+               -> Double      -- ^ actual mean of the samples
+               -> Double      -- ^ standard deviation of the samples
+               -> Int         -- ^ number of samples
+               -> Double      -- ^ confidence
+               -> Maybe Bool  -- ^ Just True in case H0 (null hypothesis) can be accepted
+tTestTwoTailed mu0 mu s n alpha
+    | isNothing t = Nothing
+    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
+  where
+    t = tValue mu0 mu s n
+    p = pValueTwoTailed (fromJust t) n
+
+tTestUpperTailed :: Double      -- ^ expected mean
+                 -> Double      -- ^ actual mean of the samples
+                 -> Double      -- ^ standard deviation of the samples
+                 -> Int         -- ^ number of samples
+                 -> Double      -- ^ confidence
+                 -> Maybe Bool  -- ^ Just True in case H0 (null hypothesis) can be accepted
+tTestUpperTailed mu0 mu s n alpha
+    | isNothing t = Nothing
+    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
+  where
+    t = tValue mu0 mu s n
+    p = pValueUpperTailed (fromJust t) n
+
+tTestLowerTailed :: Double      -- ^ expected mean
+                 -> Double      -- ^ actual mean of the samples
+                 -> Double      -- ^ standard deviation of the samples
+                 -> Int         -- ^ number of samples
+                 -> Double      -- ^ confidence
+                 -> Maybe Bool  -- ^ Just True in case H0 (null hypothesis) can be accepted
+tTestLowerTailed mu0 mu s n alpha
+    | isNothing t = Nothing
+    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
+  where
+    t = tValue mu0 mu s n
+    p = pValueLowerTailed (fromJust t) n
+
+pValueTwoTailed :: Double -- ^ t-value
+                -> Int    -- ^ number of samples
+                -> Double -- ^ p-value for 1 sided test
+pValueTwoTailed t n = p
+  where
+    degFree = fromIntegral (n - 1)
+    tDist   = StudT.studentT degFree
+    tAbs    = abs t
+    p       = 2 * Distr.cumulative tDist (-tAbs)
+
+-- THIS IS VALIDATED AND IS CORRECT: https://en.wikibooks.org/wiki/Statistics/Testing_Data/t-tests
+--    pValue1Sided -17.5 20 == 1.72194932735935e-13
+pValueLowerTailed :: Double -- ^ t-value
+                  -> Int    -- ^ number of samples
+                  -> Double -- ^ p-value for 1 sided test
+pValueLowerTailed t n = p
+  where
+    degFree = fromIntegral (n - 1)
+    tDist   = StudT.studentT degFree
+    p       = Distr.cumulative tDist t -- LOWER TAILED: p = Pr(T < t)
+
+pValueUpperTailed :: Double -- ^ t-value
+                  -> Int    -- ^ number of samples
+                  -> Double -- ^ p-value for 1 sided test
+pValueUpperTailed t n = p
+  where
+    degFree = fromIntegral (n - 1)
+    tDist   = StudT.studentT degFree
+    p       = Distr.cumulative tDist (-t) -- UPPER TAILED: p = Pr(T > t) => negate t !!
+
+-- note that t-value is undefined in case of 0 variance, all samples are the same
+-- THIS IS VALIDATED AND IS CORRECT: https://en.wikibooks.org/wiki/Statistics/Testing_Data/t-tests
+--    tValue 60 50.2 2.5 20 == -17.5
+tValue :: Double        -- ^ expected mean
+       -> Double        -- ^ actual mean of the samples
+       -> Double        -- ^ standard deviation of the samples
+       -> Int           -- ^ number of samples
+       -> Maybe Double  -- ^ Just t-value or Nothing in case of 0 variance
+tValue mu0 mu s n
+    | s == 0    = Nothing
+    | otherwise = Just t
+  where
+    t = (mu - mu0) / (s / sqrt (fromIntegral n))
 
 avgTest :: [Double]
         -> Double
@@ -30,91 +225,6 @@ avgTest ys mu0 eps
     = abs (mu - mu0) <= eps
   where
     mu = StatsUtils.mean ys
-
--- Performs a t-test evaluating the null hypothesis that the mean of the population from which sample 
--- is drawn is LT/GT/EQ mu. The functions returns 'Just True' in case the null hypothesis is accepted
--- sources:
---   http://www.statisticssolutions.com/manova-analysis-one-sample-t-test/
-tTest :: String
-      -> [Double]
-      -> Double
-      -> Double
-      -> Ordering
-      -> Maybe Bool
-tTest name samples mu0 alpha LT = tTest1Sided name samples mu0 alpha True
-tTest name samples mu0 alpha GT = tTest1Sided name samples mu0 alpha False
-tTest name samples mu0 alpha EQ = tTest2Sided name samples mu0 alpha
-
--- Performs a 2-sided t-test evaluating the null hypothesis that the mean of 
--- the population from which sample is drawn equals mu. The functions returns 
--- 'Just True' in case the means are statistically equal and 'Just False' if 
--- they are not. In case no t-value could be calculated (in case all samples 
--- are same => no variance) Nothing is returned.
--- sources:
---   http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.stat.inference/TTest.java.html
---   https://commons.apache.org/proper/commons-math/javadocs/api-3.6/org/apache/commons/math3/stat/inference/TTest.html
-tTest2Sided :: String
-            -> [Double]
-            -> Double
-            -> Double
-            -> Maybe Bool
-tTest2Sided _name samples mu0 alpha 
-    = case mayP of
-        Nothing -> Nothing -- trace (_name List.++ ": cant perform t-test, t-value undefined because 0 variance!") 
-        Just p  -> -- trace (_name List.++ ": p = " List.++ show p) 
-                    Just $ p > alpha
-  where
-    mayP = pValue $ tValue samples mu0
-
-    pValue :: Maybe Double -> Maybe Double
-    pValue Nothing  = Nothing
-    pValue (Just t) = -- trace (_name List.++ ": t = " List.++ show t)
-                      Just p
-      where
-        degFree = fromIntegral $ List.length samples - 1
-        tDist   = StudT.studentT degFree
-        tAbs    = abs t
-        p       = 2 * Distr.cumulative tDist (-tAbs)
-
-tTest1Sided :: String
-            -> [Double]
-            -> Double
-            -> Double
-            -> Bool
-            -> Maybe Bool
-tTest1Sided _name samples mu0 alpha upper
-    = case mayP of
-        Nothing -> Nothing -- trace (name List.++ ": cant perform t-test, t-value undefined because 0 variance!")
-        Just p  -> --trace (_name List.++ ": p = " List.++ show p) 
-                    if upper then Just $ p > alpha else Just $ p < alpha
-  where
-    mayP = pValue $ tValue samples mu0
-
-    pValue :: Maybe Double -> Maybe Double
-    pValue Nothing  = Nothing
-    pValue (Just t) = -- trace (name List.++ ": t = " List.++ show t)
-                      Just p
-      where
-        degFree = fromIntegral $ List.length samples - 1
-        tDist   = StudT.studentT degFree
-        p       = Distr.cumulative tDist (-t)
-
--- note that t-value is undefined in case of 0 variance, all samples are the same
-tValue :: [Double] -> Double -> Maybe Double
-tValue samples mu0
-    | sigma == 0 = Nothing
-    | otherwise  = {- trace ("n = " List.++ show n List.++ 
-                          "\nmu = " List.++ show mu List.++ 
-                          "\nsigma = " List.++ show sigma List.++ 
-                          "\nt = " List.++ show t)
-                    -}     
-                    Just t
-  where
-    n     = List.length samples
-    mu    = StatsUtils.mean samples
-    sigma = StatsUtils.std samples
-
-    t = (mu - mu0) / (sigma / sqrt (fromIntegral n))
 
 -- statistics package obviously provides mean and variance implementations
 -- but they don't support simple lists ...

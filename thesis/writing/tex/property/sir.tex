@@ -1,8 +1,8 @@
 \section{Case Study I: SIR}
 \label{sec:case_SIR}
-As first use-case we discuss property-based testing for the \textit{explanatory} agent-based SIR model. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles spreading through a population. We implemented an agent-based version of this model \footnote{The code is freely accessible from \url{https://github.com/thalerjonathan/phd/tree/master/public/propabs/sir}}, inspired by \cite{macal_agent-based_2010}.
+As first use-case we discuss property-based testing for the \textit{explanatory} agent-based SIR model as introduced in Chapter \ref{sec:sir_model}. 
 
-In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. Due to the models' origin in System Dynamics (SD) \cite{porter_industrial_1962}, there exists a top-down formalisation in SD with the following equations:
+Our goal is to connect the agent-based implementation to the SD equations, which we repeat here:
 
 \begin{equation}
 \begin{split}
@@ -17,57 +17,12 @@ recoveryRate = \frac{I}{\delta}
 \end{split}
 \end{equation}
 
-\subsection{Deriving a property}
-Our goal is to derive a property which connects the agent-based implementation to the SD equations. The foundation are both the infection- and recovery-rate where the infection-rate determines how many \textit{Susceptible} agents per time-unit become \textit{Infected} and the recovery-rate determines how many \textit{Infected} agents per time-unit become \textit{Recovered}. Lets look at the algorithm of the susceptible agent behaviour, which is key for the infection-rate:
+The idea is to generate random population mixes and compute the theoretical infection- and recovery rate. Then the simulation is run for 1 time unit to get the numbers of S, I and R. We compare the differences to the expected infection and recovery rate. The distribution should average at the expected theoretical means. TODO: use Rand approach to guarantee uncorrelated RNGS. Note that we need to run the whole test multiple times with different rngs because it is a  
 
-\begin{algorithm}
-generate on average $\beta$ make-contact events per time-unit\; 
-\If{make-contact event}{
-  select random agent \textit{randA} from population\; 
-  \If{agent randA infected}{
-    become infected with probability $\gamma$\; 
-  }  
-}
-\caption{Susceptible behaviour}
-\end{algorithm}
+TODO: do we we need to test it against the SD implementation? Estimation parameters are: time of infection peak, number of infected at peak, time when number of infected < 1
 
-Per time-unit, a susceptible agent makes \textit{on average} contact with $\beta$ other agents, where in the case of a contact with an infected agent, the susceptible agent becomes infected with a given probability $\gamma$. In this description there is another probability hidden, the probability of making contact with an infected agent, which is simply the ratio of number of infected agents to number non-infected agents. We can now derive the formula for the probability of a \textit{Susceptible} agent to become infected: $\frac{\beta * \gamma * \text{number of infected (I)}}{\text{number of non-infected (N)}}$. When we look at the formula we can see that it is conceptually the same representation of the \textit{infection-rate} of the SD specification as shown above - except that it only considers a single \textit{Susceptible} agent instead of the aggregate of \textit{S} susceptible agents. We have now a property we can check using a property-test.
+can we really do it? is it really possible to compare SD and agent-based simulation? 
 
-\subsection{Constructing the property-based test}
-Having a property (law), we want now to construct a property-test for it. The formula is invariant under random population mixes and thus should hold for varying agent populations where the mix of \textit{Susceptible, Infected and Recovered} agents is random - thus we use QuickCheck to generate the population randomly, the property must still hold.
+TODO: can use this test to derive an optimally small dt: the lowest dt for which all tests go through. start with 1.0 and always half it until all tests go through
 
-Obviously we need to pay attention to the fact that we are dealing with a stochastic system thus we can only talk about averages and thus it does not suffice to only run a single agent but we are repeating this for 1.000 \textit{Susceptible} agents (all with different random-number seeds). We thus compute the simulated infection-rate simply by counting the agents which got infected and divide it by the number of total replications N = 1.000. To check whether this test has passed we run this 100 times and use a 2-sided t-test to check if the sample infection-rate is statistically significant equal to the hypothetical infection-rate. When executing the tests, QuickCheck generates 100 test-cases by randomly generating 100 different \textit{randAs} inputs to the test. All have to pass for the whole property-test to pass. See Algorithm \ref{alg:prop_test_infectionrate} for the pseudo-code of this property-based test.
-
-\begin{algorithm}
-\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{List \textit{randAs} of random agent-population generated by QuickCheck}
-populationCount = length \textit{randAs}\;
-infectedCount   = count \textit{Infected} in \textit{randAs}\;
-hypInfRate      = infectivity * contactRate * (infectedCount / populationCount)\;
-sampleRateList  = empty list\;
-
-\For{$i\leftarrow 1$ \KwTo 100}{
-susceptibles = create 1000 \textit{Susceptible} agents\;
-countInfected = 0\;
-\For{each agent sa in susceptibles}{
-  run agent sa for 1.0 time-unit, with list \textit{randAs} as input\;
-  \If{agent sa became \textit{Infected} }{
-	countInfected = countInfected + 1\;
-  }
-}
-avgInfRate = countInfected / (length susceptibles)\;
-insert avgInfRate into sampleRateList\;
-}
-
-tTestPass = perform 2-sided t-test comparing hypInfRate with sampleRateList on a 0.95 interval\;
-\eIf{tTestPass}{
-  PASS\;
-} {
-  FAIL\;
-}
-\caption{Property-based test for infection-rate.}
-\end{algorithm}
-\label{alg:prop_test_infectionrate}
-
-This is the very power which property-based testing is offering us: we directly express the specification of the original SD model in a test of our agent-based implementation and let QuickCheck generate random test cases for us. This closely ties our implementation to the original specification and raises the confidence to a very high level that it is actually a valid and correct implementation. Also using this test we can determine the \textit{optimal} $\Delta t$ for running our simulation: because the SIR model is a time-driven one, we need to select a sufficiently small $\Delta t$ to avoid sampling issues \cite{thaler_pure_2019}. Using this property-test one can start out with an initial $\Delta t$ and divides it by 2 it until the tests pass.
-Further, by using property-tests we found out about a special case we haven't covered in the implementation of the Susceptible agent behaviour. This show that property-based testing is not only useful for encoding specifications for regression tests but that is indeed also valuable tool in finding real bugs e.g. due to missed edge-cases. 
+\subsection{TODO: Stateful testing of event-driven SIR}

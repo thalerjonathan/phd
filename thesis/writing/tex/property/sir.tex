@@ -1,8 +1,6 @@
 \section{Case Study I: SIR}
 \label{sec:case_SIR}
-As first use-case we discuss property-based testing for the \textit{explanatory} agent-based SIR model as introduced in Chapter \ref{sec:sir_model}. 
-
-Our goal is to connect the agent-based implementation to the SD equations, which we repeat here:
+As first use-case we discuss property-based testing for the \textit{explanatory} agent-based SIR model as introduced in Chapter \ref{sec:sir_model}. We aim at connecting the agent-based implementation to the SD specification, by formalising it through according properties in our test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
 
 \begin{equation}
 \begin{split}
@@ -16,20 +14,125 @@ infectionRate = \frac{I \beta S \gamma}{N} \\
 recoveryRate = \frac{I}{\delta} 
 \end{split}
 \end{equation}
+\label{eq:sir_delta_rates}
 
-The idea is to generate random population mixes and compute the theoretical infection- and recovery rate. Then the simulation is run for 1 time unit to get the numbers of S, I and R. We compare the differences to the expected infection and recovery rate. The distribution should average at the expected theoretical means. TODO: use Rand approach to guarantee uncorrelated RNGS. Note that we need to run the whole test multiple times with different rngs because it is a  
+Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
 
-can we really do it? is it really possible to compare SD and agent-based simulation? 
+\begin{align}
+S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
+I(0) &= 1 \\
+I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
+R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
+\end{align}
 
-TODO: a bit more than 1000 seconds for 100 tests
+\subsection{Deriving the properties}
+The key to encode these specifications into a property is to understand that the stocks of \textit{S}, \textit{I} and \textit{R} change \textit{per time-unit} with the given rates. This means that if we run an SD simulation for 1 time-unit the differences between the S, I and R stocks should be the values specified in equations \ref{eq:sir_delta_rates}. %This property has to hold for \textit{any} initial value for S, I and R.
 
-TODO: can use this test to derive an optimally small dt: the lowest dt for which all tests go through. start with 1.0 and always half it until all tests go through
+Translating this into a property of our ABS implementation is analogous. We count the number of initially S, I and R agents and run the simulation for 1 time-unit to get new S', I' and R' numbers. The differences should \textit{average} at the values specified in equations \ref{eq:sir_delta_rates} as well. This property has to hold for \textit{any} agent population. Note that due to ABS stochastic nature it is not enough to run only one replication of the simulation for 1 time-unit but we actually need multiple replications, above 100, to get statistically robust results. We then use two-tailed t-tests to compare the expected averages to the actual averages. If all 3 tests pass the whole quickcheck test passes.
 
+\subsection{Implementing a property-test}
+We start by defining the type of our property which takes a list of \textit{SIRStates} and returns a \textit{Bool}.
+
+\begin{HaskellCode}
+prop_sd_rates :: [SIRState] -> Bool
+\end{HaskellCode}
+
+Properties in QuickCheck are required to return Bool to indicate success or failure - the arguments required for the function are then randomly generated and provided by QuickCheck. For QuickCheck to be able to generate random values of \textit{SIRState} we need to implement an instance of the \textit{Arbitrary} typeclass for \textit{SIRState}. This is straight forward: we \textit{uniformly} pick one out of the 3 possible values.
+
+\begin{HaskellCode}
+instance Arbitrary SIRState where
+  -- arbitrary :: Gen SIRState
+  -- Uniformly pick one of the 3 elements.
+  arbitrary = elements [Susceptible, Infected, Recovered]
+\end{HaskellCode}
+
+Because we are running replications, we need random seeds to create random-number generators for each replication. We don't make them an argument to the property-test because we don't want to let QuickCheck handle them for us. The reason for that is that if we make it a parameter to the function, QuickCheck tries to vary it as well, meaning that we have less variance and test-cases over the initial population. Thus we generate the seeds manually but relying on QuickChecks random functionality.
+
+\begin{HaskellCode}
+prop_sd_rates :: [SIRState] -> Gen Bool
+prop_sd_rates as = do
+    -- Draw a list of replications random Ints over the full Int range to  
+    -- reach maximum variance (reduce probability of drawing identical seeds)
+    seeds <- vectorOf replications (choose (minBound, maxBound))
+    return (prop_sd_ratesAux seeds)
+  where
+    prop_sd_ratesAux :: [Int] -> Bool
+    prop_sd_ratesAux seeds = allTTestsPass -- see below
+\end{HaskellCode}
+
+Next we encode the SD specification.
+
+% NOTE: we omited fromIntegral to make it more readable
+\begin{HaskellCode}
+-- initial values of S,I and R and total number of agents N
+s0 = length (filter (==Susceptible) as)
+i0 = length (filter (==Infected) as)
+r0 = length (filter (==Recovered) as)
+n  = s0 + i0 + r0
+
+-- explicit re-naming
+beta  = contactRate
+gamma = infectivity
+delta = illnessDuration
+
+-- infection-rate
+ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
+-- recovery-rate 
+rr = i0 / delta
+
+-- S value after 1 time-unit 
+s = s0 - ir
+-- I value after 1 time-unit
+i = i0 + (ir - rr)
+-- R value after 1 time-unit
+r = r0 + rr
+\end{HaskellCode}
+
+Then we run replications (100) of the simulation to get lists of new S, I and R values.
+
+\begin{HaskellCode}
+-- run for 1 time-unit
+dur = 1.0
+-- small dt: decreasing this value reduces t-test failures!
+dt = 0.01
+-- generate random-number generator for each replication
+rngs = map mkStdGen seeds
+-- compute simulated values for s, i and r
+(ss, is, rs) = unzip (map (last . runSIRFor dur dt as beta gamma delta) rngs)
+\end{HaskellCode}
+
+Finally we run two-tailed t-tests with confidence of 0.99 ($\alpha = 0.01$) for all 3 lists of the new S,I and R values.
+
+\begin{HaskellCode}
+confidence = 0.99
+sTest = tTestSamples TwoTail s (1 - confidence) ss
+iTest = tTestSamples TwoTail i (1 - confidence) is
+rTest = tTestSamples TwoTail r (1 - confidence) rs
+
+-- property-test passes if all 3 t-tests pass
+allTTestsPass = sTest && iTest && rTest
+\end{HaskellCode}
+
+\subsection{Results}
 By using quickcheck we showed how to connect the ABS implementation to the SD specification by deriving properties based on the SD specification. those properties are directly expressed in code and checked during testing by generating random populations. In each test-case of a random population we run 100 replications of the simulation. On these 100 samples we then perform a 2-sided t-test with the null hypothesis H0 that the mean of the samples is equal to the expected number of susceptibles, which we aim to accept.
 Unfortunately, not all tests were running through, depending on the dt value for the simulation and the confidence (alpha) value for the t-test. The sensitivity to both is obvious: a small dt avoids undersampling as already shown in the chapter (TODO time-driven) and it is clear that lowering the alpha value for a t-test which aims at accepting H0 leads to a test which is more likely to accept it. Still, if we select the parameters quite conservatively to dt = 0.01 and confidence = 0.01 about 5\% of 1000 tests fail.
 This fact reveals the fundamental difference between SD and ABS: due to ABS stochastic nature, an ABS cannot match an SD exactly and is much richer in its dynamics as it can explore and reveal paths which are not possible in SD. In the case of the SIR model, such an alternative path would be the recovery of the single infected agent at the beginning - this is not possible in the SD case: in case we have 1 infected agent, the whole epidemics unfold.
 The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} (macal paper) in the case of the SIR model and more generally by \cite{figueredo_comparing_2014} (grazziela figueredeo and peer paper). Our tests only reveal that very fact that we can come quite close but can't match exactly - the confidence parameter allows us to specify the "tightness" of our tests and guarantees us at least that we come close up to some limit.
 Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using quickcheck. Due to the "softness" of the tests through the confidence parameter, we can show that this specification comes close to the original SD implementation but does not match it exactly and is indeed richer in its dynamics as the above mentioned papers have already shown.
 Also our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR.
+
+\subsection{Discussion}
+duration: 1000 seconds
+TODO: can use this test to derive an optimally small dt: the lowest dt for which all tests go through. start with 1.0 and always half it until all tests go through
+TODO: uniform picking of SIRStates has implications
+
+\begin{HaskellCode}
+instance Arbitrary SIRState where
+  -- arbitrary :: Gen SIRState
+  -- Susceptible are picked 3 times, Infected 2 times more often than Recovered
+  arbitrary = frequency [ (3, return Susceptible)
+                        , (2, return Infected)
+                        , (1, return Recovered) ]
+\end{HaskellCode}
 
 \subsection{TODO: Stateful testing of event-driven SIR}

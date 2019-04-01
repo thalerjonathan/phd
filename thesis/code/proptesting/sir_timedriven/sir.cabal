@@ -85,8 +85,8 @@ Test-Suite sir-test
   other-modules:        SIRTests
                       , StatsUtils
                       
-                      , SIR.SIR
                       , SIR.Utils
+                      , SIR.SIR
 
   hs-source-dirs:       src/
                       , src/test

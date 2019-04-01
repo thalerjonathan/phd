@@ -2,10 +2,6 @@ module StatsUtils
   ( TTestTail (..)
   , tTestSamples
 
-  , tTestTwoTailed
-  , tTestLowerTailed
-  , tTestUpperTailed
-
   , pValueTwoTailed
   , pValueUpperTailed
   , pValueLowerTailed
@@ -119,59 +115,31 @@ import Statistics.Sample                as Sample
 
 data TTestTail = LowerTail | UpperTail | TwoTail deriving Eq
 
-tTestSamples :: TTestTail
-             -> Double
-             -> Double
-             -> [Double]
-             -> Maybe Bool
+tTestSamples :: TTestTail  -- ^ type of t-test
+             -> Double     -- ^ expected mean
+             -> Double     -- ^ confidence
+             -> [Double]   -- ^ samples
+             -> Maybe Bool -- ^ Just True in case H0 (null hypothesis) is accepted
 tTestSamples tt mu0 alpha xs
-    = case tt of
-        LowerTail -> tTestTwoTailed mu0 mu s n alpha
-        UpperTail -> tTestUpperTailed mu0 mu s n alpha
-        TwoTail   -> tTestLowerTailed mu0 mu s n alpha
+    | isNothing t = Nothing
+    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
+    
   where
-    n  = List.length xs
+    -- get number of samples
+    n  = List.length xs     
+    -- compute mean of samples
     mu = StatsUtils.mean xs
+    -- compute standard deviation of samples
     s  = StatsUtils.std xs
-
-tTestTwoTailed :: Double      -- ^ expected mean
-               -> Double      -- ^ actual mean of the samples
-               -> Double      -- ^ standard deviation of the samples
-               -> Int         -- ^ number of samples
-               -> Double      -- ^ confidence
-               -> Maybe Bool  -- ^ Just True in case H0 (null hypothesis) can be accepted
-tTestTwoTailed mu0 mu s n alpha
-    | isNothing t = Nothing
-    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
-  where
-    t = tValue mu0 mu s n
-    p = pValueTwoTailed (fromJust t) n
-
-tTestUpperTailed :: Double      -- ^ expected mean
-                 -> Double      -- ^ actual mean of the samples
-                 -> Double      -- ^ standard deviation of the samples
-                 -> Int         -- ^ number of samples
-                 -> Double      -- ^ confidence
-                 -> Maybe Bool  -- ^ Just True in case H0 (null hypothesis) can be accepted
-tTestUpperTailed mu0 mu s n alpha
-    | isNothing t = Nothing
-    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
-  where
-    t = tValue mu0 mu s n
-    p = pValueUpperTailed (fromJust t) n
-
-tTestLowerTailed :: Double      -- ^ expected mean
-                 -> Double      -- ^ actual mean of the samples
-                 -> Double      -- ^ standard deviation of the samples
-                 -> Int         -- ^ number of samples
-                 -> Double      -- ^ confidence
-                 -> Maybe Bool  -- ^ Just True in case H0 (null hypothesis) can be accepted
-tTestLowerTailed mu0 mu s n alpha
-    | isNothing t = Nothing
-    | otherwise   = Just $ p > alpha  -- ACCEPT H0 if p > alpha
-  where
-    t = tValue mu0 mu s n
-    p = pValueLowerTailed (fromJust t) n
+    -- compute t-value (t-statistics)
+    t  = tValue mu0 mu s n
+    -- compute p (proabilitiy) value for t-value: the p-value gives us the 
+    -- probability that we would observe a test statistic t-value if the means 
+    -- are really really mu0
+    p  = case tt of
+        LowerTail ->  pValueLowerTailed (fromJust t) n
+        UpperTail -> pValueUpperTailed (fromJust t) n
+        TwoTail   -> pValueTwoTailed (fromJust t) n
 
 pValueTwoTailed :: Double -- ^ t-value
                 -> Int    -- ^ number of samples

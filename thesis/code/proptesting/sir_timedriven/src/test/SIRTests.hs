@@ -117,6 +117,12 @@ prop_sd_rates as = do
         iTest = tTestSamples TwoTail i (1 - confidence) is
         rTest = tTestSamples TwoTail r (1 - confidence) rs
 
+        -- NOTE: if we return True in all cases, the compiler infers that 
+        -- this is a constant expression and evaluates it only once, thus we
+        -- don't get a debug output in case of a failure. As a remedy, we
+        -- use a proposition which is always True but cannot be inferred by
+        -- the compiler 
+
         sTestPass
           | isNothing sTest = True
           | fromJust sTest  = True

@@ -1,19 +1,17 @@
-module SIRTests 
-  ( sirPropTests
-  ) where
+module Main where
 
-import Control.Parallel.Strategies hiding (r0)
+-- import Control.Parallel.Strategies hiding (r0)
 import Data.Maybe
-import Text.Printf
 import System.Random
 
-import Test.Tasty
-import Test.Tasty.QuickCheck as QC
+import Test.QuickCheck
+import Test.QuickCheck.Random
 
 import SIR.SIR
 import StatsUtils
 
-import Debug.Trace
+--import Debug.Trace
+--import Text.Printf
 
 instance Arbitrary SIRState where
   -- arbitrary :: Gen SIRState
@@ -35,29 +33,30 @@ paramIllnessDuration = 15.0
 replications :: Int
 replications = 100
 
---clear & stack test --test-arguments="--quickcheck-tests=100 --quickcheck-replay=67991"
+main :: IO ()
+main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
+                              , maxFailPercent = 100    -- number of maximum failed tests
+                              , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
+                              , replay = Just (mkQCGen 42, 0) -- use to replay reproducible
+                              } prop_sir_sd_spec
 
-sirPropTests :: TestTree
-sirPropTests 
-  = testGroup "SIR" [ QC.testProperty "SD Rates Property" prop_sd_rates ]
-
-prop_sd_rates :: [SIRState] -> Gen Bool
-prop_sd_rates as = do
+prop_sir_sd_spec :: [SIRState] -> Gen Bool
+prop_sir_sd_spec as = do
     -- dont use vector as it will generate Int values quite close to each other
     -- without enough range => the probability of picking same values increases
     -- which does result in same dynamics, resultin in less variance.
     -- Therefore we use minBound and maxBound to go explicitly over the full
     -- Int range!
     seeds <- vectorOf replications (choose (minBound, maxBound))
-    return $ prop_sd_ratesAux seeds
+    return $ prop_sir_sd_spec_aux seeds
   where
-    prop_sd_ratesAux :: [Int] -> Bool
-    prop_sd_ratesAux seeds 
-      = trace ( "---------------------------------------------------------------------------------------" ++
-                "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
-                "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
-                "\n ss = " ++ printf "%.2f" ssMean ++ ", \t is = " ++ printf "%.2f" isMean ++ ", \t rs = " ++ printf "%.2f" rsMean) 
-                allPass sTestPass iTestPass rTestPass
+    prop_sir_sd_spec_aux :: [Int] -> Bool
+    prop_sir_sd_spec_aux seeds = allPass
+      -- = trace ( "---------------------------------------------------------------------------------------" ++
+      --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
+      --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
+      --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
+      --           allPass
       where
         s0 = fromIntegral $ length $ filter (==Susceptible) as
         i0 = fromIntegral $ length $ filter (==Infected) as
@@ -95,12 +94,13 @@ prop_sd_rates as = do
         -- compute simulated values for s, i and r
         sir = map (last . runSIRFor dur dt as beta gamma delta) rngs
         -- apply evaluation parallelism to speed up
-        sir' = withStrategy (parListChunk 200 rseq) sir
-        (ss, is, rs) = unzip3 sir'
+        -- NOTE: doesn't add anything
+        -- (ss, is, rs) = unzip3 $ withStrategy (parList rdeepseq) sir
+        (ss, is, rs) = unzip3 sir
 
-        ssMean = mean ss
-        isMean = mean is
-        rsMean = mean rs
+        _ssMean = mean ss
+        _isMean = mean is
+        _rsMean = mean rs
         
         -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
         -- equal with a confidence of 99%: the probability of observing an extreme
@@ -117,32 +117,35 @@ prop_sd_rates as = do
         iTest = tTestSamples TwoTail i (1 - confidence) is
         rTest = tTestSamples TwoTail r (1 - confidence) rs
 
+        allPass = fromMaybe True sTest &&
+                  fromMaybe True iTest &&
+                  fromMaybe True rTest
+
         -- NOTE: if we return True in all cases, the compiler infers that 
         -- this is a constant expression and evaluates it only once, thus we
         -- don't get a debug output in case of a failure. As a remedy, we
         -- use a proposition which is always True but cannot be inferred by
         -- the compiler 
+        -- sTestPass
+        --   | isNothing sTest = True
+        --   | fromJust sTest  = True
+        --   | otherwise       = trace ("susceptible t-test failed with ss = \n" ++ show ss ) (not $ s0 /= 0 && s == 0)
 
-        sTestPass
-          | isNothing sTest = True
-          | fromJust sTest  = True
-          | otherwise       = trace ("susceptible t-test failed with ss = \n" ++ show ss ) (not $ s0 /= 0 && s == 0)
+        -- iTestPass
+        --   | isNothing iTest = True
+        --   | fromJust iTest  = True
+        --   | otherwise       = trace ("infected t-test failed with is = \n" ++ show is) (not $ s0 /= 0 && s == 0)
 
-        iTestPass
-          | isNothing iTest = True
-          | fromJust iTest  = True
-          | otherwise       = trace ("infected t-test failed with is = \n" ++ show is) (not $ s0 /= 0 && s == 0)
+        -- rTestPass
+        --   | isNothing rTest = True
+        --   | fromJust rTest  = True
+        --   | otherwise       = trace ("recovered t-test failed with rs = \n" ++ show rs) (not $ s0 /= 0 && s == 0)
 
-        rTestPass
-          | isNothing rTest = True
-          | fromJust rTest  = True
-          | otherwise       = trace ("recovered t-test failed with rs = \n" ++ show rs) (not $ s0 /= 0 && s == 0)
-
-        allPass True True True  = True 
-        allPass True True False = False
-        allPass True False True = False
-        allPass True False False = False
-        allPass False True True = False
-        allPass False True False = False
-        allPass False False True = False
-        allPass False False False = False
+        -- allPass True True True  = True 
+        -- allPass True True False = False
+        -- allPass True False True = False
+        -- allPass True False False = False
+        -- allPass False True True = False
+        -- allPass False True False = False
+        -- allPass False False True = False
+        -- allPass False False False = False

@@ -99,23 +99,24 @@ i = i0 + (ir - rr)
 r = r0 + rr
 \end{HaskellCode}
 
-Then we run replications (100) of the simulation to get lists of new S, I and R values.
+Then we run replications (100) of the simulation for 1.0 time-unit with same $\Delta t = 0.1$ as in Chapter \ref{sec:timedriven_firststep} to get lists of new S, I and R values.
 
 \begin{HaskellCode}
 -- run for 1 time-unit
 dur = 1.0
--- small dt: decreasing this value reduces t-test failures!
-dt = 0.01
+-- same dt as in time-driven chapter implementation
+dt = 0.1
 -- generate random-number generator for each replication
 rngs = map mkStdGen seeds
 -- compute simulated values for s, i and r
 (ss, is, rs) = unzip (map (last . runSIR dur dt as beta gamma delta) rngs)
 \end{HaskellCode}
 
-Finally we run two-tailed t-tests with confidence of 0.99 ($\alpha = 0.01$) for all 3 lists of the new S,I and R values.
+Finally we run two-tailed t-tests with confidence of 0.95 ($\alpha = 0.05$) for all 3 lists of the new S,I and R values.
 
+% NOTE: tTestSamples return a Maybe Bool but we dont care about that detail here
 \begin{HaskellCode}
-confidence = 0.99
+confidence = 0.95
 sTest = tTestSamples TwoTail s (1 - confidence) ss
 iTest = tTestSamples TwoTail i (1 - confidence) is
 rTest = tTestSamples TwoTail r (1 - confidence) rs
@@ -125,23 +126,33 @@ allTTestsPass = sTest && iTest && rTest
 \end{HaskellCode}
 
 \subsection{Results}
-When testing the property with QuickCheck, by default 100 random test-cases will be generated and \textit{all} have to pass so that the whole property-test passes. Unfortunately, the whole property-test fails - not all random-test cases go through. When looking at the samples of failed t-tests and plotting them in a histogram, it shows clearly that the values exhibit strong outliers and skewed / fat tailed histograms. This means that they are not normally distributed, which is a base assumption and a necessity for t-tests. 
+When testing the property with QuickCheck, by default 100 random test-cases will be generated and \textit{all} have to pass so that the whole property-test passes. Unfortunately, the whole property-test fails - not all 100 random-test cases go through even if we run the whole property-test repeatedly. When looking at the samples of failed t-tests and plotting them in a histogram, it shows clearly that the values exhibit strong outliers and skewed / fat tailed histograms. This means that they are not normally distributed, which is a base assumption and a necessity for t-tests. 
 
-To see how many random test-cases fail out of the 100, we return always True for every random test-case and print a debug output in case a t-test fails. This leads to all tests running through with a t-test failing in roughly 5 out of 100 random test-cases. When we configure QuickCheck to perform 1.000 random test-cases we arrive at roughly 50 failed tests. %Although this is not a scientific measure, this hints that in this model roughly 5\% of all random test-cases fail.
+\subsubsection{Accepting failed random test-cases}
+This means that the binary approach of QuickCheck, where the whole property-test fails when a single random test-case fails, is too strict for testing ABS in general and our problem in particular. As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck to allow the failure of a given percentage of random-tests cases. The argument behaves in a way that it tries to run up to 100 successful random test-cases but fails the overall property-test if the percentage of failed random test-cases is hit.
 
+We now have a tool to accept some failure and still get through with our tests. Lets first see how far we will get with a failure percentage of 100. One possible outcome is: \textit{*** Failed! Passed only 73 tests; 100 failed (57\%) tests}. This means the property-test had 73 successful and 100 failed random test-cases, meaning that out of a total of 173 random test-cases 57\% were failed ones. 
+
+By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a tool we can use for closing the gap between the SD specification and our ABS implementation. As already pointed out in \ref{sub:timedriven_results}, the selection of a sufficiently small $\Delta t$ is crucial and it might be very well the case that the original $\Delta t = 0.1$ we used in our implementation and in Chapter \ref{sub:timedriven_results} is not small enough. 
+
+Indeed, when we half it to $\Delta t = 0.05$ only 29 tests out of 129 total fail in one particular run: +++ OK, passed 100 tests; 29 failed (22\%.). Lowering it to $\Delta t = 0.01$ doesn't seem to have a significant effect, we arrive at roughly the same ratio of failed tests.
+
+TODO: try event-driven : no dt problems but should experience similar problems due to ABS vs. SD problems?
+
+Another approach would be to increase the confidence in our t-tests e.g. to 99\%. This shows significant improvement, resulting in only about 10\% of a failed test ratio. Changing the confidence can be problematic: by increasing it we lower the risk of making type I errors, which means reduced risk of rejecting a test which matches the SD dynamics. On the other hand increasing the confidence also increases the risk of making type II errors, which means increased risk of not rejecting test which does not match the SD dynamics. 
+
+\subsubsection{SD - ABS impendance mismatch}
 This fact reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
 
 The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the author shows that it is bimodal. The authors \cite{figueredo_comparing_2014} approach the problem of comparing ABS to SD more generally and propose different techniques of how to approach the problem.
 
 We will not go further into this problem as it is beyond the scope of this thesis but our tests reveal that very fact that we can come quite close but can't match exactly - the confidence parameter allows us to specify the "tightness" of our tests and guarantees us at least that we come close up to some limit.
 
-%Unfortunately, not all tests were running through, depending on the dt value for the simulation and the confidence (alpha) value for the t-test. The sensitivity to both is obvious: a small dt avoids undersampling as already shown in the chapter (TODO time-driven) and it is clear that lowering the alpha value for a t-test which aims at accepting H0 leads to a test which is more likely to accept it. Still, if we select the parameters quite conservatively to dt = 0.01 and confidence = 0.01 about 5\% of 1000 tests fail.
-
 \subsection{Discussion}
 By using QuickCheck, we showed how to connect the ABS implementation to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested by generating random test-cases where the random data is a random agent population. 
 
 Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. Due to the "softness" of the tests through the confidence parameter, we can show that this specification comes close to the original SD implementation but does not match it exactly and is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. 
 
-Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. Also we could use such a test to derive an optimally small $\Delta t$, which is not subject to undersampling as discussed in Chapter \ref{sub:timedriven_results}. The optimal $\Delta t$ is the lowest for which all (or sufficiently enough) tests go through. % It can be found by starting out with 1.0 and always half it until sufficiently enough tests go through.
+Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. Also, we showed how to use such a test to derive an optimally small $\Delta t$, which is not subject to under-sampling as discussed in Chapter \ref{sub:timedriven_results}. The optimal $\Delta t$ is the lowest for which all (or sufficiently enough) tests go through. % It can be found by starting out with 1.0 and always half it until sufficiently enough tests go through.
 
-%\subsection{TODO: Stateful testing of event-driven SIR}
+Next we look into testing individual agent-behaviour in the case of the event-driven ABS

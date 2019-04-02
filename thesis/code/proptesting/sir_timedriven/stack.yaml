@@ -36,11 +36,21 @@ resolver: lts-13.14
 #  - wai
 packages:
 - .
+#- quickcheck
+
+#- location:
+#    git: git@github.com:stevana/quickcheck.git # https://github.com/stevana/quickcheck.git
+#    commit: 9ccdcbb3eaad7fe96c08ea5ecbbdfe852615bd49
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps: 
 - Yampa-0.11.1
+# to enable the maxFailPercent feature we use the QuickCheck version from
+# stevana, who implemented it https://github.com/nick8325/quickcheck/pull/239
+- git: https://github.com/stevana/quickcheck.git
+  commit: 9ccdcbb3eaad7fe96c08ea5ecbbdfe852615bd49
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

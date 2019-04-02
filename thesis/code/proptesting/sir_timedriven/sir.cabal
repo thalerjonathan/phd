@@ -57,8 +57,6 @@ executable sir
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
 
---  >=4.11 && <4.12
---  == 0.11.1
   -- Other library packages from which modules are imported.
   build-depends:        base 
                       , Yampa
@@ -82,8 +80,7 @@ Test-Suite sir-test
 
   type:                 exitcode-stdio-1.0
 
-  other-modules:        SIRTests
-                      , StatsUtils
+  other-modules:        StatsUtils
                       
                       , SIR.Utils
                       , SIR.SIR
@@ -91,22 +88,19 @@ Test-Suite sir-test
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              Test.hs
+  main-is:              SIRTests.hs
 
   build-depends:        base
                       , Yampa
                       , MonadRandom
                       , parallel
+                      , QuickCheck
                       , random
                       , statistics
-                      , tasty
-                      , tasty-hunit
-                      , tasty-smallcheck
-                      , tasty-quickcheck
                       , vector
-                      
+
   ghc-options:        -O2
                       -Wall 
                       -Werror
                       -fno-warn-orphans
-                      -- -threaded -with-rtsopts=-N
+                      -- -threaded

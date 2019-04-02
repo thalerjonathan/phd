@@ -1,28 +1,17 @@
-module SIR.Export
-  ( writeAggregatesToFile
+module SIR.Export 
+  ( writeDynamicsToFile
   ) where
 
 import System.IO
 import Text.Printf
 
-writeAggregatesToFile :: String 
-                      -> Double
-                      -> [(Int, Int, Int)] 
-                      -> IO ()
-writeAggregatesToFile fileName dt dynamics = do
+writeDynamicsToFile :: String -> [(Double, Double, Double)] -> IO ()
+writeDynamicsToFile fileName dynamics = do
   fileHdl <- openFile fileName WriteMode
   hPutStrLn fileHdl "dynamics = ["
-  mapM_ (hPutStrLn fileHdl . sirAggregateToString) dynamics
+  mapM_ (hPutStrLn fileHdl . sirDynamicToString) dynamics
   hPutStrLn fileHdl "];"
 
-  writeMatlabPlot fileHdl dt
-
-  hClose fileHdl
-
-writeMatlabPlot :: Handle 
-                -> Double
-                -> IO ()
-writeMatlabPlot fileHdl dt = do
   hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
   hPutStrLn fileHdl "infected = dynamics (:, 2);"
   hPutStrLn fileHdl "recovered = dynamics (:, 3);"
@@ -34,7 +23,6 @@ writeMatlabPlot fileHdl dt = do
 
   hPutStrLn fileHdl "steps = length (susceptible);"
   hPutStrLn fileHdl "indices = 0 : steps - 1;"
-  hPutStrLn fileHdl $ "indices = indices ./ " ++ show (1 / dt) ++ ";"
 
   hPutStrLn fileHdl "figure"
   hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
@@ -49,9 +37,11 @@ writeMatlabPlot fileHdl dt = do
   hPutStrLn fileHdl "ylabel ('Population Ratio');"
   hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
 
-sirAggregateToString :: (Int, Int, Int) -> String
-sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
-  printf "%d" susceptibleCount
-  ++ "," ++ printf "%d" infectedCount
-  ++ "," ++ printf "%d" recoveredCount
+  hClose fileHdl
+
+sirDynamicToString :: (Double, Double, Double) -> String
+sirDynamicToString (s, i, r) =
+  printf "%f" s
+  ++ "," ++ printf "%f" i
+  ++ "," ++ printf "%f" r
   ++ ";"

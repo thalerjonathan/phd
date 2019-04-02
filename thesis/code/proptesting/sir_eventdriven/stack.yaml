@@ -12,14 +12,10 @@
 # resolver: nightly-2015-09-21
 # resolver: ghc-7.10.2
 # resolver: ghcjs-0.1.0_ghc-7.10.2
-#
-# The location of a snapshot can be provided as a file or url. Stack assumes
-# a snapshot provided as a file might change, whereas a url resource does not.
-#
-# resolver: ./custom-snapshot.yaml
-# resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-13.14 
-# -- lts-12.16
+# resolver:
+#  name: custom-snapshot
+#  location: "./custom-snapshot.yaml"
+resolver: lts-12.16
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -31,23 +27,23 @@ resolver: lts-13.14
 #    git: https://github.com/commercialhaskell/stack.git
 #    commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 # - location: https://github.com/commercialhaskell/stack/commit/e7b331f14bcffb8367cd58fbfc8b40ec7642100a
+#   extra-dep: true
 #  subdirs:
 #  - auto-update
 #  - wai
+#
+# A package marked 'extra-dep: true' will only be built if demanded by a
+# non-dependency (i.e. a user package), and its test suites and benchmarks
+# will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
 
-#- location:
-#    git: git@github.com:stevana/quickcheck.git # https://github.com/stevana/quickcheck.git
-#    commit: 9ccdcbb3eaad7fe96c08ea5ecbbdfe852615bd49
-
 # Dependency packages to be pulled from upstream that are not in the resolver
-# using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
-extra-deps: 
-- Yampa-0.11.1
-# to enable the maxFailPercent feature we use the QuickCheck version from
-# stevana, who implemented it https://github.com/nick8325/quickcheck/pull/239
+extra-deps:
+- dequeue-0.1.12
+#- git: https://github.com/ivanperez-keera/dunai
+#  commit: 9828b997bd3c818ca3ccc611a429dd7379596c50
 - git: https://github.com/stevana/quickcheck.git
   commit: 9ccdcbb3eaad7fe96c08ea5ecbbdfe852615bd49
 
@@ -62,7 +58,7 @@ extra-deps:
 #
 # Require a specific version of stack, using version ranges
 # require-stack-version: -any # Default
-# require-stack-version: ">=1.7"
+# require-stack-version: ">=1.6"
 #
 # Override the architecture used by stack, especially useful on Windows
 # arch: i386

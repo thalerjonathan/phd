@@ -40,7 +40,7 @@ type SIRAgent = SF [SIRState] SIRState
 
 runSIR :: RandomGen g 
        => SIRSimCtx g
-       -> [(Double, Double, Double)]
+       -> [(Int, Int, Int)]
 runSIR simCtx
     = runSIRFor t dt as cr inf dur g
   where
@@ -66,7 +66,7 @@ runSIRFor :: RandomGen g
           -> Double
           -> Double
           -> g
-          -> [(Double, Double, Double)]
+          -> [(Int, Int, Int)]
 runSIRFor t dt as0 cr inf0 dur g0
     = map sirAggregate ass 
   where
@@ -78,12 +78,12 @@ runSIRFor t dt as0 cr inf0 dur g0
 
     ass       = embed (stepSimulation sfs as0) ((), dts)
 
-    sirAggregate :: [SIRState] -> (Double, Double, Double)
+    sirAggregate :: [SIRState] -> (Int, Int, Int)
     sirAggregate as = (sus, inf, recs)
       where
-        sus  = fromIntegral $ length $ filter (==Susceptible) as
-        inf  = fromIntegral $ length $ filter (==Infected) as
-        recs = fromIntegral $ length $ filter (==Recovered) as
+        sus  = length $ filter (==Susceptible) as
+        inf  = length $ filter (==Infected) as
+        recs = length $ filter (==Recovered) as
 
 stepSimulation :: [SIRAgent] 
                -> [SIRState] 

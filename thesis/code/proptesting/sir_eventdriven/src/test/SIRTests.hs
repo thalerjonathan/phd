@@ -86,13 +86,10 @@ prop_sir_sd_spec as = do
 
         -- run for 1 time-unit
         dur = 1.0
-        -- small dt: TODO: testing for a sufficiently small dt
-        -- decreasing this value reduces t-test failures!
-        dt = 0.01
         -- generate random-number generator for each replication
         rngs = map mkStdGen seeds
         -- compute simulated values for s, i and r
-        sir = map (tripleIntToDouble . last . runSIRFor dur dt as beta gamma delta) rngs
+        sir = map (tripleIntToDouble . last . thr . runSIR as (-1) dur 1.0) rngs
         -- apply evaluation parallelism to speed up
         -- NOTE: doesn't add anything
         -- (ss, is, rs) = unzip3 $ withStrategy (parList rdeepseq) sir
@@ -120,35 +117,8 @@ prop_sir_sd_spec as = do
         allPass = fromMaybe True sTest &&
                   fromMaybe True iTest &&
                   fromMaybe True rTest
-
+        
         tripleIntToDouble :: (Int, Int, Int) -> (Double, Double, Double)
         tripleIntToDouble (x,y,z) = (fromIntegral x, fromIntegral y, fromIntegral z)
 
-        -- NOTE: if we return True in all cases, the compiler infers that 
-        -- this is a constant expression and evaluates it only once, thus we
-        -- don't get a debug output in case of a failure. As a remedy, we
-        -- use a proposition which is always True but cannot be inferred by
-        -- the compiler 
-        -- sTestPass
-        --   | isNothing sTest = True
-        --   | fromJust sTest  = True
-        --   | otherwise       = trace ("susceptible t-test failed with ss = \n" ++ show ss ) (not $ s0 /= 0 && s == 0)
-
-        -- iTestPass
-        --   | isNothing iTest = True
-        --   | fromJust iTest  = True
-        --   | otherwise       = trace ("infected t-test failed with is = \n" ++ show is) (not $ s0 /= 0 && s == 0)
-
-        -- rTestPass
-        --   | isNothing rTest = True
-        --   | fromJust rTest  = True
-        --   | otherwise       = trace ("recovered t-test failed with rs = \n" ++ show rs) (not $ s0 /= 0 && s == 0)
-
-        -- allPass True True True  = True 
-        -- allPass True True False = False
-        -- allPass True False True = False
-        -- allPass True False False = False
-        -- allPass False True True = False
-        -- allPass False True False = False
-        -- allPass False False True = False
-        -- allPass False False False = False
+        thr (_,_,c) = c

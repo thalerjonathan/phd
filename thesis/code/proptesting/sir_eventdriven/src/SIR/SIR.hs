@@ -58,37 +58,34 @@ type SIRAgentCont g = AgentCont (SIRMonad g) SIREvent SIRDomainState
 makeContactInterval :: Double
 makeContactInterval = 1.0
 
-contactRate :: Int
-contactRate = 5
-
-infectivity :: Double
-infectivity = 0.05
-
-illnessDuration :: Double
-illnessDuration = 15.0
-
 -- | A sir agent which is in one of three states
 sirAgent :: RandomGen g 
-         => SIRState    -- ^ the initial state of the agent
+         => Int         -- ^ the contact rate
+         -> Double      -- ^ the infectivity
+         -> Double      -- ^ the illness duration
+         -> SIRState    -- ^ the initial state of the agent
          -> SIRAgent g  -- ^ the continuation
-sirAgent Susceptible aid = do
+sirAgent cr inf illDur Susceptible aid = do
     -- on start
     changeSIRNumbers incSus
-    scheduleMakeContact aid
-    return $ susceptibleAgent aid
-sirAgent Infected aid = do
+    scheduleMakeContact aid 
+    return $ susceptibleAgent aid cr inf illDur 
+sirAgent _ _ illDur Infected aid = do
     -- on start
     changeSIRNumbers incInf
-    scheduleRecovery aid
+    scheduleRecovery aid illDur
     return $ infectedAgent aid
-sirAgent Recovered _ = do
+sirAgent _ _ _ Recovered _ = do
   changeSIRNumbers incRec
   return recoveredAgent
 
 susceptibleAgent :: RandomGen g 
                  => AgentId
+                 -> Int
+                 -> Double
+                 -> Double
                  -> SIRAgentCont g
-susceptibleAgent aid = 
+susceptibleAgent aid cr inf illDur = 
     switch
       susceptibleAgentInfected
       (const $ infectedAgent aid)
@@ -104,18 +101,18 @@ susceptibleAgent aid =
 
     handleEvent :: RandomGen g => SIREvent -> (SIRMonadT g) (Maybe ())
     handleEvent (Contact _ Infected) = do
-      r <- lift $ randomBoolM infectivity
+      r <- lift $ randomBoolM inf
       if r 
         then do
           changeSIRNumbers decSus
           changeSIRNumbers incInf
-          scheduleRecovery aid
+          scheduleRecovery aid illDur
           return $ Just ()
         else return Nothing
 
     handleEvent MakeContact = do
       ais <- allAgentIds
-      receivers <- forM [1..contactRate] (const $ lift $ randomElem ais)
+      receivers <- forM [1..cr] (const $ lift $ randomElem ais)
       mapM_ makeContactWith receivers
       scheduleMakeContact aid
       return Nothing
@@ -159,8 +156,8 @@ recoveredAgent = arr (const ())
 scheduleMakeContact :: AgentId -> (SIRMonadT g) ()
 scheduleMakeContact aid = scheduleEvent aid MakeContact makeContactInterval
 
-scheduleRecovery :: RandomGen g => AgentId -> (SIRMonadT g) ()
-scheduleRecovery aid = do
+scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
+scheduleRecovery aid illnessDuration = do
   dt <- lift $ randomExpM (1 / illnessDuration)
   scheduleEvent aid Recover dt
 
@@ -181,14 +178,16 @@ incRec (s, i, r) = (s, i, r+1)
 
 runSIR :: RandomGen g
        => [SIRState]
-       -> Integer 
+       -> Int
        -> Double
-       -> Double
+       -> Double 
+       -> Integer
+       -> Double    
        -> g
-       -> (Time, Integer, [SIRDomainState])
-runSIR ss steps tLimit tSampling = evalRand act
+       -> [(Time, SIRDomainState)]
+runSIR ss cr inf illDur steps tLimit = evalRand act
   where
-    as0 = map sirAgent ss
+    as0 = map (sirAgent cr inf illDur) ss
           
     abs0 = ABSState {
       absEvtQueue    = PQ.empty
@@ -210,57 +209,62 @@ runSIR ss steps tLimit tSampling = evalRand act
       , absAgentIds = Map.keys asMap
       }
 
-      let domStateSamples0 = [absDomainState abs'']
+      -- initial domain state at time = 0
+      let domStateSamples0 = [(0, absDomainState abs'')]
 
-      (finaldomStateSamples, finalState) <- runStateT (stepClock steps 0 domStateSamples0) abs''
+      (domStateSamples, finalState) <- runStateT (stepClock steps domStateSamples0) abs''
 
-      let finalTime   = absTime finalState
-          finalEvtCnt = absEvtCount finalState
+      -- add final domain state 
+      let finalTime     = absTime finalState
+          finalDomState = absDomainState finalState
+          finalDomStateSamples = (finalTime, finalDomState) : domStateSamples
 
-      return (finalTime, finalEvtCnt, reverse finaldomStateSamples)
+      return (reverse finalDomStateSamples)
 
     stepClock :: Monad m
               => Integer 
-              -> Double
-              -> [s]
-              -> (ABSMonad m e s) [s]
-    stepClock 0 _ acc = return acc
-    stepClock n ts acc = do 
+              -> [(Time, s)]
+              -> (ABSMonad m e s) [(Time, s)]
+    stepClock 0 acc = return acc
+    stepClock n acc = do 
       q <- gets absEvtQueue
-
+      
       let mayHead = PQ.getMin q
       if isNothing mayHead 
         then return acc
         else do
-          ec <- gets absEvtCount
-          t  <- gets absTime
+          let (QueueItem aid (Event e) evtTime) = fromJust mayHead
 
-          let (QueueItem aid (Event e) t') = fromJust mayHead
-              q' = PQ.drop 1 q
+          if evtTime > tLimit
+            then return acc
+            else do
+              let q' = PQ.drop 1 q
+              ec <- gets absEvtCount
 
-          -- modify time and changed queue before running the process
-          -- because the process might change the queue 
-          modify (\s -> s { 
-            absEvtQueue = q' 
-          , absTime     = t'
-          , absEvtCount = ec + 1
-          })
+              -- modify time and changed queue before running the process
+              -- because the process might change the queue 
+              modify (\s -> s { 
+                absEvtQueue = q' 
+              , absTime     = evtTime
+              , absEvtCount = ec + 1
+              })
 
-          as <- gets absAgents
-          let a = fromJust $ Map.lookup aid as
-          (_, a') <- unMSF a e
-          let as' = Map.insert aid a' as
+              as <- gets absAgents
+              let a = fromJust $ Map.lookup aid as
 
-          modify (\s -> s { absAgents = as' })
+              -- NOTE: this might update domain-state!
+              (_, a') <- unMSF a e
 
-          s <- gets absDomainState
-          let (acc', ts') = if ts >= tSampling
-              then (s : acc, 0)
-              else (acc, ts + (t' - t))
+              let as' = Map.insert aid a' as
 
-          if t' <= tLimit
-            then stepClock (n-1) ts' acc'
-            else return acc'
+              modify (\s -> s { absAgents = as' })
+
+              -- domain-state might have been updated after running the event
+              -- take a sample and add it
+              s <- gets absDomainState
+              let acc' = (evtTime, s) : acc
+
+              stepClock (n-1) acc'
 
 allAgentIds :: Monad m => (ABSMonad m e s) [AgentId]
 allAgentIds = gets absAgentIds
@@ -306,3 +310,14 @@ randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
       if r == x
         then avoid x
         else return r
+
+compressOutput :: [(Time, (Int, Int, Int))] -> [(Time, (Int, Int, Int))]
+compressOutput = foldr compressOutputAux []
+  where
+    compressOutputAux :: (Time, (Int, Int, Int))
+                      -> [(Time, (Int, Int, Int))]
+                      -> [(Time, (Int, Int, Int))]
+    compressOutputAux ts [] = [ts]
+    compressOutputAux (t, s) ((t', s') : acc) 
+      | t == t'   = (t, s) : acc
+      | otherwise = (t, s) : (t', s') : acc

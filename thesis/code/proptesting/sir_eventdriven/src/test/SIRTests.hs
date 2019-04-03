@@ -5,7 +5,7 @@ import Data.Maybe
 import System.Random
 
 import Test.QuickCheck
-import Test.QuickCheck.Random
+--import Test.QuickCheck.Random
 
 import SIR.SIR
 import StatsUtils
@@ -20,8 +20,8 @@ instance Arbitrary SIRState where
   --                       , (2, return Infected)
   --                       , (1, return Recovered) ]
 
-paramContactRate :: Double
-paramContactRate = 5.0
+paramContactRate :: Int
+paramContactRate = 5
 
 paramInfectivity :: Double
 paramInfectivity = 0.05
@@ -37,88 +37,95 @@ main :: IO ()
 main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests
                               , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
-                              , replay = Just (mkQCGen 42, 0) -- use to replay reproducible
-                              } prop_sir_sd_spec
+                              --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
+                              } prop_sir_sd_random_size
 
-prop_sir_sd_spec :: [SIRState] -> Gen Bool
-prop_sir_sd_spec as = do
+prop_sir_sd_random_size :: [SIRState] -> Gen Bool
+prop_sir_sd_random_size as = do
     -- dont use vector as it will generate Int values quite close to each other
     -- without enough range => the probability of picking same values increases
     -- which does result in same dynamics, resultin in less variance.
     -- Therefore we use minBound and maxBound to go explicitly over the full
     -- Int range!
     seeds <- vectorOf replications (choose (minBound, maxBound))
-    return $ prop_sir_sd_spec_aux seeds
+    return $ prop_sir_sd_spec_aux as seeds
+
+prop_sir_sd_fixed_size :: Gen Bool
+prop_sir_sd_fixed_size = do
+    seeds <- vectorOf replications (choose (minBound, maxBound))
+    as    <- vector 100
+    return $ prop_sir_sd_spec_aux as seeds
+
+prop_sir_sd_spec_aux :: [SIRState] -> [Int] -> Bool
+prop_sir_sd_spec_aux as seeds = allPass
+  -- = trace ( "---------------------------------------------------------------------------------------" ++
+  --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
+  --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
+  --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
+  --           allPass
   where
-    prop_sir_sd_spec_aux :: [Int] -> Bool
-    prop_sir_sd_spec_aux seeds = allPass
-      -- = trace ( "---------------------------------------------------------------------------------------" ++
-      --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
-      --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
-      --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
-      --           allPass
-      where
-        s0 = fromIntegral $ length $ filter (==Susceptible) as
-        i0 = fromIntegral $ length $ filter (==Infected) as
-        r0 = fromIntegral $ length $ filter (==Recovered) as
-        n  = s0 + i0 + r0
+    s0 = fromIntegral $ length $ filter (==Susceptible) as
+    i0 = fromIntegral $ length $ filter (==Infected) as
+    r0 = fromIntegral $ length $ filter (==Recovered) as
+    n  = s0 + i0 + r0
 
-        beta  = paramContactRate
-        gamma = paramInfectivity
-        delta = paramIllnessDuration
-        
-        -- compute infection-rate according to SD specifications (will be 0 if no
-        -- agents) from generated agent-population as (and fixed model parameters)
-        ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
-        -- recovery-rate according to SD specifications from generated 
-        -- agent-population as (and fixed model parameters=
-        rr = i0 / delta
+    beta  = fromIntegral paramContactRate
+    gamma = paramInfectivity
+    delta = paramIllnessDuration
+    
+    -- compute infection-rate according to SD specifications (will be 0 if no
+    -- agents) from generated agent-population as (and fixed model parameters)
+    ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
+    -- recovery-rate according to SD specifications from generated 
+    -- agent-population as (and fixed model parameters=
+    rr = i0 / delta
 
-        -- S value after 1 time-unit according to SD specification: 
-        --    subtract infection-rate from initial S value
-        s = s0 - ir
-        -- I value after 1 time-unit according to SD specification:
-        --    add infection-rate minus recovery-rate to initial I value
-        i = i0 + (ir - rr)
-        -- R value after 1 time-unit according to SD specifications:
-        --    add recovery-rate to initial R value
-        r = r0 + rr
+    -- S value after 1 time-unit according to SD specification: 
+    --    subtract infection-rate from initial S value
+    s = s0 - ir
+    -- I value after 1 time-unit according to SD specification:
+    --    add infection-rate minus recovery-rate to initial I value
+    i = i0 + (ir - rr)
+    -- R value after 1 time-unit according to SD specifications:
+    --    add recovery-rate to initial R value
+    r = r0 + rr
 
-        -- run for 1 time-unit
-        dur = 1.0
-        -- generate random-number generator for each replication
-        rngs = map mkStdGen seeds
-        -- compute simulated values for s, i and r
-        sir = map (tripleIntToDouble . last . thr . runSIR as (-1) dur 1.0) rngs
-        -- apply evaluation parallelism to speed up
-        -- NOTE: doesn't add anything
-        -- (ss, is, rs) = unzip3 $ withStrategy (parList rdeepseq) sir
-        (ss, is, rs) = unzip3 sir
+    -- run for 1 time-unit
+    dur = 1.0
+    -- generate random-number generator for each replication
+    rngs = map mkStdGen seeds
+    -- compute simulated values for s, i and r
+    sir = map (tripleIntToDouble . 
+              snd . 
+              last . 
+              runSIR as paramContactRate paramInfectivity paramIllnessDuration (-1) dur) rngs
+    -- apply evaluation parallelism to speed up
+    -- NOTE: doesn't add anything
+    -- (ss, is, rs) = unzip3 $ withStrategy (parList rdeepseq) sir
+    (ss, is, rs) = unzip3 sir
 
-        _ssMean = mean ss
-        _isMean = mean is
-        _rsMean = mean rs
-        
-        -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
-        -- equal with a confidence of 99%: the probability of observing an extreme
-        -- test statistics, rejecting the H0 hypothesis, should be 1%. Put other
-        -- wise: we only reject true null hypotheses with a chance of 1%
-        -- By increasing confidence, we lower the willingness to make Type I errors
-        -- but increase the risk of making Type II errors:
-        --  Type I error rejects a true null hypothesis: leading to a failed test
-        --    claiming the means are NOT equal when in fact they are equal
-        --  Type II error fails to reject a false null hypothesis: leading to an
-        --    accepted test claiming that the mans are equal when in fact they are NOT
-        confidence = 0.99
-        sTest = tTestSamples TwoTail s (1 - confidence) ss
-        iTest = tTestSamples TwoTail i (1 - confidence) is
-        rTest = tTestSamples TwoTail r (1 - confidence) rs
+    _ssMean = mean ss
+    _isMean = mean is
+    _rsMean = mean rs
+    
+    -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
+    -- equal with a confidence of 99%: the probability of observing an extreme
+    -- test statistics, rejecting the H0 hypothesis, should be 1%. Put other
+    -- wise: we only reject true null hypotheses with a chance of 1%
+    -- By increasing confidence, we lower the willingness to make Type I errors
+    -- but increase the risk of making Type II errors:
+    --  Type I error rejects a true null hypothesis: leading to a failed test
+    --    claiming the means are NOT equal when in fact they are equal
+    --  Type II error fails to reject a false null hypothesis: leading to an
+    --    accepted test claiming that the mans are equal when in fact they are NOT
+    confidence = 0.99
+    sTest = tTestSamples TwoTail s (1 - confidence) ss
+    iTest = tTestSamples TwoTail i (1 - confidence) is
+    rTest = tTestSamples TwoTail r (1 - confidence) rs
 
-        allPass = fromMaybe True sTest &&
-                  fromMaybe True iTest &&
-                  fromMaybe True rTest
-        
-        tripleIntToDouble :: (Int, Int, Int) -> (Double, Double, Double)
-        tripleIntToDouble (x,y,z) = (fromIntegral x, fromIntegral y, fromIntegral z)
-
-        thr (_,_,c) = c
+    allPass = fromMaybe True sTest &&
+              fromMaybe True iTest &&
+              fromMaybe True rTest
+    
+    tripleIntToDouble :: (Int, Int, Int) -> (Double, Double, Double)
+    tripleIntToDouble (x,y,z) = (fromIntegral x, fromIntegral y, fromIntegral z)

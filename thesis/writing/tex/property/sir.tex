@@ -126,33 +126,177 @@ allTTestsPass = sTest && iTest && rTest
 \end{HaskellCode}
 
 \subsection{Results}
-When testing the property with QuickCheck, by default 100 random test-cases will be generated and \textit{all} have to pass so that the whole property-test passes. Unfortunately, the whole property-test fails - not all 100 random-test cases go through even if we run the whole property-test repeatedly. When looking at the samples of failed t-tests and plotting them in a histogram, it shows clearly that the values exhibit strong outliers and skewed / fat tailed histograms. This means that they are not normally distributed, which is a base assumption and a necessity for t-tests. 
+When testing the property with QuickCheck, by default 100 random test-cases will be generated and \textit{all} have to pass so that the whole property-test passes. Unfortunately, the whole property-test fails - not all 100 random test-cases go through even if we run the whole property-test repeatedly. When looking at the samples of failed t-tests and plotting them in a histogram, it shows clearly that the values exhibit strong outliers and skewed / fat tailed histograms. This means that they are not normally distributed, which is a base assumption and a necessity for t-tests.
 
-\subsubsection{Accepting failed random test-cases}
-This means that the binary approach of QuickCheck, where the whole property-test fails when a single random test-case fails, is too strict for testing ABS in general and our problem in particular. As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck to allow the failure of a given percentage of random-tests cases. The argument behaves in a way that it tries to run up to 100 successful random test-cases but fails the overall property-test if the percentage of failed random test-cases is hit.
+Indeed this fact reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
 
-We now have a tool to accept some failure and still get through with our tests. Lets first see how far we will get with a failure percentage of 100. One possible outcome is: \textit{*** Failed! Passed only 73 tests; 100 failed (57\%) tests}. This means the property-test had 73 successful and 100 failed random test-cases, meaning that out of a total of 173 random test-cases 57\% were failed ones. 
+The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the author shows that it is bimodal. The authors \cite{figueredo_comparing_2014} approach the problem of comparing ABS to SD more generally and propose different statistical techniques of how to approach the problem. We don't go into further statistical analysis of this problem here as it is not the aim of this thesis but we rather want to see what options we have in pushing the existing approach closer to the SD dynamics, giving us some measure of approximation.
 
-By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a tool we can use for closing the gap between the SD specification and our ABS implementation. As already pointed out in \ref{sub:timedriven_results}, the selection of a sufficiently small $\Delta t$ is crucial and it might be very well the case that the original $\Delta t = 0.1$ we used in our implementation and in Chapter \ref{sub:timedriven_results} is not small enough. 
+\subsubsection{Accepting failure}
+The different nature of ABS and SD has the implication that the binary approach of QuickCheck, where the whole property-test fails when a single random test-case fails, is too strict for testing ABS in general and our problem in particular. As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck which allows the failure of a given percentage of random-tests cases. The argument behaves in a way that it tries to run up to the 100 default successful random test-cases but fails the overall property-test if the percentage of failed random test-cases is reached. By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a tool we can use for measuring the gap between the SD specification and our ABS implementation. Note that a single run is not enough to create robust estimates about failure because QuickCheck always starts out with new seeds. Thus in our experiments, to get a more robust estimate we average 10 runs and report the average with the standard deviation. 
 
-Indeed, when we half it to $\Delta t = 0.05$ only 29 tests out of 129 total fail in one particular run: +++ OK, passed 100 tests; 29 failed (22\%.). Lowering it to $\Delta t = 0.01$ doesn't seem to have a significant effect, we arrive at roughly the same ratio of failed tests.
+As a first test we run the same property-test again but allow a failure of 100\% to see how many tests will actually pass and how many will fail. In a first estimate run we get: \textit{*** Failed! Passed only 88 tests; 100 failed (53\%) tests}. This means QuickCheck ran 88 successful random test-cases for the property-test before reaching 100\% of failed tests, meaning that out of a total of 173 random test-cases 53\% were failed ones. When averaging 10 runs, 86.1 (4.3) pass with 100 failed tests amounting to a failure percentage of 53.3\% (1.05).
+%1. *** Failed! Passed only 88 tests; 100 failed (53%) tests
+%2. *** Failed! Passed only 83 tests; 100 failed (54%) tests.
+%3. *** Failed! Passed only 86 tests; 100 failed (53%) tests.
+%4. *** Failed! Passed only 82 tests; 100 failed (54%) tests.
+%5. *** Failed! Passed only 94 tests; 100 failed (51%) tests.
+%6. *** Failed! Passed only 88 tests; 100 failed (53%) tests.
+%7. *** Failed! Passed only 82 tests; 100 failed (54%) tests.
+%8. *** Failed! Passed only 92 tests; 100 failed (52%) tests.
+%9. *** Failed! Passed only 82 tests; 100 failed (54%) tests.
+%10. *** Failed! Passed only 84 tests; 100 failed (54%) tests.
+%[88,83,86,82,94,88,82,92,82,84]
+%[53,54,53,54,51,54,54,52,54,54]
 
-TODO: try event-driven : no dt problems but should experience similar problems due to ABS vs. SD problems?
+\paragraph{Comparison to noise}
+To make sure that our approach is going in the right direction at all, we replaced the SIR simulation with a rather simple noise-generator: it generates random values for S, I and R which have to sum up to the size of the population we are comparing against. Indeed, it performs considerably worse than our initial property-test: on average only 19.7 (2.7) tests pass with 100 failed, and a failure percentage of 83\% (1.7). 
 
-Another approach would be to increase the confidence in our t-tests e.g. to 99\%. This shows significant improvement, resulting in only about 10\% of a failed test ratio. Changing the confidence can be problematic: by increasing it we lower the risk of making type I errors, which means reduced risk of rejecting a test which matches the SD dynamics. On the other hand increasing the confidence also increases the risk of making type II errors, which means increased risk of not rejecting test which does not match the SD dynamics. 
+%1. *** Failed! Passed only 15 tests; 100 failed (86%) tests.
+%2. *** Failed! Passed only 20 tests; 100 failed (83%) tests.
+%3. *** Failed! Passed only 23 tests; 100 failed (81%) tests.
+%4. *** Failed! Passed only 20 tests; 100 failed (83%) tests.
+%5. *** Failed! Passed only 23 tests; 100 failed (81%) tests.
+%6. *** Failed! Passed only 20 tests; 100 failed (83%) tests.
+%7. *** Failed! Passed only 23 tests; 100 failed (81%) tests.
+%8. *** Failed! Passed only 18 tests; 100 failed (84%) tests.
+%9. *** Failed! Passed only 17 tests; 100 failed (85%) tests.
+%10. *** Failed! Passed only 18 tests; 100 failed (84%) tests.
+%
+%[15,20,23,20,23,20,23,18,17,18]
+%[86,83,81,83,81,83,81,84,85,84]
 
-\subsubsection{SD - ABS impendance mismatch}
-This fact reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
+\paragraph{Optimising $\Delta t$}
+As already pointed out in \ref{sub:timedriven_results}, the selection of a sufficiently small $\Delta t$ is crucial and it might be very well the case that the original $\Delta t = 0.1$ we used in our implementation and in Chapter \ref{sub:timedriven_results} is not small enough. 
 
-The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the author shows that it is bimodal. The authors \cite{figueredo_comparing_2014} approach the problem of comparing ABS to SD more generally and propose different techniques of how to approach the problem.
+Indeed, when we half it to $\Delta t = 0.05$, 100 tests pass with 54 (10.3) failing on average, resulting in a failure percentage of 34.4\% (4.2) on average.
+%1. +++ OK, passed 100 tests; 39 failed (28%).
+%2. +++ OK, passed 100 tests; 48 failed (32%).
+%3. +++ OK, passed 100 tests; 49 failed (32%).
+%4. +++ OK, passed 100 tests; 65 failed (39%).
+%5. +++ OK, passed 100 tests; 68 failed (40%).
+%6. +++ OK, passed 100 tests; 46 failed (31%).
+%7. +++ OK, passed 100 tests; 55 failed (35%).
+%8. +++ OK, passed 100 tests; 55 failed (35%).
+%9. +++ OK, passed 100 tests; 69 failed (40%).
+%10. +++ OK, passed 100 tests; 46 failed (31%).
+%[39,48,49,65,68,46,55,55,69,46]
+%[28,32,32,39,40,31,35,35,40,31]
 
-We will not go further into this problem as it is beyond the scope of this thesis but our tests reveal that very fact that we can come quite close but can't match exactly - the confidence parameter allows us to specify the "tightness" of our tests and guarantees us at least that we come close up to some limit.
+Lowering it to $\Delta t = 0.01$ decreases the failure percentage further with 100 tests passing and failed tests averaging at 15.9 (5.2) with 13.4\% (3.8).
+%
+%1. +++ OK, passed 100 tests; 25 failed (20%).
+%2. +++ OK, passed 100 tests; 16 failed (13%).
+%3. +++ OK, passed 100 tests; 25 failed (20%).
+%4. +++ OK, passed 100 tests; 10 failed (9%).
+%5. +++ OK, passed 100 tests; 10 failed (9%).
+%6. +++ OK, passed 100 tests; 15 failed (13%).
+%7. +++ OK, passed 100 tests; 14 failed (12%).
+%8. +++ OK, passed 100 tests; 14 failed (12%).
+%9. +++ OK, passed 100 tests; 15 failed (13%).
+%10.+++ OK, passed 100 tests; 15 failed (13%).
+%
+%[25,16,25,10,10,15,14,14,15,15]
+%[20,13,20,9,9,13,12,12,13,13]
+
+Using such a property-based test can be used to find an optimally low $\Delta t$. The optimal $\Delta t$ is the lowest for which sufficiently enough tests go through.
+
+\paragraph{Fixing random population size}
+The size of the random population is random itself and we observed coverage of ranges from 0 up to 100. Obviously due to ABS' discrete nature, an increased population size \textit{might} lead to a closer approximation to SD dynamics, which are continuous. When fixing the size of the random population to 100 ($\Delta t = 0.01$) we arrive at 100 passing tests and 35 (6) failed on average with 27.4\% (5.8) failure percentage.
+
+%1. +++ OK, passed 100 tests; 30 failed (23%).
+%2. +++ OK, passed 100 tests; 45 failed (31%)
+%3. +++ OK, passed 100 tests; 32 failed (24%).
+%4. +++ OK, passed 100 tests; 31 failed (23%).
+%5. +++ OK, passed 100 tests; 36 failed (26%).
+%
+%[30,45,32,32,36]
+%[23,31,24,23,36]
+
+Fixing the population size leads to more failed tests. The reason for that might be that it is less likely to generate test-cases where the dynamics match exactly e.g. 0 agents of either Susceptible, Infected or Recovered. Still this property-test is not as general as varying also the size of the population.
+
+\paragraph{Increasing confidence}
+Another approach would be to increase the confidence in our t-tests e.g. to 99\% ($\alpha = 0.01$). When doing so ($\Delta t = 0.01$), 100 tests will pass and an average of 5.6 (2.9) fail with 4.6\% (2.9) of failure.
+
+%
+%1. +++ OK, passed 100 tests; 4 failed (3%).
+%2. +++ OK, passed 100 tests; 5 failed (4%).
+%3. +++ OK, passed 100 tests; 9 failed (8%).
+%4. +++ OK, passed 100 tests; 3 failed (2%).
+%5. +++ OK, passed 100 tests; 5 failed (4%).
+%6. +++ OK, passed 100 tests; 10 failed (9%).
+%7. +++ OK, passed 100 tests; 8 failed (7%).
+%8. +++ OK, passed 100 tests; 2 failed (1%).
+%9. +++ OK, passed 100 tests; 8 failed (7%).
+%10 +++ OK, passed 100 tests; 2 failed (1%).
+%
+%[4,5,9,3,5,10,8,2,8,2]
+%[3,4,8,2,4,9,7,1,7,1]
+
+Although it seems that we have finally found a test configuration with a sufficiently low percentage of failure, changing the confidence can be problematic though. By increasing it we lower the risk of rejecting a test which matches the SD dynamics (type I error). On the other hand increasing the confidence also increases the risk of not rejecting tests which do not match the SD dynamics (type II error). 
+
+\paragraph{Comparison to event-driven implementation}
+We also implemented this property-test for our event-driven SIR implementation from Chapter \ref{sec:eventdriven_sir}. It has the main advantage that it does not suffer from the sampling issues of the time-driven approach and thus does not require the selection of an optimal $\Delta t$.
+The results match on average the ones from the time-driven approach. Running it normally roughly matches the dynamics of $\Delta t = 0.01$, a fixed population size of 100 also matches the time-driven approach with a random population of size 100 and $\Delta t = 0.01$. Further we also got the same results when increasing confidence to 99\% ($\alpha = 0.01$) as in the time-driven approach.
+
+%1. +++ OK, passed 100 tests; 25 failed (20%).
+%2. +++ OK, passed 100 tests; 22 failed (18%).
+%3. +++ OK, passed 100 tests; 26 failed (20%).
+%4. +++ OK, passed 100 tests; 15 failed (13%).
+%5. +++ OK, passed 100 tests; 29 failed (22%).
+%6. +++ OK, passed 100 tests; 12 failed (10%).
+%7. +++ OK, passed 100 tests; 17 failed (14%).
+%8. +++ OK, passed 100 tests; 16 failed (13%).
+%9. +++ OK, passed 100 tests; 13 failed (11%).
+%10. +++ OK, passed 100 tests; 14 failed (12%).
+%
+%[25,22,26,15,29,12,17,16,13,14]
+%>> mean (x)
+%ans =  18.900
+%>> std (x)
+%ans =  6.0818
+
+%TODO: what about using a fixed size random population instead of random size random population? this should increase the smoothness when always using e.g. 1000 or 10.000
+%1. +++ OK, passed 100 tests; 30 failed (23%).
+%2. +++ OK, passed 100 tests; 29 failed (22%).
+%3. +++ OK, passed 100 tests; 44 failed (30%).
+%4. +++ OK, passed 100 tests; 40 failed (28%).
+%5. +++ OK, passed 100 tests; 41 failed (29%).
+%6. +++ OK, passed 100 tests; 41 failed (29%).
+%7. +++ OK, passed 100 tests; 38 failed (27%).
+%8. +++ OK, passed 100 tests; 36 failed (26%).
+%9. +++ OK, passed 100 tests; 30 failed (23%).
+%10. +++ OK, passed 100 tests; 46 failed (31%).
+%
+%[30,29,44,40,41,41,38,36,30,46]
+%>> mean (x)
+%ans =  37.500
+%>> std (x)
+%ans =  6.0782
+
+%TODO: confidence 0.99
+%1. +++ OK, passed 100 tests; 6 failed (5%).
+%2. +++ OK, passed 100 tests; 5 failed (4%).
+%3. +++ OK, passed 100 tests; 7 failed (6%).
+%4. +++ OK, passed 100 tests; 1 failed (0%).
+%5. +++ OK, passed 100 tests; 5 failed (4%).
+%6. +++ OK, passed 100 tests; 6 failed (5%).
+%7. +++ OK, passed 100 tests; 6 failed (5%).
+%8. +++ OK, passed 100 tests; 5 failed (4%).
+%9. +++ OK, passed 100 tests; 10 failed (9%).
+%10. +++ OK, passed 100 tests; 6 failed (5%).
+%
+%[6,5,7,1,5,6,6,5,10,6]
+%>> mean (x)
+%ans =  5.7000
+%>> std (x)
+%ans =  2.2136
+
+This is a \textit{strong} indication, that although their underlying implementation technique is different, both implementations produce qualitatively same dynamics. It would be interesting to compare both implementations on using property-based testing, using an unpaired two-tailed t-test. We leave this for further research.
 
 \subsection{Discussion}
-By using QuickCheck, we showed how to connect the ABS implementation to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested by generating random test-cases where the random data is a random agent population. 
+By using QuickCheck, we showed how to connect the ABS implementation to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested through generating random test-cases with random agent populations.
 
-Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. Due to the "softness" of the tests through the confidence parameter, we can show that this specification comes close to the original SD implementation but does not match it exactly and is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. 
+Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. By allowing failure in our tests using the \textit{maxFailPercent} parameter, we confirmed the importance of selecting an optimal $\Delta t$ as already pointed out in Chapter \ref{sub:timedriven_results}. By having measure of failure, we can use a property-test also as a way of systematically searching for the smallest optimal $\Delta t$, relieving us from making conservative guesses.
 
-Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. Also, we showed how to use such a test to derive an optimally small $\Delta t$, which is not subject to under-sampling as discussed in Chapter \ref{sub:timedriven_results}. The optimal $\Delta t$ is the lowest for which all (or sufficiently enough) tests go through. % It can be found by starting out with 1.0 and always half it until sufficiently enough tests go through.
-
-Next we look into testing individual agent-behaviour in the case of the event-driven ABS
+The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR for which a proper statistical analysis is not the aim and focus of this thesis is left for other researchers to dwell upon.

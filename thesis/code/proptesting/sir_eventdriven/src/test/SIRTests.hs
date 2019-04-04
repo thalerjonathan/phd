@@ -34,9 +34,9 @@ replications :: Int
 replications = 100
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 5000        -- number successful tests
+main = quickCheckWith stdArgs { maxSuccess = 10000        -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests
-                              , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
+                              --, maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
                               } prop_sir_sd_random_size
 

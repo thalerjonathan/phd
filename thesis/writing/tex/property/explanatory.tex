@@ -1,4 +1,4 @@
-\section{Case study I: \\ Testing the SIR model specification}
+\chapter{Testing explanatory models: \\ The SIR model specification}
 \label{sec:case_SIR}
 As first use-case we discuss property-based testing for the \textit{explanatory} agent-based SIR model as introduced in Chapter \ref{sec:sir_model}. We aim at connecting the agent-based implementation to the SD specification, by formalising it into properties within a property-test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
 
@@ -25,12 +25,12 @@ I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
 R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
-\subsection{Deriving the properties}
+\section{Deriving the properties}
 The key to encode these specifications into a property is to understand that the stocks of \textit{S}, \textit{I} and \textit{R} change \textit{per time-unit} by the given rates. This means that if we run an SD simulation for 1 time-unit, the differences between the S, I and R stocks are the values specified in equations \ref{eq:sir_delta_rates}. %This property has to hold for \textit{any} initial value for S, I and R.
 
 Translating this into a property of our ABS implementation is analogous. We count the number of initially S, I and R agents and run the simulation for 1 time-unit to get new S, I and R numbers. The differences should \textit{average} at the values specified in equations \ref{eq:sir_delta_rates} as well. This property has to hold for \textit{any} agent population. Note that due to ABS stochastic nature it is not enough to run only one replication of the simulation for 1 time-unit but we actually need multiple replications ($> 100$) to get statistically robust results. We then use two-tailed t-tests to compare the expected averages to the actual averages. If all 3 tests pass the whole property-test passes.
 
-\subsection{Implementing a property-test}
+\section{Implementing a property-test}
 We start by defining the type of our property, which takes a list of \textit{SIRStates} and returns a \textit{Bool}.
 
 \begin{HaskellCode}
@@ -125,7 +125,7 @@ rTest = tTestSamples TwoTail r (1 - confidence) rs
 allTTestsPass = sTest && iTest && rTest
 \end{HaskellCode}
 
-\subsection{Results}
+\section{Test results}
 When testing the property with QuickCheck, by default 100 random test-cases will be generated and \textit{all} have to pass so that the whole property-test passes. Unfortunately, the whole property-test fails - not all 100 random test-cases go through even if we run the whole property-test repeatedly. QuickCheck prints out the random population it generated for the failing random test-case to give a counter-example for the assumption we encoded. Repeated runs show that the counter-examples seem to be lacking any regular pattern like Susceptibles only or 0 Infected - we seem to be failing randomly.
 
 Indeed the fact that we are failing randomly reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
@@ -134,7 +134,7 @@ The difficulty of comparing dynamics between SD and ABS and the impracticality t
 The authors \cite{figueredo_comparing_2014} approach the problem of comparing ABS to SD more generally and propose different statistical techniques of how to approach the problem. 
 We don't go into further statistical analysis of this problem here as it is not the aim of this thesis but we rather want to see what options we have in pushing the existing approach closer to the SD dynamics, giving us some measure of approximation.
 
-\subsubsection{Accepting failure}
+\section{Accepting failure}
 The different nature of ABS and SD has the implication that the binary approach of QuickCheck, where the whole property-test fails when a single random test-case fails, is too strict for testing ABS in general and our problem in particular. As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck which allows the failure of a given percentage of random-tests cases. The argument behaves in a way that it tries to run up to the 100 default successful random test-cases but fails the overall property-test if the percentage of failed random test-cases is reached. By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a tool we can use for measuring the gap between the SD specification and our ABS implementation. Note that a single run is not enough to create robust estimates about failure because QuickCheck always starts out with new seeds. Thus in our experiments, to get a more robust estimate we average 10 runs and report the average with the standard deviation. 
 
 As a first test we run the same property-test again but allow a failure of 100\% to see how many tests will actually pass and how many will fail. In a first estimate run we get: \textit{*** Failed! Passed only 88 tests; 100 failed (53\%) tests}. This means QuickCheck ran 88 successful random test-cases for the property-test before reaching 100\% of failed tests, meaning that out of a total of 173 random test-cases 53\% were failed ones. When averaging 10 runs, 86.1 (4.3) pass with 100 failed tests amounting to a failure percentage of 53.3\% (1.05).
@@ -296,9 +296,9 @@ The results match on average the ones from the time-driven approach. Running it 
 
 This is a \textit{strong} indication, that although their underlying implementation technique is different, both implementations produce qualitatively same dynamics. It would be interesting to compare both implementations on using property-based testing, using an unpaired two-tailed t-test. We leave this for further research.
 
-\subsection{Discussion}
+\section{Discussion}
 By using QuickCheck, we showed how to connect the ABS implementation to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested through generating random test-cases with random agent populations. We assumed that the underlying SIR implementation, more specific, that all agent behaviour, is correct - we explore testing of individual agent behaviour in the later chapters.
 
-Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. By allowing failure in our tests using the \textit{maxFailPercent} parameter, we confirmed the importance of selecting an optimal $\Delta t$ as already pointed out in Chapter \ref{sub:timedriven_results}. By having measure of failure, we can use a property-test also as a way of systematically searching for the smallest optimal $\Delta t$, relieving us from making conservative guesses.
+Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. By allowing failure in our tests using the \textit{maxFailPercent} parameter, we confirmed the importance of selecting an optimal $\Delta t$ as already pointed out in Chapter \ref{sub:timedriven_results}. By having measure of failure, we can use a property-test also as a way of systematically searching for the smallest optimal $\Delta t$, relieving us from making conservative guesses. For the event-driven implementation, there is no such issue and we have verified that it produces qualitatively the same results.
 
-The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR for which a proper statistical analysis is not the aim and focus of this thesis is left for other researchers to dwell upon.
+The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. % for which a proper statistical analysis is not the aim and focus of this thesis is left for other researchers to dwell upon.

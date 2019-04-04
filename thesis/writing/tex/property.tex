@@ -1,4 +1,4 @@
-\chapter{Property-Based Testing in pure functional ABS}
+\chapter*{} %Property-Based Testing in pure functional ABS
 \label{ch:property}
 
 When implementing an Agent-Based Simulation (ABS) it is of fundamental importance that the implementation is correct up to some specification and that this specification matches the real world in some way. This process is called verification and validation (V\&V), where \textit{validation} is the process of ensuring that a model or specification is sufficiently accurate for the purpose at hand whereas \textit{verification} is the process of ensuring that the model design has been transformed into a computer model with sufficient accuracy \cite{robinson_simulation:_2014}. In other words, validation determines if we are we building the \textit{right model} and verification if we are building the \textit{model right} \cite{balci_verification_1998}.
@@ -35,18 +35,13 @@ Note that property-based testing has a close connection to model-checking \cite{
 
 The work \cite{onggo_test-driven_2016} explicitly mentions the problem of test coverage which would often require to write a large number of tests manually to cover the parameter ranges sufficiently enough - property-based testing addresses exactly this problem by \textit{automating} the test-data generation. Note that this is closely related to data-generators \cite{gurcan_generic_2013}, load generators and random testing \cite{burnstein_practical_2010}. Property-based testing though goes one step further by integrating this into a specification language directly into code, emphasising a declarative approach and pushing the generators behind the scenes, making them transparent and focusing on the specification rather than on the data-generation. 
 
-TODO read / watch
-% https://hackage.haskell.org/package/quickcheck-state-machine
-% https://iohk.io/blog/an-in-depth-look-at-quickcheck-state-machine/
-% https://www.stackbuilders.com/news/types-versus-tests-two-approaches-for-writing-correct-software
-% https://blog.ploeh.dk/2019/03/11/an-example-of-state-based-testing-in-haskell/
-% https://www.youtube.com/watch?v=NcJOiQlzlXQ
-
 \input{./tex/property/proptesting.tex}
 
 \input{./tex/property/abstesting.tex}
 
-\input{./tex/property/sir.tex}
+\input{./tex/property/explanatory.tex}
+
+\input{./tex/property/exploratory.tex}
 
 \input{./tex/property/sugarscape.tex}
 

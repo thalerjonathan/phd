@@ -22,7 +22,8 @@ import SugarScape.Core.Model
 import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
--- need this import for Arbitrary instance of SugEnvironment but Haskell thinks its unused => turn off unused import :(
+-- need this import for Arbitrary instance of SugEnvironment but Haskell thinks
+-- its unused => turn off unused import :(
 -- import Agent
 -- import Environment
 import Utils.StatsUtils
@@ -32,97 +33,82 @@ import Debug.Trace
 instance Arbitrary StdGen where
   -- arbitrary :: Gen StdGen
   arbitrary = do
-    seed <- arbitrary 
+    seed <- choose (minBound, maxBound) 
     return $ mkStdGen seed
 
--- OK, is using averaging
-prop_disease_dynamics_allrecover ::  RandomGen g => g -> Int -> Double -> IO ()
-prop_disease_dynamics_allrecover g0 repls confidence = 
-    assertBool "Population should have recovered fully from diseases but still infected left" (allRecoveredConfidence >= confidence)
+-- Tests the hypothesis, that for the parameter-configuration of AnimationV-1
+-- ALL agents will recover after 100 ticks.
+prop_disease_dynamics_allrecover :: StdGen -> Bool
+prop_disease_dynamics_allrecover g = infected == 0
   where
     ticks  = 100
     params = mkParamsAnimationV_1
 
-    (rngs, _) = rngSplits repls g0
-    allRecovered = parMap rpar genAllRecovered rngs
+    (simState, _, _) = initSimulationRng g params
+    -- must not use simulateUntil because would store all steps => run out of 
+    -- memory if scenario is too complex e.g. chapter III onwards
+    (_, _, _, aos) = simulateUntilLast ticks simState  
+    infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
 
-    allRecoveredConfidence = fromIntegral (length $ filter (==True) allRecovered) / fromIntegral repls
-
-    genAllRecovered :: RandomGen g => g -> Bool
-    genAllRecovered g = infected == 0
-      where
-        (simState, _, _) = initSimulationRng g params
-        (_, _, _, aos)   = simulateUntilLast ticks simState  -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-        infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
-    
--- OK, is using averaging
-prop_disease_dynamics_minorityrecover ::  RandomGen g => g -> Int -> Double -> IO ()
-prop_disease_dynamics_minorityrecover g0 repls confidence = 
-    assertBool "Population should have recovered fully from diseases but too many recovered" (infectedDominateConfidence >= confidence)
+-- Tests the hypothesis, that for the parameter-configuration of AnimationV-2
+-- less than half (a minority) will recover until 1000.
+prop_disease_dynamics_minorityrecover :: StdGen -> Bool
+prop_disease_dynamics_minorityrecover g = infected >= infectedMajority
   where
     ticks  = 1000
     params = mkParamsAnimationV_2
 
-    (rngs, _) = rngSplits repls g0
-    infectedDominate = parMap rpar genInfectedDominate rngs
+    (simState, _, _) = initSimulationRng g params
+    (_, _, _, aos)   = simulateUntilLast ticks simState
 
-    infectedDominateConfidence = fromIntegral (length $ filter (==True) infectedDominate) / fromIntegral repls
+    infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+    n = fromIntegral $ length aos :: Double
+    infectedMajority = ceiling $ n / 2
 
-    genInfectedDominate :: RandomGen g => g -> Bool
-    genInfectedDominate g = infected >= infectedMajority
-      where
-        (simState, _, _) = initSimulationRng g params
-        -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-        (_, _, _, aos)   = simulateUntilLast ticks simState  
-        infected         = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
-        n                = fromIntegral $ length aos :: Double
-        infectedMajority = ceiling $ n / 2
-
--- OK, is using averaging
-prop_culture_dynamics ::  RandomGen g => g -> Int -> Double -> IO ()
-prop_culture_dynamics g0 repls confidence
-    = assertBool ("Cultures not converged sufficiently with confidence reaching " ++ show culturalDynamicsPassConfidence) (culturalDynamicsPassConfidence >= confidence)
+-- Tests the hypothesis that for parameter configuration AnimationIII-6, after
+-- 2700 either one culture dominates the other by 95% of all agents being of 
+-- the respective culture, or both are roughly equivalent 45%.
+-- There always a few agents in level 1 which dont move and dos not participate 
+-- in culture dynamics and keep initial ones, thus use 95 instead of 100 and
+-- 45 instead of 50.
+prop_culture_dynamics :: StdGen -> Bool
+prop_culture_dynamics g = cultureDynamicsPass
   where
-    ticks    = 2700 -- according to sugarscape around this time, culture-dynamics converge
-    -- always a few agents in level 1 which dont move => not participating in culture dynamics and keep initial ones
+    ticks = 2700 -- according to sugarscape around this time, culture-dynamics converge
+   
     ratioDominate = 0.95 -- either one culture (red/blue) dominates completely on both hills ...
     ratioEqual    = 0.45 -- ... or each hill has a different culture
-    params   = mkParamsAnimationIII_6
+    params        = mkParamsAnimationIII_6
 
-    (rngs, _) = rngSplits repls g0
-    culturalDynamicsPass = parMap rpar genCulturalDynamicsPass rngs
+    tagLength        = fromJust $ spCulturalProcess params
+    (simState, _, _) = initSimulationRng g params
+    (_, _, _, aos)   = simulateUntilLast ticks simState  
+    agentCultTags    = map (sugObsCultureTag . snd) aos
 
-    culturalDynamicsPassConfidence = fromIntegral (length $ filter (==True) culturalDynamicsPass) / fromIntegral repls
+    zeroRatio = zeroCultureRatio agentCultTags
+    -- we don't care who is dominating: zeros or ones, either culture has 
+    -- to come to a (near) equilibrium
+    cultureDynamicsPass 
+      | zeroRatio >= ratioDominate 
+        = True -- zeros dominate
+      | zeroRatio <= (1 - ratioDominate)
+        = True -- ones dominate
+      | zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual 
+        = True -- both dominate equally, each on one hill
+      | otherwise 
+        = False -- none dominates, none is equally dominant
 
-    genCulturalDynamicsPass :: RandomGen g => g -> Bool
-    genCulturalDynamicsPass g = cultureDynamicsPass
+
+    zeroCultureRatio :: [CultureTag] -> Double
+    zeroCultureRatio tags = fromIntegral zeros / fromIntegral n
       where
-        tagLength        = fromJust $ spCulturalProcess params
-        (simState, _, _) = initSimulationRng g params
-        -- must not use simulateUntil because would store all steps => run out of memory if scenario is too complex e.g. chapter III onwards
-        (_, _, _, aos)   = simulateUntilLast ticks simState  
-        agentCultTags    = map (sugObsCultureTag . snd) aos
+        zeros = length $ filter zeroDominate tags
+        n     = length tags
 
-        zeroRatio      = zeroCultureRatio agentCultTags
-        -- we don't care who is dominating: zeros or ones, it just has to come to a (near) equilibrium
-        cultureDynamicsPass = if zeroRatio >= ratioDominate 
-                                then True -- zeros dominate
-                                else if zeroRatio <= (1 - ratioDominate)
-                                  then True -- ones dominate
-                                  else if zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual
-                                    then True -- both dominate equally, each on one hill
-                                    else False
-
-        zeroCultureRatio :: [CultureTag] -> Double
-        zeroCultureRatio tags = fromIntegral zeros / fromIntegral n
+        zeroDominate :: CultureTag -> Bool
+        zeroDominate tag = zeroCount > (tagLength - zeroCount)
           where
-            zeros = length $ filter zeroDominate tags
-            n     = length tags
-
-            zeroDominate :: CultureTag -> Bool
-            zeroDominate tag = zeroCount > (tagLength - zeroCount)
-              where
-                zeroCount = length $ filter (==False) tag
+            zeroCount = length $ filter (==False) tag
 
 -- OK, uses a t-test
 prop_inheritance_gini :: RandomGen g => g -> Int -> Double -> IO ()
@@ -136,8 +122,8 @@ prop_inheritance_gini g0 repls confidence
     (rngs, _) = rngSplits repls g0
     priceStds = parMap rpar genGiniCoefficients rngs
 
-    -- perform a 2-sided test because we expect it to be equal
-    tTestRet = tTest "gini coefficient avg" priceStds expGini (1 - confidence) EQ
+    -- perform a two-tailed test because we expect it to be equal
+    tTestRet = tTestSamples TwoTail expGini (1 - confidence) priceStds
 
     genGiniCoefficients :: RandomGen g => g -> Double
     genGiniCoefficients g = gini
@@ -158,7 +144,7 @@ prop_trading_dynamics g0 repls confidence
     priceStds = parMap rpar genTradingStdPrices rngs
 
     -- perform a 1-sided test because if the trading-prices average is lower then we accept it as well
-    tTestRet = tTest "trading prices avg" priceStds maxTradingPricesStdAvg (1 - confidence) LT
+    tTestRet = tTestSamples LowerTail maxTradingPricesStdAvg (1 - confidence) priceStds
 
     genTradingStdPrices :: RandomGen g => g -> Double
     genTradingStdPrices g 
@@ -196,8 +182,8 @@ prop_terracing g0 repls confidence
     statMean    = mean srs
 
     -- both tests are 1-sided because if the ratio is lower, then we accept it as well
-    terraceTest = tTest "terracing" trs maxTerraceRatio (1 - confidence) LT
-    staticTest  = tTest "statiic" srs maxStaticRatio (1 - confidence) LT
+    terraceTest = tTestSamples TwoTail maxTerraceRatio (1 - confidence) trs
+    staticTest  = tTestSamples TwoTail maxStaticRatio (1 - confidence) srs
 
     genPopulationTerracingStats :: RandomGen g => g -> (Double, Double)
     genPopulationTerracingStats g 
@@ -254,8 +240,8 @@ prop_carrying_cap g0 repls confidence
     ret         = parMap rpar genPopulationSizeStats rngs
 
     (_vs, ms, _mds) = unzip3 ret
-    -- we use a 2-sided t-test because we expecet it to be equal
-    tTestRet = tTest "carrying cap" ms expMean (1 - confidence) EQ
+    -- we use a two-tailed t-test because we expecet it to be equal
+    tTestRet = tTestSamples TwoTail expMean (1 - confidence) ms
 
     -- TODO: perform a 1-sided https://en.wikipedia.org/wiki/Chi-squared_test 
     -- on the variances to check if they are less then _maxVariance
@@ -294,10 +280,10 @@ prop_wealth_dist g0 repls confidence
 
     (sks, ks, gs) = unzip3 ret
 
-    -- all are 2-sided t-tests because has to be the expected mean
-    tTestSkew     = tTest "skewness wealth distr" sks expSkew (1 - confidence) EQ
-    tTestKurt     = tTest "kurtosis wealth distr" ks expKurt (1 - confidence) EQ
-    tTestGini     = tTest "gini wealth distr" gs expGini (1 - confidence) EQ
+    -- all are two-tailed t-tests because has to be the expected mean
+    tTestSkew = tTestSamples TwoTail expSkew (1 - confidence) sks
+    tTestKurt = tTestSamples TwoTail expKurt (1 - confidence) ks
+    tTestGini = tTestSamples TwoTail expGini (1 - confidence) gs
 
 genPopulationWealthStats :: RandomGen g 
                           => SugarScapeScenario

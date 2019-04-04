@@ -10,32 +10,15 @@ The property we test for is whether \textit{the emergent property / hypothesis u
 
 %Unfortunately this revealed that this property doesn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a t-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a t-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
 
-In listing \ref{alg:prop_test_trading} we show the algorithm of a property-test for checking whether after 1000 steps the standard deviation of trading prices is less than 0.05. The test passes if out of 100 runs a 95\% confidence interval is reached using a t-test.
+We have implemented property-tests for the following hypotheses
 
-\begin{algorithm}
-maxTicks = 1000\;
-replications = 100\;
-stdAverage = 0.05\;
-tradingPriceStdsList = empty list\;
-
-\For{$i\leftarrow 1$ \KwTo replications}{
-rng = new random number generator\;
-simContext = initSimulation rng\;
-out = runSimulation maxTicks simContext\;
-tps = extractTradingPrices out\;
-tpsStd = calculate standard deviation of tps\;
-insert tpsStd into tradingPriceStdsList\;
-}
-
-tTestPass = perform 1-sided t-test comparing stdAverage with tradingPriceStdsList on a 0.95 interval\;
-
-\eIf{tTestPass}{
-  PASS\;
-} {
-  FAIL\;
-}
-\caption{Property-based test for trading prices.}
-\end{algorithm}
-\label{alg:prop_test_trading}
-
-What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
+\begin{enumerate}
+	\item Cultural Dynamics -
+	\item Disease Dynamics All Recover -
+	\item Disease Dynamics Minority Recover -
+	\item Inheritance Gini -
+	\item Trading Dynamics -
+	\item Terracing -
+	\item Carrying Capacity -
+	\item Wealth Distribution -
+\end{enumerate}

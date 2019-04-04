@@ -39,10 +39,15 @@ The work \cite{onggo_test-driven_2016} explicitly mentions the problem of test c
 
 \input{./tex/property/abstesting.tex}
 
+There is a strong relation between property-based tests and dependent types: in property-based testing we express specifications / properties / laws in code and test their invariance at run-time by random sampling the space. In dependent-types it is possible to express such properties already statically in types. This is the subject of the next part of the thesis which tries to move towards dependent types in ABS.
+
+We found property-based testing particularly well suited for ABS firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and often exploratory nature of ABS. 
+
+Although property-based testing has its origins in Haskell, similar libraries have been developed for other languages e.g. Java, Pyhton, C++ as well and we hope that our research has sparked an interest in applying property-based testing to the established object-oriented languages in ABS as well.
+
+
 \input{./tex/property/explanatory.tex}
 
 \input{./tex/property/exploratory.tex}
 
 \input{./tex/property/sugarscape.tex}
-
-\input{./tex/property/discussion.tex}

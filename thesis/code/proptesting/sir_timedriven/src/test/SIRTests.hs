@@ -42,7 +42,7 @@ main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tes
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
                               } prop_sir_sd_spec_random_size -- prop_sir_sd_spec_random_sir
 
-prop_sir_sd_spec_random_size :: [SIRState] -> Gen Bool
+prop_sir_sd_spec_random_size :: [SIRState] -> Gen Property
 prop_sir_sd_spec_random_size as = do
     -- dont use vector as it will generate Int values quite close to each other
     -- without enough range => the probability of picking same values increases
@@ -57,7 +57,7 @@ prop_sir_sd_spec_random_size as = do
     let dt     = 0.01
         sirSim = tripleIntToDouble . last . runSIRFor dur dt as paramContactRate paramInfectivity paramIllnessDuration
 
-    return $ prop_sir_sd_spec sirSim as seeds
+    return $ label (show $ length as) $ property (prop_sir_sd_spec sirSim as seeds)
 
 prop_sir_sd_spec_random_sir ::  [SIRState] -> Gen Bool
 prop_sir_sd_spec_random_sir as = do

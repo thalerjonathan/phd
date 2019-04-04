@@ -1,1 +1,41 @@
-\chapter{Testing exploratory models: \\ Hypotheses in Sugarscape}
+\chapter{Verifying an exploratory model: \\ Hypotheses in Sugarscape}
+\label{ch:prop_exploratory}
+In this chapter we look at how property-based testing can be made of use to verify the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996} as already introduced in Chapter \ref{sec:sugarscape}. Whereas in the previous chapter on testing the explanatory SIR case-study we had an analytical solution, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a mode.
+
+The answer lies in the very nature of exploratory models: they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and then (hopefully) come up with a few questions and  \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree are abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
+
+We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}}.
+
+The property we test for is whether \textit{the emergent property / hypothesis under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number streams and require that the tests all pass with arbitrary random number streams. It is very likely that we run into the same problem as in the previous chapter on SIR testing: most of the tests might pass but some might fail for same reasons. By using the \textit{maxFailPercentage} argument, we can formally specify how strict we want the hypothesis to hold and still succeed in cases where there is a low percentage of failure.
+
+%Unfortunately this revealed that this property doesn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a t-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a t-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
+
+In listing \ref{alg:prop_test_trading} we show the algorithm of a property-test for checking whether after 1000 steps the standard deviation of trading prices is less than 0.05. The test passes if out of 100 runs a 95\% confidence interval is reached using a t-test.
+
+\begin{algorithm}
+maxTicks = 1000\;
+replications = 100\;
+stdAverage = 0.05\;
+tradingPriceStdsList = empty list\;
+
+\For{$i\leftarrow 1$ \KwTo replications}{
+rng = new random number generator\;
+simContext = initSimulation rng\;
+out = runSimulation maxTicks simContext\;
+tps = extractTradingPrices out\;
+tpsStd = calculate standard deviation of tps\;
+insert tpsStd into tradingPriceStdsList\;
+}
+
+tTestPass = perform 1-sided t-test comparing stdAverage with tradingPriceStdsList on a 0.95 interval\;
+
+\eIf{tTestPass}{
+  PASS\;
+} {
+  FAIL\;
+}
+\caption{Property-based test for trading prices.}
+\end{algorithm}
+\label{alg:prop_test_trading}
+
+What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.

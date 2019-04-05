@@ -74,7 +74,7 @@ prop_disease_dynamics_minorityrecover g = infected >= infectedMajority
 prop_culture_dynamics :: StdGen -> Bool
 prop_culture_dynamics g = cultureDynamicsPass
   where
-    ticks = 2700 -- according to sugarscape around this time, culture-dynamics converge
+    ticks = 2700 -- according to sugarscape book around this time, culture-dynamics converge
    
     ratioDominate = 0.95 -- either one culture (red/blue) dominates completely on both hills ...
     ratioEqual    = 0.45 -- ... or each hill has a different culture
@@ -98,7 +98,6 @@ prop_culture_dynamics g = cultureDynamicsPass
       | otherwise 
         = False -- none dominates, none is equally dominant
 
-
     zeroCultureRatio :: [CultureTag] -> Double
     zeroCultureRatio tags = fromIntegral zeros / fromIntegral n
       where
@@ -110,61 +109,36 @@ prop_culture_dynamics g = cultureDynamicsPass
           where
             zeroCount = length $ filter (==False) tag
 
--- OK, uses a t-test
-prop_inheritance_gini :: RandomGen g => g -> Int -> Double -> IO ()
-prop_inheritance_gini g0 repls confidence
-    = assertBool ("Gini Coefficient should be on average equals " ++ show expGini) (pass tTestRet)
+-- Testing the hypothesis, that when using the parameter-configuration of
+-- FigureIV-3, after 1000 ticks, the standard deviation of the trading prices
+-- is less or equal 0.05.
+prop_trading_dynamics :: StdGen -> Bool
+prop_trading_dynamics g = pricesStd <= maxTradingPricesStdAvg
   where
-    ticks        = 1000
-    expGini      = 0.35 :: Double -- conservative guess, is around 0.35, would need to take average of multiple runs but takes long time
-    sugParams    = mkParamsFigureIII_7
-    
-    (rngs, _) = rngSplits repls g0
-    priceStds = parMap rpar genGiniCoefficients rngs
-
-    -- perform a two-tailed test because we expect it to be equal
-    tTestRet = tTestSamples TwoTail expGini (1 - confidence) priceStds
-
-    genGiniCoefficients :: RandomGen g => g -> Double
-    genGiniCoefficients g = gini
-      where
-        (_, _, gini) = genPopulationWealthStats sugParams ticks g
-
--- OK with t-test
-prop_trading_dynamics :: RandomGen g => g -> Int -> Double -> IO ()
-prop_trading_dynamics g0 repls confidence
-    = assertBool ("Average Trading Prices std should be on average less than " ++ show maxTradingPricesStdAvg) (pass tTestRet)
-  where
-    -- according to sugarscape after 1000 ticks, trading-prices standard deviation is LTE 0.05
-    ticks                  = 1000 
+    -- according to sugarscape after 1000 ticks, trading-prices standard 
+    -- deviation is LTE 0.05
+    ticks = 1000 
     maxTradingPricesStdAvg = 0.05
-    params = mkParamsFigureIV_3
 
-    (rngs, _) = rngSplits repls g0
-    priceStds = parMap rpar genTradingStdPrices rngs
+    params    = mkParamsFigureIV_3
+    prices    = genTradingPrices
+    pricesStd = std prices
 
-    -- perform a 1-sided test because if the trading-prices average is lower then we accept it as well
-    tTestRet = tTestSamples LowerTail maxTradingPricesStdAvg (1 - confidence) priceStds
-
-    genTradingStdPrices :: RandomGen g => g -> Double
-    genTradingStdPrices g 
-        = trace ("tradingPricesStd = " ++ show tradingPricesStd) tradingPricesStd
+    genTradingPrices :: [Double]
+    genTradingPrices = map tradingPrice trades
       where
         (simState, _, _) = initSimulationRng g params
          -- must not use simulateUntil because would store all ticks => run out of memory if scenario is too complex e.g. chapter III onwards
         (_, _, _, aos)   = simulateUntilLast ticks simState 
         trades           = concatMap (sugObsTrades . snd) aos
-        tradingPricesStd = std $ map tradingPrice trades
-
+ 
         tradingPrice :: TradeInfo -> Double
         tradingPrice (TradeInfo price _ _ _ ) = price
 
+
 -- OK: does a t-test
-prop_terracing :: RandomGen g => g -> Int -> Double -> IO ()
-prop_terracing g0 repls confidence
-    = assertBool 
-        ("Terracing proportions not within 95% confidence of " ++ show terrMean ++ " / " ++ show statMean)
-        (pass terraceTest && pass staticTest)
+prop_terracing :: StdGen -> Bool
+prop_terracing g = terrRatio <= maxTerraceRatio && staticRatio <= maxStaticRatio
   where
     ticks       = 100
     staticAfter = 50 :: Int
@@ -172,23 +146,14 @@ prop_terracing g0 repls confidence
     maxTerraceRatio = 0.45 :: Double
     maxStaticRatio  = 0.99 :: Double
 
-    (rngs, _)   = rngSplits repls g0
-    sugParams   = mkParamsAnimationII_1
+    sugParams = mkParamsAnimationII_1
 
-    ret         = parMap rpar genPopulationTerracingStats rngs
+    (terrRatio, staticRatio) = genPopulationTerracingStats
 
-    (trs, srs)  = unzip ret
-    terrMean    = mean trs
-    statMean    = mean srs
-
-    -- both tests are 1-sided because if the ratio is lower, then we accept it as well
-    terraceTest = tTestSamples TwoTail maxTerraceRatio (1 - confidence) trs
-    staticTest  = tTestSamples TwoTail maxStaticRatio (1 - confidence) srs
-
-    genPopulationTerracingStats :: RandomGen g => g -> (Double, Double)
-    genPopulationTerracingStats g 
-        = trace ("terraceRatio = " ++ show terraceRatio ++ " terraceNumbers = " ++  show terraceNumbers ++ " staticRatio = " ++ show staticRatio ++ " staticNumbers = " ++ show staticNumbers) 
-            (terraceRatio, staticRatio)
+    genPopulationTerracingStats :: (Double, Double)
+    genPopulationTerracingStats 
+        = trace ("terraceRatio = " ++ show tr ++ " terraceNumbers = " ++  show terraceNumbers ++ " staticRatio = " ++ show sr ++ " staticNumbers = " ++ show staticNumbers) 
+            (tr, sr)
       where
         (simState, _, _) = initSimulationRng g sugParams
         sos              = simulateUntil ticks simState
@@ -199,8 +164,8 @@ prop_terracing g0 repls confidence
         terraceNumbers = length $ filter (onTheEdge envFinal) aosFinal
         staticNumbers  = sum $ map (\(_, _, _, aos) -> fromIntegral (length $ filter (sameCoord aosStable) aos) / fromIntegral (length aos)) sos'
         
-        terraceRatio  = fromIntegral terraceNumbers / fromIntegral (length aosFinal)
-        staticRatio   = staticNumbers / fromIntegral (length sos')
+        tr = fromIntegral terraceNumbers / fromIntegral (length aosFinal)
+        sr  = staticNumbers / fromIntegral (length sos')
 
         -- note ao is always in aos
         sameCoord :: [AgentObservable SugAgentObservable]
@@ -222,6 +187,28 @@ prop_terracing g0 repls confidence
             selfCellLvl = sugEnvSiteSugarLevel selfCell
             cells       = neighbourCells coord False env
             sameLvls    = any (\c -> sugEnvSiteSugarLevel c /= selfCellLvl) cells
+
+
+-------------------------------------------------------------------------------
+-- OK, uses a t-test
+prop_inheritance_gini :: RandomGen g => g -> Int -> Double -> IO ()
+prop_inheritance_gini g0 repls confidence
+    = assertBool ("Gini Coefficient should be on average equals " ++ show expGini) (pass tTestRet)
+  where
+    ticks        = 1000
+    expGini      = 0.35 :: Double -- conservative guess, is around 0.35, would need to take average of multiple runs but takes long time
+    sugParams    = mkParamsFigureIII_7
+    
+    (rngs, _) = rngSplits repls g0
+    priceStds = parMap rpar genGiniCoefficients rngs
+
+    -- perform a two-tailed test because we expect it to be equal
+    tTestRet = tTestSamples TwoTail expGini (1 - confidence) priceStds
+
+    genGiniCoefficients :: RandomGen g => g -> Double
+    genGiniCoefficients g = gini
+      where
+        (_, _, gini) = genPopulationWealthStats sugParams ticks g
 
 -- OK, uses t-test
 prop_carrying_cap :: RandomGen g => g -> Int -> Double -> IO ()

@@ -1,5 +1,10 @@
 \chapter{Verifying an explanatory model: \\ The SIR model specification}
 \label{ch:prop_explanatory}
+
+TODO REFINE WEAK ARGUMENTS
+- argue a bit better why we fail randomly: the lists dont show no pattern despite using shrink feature
+- statistical argument in SIR not convincing yet. why do we use a t-test when we know its bimodal already? also it seems all a bit hacky, restructure the Argumentation. maybe we can achieve better comparison with a different statistical test: look into graziellas paper. are there tests for bimodal distributions? maybe its enough to say that they generate different distributions
+
 As first use-case we discuss how we can use property-based testing to verify the \textit{explanatory} agent-based SIR model as introduced in Chapter \ref{sec:sir_model}. To verify it, we need to make sure it is correct up to some specification. We aim at connecting the agent-based implementation to the SD specification, by formalising it into properties within a property-test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
 
 \begin{equation}
@@ -32,6 +37,8 @@ Translating this into a property of our ABS implementation is analogous. We coun
 
 \section{Implementing a property-test}
 We start by defining the type of our property, which takes a list of \textit{SIRStates} and returns a \textit{Bool}.
+
+TODO: refine sir: make stdgen arbitrary and use forAll and make the Sir simulation a generator
 
 \begin{HaskellCode}
 prop_sd_rates :: [SIRState] -> Bool

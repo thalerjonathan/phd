@@ -4,21 +4,91 @@ In this chapter we look at how property-based testing can be made of use to veri
 
 The answer lies in the very nature of exploratory models: they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and then (hopefully) come up with a few questions and  \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree are abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
 
-We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}}.
+We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}}. A longer report on the details of this validation process is attached as Appendix \ref{app:validating_sugarscape}.
 
-The property we test for is whether \textit{the emergent property / hypothesis under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number streams and require that the tests all pass with arbitrary random number streams. It is very likely that we run into the same problem as in the previous chapter on SIR testing: most of the tests might pass but some might fail for same reasons. By using the \textit{maxFailPercentage} argument, we can formally specify how strict we want the hypothesis to hold and still succeed in cases where there is a low percentage of failure.
+The property we test for is whether \textit{the emergent property / hypothesis under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number streams and require that the tests all pass with arbitrary random number streams. We simply implement an \textit{Arbitrary} instance for \textit{StdGen}:
 
-%Unfortunately this revealed that this property doesn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a t-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a t-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
+TODO: make stdgen arbitrary and use forAll and make the sugarscape simulation a generator
+
+\begin{HaskellCode}
+instance Arbitrary StdGen where
+  -- arbitrary :: Gen StdGen
+  arbitrary = do
+  	-- draw a seed from the whole Int range
+    seed <- choose (minBound, maxBound) 
+    return (mkStdGen seed)
+\end{HaskellCode}
+
+%It is very likely that we run into the same problem as in the previous chapter on SIR testing: most of the tests might pass but some might fail for same reasons. By using the \textit{maxFailPercentage} argument, we can formally specify how strict we want the hypothesis to hold and still succeed in cases where there is a low percentage of failure. Unfortunately this revealed that this property doesn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a t-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a t-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
 
 We have implemented property-tests for the following hypotheses
 
 \begin{enumerate}
-	\item Cultural Dynamics -
-	\item Disease Dynamics All Recover -
-	\item Disease Dynamics Minority Recover -
-	\item Inheritance Gini -
-	\item Trading Dynamics -
+	\item Disease Dynamics - Depending on the number of initial diseases the population is either able to rid itself of all diseases or not.
+	
+	\item Cultural Dynamics - When having two cultures, red and green, after a given number of steps, either the red or the blue culture dominates or both are equally strong.
+	
+	\item Trading Dynamics - When trading is enable, the trading prices should stabilise with the standard deviation of the prices having dropped below 0.05 after 1,000 ticks.
+	
 	\item Terracing -
-	\item Carrying Capacity -
-	\item Wealth Distribution -
+		
+	\item Carrying Capacity - When agents don't mate nor can die from age (chapter II), due to the environment, there is a maximum carrying capacity of agents the environment can sustain. The capacity should be reached after 100 ticks and should be stable from then on.
+			
+	\item Inheritance Gini - TODO but maybe ignore it because not very interesting
+
+	\item Wealth Distribution - TODO but maybe ignore it because not very interesting
 \end{enumerate}
+
+\section{Disease Dynamics}
+We were able to exactly replicate the behaviour of Animation V-1 and Animation V-2: in the first case the population rids itself of all diseases (maximum 10) which happens pretty quickly, in less than 100 ticks. In the second case the population fails to do so because of the much larger number of diseases (25) in circulation. We used the same parameters as in the book. 
+The authors of \cite{weaver_replicating_2009} could only replicate the first animation exactly and the second was only deemed "good". Their implementation differs slightly from ours: In their case a disease can be passed to an agent who is immune to it - this is not possible in ours. In their case if an agent has already the disease, the transmitting agent selects a new disease, the other agent has not yet - this is not the case in our implementation and we think this is unreasonable to follow: it would require too much information and is also unrealistic.
+
+We give the code for the property-test where the population rids itself from all diseases within 100 steps.
+
+\begin{HaskellCode}
+prop_disease_dynamics_allrecover :: StdGen -> Bool
+prop_disease_dynamics_allrecover g = infected == 0 -- all agents must be free of diseases after 100 ticks
+  where
+  	-- run for 100 steps
+    ticks  = 100 
+    -- use the AnimationV-1 parameter configuration
+    params = mkParamsAnimationV_1 
+
+	-- initialise the simulation
+    (simState, _, _) = initSimulationRng g params
+    -- run the simulation until 100 ticks and get the last output
+    (_, _, _, aos) = simulateUntilLast ticks simState  
+    -- count the number of infected
+    infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+\end{HaskellCode}
+
+The implementations of the property-tests for the other hypotheses follow a similar pattern and won't be repeated subsequently.
+
+\section{Cultural Dynamics}
+We could replicate the cultural dynamics of AnimationIII-6 / Figure III-8 (TODO page): after 2,700 steps either one culture (red / blue) dominates both hills or each hill is dominated by a the other culture. We wrote a test for it in which we run the simulation for 2,700 steps and then check if either culture dominates with a ratio of 95\% or if they are equal dominant with 45\%. Because always a few agents stay stationary on sugarlevel 1 (they have a metabolism of 1 and cant see far enough to move towards the hills, thus stay always on same spot because no improvement and grow back to 1 after 1 step), there are a few agents which never participate in the cultural process and thus no complete convergence can happen. This is accordance with \cite{weaver_replicating_2009}.
+
+Running one test takes about 3 minutes, which makes it quite hard to run 100. Therefore we generally only run 10 in each case
+
+\section{Trading Dynamics}
+
+We still managed to exactly replicate the trading-dynamics as shown in the book in Figure IV-3, Figure IV-4 and Figure IV-5. The book is also pretty specific on the dynamics of the trading-prices standard-deviation: on page 109 the authors specify that at t=1000 the standard deviation will have always fallen below 0.05 (Figure IV-5), thus we implemented a property-test which tests for exactly that property.
+
+Running a single test takes about 26 seconds.
+
+\section{Terracing}
+Our implementation reproduces the terracing phenomenon as described on page TODO in Animation and as can be seen in the NetLogo implementation as well. We implemented a property-test in which we measure the closeness of agents to the ridge: counting the number of same-level sugars cells around them and if there is at least one lower then they are at the edge. If a certain percentage is at the edge then we accept terracing. The question is just how much, which we estimated from tests and resulted in 45\%. Also, in the terracing animation the agents actually never move which is because sugar immediately grows back thus there is no incentive for an agent to actually move after it has moved to the nearest largest cite in can see. Therefore we test that the coordinates of the agents after 50 steps are the same for the remaining steps.
+
+TODO: implement 
+TODO: if we talk about averages then do t-test over multiple
+
+\section{Carrying Capacity}
+For regression-tests we implemented a property-test which tests that the carrying capacity of 100 simulation runs lies within a 95\% confidence interval of a 210 mean. These values are quite reasonable to assume, when looking at the NetLogo implementation - again we deem the reported Carrying Capacity of 224 in the Book to be an outlier / part of other details we don't know. After 100 ticks dropped and then stable from then on - check till 400 ticks.
+
+TODO: implement
+
+TODO: if we talk about averages then do t-test over multiple
+
+\section{Discussion}
+These tests are less of the property-based testing character as QuickCheck has intended it but we argue that they are still property-tests: they formalise hypotheses about the model and test them in the simulation. Due to ABS' stochastic nature, hypotheses have to hold for varying runs, single observations are not statistically significant. The use of QuickCheck is the instantiation of random-number generators, being the test-driver and reporting the results. 
+
+% note: we never use shrinks in those tests because shrinking has no meaning in these tests. It will be more important in agent testing

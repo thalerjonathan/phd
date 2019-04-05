@@ -34,9 +34,9 @@ replications :: Int
 replications = 100
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
+main = quickCheckWith stdArgs { maxSuccess = 10000        -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests
-                              --, maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
+                              , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
                               } prop_sir_sd_random_size
 
@@ -48,8 +48,8 @@ prop_sir_sd_random_size as = do
     -- Therefore we use minBound and maxBound to go explicitly over the full
     -- Int range!
     seeds <- vectorOf replications (choose (minBound, maxBound))
-    return $ label (labelPopulation as) $ property (prop_sir_sd_spec_aux as seeds)
-
+    return $ property (prop_sir_sd_spec_aux as seeds)
+    -- label (labelPopulation as) $ 
 labelPopulation :: [SIRState] -> String
 labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
   where

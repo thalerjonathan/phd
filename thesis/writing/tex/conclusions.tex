@@ -6,6 +6,14 @@ This chapter concludes the whole thesis and outlines future research. Roughly 20
 %we now know how to engineer time- and event-driven ABS with complex state both in the agent and environment, main difficulty is direct agent-interaction (see macal classification into 4 types of ABS), compile-time guaranteed reproducibility, explicit handling of complex state (read only, read/write), concurrency explicit and limited to STM, very promising concurrency but direct agent-interactions main problem (erlang as a rescue?), main drawbacks: everything is explicit, performance
 
 \section{Further Research}
-1. generalise concepts explored into a pure functional ABS library in Haskell (called chimera),
-2. dependent types and linear types are the next big step, towards a stronger formalisation of agents and ABS,
-3. stm based concurrency for event-driven ABS 
+clearly outline the ideas for further research
+
+\subsection{A general purpose library}
+generalise concepts explored into a pure functional ABS library in Haskell (called chimera)
+
+\subsection{Dependent and linear types}
+dependent types and linear types are the next big step, towards a stronger formalisation of agents and ABS,
+focus on the equilibrium - totality correspondence
+
+\subsection{Concurrent event-driven ABS}
+stm based concurrency for event-driven ABS using parallel DES. challenge is the time-warp implementation using monads. in general it should be easy to roll-back agents actions but with monads we have to be careful - for some monads rolling back is not neccessary e.g. rand and reader, for others it is, and for some it is impossible e.g. IO

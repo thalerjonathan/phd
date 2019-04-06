@@ -6,6 +6,9 @@ TODO read / watch
 % https://iohk.io/blog/an-in-depth-look-at-quickcheck-state-machine/
 % https://www.stackbuilders.com/news/types-versus-tests-two-approaches-for-writing-correct-software
 % https://blog.ploeh.dk/2019/03/11/an-example-of-state-based-testing-in-haskell/
+% https://sakshamsharma.com/2018/03/haskell-proj-struct/
+% https://iohk.io/blog/an-in-depth-look-at-quickcheck-state-machine/
+% https://wickstrom.tech/programming/2019/03/24/property-based-testing-in-a-screencast-editor-case-study-1.html
 
 We didn't look into testing full agent and interacting agent behaviour using property-tests due to its complexity which would justify a whole paper alone. Due to its inherent stateful nature with complex dependencies between valid states and agents actions we need a more sophisticated approach as outlined in \cite{de_vries_-depth_2019}, where the authors show how to build a meta-model and commands which allow to specify properties and valid state-transitions which can be generated automatically. We leave this for further research.
 

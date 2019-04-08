@@ -43,12 +43,16 @@ The key to encode these specifications into a property is to understand that the
 Translating this into a property of our ABS implementation is analogous. We count the number of initially S, I and R agents and run the simulation for 1 time-unit to get new S, I and R numbers. The differences should \textit{average} at the values specified in equations \ref{eq:sir_delta_rates} as well. This property has to hold for \textit{any} agent population. Note that due to ABS stochastic nature it is not enough to run only one replication of the simulation for 1 time-unit but we actually need multiple replications ($> 100$) to get statistically robust results. We then use two-tailed t-tests to compare the expected averages to the actual averages. If all 3 tests pass the whole property-test passes.
 
 \section{Implementing a property-test}
-We start by defining the type of our property, which takes a list of \textit{SIRStates} and returns a \textit{Bool}.
-
-TODO: refine sir: make stdgen arbitrary and use forAll and make the Sir simulation a generator
+We start by defining the type of our property, which takes a list of \textit{SIRStates} and returns a \textit{Gen Bool}. Note that we run replications (100) of the simulation for 1.0 time-unit with same $\Delta t = 0.1$ as in Chapter \ref{sec:timedriven_firststep} to get lists of new S, I and R values.
 
 \begin{HaskellCode}
-prop_sd_rates :: [SIRState] -> Bool
+prop_sd_rates :: [SIRState] -> Gen Bool
+prop_sd_rates as = do
+  let dt = 0.01
+  -- run the sir-generator 100 times to generate 100 replications
+  (ss, is, rs) <- unzip3 <\$> vectorOf 100 (sir as dt)
+  -- check if the property holds
+  return (checkSirSdSpec as ss is rs)
 \end{HaskellCode}
 
 Properties in QuickCheck are required to return \textit{Bool} to indicate success or failure - the arguments required for the function are then randomly generated and provided by QuickCheck. For QuickCheck to be able to generate random values of \textit{SIRState} we need to implement an instance of the \textit{Arbitrary} typeclass for \textit{SIRState}. This is straight forward: we \textit{uniformly} pick one out of the 3 possible values.
@@ -71,72 +75,73 @@ instance Arbitrary SIRState where
                         , (1, return Recovered) ]
 \end{HaskellCode}
 
-Because we are running replications, we need random seeds to create random-number generators for each replication. We don't make them an argument to the property-test because we don't want to let QuickCheck handle them for us. The reason for that is that if we make it a parameter to the function, QuickCheck tries to vary it as well, meaning that we have less variance and test-cases over the initial population. Thus we generate the seeds manually but relying on QuickChecks random functionality.
+We run multiple replications of the SIR simulation, each with a different random-number generator. To do that we implemented a custom Generator which takes the random population and the $\Delta t$. It simply generates a random-number generator by picking a random seed and then runs the SIR simulation for 1.0 time-unit and returns the number of S,I and R agents in the last step.
 
 \begin{HaskellCode}
-prop_sd_rates :: [SIRState] -> Gen Bool
-prop_sd_rates as = do
-    -- Draw a list of replications random Ints over the full Int range to  
-    -- reach maximum variance (reduce probability of drawing identical seeds)
-    seeds <- vectorOf replications (choose (minBound, maxBound))
-    return (prop_sd_ratesAux seeds)
+sir :: [SIRState] -> Double -> Gen (Int, Int, Int)
+sir as dt = do
+  seed <- choose (minBound, maxBound)
+  let g = mkStdGen seed
+  return $
+    last $ 
+    runSIRFor 1.0 dt as contactRate infectivity illnessDuration g
   where
-    prop_sd_ratesAux :: [Int] -> Bool
-    prop_sd_ratesAux seeds = allTTestsPass -- see below
+    
 \end{HaskellCode}
 
-Next we encode the SD specification as explained above into code.
+Next we encode the SD specification as explained above into code. Note that all values are \textit{Double} because of the continuous nature of SD.
 
 % NOTE: we omited fromIntegral to make it more readable
 \begin{HaskellCode}
--- initial values of S,I and R and total number of agents N
-s0 = length (filter (==Susceptible) as)
-i0 = length (filter (==Infected) as)
-r0 = length (filter (==Recovered) as)
-n  = s0 + i0 + r0
+sdSpec :: Double 
+       -> Double
+       -> Double
+       -> Double 
+       -> Double
+       -> Double
+       -> (Double, Double, Double)
+sdSpec s0 i0 r0 beta gamma delta = (s, i, r)
+  where
+  	-- total population
+    n = s0 + i0 + r0
 
--- explicit re-naming
-beta  = contactRate
-gamma = infectivity
-delta = illnessDuration
+    -- compute infection-rate
+    ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
+    -- recovery-rate
+    rr = i0 / delta
 
--- infection-rate
-ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
--- recovery-rate 
-rr = i0 / delta
-
--- S value after 1 time-unit 
-s = s0 - ir
--- I value after 1 time-unit
-i = i0 + (ir - rr)
--- R value after 1 time-unit
-r = r0 + rr
+    -- S value after 1 time-unit
+    s = s0 - ir
+    -- I value after 1 time-unit
+    i = i0 + (ir - rr)
+    -- R value after 1 time-unit
+    r = r0 + rr
 \end{HaskellCode}
 
-Then we run replications (100) of the simulation for 1.0 time-unit with same $\Delta t = 0.1$ as in Chapter \ref{sec:timedriven_firststep} to get lists of new S, I and R values.
+Finally we implement the check whether the SIR dynamics matches the SD ones.
 
 \begin{HaskellCode}
--- run for 1 time-unit
-dur = 1.0
--- same dt as in time-driven chapter implementation
-dt = 0.1
--- generate random-number generator for each replication
-rngs = map mkStdGen seeds
--- compute simulated values for s, i and r
-(ss, is, rs) = unzip (map (last . runSIR dur dt as beta gamma delta) rngs)
-\end{HaskellCode}
+checkSirSDspec :: [SIRState] 
+               -> [Int]
+               -> [Int]
+               -> [Int]
+               -> Bool
+checkSirSDspec as ss is rs = allPass
+  where
+    s0 = fromIntegral $ length $ filter (==Susceptible) as
+    i0 = fromIntegral $ length $ filter (==Infected) as
+    r0 = fromIntegral $ length $ filter (==Recovered) as
+    
+    -- compute SD values which act as expected means for the t-tests
+    (s, i, r) = sdSpec s0 i0 r0 contactRate infectivity illnessDuration
+    
+    confidence = 0.95
 
-Finally we run two-tailed t-tests with confidence of 0.95 ($\alpha = 0.05$) for all 3 lists of the new S,I and R values.
+    sTest = tTestSamples TwoTail s (1 - confidence) ss
+    iTest = tTestSamples TwoTail i (1 - confidence) is
+    rTest = tTestSamples TwoTail r (1 - confidence) rs
 
-% NOTE: tTestSamples return a Maybe Bool but we dont care about that detail here
-\begin{HaskellCode}
-confidence = 0.95
-sTest = tTestSamples TwoTail s (1 - confidence) ss
-iTest = tTestSamples TwoTail i (1 - confidence) is
-rTest = tTestSamples TwoTail r (1 - confidence) rs
-
--- property-test passes if all 3 t-tests pass
-allTTestsPass = sTest && iTest && rTest
+    allPass = sTest && iTest && rTest
 \end{HaskellCode}
 
 \section{Test results}
@@ -167,6 +172,13 @@ As a first test we run the same property-test again but allow a failure of 100\%
 
 \paragraph{Comparison to noise}
 To make sure that our approach is going in the right direction at all, we replaced the SIR simulation with a rather simple noise-generator: it generates random values for S, I and R which have to sum up to the size of the population we are comparing against. Indeed, it performs considerably worse than our initial property-test: on average only 19.7 (2.7) tests pass with 100 failed, and a failure percentage of 83\% (1.7). 
+
+%UNCORRELATED
+%	*** Failed! Passed only 198 tests; 10000 failed (98%) tests.
+%
+%CORRELATED
+%	*** Failed! Passed only 393 tests; 10000 failed (96%) tests.
+
 
 %1. *** Failed! Passed only 15 tests; 100 failed (86%) tests.
 %2. *** Failed! Passed only 20 tests; 100 failed (83%) tests.

@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 module Main where
 
 -- import Control.Parallel.Strategies hiding (r0)
@@ -20,36 +21,42 @@ instance Arbitrary SIRState where
   --                       , (2, return Infected)
   --                       , (1, return Recovered) ]
 
-paramContactRate :: Int
-paramContactRate = 5
+instance Arbitrary StdGen where
+  arbitrary :: Gen StdGen
+  arbitrary = do
+    seed <- choose (minBound, maxBound)
+    return $ mkStdGen seed
 
-paramInfectivity :: Double
-paramInfectivity = 0.05
+contactRate :: Int
+contactRate = 5
 
-paramIllnessDuration :: Double
-paramIllnessDuration = 15.0
+infectivity :: Double
+infectivity = 0.05
+
+illnessDuration :: Double
+illnessDuration = 15.0
 
 -- need to run replications because ABS is stochastic
 replications :: Int
 replications = 100
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 10000        -- number successful tests
+main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests
                               , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
                               } prop_sir_sd_random_size
 
-prop_sir_sd_random_size :: [SIRState] -> Gen Property
+prop_sir_sd_random_size :: [SIRState] -> Gen Bool
 prop_sir_sd_random_size as = do
-    -- dont use vector as it will generate Int values quite close to each other
-    -- without enough range => the probability of picking same values increases
-    -- which does result in same dynamics, resultin in less variance.
-    -- Therefore we use minBound and maxBound to go explicitly over the full
-    -- Int range!
-    seeds <- vectorOf replications (choose (minBound, maxBound))
-    return $ property (prop_sir_sd_spec_aux as seeds)
-    -- label (labelPopulation as) $ 
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as)
+  return $ checkSirSDSpec as ss is rs
+
+prop_sir_sd_fixed_size :: Gen Bool
+prop_sir_sd_fixed_size = do
+  as           <- vector 100
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as)
+  return $ checkSirSDSpec as ss is rs
 
 labelPopulation :: [SIRState] -> String
 labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
@@ -63,29 +70,25 @@ labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
     is = printf "%.2f" (i / n)
     rs = printf "%.2f" (r / n)
 
-prop_sir_sd_fixed_size :: Gen Bool
-prop_sir_sd_fixed_size = do
-    seeds <- vectorOf replications (choose (minBound, maxBound))
-    as    <- vector 100
-    return $ prop_sir_sd_spec_aux as seeds
+sir :: [SIRState] -> Gen (Int, Int, Int)
+sir as = do
+    seed <- choose (minBound, maxBound)
+    let g = mkStdGen seed
+    return $ snd $
+            last $ 
+            runSIR as contactRate infectivity illnessDuration (-1) 1.0 g
 
-prop_sir_sd_spec_aux :: [SIRState] -> [Int] -> Bool
-prop_sir_sd_spec_aux as seeds = allPass
-  -- = trace ( "---------------------------------------------------------------------------------------" ++
-  --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
-  --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
-  --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
-  --           allPass
+sdSpec :: Double 
+       -> Double 
+       -> Double
+       -> Double 
+       -> Double
+       -> Double
+       -> (Double, Double, Double)
+sdSpec s0 i0 r0 beta gamma delta = (s, i, r)
   where
-    s0 = fromIntegral $ length $ filter (==Susceptible) as
-    i0 = fromIntegral $ length $ filter (==Infected) as
-    r0 = fromIntegral $ length $ filter (==Recovered) as
-    n  = s0 + i0 + r0
+    n = s0 + i0 + r0
 
-    beta  = fromIntegral paramContactRate
-    gamma = paramInfectivity
-    delta = paramIllnessDuration
-    
     -- compute infection-rate according to SD specifications (will be 0 if no
     -- agents) from generated agent-population as (and fixed model parameters)
     ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
@@ -103,23 +106,28 @@ prop_sir_sd_spec_aux as seeds = allPass
     --    add recovery-rate to initial R value
     r = r0 + rr
 
-    -- run for 1 time-unit
-    dur = 1.0
-    -- generate random-number generator for each replication
-    rngs = map mkStdGen seeds
-    -- compute simulated values for s, i and r
-    sir = map (tripleIntToDouble . 
-              snd . 
-              last . 
-              runSIR as paramContactRate paramInfectivity paramIllnessDuration (-1) dur) rngs
-    -- apply evaluation parallelism to speed up
-    -- NOTE: doesn't add anything
-    -- (ss, is, rs) = unzip3 $ withStrategy (parList rdeepseq) sir
-    (ss, is, rs) = unzip3 sir
+checkSirSDSpec :: [SIRState] 
+               -> [Int]
+               -> [Int]
+               -> [Int]
+               -> Bool
+checkSirSDSpec as ssI isI rsI = allPass
+  -- = trace ( "---------------------------------------------------------------------------------------" ++
+  --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
+  --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
+  --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
+  --           allPass
+  where
+    s0 = fromIntegral $ length $ filter (==Susceptible) as
+    i0 = fromIntegral $ length $ filter (==Infected) as
+    r0 = fromIntegral $ length $ filter (==Recovered) as
+    
+    (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
 
-    _ssMean = mean ss
-    _isMean = mean is
-    _rsMean = mean rs
+    -- transform data from Int to Double
+    ss = map fromIntegral ssI
+    is = map fromIntegral isI
+    rs = map fromIntegral rsI
     
     -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
     -- equal with a confidence of 99%: the probability of observing an extreme
@@ -139,6 +147,8 @@ prop_sir_sd_spec_aux as seeds = allPass
     allPass = fromMaybe True sTest &&
               fromMaybe True iTest &&
               fromMaybe True rTest
+
+    -- _ssMean = mean ss
+    -- _isMean = mean is
+    -- _rsMean = mean rs
     
-    tripleIntToDouble :: (Int, Int, Int) -> (Double, Double, Double)
-    tripleIntToDouble (x,y,z) = (fromIntegral x, fromIntegral y, fromIntegral z)

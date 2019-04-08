@@ -20,14 +20,14 @@ instance Arbitrary SIRState where
   --                       , (2, return Infected)
   --                       , (1, return Recovered) ]
 
-paramContactRate :: Double
-paramContactRate = 5.0
+contactRate :: Double
+contactRate = 5.0
 
-paramInfectivity :: Double
-paramInfectivity = 0.05
+infectivity :: Double
+infectivity = 0.05
 
-paramIllnessDuration :: Double
-paramIllnessDuration = 15.0
+illnessDuration :: Double
+illnessDuration = 15.0
 
 -- need to run replications because ABS is stochastic
 replications :: Int
@@ -36,83 +36,72 @@ replications = 100
 type SirSim = (StdGen -> (Double, Double, Double))
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
+main = quickCheckWith stdArgs { maxSuccess = 10000        -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests
                               , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
-                              } prop_sir_sd_spec_random_size -- prop_sir_sd_spec_random_sir
+                              } prop_sir_sd_spec_random_size
 
 prop_sir_sd_spec_random_size :: [SIRState] -> Gen Property
 prop_sir_sd_spec_random_size as = do
-    -- dont use vector as it will generate Int values quite close to each other
-    -- without enough range => the probability of picking same values increases
-    -- which does result in same dynamics, resultin in less variance.
-    -- Therefore we use minBound and maxBound to go explicitly over the full
-    -- Int range!
-    seeds <- vectorOf replications (choose (minBound, maxBound))
+  let dt = 0.01
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as dt)
+  return $ label (show $ length as) $ property $ checkSirSDspec as ss is rs
 
-    -- run for 1 time-unit
-    let dur = 1.0
-    -- dt
-    let dt     = 0.01
-        sirSim = tripleIntToDouble . last . runSIRFor dur dt as paramContactRate paramInfectivity paramIllnessDuration
-
-    return $ label (show $ length as) $ property (prop_sir_sd_spec sirSim as seeds)
-
-prop_sir_sd_spec_random_sir ::  [SIRState] -> Gen Bool
-prop_sir_sd_spec_random_sir as = do
-    seeds <- vectorOf replications (choose (minBound, maxBound))
-    
-    let sirSim = _sirSimRandomCorrelated (length as)
-
-    return $ prop_sir_sd_spec sirSim as seeds
-  where
-    _sirSimRandomCorrelated :: Int -> StdGen -> (Double, Double, Double)
-    _sirSimRandomCorrelated n g0 = (fromIntegral s, fromIntegral i, fromIntegral r)
-      where
-        (s, g1) = randomR (0, n) g0
-        (i, _)  = randomR (0, n - s) g1
-        r       = n-s-i
-
-    _sirSimRandomUncorr :: Int -> StdGen -> (Double, Double, Double)
-    _sirSimRandomUncorr n g0 = (fromIntegral s, fromIntegral i, fromIntegral r)
-      where
-        (s, g1) = randomR (0, n) g0
-        (i, g2) = randomR (0, n) g1
-        (r, _)  = randomR (0, n) g2
-
-prop_sir_sd_spec_fixed_size :: Gen Bool
+prop_sir_sd_spec_fixed_size :: Gen Property
 prop_sir_sd_spec_fixed_size = do
-    seeds <- vectorOf replications (choose (minBound, maxBound))
-    as    <- vector 100
+  let dt = 0.01
 
-    -- run for 1 time-unit
-    let dur = 1.0
-    -- small dt: TODO: testing for a sufficiently small dt
-    -- decreasing this value reduces t-test failures!
-    let dt = 0.01
+  as           <- vector 100
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as dt)
 
-    let sirSim = tripleIntToDouble . last . runSIRFor dur dt as paramContactRate paramInfectivity paramIllnessDuration
+  return $ label (show $ length as) $ property $ checkSirSDspec as ss is rs
 
-    return $ prop_sir_sd_spec sirSim as seeds
-
-prop_sir_sd_spec :: SirSim -> [SIRState] -> [Int] -> Bool
-prop_sir_sd_spec sirSim as seeds = allPass
-  -- = trace ( "---------------------------------------------------------------------------------------" ++
-  --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
-  --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
-  --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
-  --           allPass
+prop_sir_sd_spec_random_correlated_sir ::  [SIRState] -> Gen Bool
+prop_sir_sd_spec_random_correlated_sir as = do
+    let n = length as
+    (ss, is, rs) <- unzip3 <$> vectorOf replications (sirSimRandomCorrelated n)
+    return $ checkSirSDspec as ss is rs
   where
-    s0 = fromIntegral $ length $ filter (==Susceptible) as
-    i0 = fromIntegral $ length $ filter (==Infected) as
-    r0 = fromIntegral $ length $ filter (==Recovered) as
-    n  = s0 + i0 + r0
+    sirSimRandomCorrelated :: Int -> Gen (Int, Int, Int)
+    sirSimRandomCorrelated n = do
+        s <- choose (0, n)
+        i <- choose (0, n - s)
+        let r = n - s - i
+        return (s, i, r)
 
-    beta  = paramContactRate
-    gamma = paramInfectivity
-    delta = paramIllnessDuration
-    
+prop_sir_sd_spec_random_uncorrelated_sir ::  [SIRState] -> Gen Bool
+prop_sir_sd_spec_random_uncorrelated_sir as = do
+    let n = length as
+    (ss, is, rs) <- unzip3 <$> vectorOf replications (sirSimRandomUncorr n)
+    return $ checkSirSDspec as ss is rs
+  where
+    sirSimRandomUncorr :: Int -> Gen (Int, Int, Int)
+    sirSimRandomUncorr n = do
+        s <- choose (0, n)
+        i <- choose (0, n)
+        r <- choose (0, n)
+        return (s, i, r)
+
+sir :: [SIRState] -> Double -> Gen (Int, Int, Int)
+sir as dt = do
+  seed <- choose (minBound, maxBound)
+  let g = mkStdGen seed
+  return $
+    last $ 
+    runSIRFor 1.0 dt as contactRate infectivity illnessDuration g
+
+sdSpec :: Double 
+       -> Double
+       -> Double
+       -> Double 
+       -> Double
+       -> Double
+       -> (Double, Double, Double)
+sdSpec s0 i0 r0 beta gamma delta = (s, i, r)
+  where
+    n = s0 + i0 + r0
+
     -- compute infection-rate according to SD specifications (will be 0 if no
     -- agents) from generated agent-population as (and fixed model parameters)
     ir = if n == 0 then 0 else (i0 * beta * s0 * gamma) / n
@@ -130,18 +119,28 @@ prop_sir_sd_spec sirSim as seeds = allPass
     --    add recovery-rate to initial R value
     r = r0 + rr
 
-    -- generate random-number generator for each replication
-    rngs = map mkStdGen seeds
-    -- compute simulated values for s, i and r
-    sir = map sirSim rngs
-    -- apply evaluation parallelism to speed up
-    -- NOTE: doesn't add anything
-    -- (ss, is, rs) = unzip3 $ withStrategy (parList rdeepseq) sir
-    (ss, is, rs) = unzip3 sir
+checkSirSDspec :: [SIRState] 
+               -> [Int]
+               -> [Int]
+               -> [Int]
+               -> Bool
+checkSirSDspec as ssI isI rsI = allPass
+  -- = trace ( "---------------------------------------------------------------------------------------" ++
+  --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
+  --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
+  --           "\n ss = " ++ printf "%.2f" _ssMean ++ ", \t is = " ++ printf "%.2f" _isMean ++ ", \t rs = " ++ printf "%.2f" _rsMean) 
+  --           allPass
+  where
+    s0 = fromIntegral $ length $ filter (==Susceptible) as
+    i0 = fromIntegral $ length $ filter (==Infected) as
+    r0 = fromIntegral $ length $ filter (==Recovered) as
 
-    _ssMean = mean ss
-    _isMean = mean is
-    _rsMean = mean rs
+    (s, i, r) = sdSpec s0 i0 r0 contactRate infectivity illnessDuration
+
+    -- transform data from Int to Double
+    ss = map fromIntegral ssI
+    is = map fromIntegral isI
+    rs = map fromIntegral rsI
     
     -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
     -- equal with a confidence of 99%: the probability of observing an extreme
@@ -153,7 +152,7 @@ prop_sir_sd_spec sirSim as seeds = allPass
     --    claiming the means are NOT equal when in fact they are equal
     --  Type II error fails to reject a false null hypothesis: leading to an
     --    accepted test claiming that the mans are equal when in fact they are NOT
-    confidence = 0.99
+    confidence = 0.95
     sTest = tTestSamples TwoTail s (1 - confidence) ss
     iTest = tTestSamples TwoTail i (1 - confidence) is
     rTest = tTestSamples TwoTail r (1 - confidence) rs
@@ -162,14 +161,16 @@ prop_sir_sd_spec sirSim as seeds = allPass
               fromMaybe True iTest &&
               fromMaybe True rTest
 
-tripleIntToDouble :: (Int, Int, Int) -> (Double, Double, Double)
-tripleIntToDouble (x,y,z) = (fromIntegral x, fromIntegral y, fromIntegral z)
-
     -- NOTE: if we return True in all cases, the compiler infers that 
     -- this is a constant expression and evaluates it only once, thus we
     -- don't get a debug output in case of a failure. As a remedy, we
     -- use a proposition which is always True but cannot be inferred by
     -- the compiler 
+
+    -- _ssMean = mean ss
+    -- _isMean = mean is
+    -- _rsMean = mean rs
+
     -- sTestPass
     --   | isNothing sTest = True
     --   | fromJust sTest  = True

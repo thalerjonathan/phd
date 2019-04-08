@@ -50,6 +50,7 @@ prop_sir_sd_random_size as = do
     seeds <- vectorOf replications (choose (minBound, maxBound))
     return $ property (prop_sir_sd_spec_aux as seeds)
     -- label (labelPopulation as) $ 
+
 labelPopulation :: [SIRState] -> String
 labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
   where

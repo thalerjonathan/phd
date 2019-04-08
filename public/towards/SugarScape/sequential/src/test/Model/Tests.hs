@@ -20,16 +20,15 @@ modelTests :: RandomGen g
            -> TestTree 
 modelTests g 
   = testGroup "Model Tests" 
-      [ QC.testProperty "Terracing" prop_terracing
+      [ QC.testProperty "Inheritance Gini" $ prop_inheritance_gini repls confidence
+      , QC.testProperty "Wealth Distribution" $ prop_wealth_dist repls confidence
+
+      , QC.testProperty "Terracing" $ prop_terracing repls confidence
       , QC.testProperty "Trading Dynamics" prop_trading_dynamics
       , QC.testProperty "Disease Dynamics All Recover" prop_disease_dynamics_allrecover 
       , QC.testProperty "Disease Dynamics Minority Recover" prop_disease_dynamics_minorityrecover      
       , QC.testProperty "Cultural Dynamics" prop_culture_dynamics
 
-
-      , Unit.testCase "Inheritance Gini" $ prop_inheritance_gini g repls confidence
-
-      
       , Unit.testCase "Carrying Capacity" $ prop_carrying_cap g repls confidence
-      , Unit.testCase "Wealth Distribution" $ prop_wealth_dist g repls confidence
+
       ]

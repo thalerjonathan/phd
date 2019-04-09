@@ -120,7 +120,7 @@ prop_culture = property $ do
 -- Gini of 0.35 is a onservative guess, is around 0.35, would need to take 
 -- average of multiple runs but takes long time
 prop_gini :: Int -> Double -> Property
-prop_gini repls confidence = once $ do
+prop_gini repls confidence = property $ do
   let ticks   = 1000
       expGini = 0.35 :: Double 
       params  = mkParamsFigureIII_7
@@ -137,7 +137,7 @@ prop_gini repls confidence = once $ do
 -- can sustain. The capacity should be reached after 100 ticks and should be 
 -- stable from then on.
 prop_carrying :: Int -> Double -> Property
-prop_carrying repls confidence = once $ do
+prop_carrying repls confidence = property $ do
     let ticks        = 400
         stableAfter  = 100
         params       = mkParamsAnimationII_2
@@ -177,7 +177,7 @@ prop_carrying repls confidence = once $ do
 -- AnimationII-1, after 100 ticks, the terracing is table for 50 ticks
 -- NOTE: 'once' because we are doing replications anyway
 prop_terracing :: Int -> Double -> Property
-prop_terracing repls confidence = once $ do 
+prop_terracing repls confidence = property $ do 
     (trs, srs) <- unzip <$> vectorOf repls genPopulationTerracingStats
 
     let trMean = 0.45 :: Double  -- terracing ratio expcected mean

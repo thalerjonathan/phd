@@ -2,10 +2,14 @@
 -- the Traversable module provides these implementations as fmapDefault and 
 -- foldMapDefault.)
 
-fmap' :: (a -> b) -> f a -> f b
-fmap' f fa = undefined
+-- NOTE: we need to add Traversable t here, otherwise this is not possible
+fmap' :: Traversable t => (a -> b) -> t a -> t b
+fmap' f ta = traverse (pure f) ta
 
-foldMap' :: (Monoid m, Foldable t) => (a -> m) -> t a -> m
+  -- f <$> ta would work but that is cheating :D
+
+-- NOTE: we need to add Traversable t here, otherwise this is not possible
+foldMap' :: (Monoid m, Traversable t) => (a -> m) -> t a -> m
 foldMap' g ta = undefined
 
 -- 2. Implement Traversable instances for [], Maybe, ((,) e), and Either e.

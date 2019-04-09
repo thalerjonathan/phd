@@ -1,63 +1,36 @@
 module Model.Model 
-  ( prop_disease_dynamics_allrecover
-  , prop_disease_dynamics_minorityrecover
-  , prop_trading_dynamics
-  , prop_culture_dynamics
-  , prop_inheritance_gini
+  ( prop_disease_allrecover
+  , prop_disease_norecover
+  , prop_trading
+  , prop_culture
+  , prop_gini
   , prop_terracing
-  , prop_carrying_cap
-  , prop_wealth_dist
+  , prop_carrying
+  , prop_wealth
   ) where
 
 import Data.List
 import Data.Maybe
+import Text.Printf
 
 import Control.Monad.Random
-import Control.Parallel.Strategies
-import Test.Tasty.HUnit as Unit
-import Test.Tasty.QuickCheck as QC
+import Test.QuickCheck
 
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
-import SugarScape.Core.Random
 import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
--- need this import for Arbitrary instance of SugEnvironment but Haskell thinks
--- its unused => turn off unused import :(
--- import Agent
--- import Environment
 import Utils.StatsUtils
 
 import Debug.Trace
 
-instance Arbitrary StdGen where
-  -- arbitrary :: Gen StdGen
-  arbitrary = do
-    seed <- choose (minBound, maxBound) 
-    return $ mkStdGen seed
-
--- generates a random sugarscape with given scenario and runs it for given
--- number of ticks and returns the output of the LAST step
-sugarscapeLast :: Int -> SugarScapeScenario -> Gen SimStepOut
-sugarscapeLast ticks params = do
-  seed <- choose (minBound, maxBound)
-  let g                = mkStdGen seed
-      (simState, _, _) = initSimulationRng g params
-  return $ simulateUntilLast ticks simState  
-    
--- generates a random sugarscape with given scenario and runs it for given
--- number of ticks and returns all output until some step
-sugarscapeUntil :: Int -> SugarScapeScenario -> Gen [SimStepOut]
-sugarscapeUntil ticks params = do
-  seed <- choose (minBound, maxBound)
-  let g                = mkStdGen seed
-      (simState, _, _) = initSimulationRng g params
-  return $ simulateUntil ticks simState  
-
+--------------------------------------------------------------------------------
+-- PROPERTIES
+--------------------------------------------------------------------------------
 -- Tests the hypothesis, that for the parameter-configuration of AnimationV-1
 -- ALL agents will recover after 100 ticks.
-prop_disease_dynamics_allrecover :: Gen Bool
-prop_disease_dynamics_allrecover = do
+prop_disease_allrecover :: Property
+prop_disease_allrecover = property $ do
   let ticks  = 100
       params = mkParamsAnimationV_1
 
@@ -67,8 +40,8 @@ prop_disease_dynamics_allrecover = do
   
 -- Tests the hypothesis, that for the parameter-configuration of AnimationV-2
 -- less than half (a minority) will recover until 1000.
-prop_disease_dynamics_minorityrecover :: Gen Bool
-prop_disease_dynamics_minorityrecover = do
+prop_disease_norecover :: Property
+prop_disease_norecover = property $ do
     let ticks  = 1000
         params = mkParamsAnimationV_2
     (_, _, _, aos) <- sugarscapeLast ticks params
@@ -79,14 +52,40 @@ prop_disease_dynamics_minorityrecover = do
 
     return $ infected > infMaj
 
+-- Testing the hypothesis, that when using the parameter-configuration of
+-- FigureIV-3, after 1000 ticks, the standard deviation of the trading prices
+-- is less or equal 0.05.
+prop_trading :: Property
+prop_trading = property $ do
+    -- according to sugarscape after 1000 ticks, trading-prices standard 
+    -- deviation is LTE 0.05
+    let ticks  = 1000 
+        params = mkParamsFigureIV_3
+
+    out <- sugarscapeLast ticks params
+      
+    let maxTradingPricesStdAvg = 0.05
+        prices    = tradingPrices out
+        pricesStd = std prices
+
+    return $ pricesStd <= maxTradingPricesStdAvg
+  where
+    tradingPrices :: SimStepOut -> [Double]
+    tradingPrices (_, _, _, aos) = map tradingPrice trades 
+      where
+        trades = concatMap (sugObsTrades . snd) aos
+ 
+        tradingPrice :: TradeInfo -> Double
+        tradingPrice (TradeInfo price _ _ _ ) = price
+
 -- Tests the hypothesis that for parameter configuration AnimationIII-6, after
 -- 2700 either one culture dominates the other by 95% of all agents being of 
 -- the respective culture, or both are roughly equivalent 45%.
--- There always a few agents in level 1 which dont move and dos not participate 
+-- There are always a few agents in level 1 which dont move and dos not participate 
 -- in culture dynamics and keep initial ones, thus use 95 instead of 100 and
 -- 45 instead of 50.
-prop_culture_dynamics :: Gen Bool
-prop_culture_dynamics = do
+prop_culture :: Property
+prop_culture = property $ do
     let ticks         = 2700 -- according to sugarscape book around this time, culture-dynamics converge
         ratioDominate = 0.95 -- either one culture (red/blue) dominates completely on both hills ...
         ratioEqual    = 0.45 -- ... or each hill has a different culture
@@ -116,35 +115,69 @@ prop_culture_dynamics = do
             zeroCount = length $ filter (==False) tag
 
 -- Testing the hypothesis, that when using the parameter-configuration of
--- FigureIV-3, after 1000 ticks, the standard deviation of the trading prices
--- is less or equal 0.05.
-prop_trading_dynamics :: Gen Bool
-prop_trading_dynamics = do
-    -- according to sugarscape after 1000 ticks, trading-prices standard 
-    -- deviation is LTE 0.05
-    let ticks  = 1000 
-        params = mkParamsFigureIV_3
+-- Fiture III-7, where agents reproduce and can die of age then inheritance 
+-- of their wealth leads to an unequal wealth distribution.
+-- Gini of 0.35 is a onservative guess, is around 0.35, would need to take 
+-- average of multiple runs but takes long time
+prop_gini :: Int -> Double -> Property
+prop_gini repls confidence = once $ do
+  let ticks   = 1000
+      expGini = 0.35 :: Double 
+      params  = mkParamsFigureIII_7
+  
+  (_, _, gini) <- unzip3 <$> vectorOf repls (genPopulationWealthStats ticks params)
 
-    out <- sugarscapeLast ticks params
-      
-    let maxTradingPricesStdAvg = 0.05
-        prices    = tradingPrices out
-        pricesStd = std prices
+  -- perform a two-tailed test because we expect it to be equal
+  let tTestRet = tTestSamples TwoTail expGini (1 - confidence) gini
 
-    return $ pricesStd <= maxTradingPricesStdAvg
+  return $ fromMaybe True tTestRet
+
+-- When agents don't mate nor can die from age (chapter II), due to the 
+-- environment, there is a maximum carrying capacity of agents the environment
+-- can sustain. The capacity should be reached after 100 ticks and should be 
+-- stable from then on.
+prop_carrying :: Int -> Double -> Property
+prop_carrying repls confidence = once $ do
+    let ticks        = 400
+        stableAfter  = 100
+        params       = mkParamsAnimationII_2
+        _maxVariance = 4 :: Double
+        expMean      = 204 :: Double
+        
+    (_vs, ms, _mds) <- unzip3 <$> vectorOf repls (genPopulationSizeStats ticks params stableAfter)
+
+    -- we use a two-tailed t-test because we expecet it to be equal
+    let tTestRet = tTestSamples TwoTail expMean (1 - confidence) ms
+
+    -- TODO: perform a 1-sided https://en.wikipedia.org/wiki/Chi-squared_test 
+    -- on the variances to check if they are less then _maxVariance
+    -- this would be an additional ensurance
+
+    return (fromMaybe True tTestRet)
   where
-    tradingPrices :: SimStepOut -> [Double]
-    tradingPrices (_, _, _, aos) = map tradingPrice trades 
-      where
-        trades = concatMap (sugObsTrades . snd) aos
- 
-        tradingPrice :: TradeInfo -> Double
-        tradingPrice (TradeInfo price _ _ _ ) = price
+    genPopulationSizeStats :: Int
+                           -> SugarScapeScenario
+                           -> Int
+                           -> Gen (Double, Double, Double)
+    genPopulationSizeStats ticks params stableAfter = do
+      sos <- sugarscapeUntil ticks params
+
+      let sos'            = drop stableAfter sos
+          popSizes        = map (\(_, _, _, aos) -> fromIntegral $ length aos) sos'
+          popSizeVariance = std popSizes
+          popSizeMean     = mean popSizes
+          popSizeMedian   = median popSizes
+
+      return $ trace ("popSizeVariance = " ++ printf "%.2f" popSizeVariance ++ 
+                      " popSizeMean = "    ++ printf "%.2f" popSizeMean ++ 
+                      " popSizeMedian = "  ++ printf "%.2f" popSizeMedian) 
+          (popSizeVariance, popSizeMean, popSizeMedian)
 
 -- Testing the hypothesis, that when using the parameter-configuration of
 -- AnimationII-1, after 100 ticks, the terracing is table for 50 ticks
+-- NOTE: 'once' because we are doing replications anyway
 prop_terracing :: Int -> Double -> Property
-prop_terracing repls confidence = once $ do -- only once because we are doing replications anyway
+prop_terracing repls confidence = once $ do 
     (trs, srs) <- unzip <$> vectorOf repls genPopulationTerracingStats
 
     let trMean = 0.45 :: Double  -- terracing ratio expcected mean
@@ -177,7 +210,10 @@ prop_terracing repls confidence = once $ do -- only once because we are doing re
             sr  = staticNumbers / fromIntegral (length sos')
 
         --return (tr, sr)
-        return $ trace ("terraceRatio = " ++ show tr ++ " terraceNumbers = " ++  show terraceNumbers ++ " staticRatio = " ++ show sr ++ " staticNumbers = " ++ show staticNumbers) (tr, sr)
+        return $ trace ("terraceRatio = "    ++ printf "%.2f" tr ++  
+                        " terraceNumbers = " ++ show terraceNumbers ++ 
+                        " staticRatio = "    ++ printf "%.2f" sr ++ 
+                        " staticNumbers = "  ++ show staticNumbers) (tr, sr)
       where
         -- note ao is always in aos
         sameCoord :: [AgentObservable SugAgentObservable]
@@ -197,33 +233,19 @@ prop_terracing repls confidence = once $ do -- only once because we are doing re
             coord       = sugObsCoord ao
             selfCell    = cellAt coord env
             selfCellLvl = sugEnvSiteSugarLevel selfCell
-            cells       = neighbourCells coord False env
-            sameLvls    = any (\c -> sugEnvSiteSugarLevel c /= selfCellLvl) cells
+            cs          = neighbourCells coord False env
+            sameLvls    = any (\c -> sugEnvSiteSugarLevel c /= selfCellLvl) cs
 
--- OK, uses a t-test
-prop_inheritance_gini :: Int -> Double -> Property
-prop_inheritance_gini repls confidence = once $ do
-  let ticks   = 1000
-      expGini = 0.35 :: Double -- conservative guess, is around 0.35, would need to take average of multiple runs but takes long time
-      params  = mkParamsFigureIII_7
-  
-  (_, _, gini) <- unzip3 <$> vectorOf repls (genPopulationWealthStats params ticks)
+-- TODO describe
+prop_wealth :: Int -> Double -> Property
+prop_wealth repls confidence = once $ do
+  let ticks   = 200
+      expSkew = 1.5 :: Double
+      expKurt = 2.0 :: Double
+      expGini = 0.48 :: Double
+      params  = mkParamsAnimationII_3
 
-  -- perform a two-tailed test because we expect it to be equal
-  let tTestRet = tTestSamples TwoTail expGini (1 - confidence) gini
-
-  return $ fromMaybe True tTestRet
-
--- OK does a t-test
-prop_wealth_dist :: Int -> Double -> Property
-prop_wealth_dist repls confidence = once $ do
-  let ticks     = 200
-      expSkew   = 1.5 :: Double
-      expKurt   = 2.0 :: Double
-      expGini   = 0.48 :: Double
-      params    = mkParamsAnimationII_3
-
-  (sks, ks, gs) <- unzip3 <$> vectorOf repls (genPopulationWealthStats params ticks)
+  (sks, ks, gs) <- unzip3 <$> vectorOf repls (genPopulationWealthStats ticks params)
 
   -- all are two-tailed t-tests because has to be the expected mean
   let tTestSkew = tTestSamples TwoTail expSkew (1 - confidence) sks
@@ -234,63 +256,47 @@ prop_wealth_dist repls confidence = once $ do
            fromMaybe True tTestKurt &&
            fromMaybe True tTestGini
 
--------------------------------------------------------------------------------
--- TODO
--- OK, uses t-test
-prop_carrying_cap :: Int -> Double -> Property
-prop_carrying_cap repls confidence = once
-    let     ticks       = 400
-    stableAfter = 100
+--------------------------------------------------------------------------------
+-- GENERATORS & UTILITIES
+-------------------------------------------------------------------------------- 
+-- generates a random sugarscape with given scenario and runs it for given
+-- number of ticks and returns the output of the LAST step
+sugarscapeLast :: Int -> SugarScapeScenario -> Gen SimStepOut
+sugarscapeLast ticks params = do
+  seed <- choose (minBound, maxBound)
+  let g                = mkStdGen seed
+      (simState, _, _) = initSimulationRng g params
+  return $ simulateUntilLast ticks simState  
+    
+-- generates a random sugarscape with given scenario and runs it for given
+-- number of ticks and returns all output until some step
+sugarscapeUntil :: Int -> SugarScapeScenario -> Gen [SimStepOut]
+sugarscapeUntil ticks params = do
+  seed <- choose (minBound, maxBound)
+  let g                = mkStdGen seed
+      (simState, _, _) = initSimulationRng g params
+  return $ simulateUntil ticks simState
 
-    _maxVariance = 4 :: Double
-    expMean      = 204 :: Double
-
-    (rngs, _)   = rngSplits repls g0
-    sugParams   = mkParamsAnimationII_2
-
-    ret         = parMap rpar genPopulationSizeStats rngs
-
-    (_vs, ms, _mds) = unzip3 ret
-    -- we use a two-tailed t-test because we expecet it to be equal
-    tTestRet = tTestSamples TwoTail expMean (1 - confidence) ms
-
-    -- TODO: perform a 1-sided https://en.wikipedia.org/wiki/Chi-squared_test 
-    -- on the variances to check if they are less then _maxVariance
-    -- this would be an additional ensurance
-
-    return (fromMaybe True tTestRet)
-  where
-    genPopulationSizeStats :: Gen (Double, Double, Double)
-    genPopulationSizeStats g 
-        = trace ("popSizeVariance = " ++ show popSizeVariance ++ " popSizeMean = " ++ show popSizeMean ++ " popSizeMedian = " ++ show popSizeMedian) 
-            (popSizeVariance, popSizeMean, popSizeMedian)
-      where
-        (simState, _, _) = initSimulationRng g sugParams
-        sos              = simulateUntil ticks simState
-        sos'             = drop stableAfter sos
-        popSizes         = map (\(_, _, _, aos) -> fromIntegral $ length aos) sos'
-        popSizeVariance  = std popSizes
-        popSizeMean      = mean popSizes
-        popSizeMedian    = median popSizes
-
-genPopulationWealthStats :: SugarScapeScenario
-                         -> Int
+genPopulationWealthStats :: Int
+                         -> SugarScapeScenario
                          -> Gen (Double, Double, Double)
-genPopulationWealthStats params ticks = do
+genPopulationWealthStats ticks params = do
     (_, _, _, aos) <- sugarscapeLast ticks params
+
     let agentWealths = map (sugObsSugLvl . snd) aos
         skew         = skewness agentWealths
         kurt         = kurtosis agentWealths
         gini         = giniCoeff agentWealths
 
-    return $ trace ("skewness = " ++ show skew ++ ", kurtosis = " ++ show kurt ++ " gini = " ++ show gini) 
+    return $ trace ("skewness = "   ++ printf "%.2f" skew ++ 
+                    ", kurtosis = " ++ printf "%.2f" kurt ++ 
+                    ", gini = "     ++ printf "%.2f" gini) 
             (skew, kurt, gini)
 
-giniCoeff :: [Double]
-          -> Double
+-- formula taken from https://en.wikipedia.org/wiki/Gini_coefficient#Definition
+giniCoeff :: [Double] -> Double
 giniCoeff xs = numer / denom
   where
-    n = fromIntegral $ length xs
-    
+    n     = fromIntegral $ length xs
     numer = sum [abs (x_i - x_j) | x_i <- xs, x_j <- xs] 
     denom = 2 * n * sum xs

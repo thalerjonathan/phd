@@ -122,8 +122,6 @@ Test-Suite sugarscape-test
                       , Discrete.Discrete
                       , Environment.Environment
                       , Environment.Tests
-                      , Model.Model
-                      , Model.Tests
                       , Utils.StatsUtils
                       , Utils.Runner
                       
@@ -181,3 +179,60 @@ Test-Suite sugarscape-test
                       -fno-warn-unused-local-binds
 
                       -- -threaded
+
+-- the model-tests go into separate suite because they take very long and need
+-- a experimental QuickCheck build which brings in maxFailPercent
+Test-Suite sugarscape-model-test
+  default-language:     Haskell2010
+
+  type:                 exitcode-stdio-1.0
+
+  other-modules:        Model.Model
+                      , Utils.StatsUtils
+                      
+                      , SugarScape.Agent.Agent
+                      , SugarScape.Agent.Ageing
+                      , SugarScape.Agent.Common
+                      , SugarScape.Agent.Culture
+                      , SugarScape.Agent.Disease
+                      , SugarScape.Agent.Dying                
+                      , SugarScape.Agent.Interface
+                      , SugarScape.Agent.Loan
+                      , SugarScape.Agent.Mating
+                      , SugarScape.Agent.Metabolism
+                      , SugarScape.Agent.Move
+                      , SugarScape.Agent.Polution
+                      , SugarScape.Agent.Trading
+                      , SugarScape.Agent.Utils
+                      , SugarScape.Core.Common 
+                      , SugarScape.Core.Discrete
+                      , SugarScape.Core.Environment
+                      , SugarScape.Core.Init
+                      , SugarScape.Core.Model
+                      , SugarScape.Core.Random
+                      , SugarScape.Core.Scenario
+                      , SugarScape.Core.Simulation
+                      , SugarScape.Core.Utils
+
+  hs-source-dirs:       src/
+                      , src/test/
+                      , src/test/Model/
+
+  main-is:              Tests.hs
+
+  build-depends:        base
+                      , array
+                      , containers
+                      , dunai
+                      , mtl
+                      , MonadRandom
+                      , QuickCheck
+                      , random
+                      , split
+                      , statistics
+                      , transformers
+                      , vector
+
+  ghc-options:        -O2
+                      -Wall 
+                      -Werror

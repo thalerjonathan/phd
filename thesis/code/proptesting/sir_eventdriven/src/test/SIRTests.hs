@@ -1,7 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 module Main where
 
--- import Control.Parallel.Strategies hiding (r0)
 import Data.Maybe
 import System.Random
 
@@ -15,18 +14,11 @@ import StatsUtils
 import Text.Printf
 
 instance Arbitrary SIRState where
-  -- arbitrary :: Gen SIRState
+  arbitrary :: Gen SIRState
   arbitrary = elements [Susceptible, Infected, Recovered]
   -- arbitrary = frequency [ (3, return Susceptible)
   --                       , (2, return Infected)
   --                       , (1, return Recovered) ]
-
-instance Arbitrary StdGen where
-  arbitrary :: Gen StdGen
-  arbitrary = do
-    seed <- choose (minBound, maxBound)
-    return $ mkStdGen seed
-
 contactRate :: Int
 contactRate = 5
 

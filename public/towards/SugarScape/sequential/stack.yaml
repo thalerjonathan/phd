@@ -40,6 +40,8 @@ resolver: lts-12.16
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - dunai-0.5.1
+- git: https://github.com/stevana/quickcheck.git
+  commit: 9ccdcbb3eaad7fe96c08ea5ecbbdfe852615bd49
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

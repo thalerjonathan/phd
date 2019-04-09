@@ -1,34 +1,44 @@
-module Model.Tests 
-  ( modelTests
-  ) where
-
-import Control.Monad.Random
-import Test.Tasty
-import Test.Tasty.HUnit as Unit
-import Test.Tasty.QuickCheck as QC
+module Main where
 
 import Model.Model
+import Test.QuickCheck
 
 repls :: Int
-repls = 5
+repls = 10
 
 confidence :: Double
 confidence = 0.95
 
-modelTests :: RandomGen g 
-           => g
-           -> TestTree 
-modelTests g 
-  = testGroup "Model Tests" 
-      [ QC.testProperty "Inheritance Gini" $ prop_inheritance_gini repls confidence
-      , QC.testProperty "Wealth Distribution" $ prop_wealth_dist repls confidence
+-- clear & stack test SugarScape:sugarscape-model-test
 
-      , QC.testProperty "Terracing" $ prop_terracing repls confidence
-      , QC.testProperty "Trading Dynamics" prop_trading_dynamics
-      , QC.testProperty "Disease Dynamics All Recover" prop_disease_dynamics_allrecover 
-      , QC.testProperty "Disease Dynamics Minority Recover" prop_disease_dynamics_minorityrecover      
-      , QC.testProperty "Cultural Dynamics" prop_culture_dynamics
+main :: IO ()
+main = do
+  let tests = [ ("Disease Dynamics All Recover", prop_disease_allrecover)
+              , ("Disease Dynamics Minority Recover", prop_disease_norecover)
+              , ("Trading Dynamics", prop_trading)
+              , ("Cultural Dynamics", prop_culture)
+              , ("Inheritance Gini", prop_gini repls confidence)
+              , ("Carrying Capacity", prop_carrying repls confidence)
+              , ("Terracing", prop_terracing repls confidence)
+              , ("Wealth Distribution", prop_wealth repls confidence)
+              ]
 
-      , Unit.testCase "Carrying Capacity" $ prop_carrying_cap g repls confidence
+  putStrLn ""
+  putStrLn "--------------------------------------------------------------------------------"
+  putStrLn "Running Model Tests..."
 
-      ]
+  mapM_ (\(tName, t) -> do
+    putStrLn ""
+    putStrLn $ "Testing " ++ tName ++ " ..."
+    quickCheckWith modelTestingArgs t) tests
+
+  putStrLn ""
+  putStrLn "Running Model Tests finished."
+  putStrLn "--------------------------------------------------------------------------------"
+
+modelTestingArgs :: Args
+modelTestingArgs = stdArgs { maxSuccess = 10      -- number successful tests
+                           , maxFailPercent = 100 -- number of maximum failed tests
+                           , maxShrinks = 0       -- NO SHRINKS, doesn't make sense in the model tests
+                            --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
+                           }

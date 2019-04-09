@@ -117,12 +117,12 @@ prop_culture = property $ do
 -- Testing the hypothesis, that when using the parameter-configuration of
 -- Fiture III-7, where agents reproduce and can die of age then inheritance 
 -- of their wealth leads to an unequal wealth distribution.
--- Gini of 0.35 is a onservative guess, is around 0.35, would need to take 
--- average of multiple runs but takes long time
+-- This is the hypothesis as stated in the book is INVALID and thus marked 
+-- using expectFailure
 prop_gini :: Int -> Double -> Property
-prop_gini repls confidence = property $ do
+prop_gini repls confidence = expectFailure $ do
   let ticks   = 1000
-      expGini = 0.35 :: Double 
+      expGini = 0.7 :: Double 
       params  = mkParamsFigureIII_7
   
   (_, _, gini) <- unzip3 <$> vectorOf repls (genPopulationWealthStats ticks params)

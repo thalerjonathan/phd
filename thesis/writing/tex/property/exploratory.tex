@@ -18,8 +18,8 @@ The property we test for is whether \textit{the emergent property / hypothesis u
 	
 	\item Cultural Dynamics - When having two cultures, red and green, after 2,700 ticks, either the red or the blue culture dominates or both are equally strong. If they dominate they make up 95\% of all agents, if they are equally strong they are both within 45\% - 55\%.
 	
-	\item Inheritance Gini Coefficient - When agents reproduce and can die of age then inheritance of their wealth leads to an unequal wealth distribution measured using the Gini Coefficient \textit{averaging} at 0.35. 
-
+	\item Inheritance Gini Coefficient - According to the book, when agents reproduce and can die of age then inheritance of their wealth leads to an unequal wealth distribution measured using the Gini Coefficient \textit{averaging} at 0.7.
+	
 	\item Carrying Capacity - When agents don't mate nor can die from age (chapter II), due to the environment, there is an \textit{average} maximum carrying capacity of agents the environment can sustain. The capacity should be reached after 100 ticks and should be stable from then on.
 		
 	\item Terracing - When resources regrow immediately, after a few steps the simulation becomes static. Agents will stay on their terraces and will not move any more because they have found the best spot due to their behaviour. About 45\% will be on terraces and 95\% - 100\% are static and not moving any more.
@@ -60,15 +60,15 @@ prop_disease_allrecover = property (do
   return (infected == 0))
 \end{HaskellCode}
 
-QuickCheck runs multiple replications of a property when testing it, where the number is 100 by default. From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.35. We cannot average over replicated runs of the same property thus we generate multiple replications of the sugarscape data within the property and employ a two-sided t-test to test the hypothesis. Here is how we encode this into a property-test:
+QuickCheck runs multiple replications of a property when testing it, where the number is 100 by default. From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.7. We cannot average over replicated runs of the same property thus we generate multiple replications of the sugarscape data within the property and employ a two-sided t-test with a 95\% confidence to test the hypothesis. Here is how we encode this into a property-test:
 
 \begin{HaskellCode}
 prop_gini :: Int -> Double -> Property
 prop_gini repls confidence = property (do
   -- after 1000 ticks...
   let ticks = 1000
-  -- ... the gini coefficient should average at 0.35 ...
-  let expGini = 0.35
+  -- ... the gini coefficient should average at 0.7 ...
+  let expGini = 0.7
   -- ... given the Figure III-7 parameter configuration ...
   let params = mkParamsFigureIII_7
   
@@ -102,55 +102,26 @@ As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writ
 
 We run the tests again with 10 replications each but now allowing 100\% of failure in each case to see how reliable each hypothesis is. In one specific run we get the following result:
 
-%--------------------------------------------------------------------------------
-%Running Model Tests...
-%
-%Testing Disease Dynamics All Recover ...
-%+++ OK, passed 10 tests.
-%
-%Testing Disease Dynamics Minority Recover ...
-%+++ OK, passed 10 tests.
-%
-%Testing Trading Dynamics ...
-%*** Failed! Falsified (after 3 tests):
-%*** Failed! Falsified (after 8 tests):
-%+++ OK, passed 10 tests; 2 failed (16%).
-%
-%Testing Cultural Dynamics ...
-%*** Failed! Falsified (after 3 tests):
-%*** Failed! Falsified (after 3 tests):
-%*** Failed! Falsified (after 3 tests):
-%+++ OK, passed 10 tests; 3 failed (23%).
-%
-%Testing Inheritance Gini ...
-% TODO
-%
-%Testing Carrying Capacity ...
-%+++ OK, passed 10 tests; 2 failed (16%).
-%
-%Testing Terracing ...
-% TODO
-%
-%Running Model Tests finished.
-%--------------------------------------------------------------------------------
 
 \begin{enumerate}
 	\item Disease Dynamics all recover: \textit{+++ OK, passed 10 tests.}
 
 	\item Disease Dynamics minority recover: \textit{+++ OK, passed 10 tests.}
 		
-	\item Trading Dynamics: \textit{+++ OK, passed 10 tests; 2 failed (16\%).} \\ In total 12 tests (replications) were run, out of which 2 failed, which is a 16\% failure rate.
+	\item Trading Dynamics: \textit{+++ OK, passed 10 tests; 2 failed (16\%).} (In total 12 tests (replications) were run, out of which 2 failed, which is a 16\% failure rate.)
 	
 	\item Cultural Dynamics: \textit{+++ OK, passed 10 tests; 3 failed (23\%).}
 
-	\item Inheritance Gini Coefficient: \textit{TODO}
+	\item Inheritance Gini Coefficient: \textit{*** Failed! Passed only 0 tests; 10 failed (100\%) tests.}
 
-	\item Carrying Capacity: \textit{+++ OK, passed 10 tests; 2 failed (16%).}
+	\item Carrying Capacity: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
 
-	\item Terracing: \textit{+++ OK, passed 10 tests; 2 failed (16%).}
+	\item Terracing: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
 \end{enumerate}
 
-How to deal with the failure of the hypotheses is obviously highly model specific. A first approach is to increase the number of replications to run to 100 to get a more robust estimate of the failure rate. If the failure rate stays within reasonable ranges then one can arguably assume that the hypothesis is valid for sufficiently enough cases. On the other hand, if the failure rate escalates, then it is reasonable to deem the hypothesis invalid and refine it or even abandon it altogether. For the hypotheses we presented here we accept the failure rate and even though there the hypotheses fail in some cases, we deem them sufficiently valid for the task at hand.
+How to deal with the failure of the hypotheses is obviously highly model specific. A first approach is to increase the number of replications to run to 100 to get a more robust estimate of the failure rate. If the failure rate stays within reasonable ranges then one can arguably assume that the hypothesis is valid for sufficiently enough cases. On the other hand, if the failure rate escalates, then it is reasonable to deem the hypothesis invalid and refine it or even abandon it altogether.
+
+With the exception of the Gini Coefficient, we accept the failure rate of the hypotheses we presented here and deem them sufficiently valid for the task at hand. In case of the Gini Coefficient, none of the replication was successful, which makes it obvious that it does \textit{not} average at 0.7. Thus the hypothesis as stated in the book does not hold and is invalid. One way to deal with it would be to simply delete it. Another, more constructive approach, is to keep it but require all replications to fail by marking it with \textit{expectFailure} instead of \textit{property}. In this way an invalid hypothesis is marked explicitly and acts as documentation and also as test.
 
 Note that we disabled shrinking for hypothesis testing as it has no meaning here. The only thing which would be shrunk would be the seed of the random-number generator, which has no intrinsic meaning.
 

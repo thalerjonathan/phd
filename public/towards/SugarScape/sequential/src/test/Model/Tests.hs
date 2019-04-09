@@ -13,16 +13,16 @@ confidence = 0.95
 
 main :: IO ()
 main = do
--- ("Disease Dynamics All Recover", prop_disease_allrecover)
---               , ("Disease Dynamics Minority Recover", prop_disease_norecover)
---               , ("Trading Dynamics", prop_trading)
---               , ("Cultural Dynamics", prop_culture)
---               
+ 
 
-  let tests = [ ("Inheritance Gini", prop_gini repls confidence)
-              --, ("Carrying Capacity", prop_carrying repls confidence)
-              --, ("Terracing", prop_terracing repls confidence)
-              --, ("Wealth Distribution", prop_wealth repls confidence)
+  let tests = [ ("Disease Dynamics All Recover", prop_disease_allrecover)
+              , ("Disease Dynamics Minority Recover", prop_disease_norecover)
+              , ("Trading Dynamics", prop_trading)
+              , ("Cultural Dynamics", prop_culture)
+              , ("Inheritance Gini", prop_gini repls confidence)
+              , ("Carrying Capacity", prop_carrying repls confidence)
+              , ("Terracing", prop_terracing repls confidence)
+              , ("Wealth Distribution", prop_wealth repls confidence)
               ]
 
   putStrLn ""

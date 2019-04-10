@@ -23,18 +23,25 @@ instance Eq (QueueItem e) where
 instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 
-data ABSState m e s = ABSState
+
+-- TODO get rid of ABSState
+-- Introduce a Reader to make the Time and AgentIds as read-only availble to agents
+-- Introduce a Writer where agents schedule events into
+-- evt count and agents can be kept within the main simulation loop
+-- domain-state also a writer: increment, decrement command which are then
+-- aggregated for final results
+data ABSState m e s o = ABSState
   { absEvtQueue    :: !(EventQueue e)
   , absTime        :: !Time
-  , absAgents      :: !(Map.IntMap (AgentCont m e s))
+  , absAgents      :: !(Map.IntMap (AgentCont m e s o))
   , absAgentIds    :: ![AgentId]
   , absEvtCount    :: !Integer
   , absDomainState :: !s
   }
 
-type ABSMonad m e s  = StateT (ABSState m e s) m
-type AgentCont m e s = MSF (ABSMonad m e s) e ()
-type Agent m e s     = AgentId -> (ABSMonad m e s) (AgentCont m e s)
+type ABSMonad m e s o  = StateT (ABSState m e s o) m
+type AgentCont m e s o = MSF (ABSMonad m e s o) e o
+type Agent m e s o     = AgentId -> (ABSMonad m e s o) (AgentCont m e s o)
 
 type SIRDomainState = (Int, Int, Int)
 
@@ -51,9 +58,10 @@ data SIREvent
   deriving Show
 
 type SIRMonad g     = Rand g
-type SIRMonadT g    = ABSMonad (SIRMonad g) SIREvent SIRDomainState
-type SIRAgent g     = Agent (SIRMonad g) SIREvent SIRDomainState
-type SIRAgentCont g = AgentCont (SIRMonad g) SIREvent SIRDomainState
+type SIRMonadT g    = ABSMonad (SIRMonad g) SIREvent SIRDomainState SIRState
+type SIRAgent g     = Agent (SIRMonad g) SIREvent SIRDomainState SIRState
+type SIRAgentCont g = AgentCont (SIRMonad g) SIREvent SIRDomainState SIRState
+type SIRABSState g  = ABSState (SIRMonad g) SIREvent SIRDomainState SIRState
 
 makeContactInterval :: Double
 makeContactInterval = 1.0
@@ -66,15 +74,15 @@ sirAgent :: RandomGen g
          -> SIRState    -- ^ the initial state of the agent
          -> SIRAgent g  -- ^ the continuation
 sirAgent cr inf illDur Susceptible aid = do
-    -- on start
-    changeSIRNumbers incSus
-    scheduleMakeContact aid 
-    return $ susceptibleAgent aid cr inf illDur 
+  -- on start
+  changeSIRNumbers incSus
+  scheduleMakeContact aid 
+  return $ susceptibleAgent aid cr inf illDur 
 sirAgent _ _ illDur Infected aid = do
-    -- on start
-    changeSIRNumbers incInf
-    scheduleRecovery aid illDur
-    return $ infectedAgent aid
+  -- on start
+  changeSIRNumbers incInf
+  scheduleRecovery aid illDur
+  return $ infectedAgent aid
 sirAgent _ _ _ Recovered _ = do
   changeSIRNumbers incRec
   return recoveredAgent
@@ -94,10 +102,12 @@ susceptibleAgent aid cr inf illDur =
                              => MSF
                                 (SIRMonadT g) 
                                 SIREvent
-                                ((), Maybe ()) 
+                                (SIRState, Maybe ()) 
     susceptibleAgentInfected = proc e -> do
       ret <- arrM handleEvent -< e
-      returnA -< ((), ret)
+      case ret of
+        Nothing -> returnA -< (Susceptible, ret)
+        _       -> returnA -< (Infected, ret)
 
     handleEvent :: RandomGen g => SIREvent -> (SIRMonadT g) (Maybe ())
     handleEvent (Contact _ Infected) = do
@@ -132,10 +142,12 @@ infectedAgent aid =
     infectedAgentRecovered :: MSF 
                               (SIRMonadT g) 
                               SIREvent 
-                              ((), Maybe ()) 
+                              (SIRState, Maybe ()) 
     infectedAgentRecovered = proc e -> do
       ret <- arrM handleEvent -< e
-      returnA -< ((), ret)
+      case ret of
+        Nothing -> returnA -< (Infected, ret)
+        _       -> returnA -< (Recovered, ret)
 
     handleEvent :: SIREvent -> (SIRMonadT g) (Maybe ())
     handleEvent (Contact sender Susceptible) = do
@@ -151,7 +163,7 @@ infectedAgent aid =
     replyContact receiver = scheduleEvent receiver (Contact aid Infected) 0.0
 
 recoveredAgent :: SIRAgentCont g
-recoveredAgent = arr (const ()) 
+recoveredAgent = arr (const Recovered) 
 
 scheduleMakeContact :: AgentId -> (SIRMonadT g) ()
 scheduleMakeContact aid = scheduleEvent aid MakeContact makeContactInterval
@@ -224,7 +236,7 @@ runSIR ss cr inf illDur steps tLimit = evalRand act
     stepClock :: Monad m
               => Integer 
               -> [(Time, s)]
-              -> (ABSMonad m e s) [(Time, s)]
+              -> (ABSMonad m e s o) [(Time, s)]
     stepClock 0 acc = return acc
     stepClock n acc = do 
       q <- gets absEvtQueue
@@ -266,7 +278,7 @@ runSIR ss cr inf illDur steps tLimit = evalRand act
 
               stepClock (n-1) acc'
 
-allAgentIds :: Monad m => (ABSMonad m e s) [AgentId]
+allAgentIds :: Monad m => (ABSMonad m e s o) [AgentId]
 allAgentIds = gets absAgentIds
 
 changeSIRNumbers :: ((Int, Int, Int) -> (Int, Int, Int)) -> (SIRMonadT g) ()
@@ -274,7 +286,7 @@ changeSIRNumbers = modifyDomainState
 
 modifyDomainState :: Monad m 
                   => (s -> s) 
-                  -> (ABSMonad m e s) ()
+                  -> (ABSMonad m e s o) ()
 modifyDomainState f = 
   modify (\s -> s { absDomainState = f $ absDomainState s })
 
@@ -282,7 +294,7 @@ scheduleEvent :: Monad m
               => AgentId 
               -> e
               -> Double
-              -> (ABSMonad m e s) ()
+              -> (ABSMonad m e s o) ()
 scheduleEvent aid e dt = do
   q <- gets absEvtQueue
   t <- gets absTime

@@ -32,6 +32,8 @@ illnessDuration = 15.0
 replications :: Int
 replications = 100
 
+-- clear & stack test sir-event:sir-model-test
+
 main :: IO ()
 main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests

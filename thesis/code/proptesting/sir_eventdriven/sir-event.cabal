@@ -81,7 +81,7 @@ executable sir-event
                       -- -Wredundant-constraints
                        -Werror
 
-Test-Suite sir-test
+Test-Suite sir-model-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
@@ -93,7 +93,7 @@ Test-Suite sir-test
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              SIRTests.hs
+  main-is:              Model.hs
 
   build-depends:        base
                       , containers
@@ -111,3 +111,33 @@ Test-Suite sir-test
                       -Wall 
                       -Werror
                       -fno-warn-orphans
+
+Test-Suite sir-agent-test
+  default-language:     Haskell2010
+
+  type:                 exitcode-stdio-1.0
+
+  other-modules:        StatsUtils
+                      
+                      , SIR.SIR
+
+  hs-source-dirs:       src/
+                      , src/test
+
+  main-is:              Agent.hs
+
+  build-depends:        base
+                      , containers
+                      , dequeue 
+                      , dunai
+                      , mtl
+                      , MonadRandom
+                      , pqueue
+                      , QuickCheck
+                      , random
+                      , statistics
+                      , vector
+                      
+  ghc-options:        -O2
+                      -Wall 
+                      -Werror

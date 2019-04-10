@@ -5,7 +5,9 @@ import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Data.MonadicStreamFunction
-import Test.QuickCheck
+--import Test.QuickCheck
+import Test.Tasty
+import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
 
@@ -43,35 +45,46 @@ instance Arbitrary ContactEvent where
 
 -- clear & stack test sir-event:sir-agent-test
 
+-- main :: IO ()
+-- main = do
+--   let tests = [ --("Recovered agent stays recovered forever", prop_recovered_forever)
+--               --, ("Recovered agent generates no events", prop_recovered_no_events)
+--               --, ("Susceptible agent never recovered", prop_susceptible_noreceovered)
+--               --, ("Infected agent never susceptible", prop_infected_neversusceptible)
+--                ("Infected replies to contact", prop_infected_contact_reply)
+--               ]
+
+--   putStrLn ""
+--   putStrLn "--------------------------------------------------------------------------------"
+--   putStrLn "Running Agent Tests..."
+
+--   mapM_ (\(tName, t) -> do
+--     putStrLn ""
+--     putStrLn $ "Testing " ++ tName ++ " ..."
+--     quickCheckWith agentTestingArgs t) tests
+
+--   putStrLn ""
+--   putStrLn "Running Agent Tests finished."
+--   putStrLn "--------------------------------------------------------------------------------"
+
+-- agentTestingArgs :: Args
+-- agentTestingArgs = stdArgs { maxSuccess = 1000      -- number successful tests
+--                            --, maxFailPercent = 100 -- number of maximum failed tests
+--                            --, maxShrinks = 0       
+--                             --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
+--                            }
+
 main :: IO ()
-main = do
-  let tests = [ --("Recovered agent stays recovered forever", prop_recovered_forever)
-              --, ("Recovered agent generates no events", prop_recovered_no_events)
-              --, ("Susceptible agent never recovered", prop_susceptible_noreceovered)
-              --, ("Infected agent never susceptible", prop_infected_neversusceptible)
-               ("Infected replies to contact", prop_infected_contact_reply)
+main = defaultMain agentTests
+
+agentTests :: TestTree 
+agentTests = testGroup "Agent Tests"
+              [ QC.testProperty "Recovered agent stays recovered forever" prop_recovered_forever
+              , QC.testProperty "Recovered agent generates no events" prop_recovered_no_events
+              , QC.testProperty "Susceptible agent never recovered" prop_susceptible_noreceovered
+              , QC.testProperty "Infected agent never susceptible" prop_infected_neversusceptible
+              , QC.testProperty "Infected replies to contact" prop_infected_contact_reply
               ]
-
-  putStrLn ""
-  putStrLn "--------------------------------------------------------------------------------"
-  putStrLn "Running Agent Tests..."
-
-  mapM_ (\(tName, t) -> do
-    putStrLn ""
-    putStrLn $ "Testing " ++ tName ++ " ..."
-    quickCheckWith agentTestingArgs t) tests
-
-  putStrLn ""
-  putStrLn "Running Agent Tests finished."
-  putStrLn "--------------------------------------------------------------------------------"
-
-agentTestingArgs :: Args
-agentTestingArgs = stdArgs { maxSuccess = 1000      -- number successful tests
-                           --, maxFailPercent = 100 -- number of maximum failed tests
-                           --, maxShrinks = 0       
-                            --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
-                           }
-
 --------------------------------------------------------------------------------
 -- INVARIANT PROPERTIES
 
@@ -97,6 +110,7 @@ prop_susceptible_noreceovered ae@(AllSIREvent evt)
     = label (show ae) (ao /= Recovered)
   where
     -- TODO: generate random population as well!
+    -- TODO: why is it working with empty list of agents??
     ag = susceptibleAgent 0 contactRate infectivity illnessDuration
     ao = runDefaultAgentOut ag evt
 

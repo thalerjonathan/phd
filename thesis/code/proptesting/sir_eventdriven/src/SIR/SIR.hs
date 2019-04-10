@@ -1,5 +1,4 @@
 {-# LANGUAGE Arrows           #-}
---{-# LANGUAGE Strict           #-} -- NOTE: without strict will have dramatic space leak
 {-# LANGUAGE FlexibleContexts #-}
 module SIR.SIR where
 

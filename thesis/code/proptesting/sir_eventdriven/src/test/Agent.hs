@@ -2,11 +2,9 @@
 module Main where
 
 import Control.Monad.Random
-import Control.Monad.State.Strict
-
+import Control.Monad.Reader
+import Control.Monad.Writer
 import Data.MonadicStreamFunction
-import Data.IntMap.Strict as Map 
-import Data.PQueue.Min as PQ
 import Test.QuickCheck
 
 import SIR.SIR
@@ -72,16 +70,15 @@ prop_recovered_forever ae@(AllSIREvent evt)
     = label (show ae) (ao == Recovered)
   where
     ag = recoveredAgent
-    ao = runDefaultAgent ag evt
+    ao = runDefaultAgentOut ag evt
 
 -- recovered schedules no events
 prop_recovered_no_events :: AllSIREvent -> Property
 prop_recovered_no_events ae@(AllSIREvent evt) 
-    = label (show ae) (PQ.null aq)
+    = label (show ae) (null es)
   where
     ag = recoveredAgent
-    as = runDefaultAgentState ag evt
-    aq = absEvtQueue as
+    es = runDefaultAgentEvents ag evt
 
 -- susceptible can not become recovered (has to become infected first) 
 prop_susceptible_noreceovered :: AllSIREvent -> Property
@@ -90,7 +87,7 @@ prop_susceptible_noreceovered ae@(AllSIREvent evt)
   where
     -- TODO: generate random population as well!
     ag = susceptibleAgent 0 contactRate infectivity illnessDuration
-    ao = runDefaultAgent ag evt
+    ao = runDefaultAgentOut ag evt
 
 --  infected never back to susceptible 
 prop_infected_neversusceptible :: Bool
@@ -110,45 +107,39 @@ prop_infected_contact_reply = undefined
 -- UTILS
 runAgent :: RandomGen g
          => g
-         -> SIRABSState g
          -> SIRAgentCont g
          -> SIREvent
-         -> (g, SIRABSState g, SIRAgentCont g, SIRState)
-runAgent g as a e = (g', abs', a', ao)
+         -> Time
+         -> [AgentId]
+         -> (g, SIRAgentCont g, SIRState, [QueueItem SIREvent])
+runAgent g a e t ais  = (g', a', ao, es)
   where
-    amsfState = unMSF a e
-    amsfRand  = runStateT amsfState as
-    (((ao, a'), abs'), g') = runRand amsfRand g
+    aMsf       = unMSF a e
+    aEvtWriter = runReaderT aMsf t
+    aAisReader = runWriterT aEvtWriter
+    aDomWriter = runReaderT aAisReader ais
+    aRand      = runWriterT aDomWriter
+
+    ((((ao, a'), es), _dus), g') = runRand aRand g
 
 runAgentOut :: RandomGen g
             => g
-            -> SIRABSState g
             -> SIRAgentCont g
             -> SIREvent
+            -> Time
+            -> [AgentId]
             -> SIRState
-runAgentOut g as a e = ao
+runAgentOut g a e t ais = ao
   where
-    (_, _, _, ao) = runAgent g as a e
+    (_, _, ao, _) = runAgent g a e t ais
 
-runDefaultAgent :: SIRAgentCont StdGen -> SIREvent -> SIRState
-runDefaultAgent = runAgentOut g as
+runDefaultAgentOut :: SIRAgentCont StdGen -> SIREvent -> SIRState
+runDefaultAgentOut a e = runAgentOut g a e 0 []
   where
-    g  = mkStdGen 0
-    as = mkAbsSirStateDefault 
+    g = mkStdGen 0
 
-runDefaultAgentState :: SIRAgentCont StdGen -> SIREvent -> SIRABSState StdGen
-runDefaultAgentState a e = as'
+runDefaultAgentEvents :: SIRAgentCont StdGen -> SIREvent -> [QueueItem SIREvent]
+runDefaultAgentEvents a e = es
   where
-    g  = mkStdGen 0
-    as = mkAbsSirStateDefault 
-    (_, as', _, _) = runAgent g as a e
-  
-mkAbsSirStateDefault :: SIRABSState g
-mkAbsSirStateDefault = ABSState {
-    absEvtQueue    = PQ.empty
-  , absTime        = 0
-  , absAgents      = Map.empty
-  , absAgentIds    = []
-  , absEvtCount    = 0
-  , absDomainState = (0,0,0)
-  }
+    g = mkStdGen 0
+    (_, _, _, es) = runAgent g a e 0 []

@@ -70,7 +70,7 @@ sir as = do
     let g = mkStdGen seed
     return $ snd $
             last $ 
-            runSIR as contactRate infectivity illnessDuration (-1) 1.0 g
+            fst $ runSIR as contactRate infectivity illnessDuration (-1) 1.0 g
 
 sdSpec :: Double 
        -> Double 

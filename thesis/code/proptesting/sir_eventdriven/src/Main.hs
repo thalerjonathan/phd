@@ -9,7 +9,7 @@ seed :: Int
 seed = 42
 
 agentCount :: Int
-agentCount = 5000
+agentCount = 1000
 
 infectedCount :: Int
 infectedCount = 1
@@ -25,7 +25,7 @@ illnessDuration = 15.0
 
 -- use negative number for unlimited number of events
 maxEvents :: Integer
-maxEvents = -1 
+maxEvents = -1
 
 -- use 1 / 0 for unrestricted time
 maxTime :: Double
@@ -39,10 +39,10 @@ main = do
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
-      ss = runSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
-
+      (ss, evtCnt) = runSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
+    
   print $ "Finished at t = " ++ show (fst $ last ss) ++ 
-          ", after " ++ show (length ss - 2) ++ 
+          ", after " ++ show evtCnt ++ 
           " events"
 
   let ssCompr = compressOutput ss

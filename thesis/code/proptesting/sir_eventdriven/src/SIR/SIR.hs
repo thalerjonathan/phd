@@ -42,7 +42,7 @@ data SIREvent
   = MakeContact
   | Contact AgentId SIRState
   | Recover 
-  deriving Show
+  deriving (Show, Eq)
 
 type SIRMonad g     = Rand g
 type SIRMonadT g    = ABSMonad (SIRMonad g) SIREvent SIRDomainUpdate

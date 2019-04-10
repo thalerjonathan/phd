@@ -19,6 +19,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 newtype AllSIREvent = AllSIREvent SIREvent deriving Show
+newtype ContactEvent = ContactEvent SIREvent deriving Show
 newtype NoRecoverSIREvent = NoRecoverSIREvent SIREvent deriving Show
 
 -- instance Arbitrary SIRState where
@@ -32,13 +33,23 @@ instance Arbitrary AllSIREvent where
     e <- elements [MakeContact, Contact 0 s, Recover]
     return $ AllSIREvent e
 
+instance Arbitrary ContactEvent where
+  arbitrary :: Gen ContactEvent
+  arbitrary = do
+    s   <- elements [Susceptible, Infected, Recovered] 
+    aid <- choose (0, 1000)
+    let e = Contact aid s 
+    return $ ContactEvent e
+
 -- clear & stack test sir-event:sir-agent-test
 
 main :: IO ()
 main = do
-  let tests = [ ("Recovered agent stays recovered forever", prop_recovered_forever)
-              , ("Recovered agent generates no events", prop_recovered_no_events)
-              , ("Susceptible agent never recovered", prop_susceptible_noreceovered)
+  let tests = [ --("Recovered agent stays recovered forever", prop_recovered_forever)
+              --, ("Recovered agent generates no events", prop_recovered_no_events)
+              --, ("Susceptible agent never recovered", prop_susceptible_noreceovered)
+              --, ("Infected agent never susceptible", prop_infected_neversusceptible)
+               ("Infected replies to contact", prop_infected_contact_reply)
               ]
 
   putStrLn ""
@@ -90,12 +101,32 @@ prop_susceptible_noreceovered ae@(AllSIREvent evt)
     ao = runDefaultAgentOut ag evt
 
 --  infected never back to susceptible 
-prop_infected_neversusceptible :: Bool
-prop_infected_neversusceptible = undefined
+prop_infected_neversusceptible :: AllSIREvent -> Property
+prop_infected_neversusceptible ae@(AllSIREvent evt) 
+    = label (show ae) (ao /= Susceptible)
+  where
+    ag = infectedAgent 0
+    ao = runDefaultAgentOut ag evt
 
--- an infected replies to each contact
-prop_infected_contact_reply :: Bool
-prop_infected_contact_reply = undefined
+-- an infected replies to Susceptible contacts only
+prop_infected_contact_reply :: ContactEvent -> Property
+prop_infected_contact_reply (ContactEvent evt) 
+    = label (labelContactEvent evt) (case evt of 
+                          (Contact aid Susceptible) -> 
+                            length es == 1 &&
+                            aid' == aid && 
+                            e    == Contact ai Infected &&
+                            t    == 0 -- TODO: randomise time
+                          _ -> True)
+  where
+    labelContactEvent (Contact _ s) = "ContactEvent * " ++ show s
+    labelContactEvent ce            = "ContactEvent * " ++ show ce -- should never happen
+
+    ai = 42
+    ag = infectedAgent ai
+    es = runDefaultAgentEvents ag evt
+
+    (QueueItem aid' (Event e) t :_) = es
 
 --------------------------------------------------------------------------------
 -- PROBABILITIES / DURATIONS PROPERTIES

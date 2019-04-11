@@ -189,6 +189,9 @@ prop_infected_neversusceptible = do
 
   return (not $ any (==Susceptible) aos)
 
+-- TODO implement multi-event invariant which makes transition from Susceptible,
+-- to Infected to Recovered, maybe quickcheck-statemachine can be of help here?
+
 --------------------------------------------------------------------------------
 -- PROBABILITIES / DURATIONS PROPERTIES
 

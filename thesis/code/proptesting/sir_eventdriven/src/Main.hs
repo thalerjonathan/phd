@@ -33,8 +33,8 @@ maxTime = 150.0
 
 main :: IO ()
 main = do
-  let g0 = mkStdGen seed
-  -- g0 <- getStdGen
+  --let g0 = mkStdGen seed
+  g0 <- getStdGen
 
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected

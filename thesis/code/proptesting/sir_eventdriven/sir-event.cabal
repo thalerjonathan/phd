@@ -133,6 +133,7 @@ Test-Suite sir-agent-test
                       , mtl
                       , MonadRandom
                       , pqueue
+                      , QuickCheck
                       , tasty
                       , tasty-quickcheck
                       , random
@@ -142,3 +143,4 @@ Test-Suite sir-agent-test
   ghc-options:        -O2
                       -Wall 
                       -Werror
+                      -fno-warn-orphans

@@ -11,6 +11,8 @@ import Data.MonadicStreamFunction
 import qualified Data.IntMap.Strict as Map 
 import qualified Data.PQueue.Min as PQ
 
+-- import Debug.Trace
+
 type EventId      = Integer
 type Time         = Double
 type AgentId      = Int
@@ -107,8 +109,9 @@ susceptibleAgent aid cr inf illDur =
         else return Nothing
 
     handleEvent MakeContact = do
-      ais <- allAgentIds
-      receivers <- forM [1..cr] (const $ lift $ lift $ lift $ lift $ randomElem ais)
+      ais       <- allAgentIds
+      crExp     <- lift $ lift $ lift $ lift $ randomExpM (1 / fromIntegral cr)
+      receivers <- forM [1..crExp] (const $ lift $ lift $ lift $ lift $ randomElem ais)
       mapM_ makeContactWith receivers
       scheduleMakeContact aid
       return Nothing
@@ -285,7 +288,6 @@ randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
 
 --------------------------------------------------------------------------------
 -- UTILS
-
 aggregateDomainUpdates :: [SIRDomainUpdate] -> [(Time, (Int, Int, Int))]
 aggregateDomainUpdates dus = reverse $ snd $ foldr aggregateDomainUpdatesAux ((0,0,0), []) (reverse dus)
   where

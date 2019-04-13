@@ -2,7 +2,6 @@
 module Main where
 
 import Data.Maybe
-import Text.Printf
 
 import Control.Monad.Random
 import Control.Monad.Reader
@@ -24,15 +23,6 @@ infectivity = 0.05
 illnessDuration :: Double
 illnessDuration = 15.0
 
-instance Arbitrary SIREvent where
-  arbitrary :: Gen SIREvent
-  arbitrary = oneof [ return MakeContact 
-                    , do
-                        s <- elements [Susceptible, Infected, Recovered]
-                        (Positive ai) <- arbitrary
-                        return $ Contact ai s
-                    , return Recover]
-
 -- clear & stack test sir-event:sir-agent-test --test-arguments="--quickcheck-tests=1000"
 
 main :: IO ()
@@ -46,17 +36,17 @@ main = do
                           , QC.testProperty "Recovered agent stays recovered forever" prop_recovered_forever
                           , QC.testProperty "Infected agent never susceptible" prop_infected_neversusceptible
 
-                          , QC.testProperty "Susceptible agent mean contact rate" prop_susceptible_meancontactrate_coverage
-                          , QC.testProperty "Susceptible agent mean illness duration" prop_susceptible_meanIllnessDuration_coverage
-                          , QC.testProperty "Susceptible agent mean infectivity" prop_susceptible_meanInfectivity_coverage
+                          , QC.testProperty "Susceptible agent mean contact rate" prop_susceptible_meancontactrate
+                          , QC.testProperty "Infected agent mean illness duration" prop_infected_meanIllnessDuration
+                          , QC.testProperty "Susceptible agent mean infectivity" prop_susceptible_meanInfectivity
                           ]
 
-    let _maxFailPercTests = 
-            [ 
-              ("Susceptible agent mean contact rate", prop_susceptible_meancontactrate)
-            , ("Susceptible agent mean illness duration", prop_susceptible_meanIllnessDuration)
-            , ("Susceptible agent mean infectivity", prop_susceptible_meanInfectivity)
-            ]
+    -- let _maxFailPercTests = 
+    --         [ 
+    --           ("Susceptible agent mean contact rate", prop_susceptible_meancontactrate)
+    --         , ("Susceptible agent mean illness duration", prop_susceptible_meanIllnessDuration)
+    --         , ("Susceptible agent mean infectivity", prop_susceptible_meanInfectivity)
+    --         ]
 
     --_quickCheckFailPercentageTests _maxFailPercTests
     defaultMain _tastyQCTests
@@ -101,8 +91,8 @@ main = do
 -- Recover:
 --    - output is Susceptible
 --    - doesn't schedule other events
-prop_susceptible_invariants :: Property
-prop_susceptible_invariants = property $ do
+prop_susceptible_invariants :: Gen Property
+prop_susceptible_invariants = do
     -- need a random number generator
     g  <- genStdGen
     -- generate non-empty list of agent ids, we have at least one agent
@@ -121,23 +111,23 @@ prop_susceptible_invariants = property $ do
     let (_g', _a', ao, es) = runAgent g a evt t ais
 
     case evt of
-      Recover -> return (null es && ao == Susceptible)
+      Recover -> return $ property (null es && ao == Susceptible)
 
       MakeContact -> do
         let ret = checkMakeContactInvariants ai ais t es
-        return (ret && ao == Susceptible)
+        return $ property (ret && ao == Susceptible)
 
       Contact _ s -> 
         case s of
           -- this event will never be generated
           Recovered -> return $ property False 
           -- Susceptible does not reply to this
-          Susceptible -> return (null es && ao == Susceptible)
+          Susceptible -> return $ property (null es && ao == Susceptible)
           -- might become infected
           Infected -> 
             if ao /= Infected
               -- not infected, nothing happens
-              then return (null es && ao == Susceptible) 
+              then return $ property (null es && ao == Susceptible) 
               -- infected, check invariants
               else do
                 let ret = checkInfectedInvariants ai t es
@@ -192,8 +182,8 @@ prop_susceptible_invariants = property $ do
 -- Recover:
 --    - doesn't schedule any events 
 --    - output Recovered
-prop_infected_invariants :: Gen Property
-prop_infected_invariants  = do
+prop_infected_invariants :: Property
+prop_infected_invariants = property $ do
     -- need a random number generator
     g  <- genStdGen
     -- generate non-empty list of agent ids, we have at least one agent
@@ -242,8 +232,8 @@ prop_infected_invariants  = do
 -- Recover:
 --    - doesn't schedule any events 
 --    - output Recovered
-prop_recovered_invariant :: Gen Property
-prop_recovered_invariant = do
+prop_recovered_invariant :: Property
+prop_recovered_invariant = property $ do
   g            <- genStdGen
   -- must be non-empty because we have at least one agent in the simulation:
   -- the recovered itself
@@ -295,14 +285,14 @@ prop_infected_neversusceptible = do
 -- PROBABILITIES / DURATIONS PROPERTIES
 
 -- susceptible schedules on average contactrate events
-prop_susceptible_meancontactrate_coverage :: Property
-prop_susceptible_meancontactrate_coverage = checkCoverage $ do
+prop_susceptible_meancontactrate :: Property
+prop_susceptible_meancontactrate = checkCoverage $ do
     cs <- map fromIntegral <$> vectorOf 1000 genSusceptibleAgentMakeContact
 
     let confidence = 0.95
         csTTest    = tTestSamples TwoTail (fromIntegral contactRate) (1 - confidence) cs
 
-    return $ cover 97 (fromMaybe True csTTest) "mean contact rate" True
+    return $ cover 95 (fromMaybe True csTTest) "mean contact rate" True
   where
     genSusceptibleAgentMakeContact :: Gen Int
     genSusceptibleAgentMakeContact = do
@@ -320,83 +310,30 @@ prop_susceptible_meancontactrate_coverage = checkCoverage $ do
     countContacts (QueueItem _ (Event (Contact 0 Susceptible)) _) n = n + 1
     countContacts _ n = n
 
--- susceptible schedules on average contactrate events
-prop_susceptible_meancontactrate :: Gen Property
-prop_susceptible_meancontactrate = do
-    cs <- map fromIntegral <$> vectorOf 1000 genSusceptibleAgentMakeContact
-
-    let csMean     = mean cs
-        confidence = 0.95
-        csTTest    = tTestSamples TwoTail (fromIntegral contactRate) (1 - confidence) cs
-
-    return $ label (printf "%.1f" csMean) (fromMaybe True csTTest)
-  where
-    genSusceptibleAgentMakeContact :: Gen Int
-    genSusceptibleAgentMakeContact = do
-      g            <- genStdGen
-      ais          <- genAgentIds
-      (Positive t) <- arbitrary
-
-      let ag  = susceptibleAgent 0 contactRate infectivity illnessDuration
-          (_g', _ag', _ao, es) = runAgent g ag MakeContact t ais
-          cnt = foldr countContacts 0 es
-
-      return cnt
-
-    countContacts :: QueueItem SIREvent -> Int -> Int 
-    countContacts (QueueItem _ (Event (Contact 0 Susceptible)) _) n = n + 1
-    countContacts _ n = n
-
-
 -- infected agent recovering schedules event with average illnessduration
-prop_susceptible_meanIllnessDuration_coverage :: Property
-prop_susceptible_meanIllnessDuration_coverage = checkCoverage $ do
+prop_infected_meanIllnessDuration :: Property
+prop_infected_meanIllnessDuration = checkCoverage $ do
   let repls = 1000
   is <- catMaybes <$> vectorOf repls genSusceptibleAgentInfected
 
   let confidence = 0.95
       csTTest    = tTestSamples TwoTail illnessDuration (1 - confidence) is
 
-  return $ cover 97 (fromMaybe True csTTest) "mean illness duration coverage" True
-
--- infected agent recovering schedules event with average illnessduration
-prop_susceptible_meanIllnessDuration :: Gen Property
-prop_susceptible_meanIllnessDuration = do
-  let repls = 1000
-  is <- catMaybes <$> vectorOf repls genSusceptibleAgentInfected
-
-  let isMean     = mean is
-      confidence = 0.95
-      csTTest    = tTestSamples TwoTail illnessDuration (1 - confidence) is
-
-  return $ label (printf "%.1f" isMean) (fromMaybe True csTTest)
+  return $ cover 95 (fromMaybe True csTTest) "mean illness duration" True
 
 -- susceptible becomes infected on average with infectivity 
-prop_susceptible_meanInfectivity_coverage :: Property
-prop_susceptible_meanInfectivity_coverage = checkCoverage $ do
+prop_susceptible_meanInfectivity :: Property
+prop_susceptible_meanInfectivity = checkCoverage $ do
   let repls = 100
   is <- vectorOf repls genMeanInfectivity
 
   let confidence = 0.95
       csTTest    = tTestSamples TwoTail infectivity (1 - confidence) is
 
-  return $ cover 97 (fromMaybe True csTTest) "mean infectivity coverage" True
-
--- susceptible becomes infected on average with infectivity 
-prop_susceptible_meanInfectivity :: Gen Property
-prop_susceptible_meanInfectivity = do
-  let repls = 100
-  is <- vectorOf repls genMeanInfectivity
-
-  let isMean     = mean is
-      confidence = 0.95
-      csTTest    = tTestSamples TwoTail infectivity (1 - confidence) is
-
-  return $ label (printf "%.2f" isMean) (fromMaybe True csTTest)
+  return $ cover 95 (fromMaybe True csTTest) "mean infectivity" True
 
 --------------------------------------------------------------------------------
 -- CUSTOM GENERATORS
-
 genNonEmptyAgentIds :: Gen [AgentId]
 genNonEmptyAgentIds = listOf1 (do 
   (Positive t) <- arbitrary :: Gen (Positive Int)
@@ -494,34 +431,3 @@ runAgentEventsOut [] _ _ _ _ = []
 runAgentEventsOut (e:es) g a t ais = ao : runAgentEventsOut es g' a' t ais
   where
     (g', a', ao, _es) = runAgent g a e 0 ais
-
-runAgentOut :: RandomGen g
-            => g
-            -> SIRAgentCont g
-            -> SIREvent
-            -> Time
-            -> [AgentId]
-            -> SIRState
-runAgentOut g a e t ais = ao
-  where
-    (_, _, ao, _) = runAgent g a e t ais
-
-runDefaultAgentOut :: SIRAgentCont StdGen -> SIREvent -> SIRState
-runDefaultAgentOut a e = runAgentOut g a e 0 []
-  where
-    g = mkStdGen 0
-
-runDefaultTimeAgentEvents :: SIRAgentCont StdGen 
-                          -> SIREvent 
-                          -> Time
-                          -> [QueueItem SIREvent]
-runDefaultTimeAgentEvents a e t = es
-  where
-    g = mkStdGen 0
-    (_, _, _, es) = runAgent g a e t []
-    
-runDefaultAgentEvents :: SIRAgentCont StdGen -> SIREvent -> [QueueItem SIREvent]
-runDefaultAgentEvents a e = es
-  where
-    g = mkStdGen 0
-    (_, _, _, es) = runAgent g a e 0 []

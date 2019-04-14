@@ -12,6 +12,8 @@ module StatsUtils
   , StatsUtils.mean
   , StatsUtils.std
 
+  , expCDF
+  
   , median
 
   , StatsUtils.skewness
@@ -19,12 +21,13 @@ module StatsUtils
   ) where
 
 import Data.Maybe
-import Data.List                        as List
-import Data.Vector.Generic              as Vect
+import Data.List as List
+import Data.Vector.Generic as Vect
 
-import Statistics.Distribution          as Distr
+import Statistics.Distribution  as Distr
 import Statistics.Distribution.StudentT as StudT
-import Statistics.Sample                as Sample
+import Statistics.Distribution.Exponential as Exp
+import Statistics.Sample as Sample
 
 --------------------------------------------------------------------------------
 -- NOTE: THIS MODULE WAS VALIDATED AND SHOULD BE CORRECT!
@@ -193,6 +196,11 @@ avgTest ys mu0 eps
     = abs (mu - mu0) <= eps
   where
     mu = StatsUtils.mean ys
+
+expCDF :: Double -> Double -> Double
+expCDF lambda = Distr.cumulative exptDist
+  where
+    exptDist = Exp.exponential lambda
 
 -- statistics package obviously provides mean and variance implementations
 -- but they don't support simple lists ...

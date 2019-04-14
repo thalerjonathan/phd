@@ -6,8 +6,10 @@ In general, testing event-driven agents follows different directions and is more
 
 Note that the concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details - after all we are interested in deriving concepts, not dealing with specific technicalities.
 
-\section{The Susceptible Agent Specification}
-With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only 3 events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. Lets state the input-to-output event correspondence of the Susceptible agent, which forms as our specification:
+With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only 3 events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. 
+
+\section{Susceptible Agent Specification}
+Lets state the input-to-output event correspondence of the Susceptible agent, which forms as our specification:
 
 \begin{enumerate}
 	\item \textit{MakeContact} - If the agent receives this event it will output a random number of \textit{Contact ai Susceptible} events, where ai is the agents self id and the random number follows an exponential distribution with $\lambda = \beta (contact rate)$. The events have to be scheduled immediately without delay, thus having a time-step of the current time. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
@@ -17,7 +19,16 @@ With event-driven ABS a good starting point in specifying and then testing the s
 	\item \textit{Contact * *} or \textit{Recover}  - If the agent receives any other events it won't change its state, stays \textit{Susceptible} and does not schedule any events.
 \end{enumerate}
 
+This specification implicitly covers that a susceptible agent can never get from susceptible to recovered within a single Event - it can only transition to Infected or stay Susceptible.
+
 The question is now how to put these into a property-test with QuickCheck.
+
+\section{Infected Agent Specification}
+
+This specification implicitly covers that an infected agent can never go back to susceptible - it can only transition to Recovered or stay Infected.
+
+\section{Recovered Agent Specification}
+The specification of the recovered agent is dead simple: it ignores all incoming events, schedules no events and stays recovered \textit{forever}.  
 
 \section{Discussion}
 Funnily the implementation of all the specifications and property-tests is longer than the original implementation. Though thats not the point here: we showed how to implement a full specification of an ABS model as a property-based test and we succeeded! This is definitely a strong indication that our hypothesis that randomised property-based testing is a suitable tool for testing ABS is valid.

@@ -113,7 +113,7 @@ susceptibleAgent aid cr inf illDur =
     handleEvent MakeContact = do
       ais       <- allAgentIds
       crExp     <- lift $ lift $ lift $ lift $ randomExpM (1 / fromIntegral cr)
-      receivers <- forM [1..crExp] (const $ lift $ lift $ lift $ lift $ randomElem ais)
+      receivers <- lift $ lift $ lift $ lift $ forM [1..crExp] (const $ randomElem ais)
       mapM_ makeContactWith receivers
       scheduleMakeContact aid
       return Nothing

@@ -6,7 +6,7 @@ import Data.Maybe
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
-import Data.MonadicStreamFunction
+import Data.MonadicStreamFunction.InternalCore
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
@@ -254,8 +254,8 @@ prop_recovered_invariant = property $ do
 prop_recovered_forever :: Gen Bool
 prop_recovered_forever = do
   g   <- genStdGen
-  es  <- vector 1000 
   ais <- genAgentIds
+  es  <- vectorOf 1000 (genEvent ais)
   (Positive t) <- arbitrary
 
   let a   = recoveredAgent
@@ -267,8 +267,8 @@ prop_recovered_forever = do
 prop_infected_neversusceptible :: Gen Bool
 prop_infected_neversusceptible = do
   g   <- genStdGen
-  es  <- vector 1000
   ais <- genAgentIds
+  es  <- vectorOf 1000 (genEvent ais) 
   (Positive ai) <- arbitrary
   (Positive t)  <- arbitrary
 

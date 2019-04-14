@@ -75,7 +75,7 @@ executable sir
                        -fwarn-tabs
                        -threaded -with-rtsopts=-N
 
-Test-Suite sir-test
+Test-Suite sir-model-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
@@ -88,7 +88,7 @@ Test-Suite sir-test
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              SIRTests.hs
+  main-is:              Model.hs
 
   build-depends:        base
                       , Yampa
@@ -103,4 +103,33 @@ Test-Suite sir-test
                       -Wall 
                       -Werror
                       -fno-warn-orphans
-                      -- -threaded
+
+Test-Suite sir-agent-test
+  default-language:     Haskell2010
+
+  type:                 exitcode-stdio-1.0
+
+  other-modules:        StatsUtils
+                      
+                      , SIR.Utils
+                      , SIR.SIR
+
+  hs-source-dirs:       src/
+                      , src/test
+
+  main-is:              Agent.hs
+
+  build-depends:        base
+                      , Yampa
+                      , MonadRandom
+                      , parallel
+                      , tasty
+                      , tasty-quickcheck
+                      , random
+                      , statistics
+                      , vector
+
+  ghc-options:        -O2
+                      -Wall 
+                      -Werror
+                      -fno-warn-orphans

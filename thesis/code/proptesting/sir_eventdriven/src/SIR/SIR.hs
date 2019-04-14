@@ -7,6 +7,8 @@ import Data.Maybe
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
+import Control.Monad.Trans.MSF.Except
+import Data.MonadicStreamFunction.InternalCore
 import Data.MonadicStreamFunction
 import qualified Data.IntMap.Strict as Map 
 import qualified Data.PQueue.Min as PQ
@@ -152,7 +154,7 @@ infectedAgent aid =
     replyContact receiver = scheduleEvent receiver (Contact aid Infected) 0.0
 
 recoveredAgent :: SIRAgentCont g
-recoveredAgent = arr (const Recovered) 
+recoveredAgent = arr (const Recovered)
 
 scheduleMakeContact :: AgentId -> (SIRMonadT g) ()
 scheduleMakeContact aid = scheduleEvent aid MakeContact makeContactInterval

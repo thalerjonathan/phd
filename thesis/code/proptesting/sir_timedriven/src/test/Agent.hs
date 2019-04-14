@@ -12,30 +12,51 @@ import Test.Tasty.QuickCheck as QC
 import SIR.SIR
 import StatsUtils
 
--- clear & stack test sir:sir-agent-test --test-arguments="--quickcheck-tests=1000"
+-- clear & stack test sir:sir-agent-test
 
 main :: IO ()
 main = defaultMain $ testGroup "Agent Tests" 
           [ 
             QC.testProperty 
               "Susceptible agent mean infected"
-              prop_susceptible_meaninfected
+              prop_susceptible_meaninfected_ttest
+
           , QC.testProperty 
               "Infected agent mean illness duration"
               prop_infected_meanIllnessDuration
+
+          , QC.testProperty 
+              "Susceptible agent mean infected ttest"
+              prop_susceptible_meaninfected_ttest
           ]
 
 --------------------------------------------------------------------------------
 -- PROPERTIES
 --------------------------------------------------------------------------------
-susceptible_meaninfected_repls :: Int
-susceptible_meaninfected_repls = 1000
-
--- TODO: this doesn't seem to work propertly, the sampling issue is really
--- annoying...
+-- NOTE: this needs a ridiculous amount of time due to very high number of
+-- replications needed...
 prop_susceptible_meaninfected :: Property
 prop_susceptible_meaninfected = checkCoverage $ do
-    let repls = susceptible_meaninfected_repls
+  let contactRate     = 5
+      infectivity     = 0.05
+      illnessDuration = 15.0
+    -- NOTE: no random population but fix population to Infected only, because
+    -- need a fixed percentage for cover
+  let pop = [Infected]
+  -- compute expected percentage becoming infected: is always the same 
+  -- across all test-cases, otherwise would not make sense
+  let expPercInf = contactRate * infectivity
+
+  i <- genSusceptibleInfected contactRate infectivity illnessDuration pop
+
+  -- expect given percentage of i to be True
+  return $ cover expPercInf i "mean infectivity" True
+
+-- NOTE: this needs a ridiculous amount of time due to very high number of
+-- replications needed...
+prop_susceptible_meaninfected_ttest :: Property
+prop_susceptible_meaninfected_ttest = checkCoverage $ do
+    let repls           = 1000
     let contactRate     = 5
     let infectivity     = 0.05
     let illnessDuration = 15.0
@@ -50,7 +71,7 @@ prop_susceptible_meaninfected = checkCoverage $ do
     -- by contactRate one agent is picked randomly uniformly from the population
     let expected = if infs == 0 then 0 else (contactRate * infectivity) / fromIntegral infs
 
-    irs <- vectorOf repls (genSusceptibleInfectedRatio contactRate infectivity illnessDuration pop)
+    irs <- vectorOf repls (genSusceptibleInfectedRatio contactRate infectivity illnessDuration pop repls)
 
     let confidence = 0.95
         idsTTest   = tTestSamples TwoTail expected (1 - confidence) irs
@@ -62,24 +83,12 @@ prop_susceptible_meaninfected = checkCoverage $ do
                                 -> Double 
                                 -> Double
                                 -> [SIRState]
+                                -> Int
                                 -> Gen Double
-    genSusceptibleInfectedRatio contactRate infectivity illnessDuration pop = do
-        let repls = susceptible_meaninfected_repls
-        is <- vectorOf repls genSusceptibleInfected
-        let ir = fromIntegral (length (filter (==True) is)) / fromIntegral repls
-        return ir
-      where
-        genSusceptibleInfected :: Gen Bool
-        genSusceptibleInfected = do
-          g <- genStdGen
-
-          let a   = susceptibleAgent contactRate infectivity illnessDuration g
-              dt  = 0.01 -- need very small dt of 0.01 due to sampling issues
-              n   = floor (1 / dt)
-              dts = replicate n (dt, Nothing)
-              aos = embed a (pop, dts)
-
-          return $ Infected `elem` aos
+    genSusceptibleInfectedRatio contactRate infectivity illnessDuration pop repls = do
+      is <- vectorOf repls (genSusceptibleInfected contactRate infectivity illnessDuration pop)
+      let ir = fromIntegral (length (filter (==True) is)) / fromIntegral repls
+      return ir
 
 prop_infected_meanIllnessDuration :: Property
 prop_infected_meanIllnessDuration = checkCoverage $ do
@@ -119,3 +128,19 @@ genStdGen = do
 
 genSIRState :: Gen SIRState 
 genSIRState = elements [Susceptible, Infected, Recovered]
+
+genSusceptibleInfected :: Double
+                       -> Double 
+                       -> Double
+                       -> [SIRState]
+                       -> Gen Bool
+genSusceptibleInfected contactRate infectivity illnessDuration pop = do
+  g <- genStdGen
+
+  let a   = susceptibleAgent contactRate infectivity illnessDuration g
+      dt  = 0.01 -- need very small dt of 0.01 due to sampling issues
+      n   = floor (1 / dt)
+      dts = replicate n (dt, Nothing)
+      aos = embed a (pop, dts)
+
+  return $ Infected `elem` aos

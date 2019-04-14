@@ -38,31 +38,34 @@ prop_susceptible_infected = checkCoverage $ do
   let contactRate     = 5
       infectivity     = 0.05
       illnessDuration = 1.0 -- NOTE: doesn't matter in this test, set to 1
-      pop             = [Susceptible, Infected, Recovered]  -- NOTE: also empty population and population with 0 infected works
+      population      = [Susceptible, Infected, Recovered]  -- NOTE: also empty population and population with 0 infected works
+      i               = length (filter (==Infected) population)
+      n               = length population
 
   -- curiously a large dt works here...
   let dt = 1.0
 
-  -- NOTE: the probability of agents to become infected with a given contact-rate
-  -- and 100% infectivity and only infected population follows the CDF of the
-  -- exponential distribution. Reason: the number of contacts follows an 
-  -- exponential distribution.
+  -- NOTE: the probability of agents to become infected follows the CDF of the
+  -- exponential distribution due to the use of occasionally which follows
+  -- the exponential distribution.
   let expContactProb = 100 * expCDF (1 / contactRate) contactRate
-      infCount       = length (filter (==Infected) pop)
-      popCount       = length pop
-      infectedRatio  = if popCount == 0 then 0 else fromIntegral infCount / fromIntegral popCount
-      expPercentage  = expContactProb * infectivity * infectedRatio
+      infectedRatio  = if n == 0 then 0 else fromIntegral i / fromIntegral n
 
-  i <- genSusceptibleInfected contactRate infectivity illnessDuration pop dt
+  -- compute expected probability
+  let expProb  = expContactProb * infectivity * infectedRatio
+
+  -- run a random susceptible agent for 1.0 time-unit and return true if infected
+  infected <- genSusceptibleInfected contactRate infectivity illnessDuration population dt
 
   -- expect given percentage of Susceptible agents to have become infected
-  return $ cover expPercentage i 
-          ("susceptible agents became infected, expected at least " ++ printf "%.2f" expPercentage) True
+  return $ cover expProb infected 
+          ("susceptible agents became infected, expected at least " ++ printf "%.2f" expProb) True
 
 prop_infected_meanIllnessDuration :: Property
 prop_infected_meanIllnessDuration = checkCoverage $ do
-    let illnessDuration = 5.0
-
+    let illnessDuration = 15.0 -- delta
+    -- run 100 random infected agents until they recover and return the 
+    -- duration they were ill
     ids <- vectorOf 100 (genInfectedIllnessDuration illnessDuration)
     
     let confidence = 0.95

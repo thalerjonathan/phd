@@ -3,7 +3,6 @@
 
 % TODO read
 
-% https://fsharpforfunandprofit.com/posts/property-based-testing-2/
 % https://iohk.io/blog/an-in-depth-look-at-quickcheck-state-machine/
 % https://hackage.haskell.org/package/quickcheck-state-machine
 
@@ -12,6 +11,7 @@
 % https://blog.ploeh.dk/2019/03/11/an-example-of-state-based-testing-in-haskell/
 % https://jaspervdj.be/posts/2015-03-13-practical-testing-in-haskell.html#the-action-trick
 % https://wickstrom.tech/programming/2019/03/24/property-based-testing-in-a-screencast-editor-case-study-1.html
+% https://fsharpforfunandprofit.com/posts/property-based-testing-2/
 
 Agent behaviour - obviously full agent behaviour could be tested with property-tests, using randomly generated agents (with random values in their properties). As it turned out to be quite difficult to derive properties for, in this paper we restricted ourselves to test parts of agent behaviour and also left out testing of agent interactions.
 
@@ -41,6 +41,8 @@ died = agentDieOfAge ag;\
 \end{algorithm}
 \label{alg:prop_test_agent}
 
+TODO: funnily the testing code of event-driven is longer than the actual Implementation
+TODO: individual agent testing in sugarscape testing works analog to Event-driven sir, no need to go into it in depth.
 
 TODO: sir individual Agent testing: randomly generate events and feed them into agents,susceptible must can never become recovered, infected never susceptible and recovered never susceptible or infected. test propabilities e.g. infected agent recovering schedules event with average illnessduration. susceptible schedules on average contactrate events, recovered schedules no events, an infected replies to each contact
 

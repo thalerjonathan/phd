@@ -1,5 +1,7 @@
 \chapter{Testing time-driven agents}
 
+TODO WEAK ARGUMENT: discussion of time-delta is completely missing, but its a very important concept here! investigate it!
+
 In this chapter we present how QuickCheck can be used to test time-driven agents from the time-driven SIR implementation (TODO ref to chapter). More specifically, we show how to test isolated agent behaviour by deriving invariant properties, encoding them directly in code and running them. 
 In general, testing isolated agent behaviour in the time-driven approach is quiet straightforward as the interface surface is quite small, leading to not much options what you can do with them. Basically the only options we have is to run a given agent for a given number of steps with a given time-delta, population and model parameters. Lets start with the \textit{susceptible} agent
 

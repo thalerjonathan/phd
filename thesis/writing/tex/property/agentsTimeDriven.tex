@@ -18,6 +18,8 @@ We assume the following parameters:
 	\item The number of \textit{infected} agents $I$ in the population.
 \end{enumerate}
 
+TODO UNCLEAR ARGUMENT: it is unclear why does CDF works here? it seems to be arbitrary! CDF returns the probability to draw a random variable X with a given value x or less, from the distribution. for example if we have an exponential distribution with a given lambda, then the CDF(x) gives the probability X of drawing values less or equal x.
+
 First we need to know the probability of an agent making contact with $\beta$ agents per time-unit. Note that this is \textit{not} the mean of the exponential distribution but we need to use the cumulative distribution (CDF) function to get this value. We define this value as $p_{cont} = CDF_{e{\frac{1}{\beta}}} (\beta)$ which is the probability of the CDF of the exponential distribution with $\lambda = \frac{1}{\beta}$ and $x = \beta$.
 Next we need to incorporate the probability of an agent getting into contact with an infected agent which is simply the ratio of the number of infected agents to total population size: $ir = \frac{I}{N}$. Finally to arrive at the total probability we multiply these probabilities including the infectivity $\gamma$, arriving at the following formula for a susceptible agent to become infected \textit{on average}: $Sus_{inf} = p_{cont} * \frac{I}{N} * \gamma$.
 

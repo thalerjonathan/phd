@@ -2,6 +2,7 @@
 module Main where
 
 import Data.Maybe
+import Text.Printf
 
 import Control.Monad.Random
 import Control.Monad.Reader
@@ -14,15 +15,6 @@ import Test.Tasty.QuickCheck as QC
 import SIR.SIR
 import StatsUtils
 
-contactRate :: Int
-contactRate = 5
-
-infectivity :: Double
-infectivity = 0.05
-
-illnessDuration :: Double
-illnessDuration = 15.0
-
 -- clear & stack test sir-event:sir-agent-test --test-arguments="--quickcheck-tests=1000"
 
 main :: IO ()
@@ -32,13 +24,8 @@ main = do
             QC.testProperty "Susceptible invariants" prop_susceptible_invariants
           , QC.testProperty "Infected invariants" prop_infected_invariants
           , QC.testProperty "Recovered agent invariants" prop_recovered_invariant
-
-          --, QC.testProperty "Recovered agent stays recovered forever" prop_recovered_forever
-          --, QC.testProperty "Infected agent never susceptible" prop_infected_neversusceptible
-
           , QC.testProperty "Susceptible agent mean contact rate" prop_susceptible_meancontactrate
           , QC.testProperty "Infected agent mean illness duration" prop_infected_meanIllnessDuration
-          --, QC.testProperty "Susceptible agent mean infectivity" prop_susceptible_meanInfectivity
           ]
 
   defaultMain t
@@ -65,8 +52,13 @@ main = do
 -- goes to recovered with 1 event - it either stays Susceptible or becomes
 -- infected. This becomes clear from observing the output and making sure
 -- that we have covered all cases
+-- TODO: refactor
 prop_susceptible_invariants :: Property
 prop_susceptible_invariants = checkCoverage $ do
+    let contactRate = 5
+        infectivity = 0.05
+        illnessDuration = 15.0
+
     let mkEvtFreq = 1
         -- will never happen as Recover will never be sent to a Susceptible
         -- agent, thus it can be set to 0, but setting it to > 1 ensures that 
@@ -258,115 +250,37 @@ prop_recovered_invariant = property $ do
 
   return (null es && ao == Recovered)
 
---------------------------------------------------------------------------------
--- RANDOM MULTI-STEP
--- NOTE: they are not very useful, are already covered in the invariants
---------------------------------------------------------------------------------
--- recovered stays recovered never susceptible or infected
--- NOTE: already covered in recovered invariants!
--- prop_recovered_forever :: Gen Bool
--- prop_recovered_forever = do
---   g   <- genStdGen
---   ais <- genAgentIds
---   es  <- vectorOf 1000 (genEvent ais)
---   (Positive t) <- arbitrary
-
---   let a   = recoveredAgent
---       aos = runAgentEventsOut es g a t ais
-
---   return (all (==Recovered) aos)
-
--- -- infected never back to susceptible 
--- -- NOTE: already covered in infected invariants!
--- prop_infected_neversusceptible :: Gen Bool
--- prop_infected_neversusceptible = do
---   g   <- genStdGen
---   ais <- genAgentIds
---   es  <- vectorOf 1000 (genEvent ais) 
---   (Positive ai) <- arbitrary
---   (Positive t)  <- arbitrary
-
---   let a   = infectedAgent ai
---       aos = runAgentEventsOut es g a t ais
-
---   return (not $ any (==Susceptible) aos)
-
 -- susceptible schedules on average contactrate events
 prop_susceptible_meancontactrate :: Property
 prop_susceptible_meancontactrate = checkCoverage $ do
-    cs <- map fromIntegral <$> vectorOf 1000 genSusceptibleAgentMakeContact
+  let cor = 5     
+      inf = 0.05 -- not relevant here, use default
+      ild = 15.0 -- not relevant here, use default
 
-    let confidence = 0.95
-        csTTest    = tTestSamples TwoTail (fromIntegral contactRate) (1 - confidence) cs
+  c <- genSusceptibleAgentMakeContact cor inf ild
+  
+  let prob = 100 * expCDF (1 / fromIntegral cor) (fromIntegral cor)
 
-    return $ cover 95 (fromMaybe True csTTest) "mean contact rate" True
-  where
-    genSusceptibleAgentMakeContact :: Gen Int
-    genSusceptibleAgentMakeContact = do
-      g            <- genStdGen
-      ais          <- genAgentIds
-      (Positive t) <- arbitrary
+  return $ 
+    cover prob (c <= cor) 
+      ("susceptibles have mean contact rate of up " ++ show cor ++ 
+        ", expected " ++ printf "%.2f" prob)  True
 
-      let ag  = susceptibleAgent 0 contactRate infectivity illnessDuration
-          (_g', _ag', _ao, es) = runAgent g ag MakeContact t ais
-          cnt = foldr countContacts 0 es
-
-      return cnt
-
-    countContacts :: QueueItem SIREvent -> Int -> Int 
-    countContacts (QueueItem _ (Event (Contact 0 Susceptible)) _) n = n + 1
-    countContacts _ n = n
 
 -- infected agent recovering schedules event with average illnessduration
 prop_infected_meanIllnessDuration :: Property
 prop_infected_meanIllnessDuration = checkCoverage $ do
-    let repls = 1000
-    is <- catMaybes <$> vectorOf repls genSusceptibleAgentInfected
+  let ild = 15.0
+  
+  -- infectivity of 1 and higher contact rate to make sure high number of infections
+  durMay <- genSusceptibleAgentInfected 10 1 ild
 
-    let confidence = 0.95
-        csTTest    = tTestSamples TwoTail illnessDuration (1 - confidence) is
+  let prob = 100 * expCDF (1 / ild) ild
 
-    return $ cover 95 (fromMaybe True csTTest) "mean illness duration" True
-  where
-    genSusceptibleAgentInfected :: Gen (Maybe Double)
-    genSusceptibleAgentInfected = do
-      g             <- genStdGen
-      (Positive t)  <- arbitrary
-      ais           <- genAgentIds
-      (Positive ai) <- arbitrary
-
-      let a = susceptibleAgent ai contactRate infectivity illnessDuration
-          (_g', _ag', ao, es) = runAgent g a (Contact ai Infected) t ais
-
-      case ao of
-        Infected -> do
-          -- in case it become infected, the agent only schedules a single 
-          -- event: recovery, to itself
-          let [QueueItem _ (Event Recover) t'] = es
-          return $ Just (t' - t)
-        _        -> return Nothing
-
--- susceptible becomes infected on average with infectivity
--- NOTE: already covered in susceptible invariants!
--- prop_susceptible_meanInfectivity :: Property
--- prop_susceptible_meanInfectivity = checkCoverage $ do
---     let repls = 100
---     is <- vectorOf repls genMeanInfectivity
-
---     let confidence = 0.95
---         csTTest    = tTestSamples TwoTail infectivity (1 - confidence) is
-
---     return $ cover 95 (fromMaybe True csTTest) "mean infectivity" True
---   where
---     genMeanInfectivity :: Gen Double
---     genMeanInfectivity = do
---       let repls = 100
---       is <- catMaybes <$> vectorOf repls genSusceptibleAgentInfected
-
---       let infectedCount = length is
---           infectedRatio = (fromIntegral infectedCount / fromIntegral repls) :: Double
-
---       return infectedRatio
+  return $ isJust durMay ==>
+      cover prob (fromJust durMay <= ild) 
+        ("infected have an illness duration of up to " ++ show ild ++ 
+        ", expected " ++ printf "%.2f" prob)  True
 
 --------------------------------------------------------------------------------
 -- CUSTOM GENERATORS
@@ -405,15 +319,56 @@ genStdGen = do
   seed <- choose (minBound, maxBound)
   return $ mkStdGen seed
 
+genSusceptibleAgentMakeContact :: Int
+                               -> Double
+                               -> Double
+                               -> Gen Int
+genSusceptibleAgentMakeContact contactRate infectivity illnessDuration = do
+    g            <- genStdGen
+    ais          <- genAgentIds
+    (Positive t) <- arbitrary
+
+    let ag  = susceptibleAgent 0 contactRate infectivity illnessDuration
+        (_g', _ag', _ao, es) = runAgent g ag MakeContact t ais
+        cnt = foldr countContacts 0 es
+
+    return cnt
+  where
+    countContacts :: QueueItem SIREvent -> Int -> Int 
+    countContacts (QueueItem _ (Event (Contact 0 Susceptible)) _) n = n + 1
+    countContacts _ n = n
+
+genSusceptibleAgentInfected :: Int
+                            -> Double
+                            -> Double
+                            -> Gen (Maybe Double)
+genSusceptibleAgentInfected contactRate infectivity illnessDuration = do
+  g             <- genStdGen
+  (Positive t)  <- arbitrary
+  ais           <- genAgentIds
+  (Positive ai) <- arbitrary
+
+  let a = susceptibleAgent ai contactRate infectivity illnessDuration
+      (_g', _ag', ao, es) = runAgent g a (Contact ai Infected) t ais
+
+  case ao of
+    Infected -> do
+      -- in case it become infected, the agent only schedules a single 
+      -- event: recovery, to itself
+      let [QueueItem _ (Event Recover) t'] = es
+      return $ Just (t' - t)
+    _        -> return Nothing
+
 --------------------------------------------------------------------------------
 -- LABELING
+--------------------------------------------------------------------------------
 labelSIREvent :: SIREvent -> String
 labelSIREvent (Contact _ s) = "Contact " ++ show s
 labelSIREvent evt           = show evt
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
--- RUNNERS
+-- AGENT RUNNER
 --------------------------------------------------------------------------------
 runAgent :: RandomGen g
          => g
@@ -432,14 +387,92 @@ runAgent g a e t ais  = (g', a', ao, es)
 
     ((((ao, a'), es), _dus), g') = runRand aRand g
 
-runAgentEventsOut :: RandomGen g
-                  => [SIREvent]
-                  -> g
-                  -> SIRAgentCont g
-                  -> Time
-                  -> [AgentId]
-                  -> [SIRState]
-runAgentEventsOut [] _ _ _ _ = [] 
-runAgentEventsOut (e:es) g a t ais = ao : runAgentEventsOut es g' a' t ais
-  where
-    (g', a', ao, _es) = runAgent g a e 0 ais
+
+--------------------------------------------------------------------------------
+-- OBSOLETE TESTS
+--------------------------------------------------------------------------------
+-- recovered stays recovered never susceptible or infected
+-- NOTE: already covered in recovered invariants!
+-- prop_recovered_forever :: Gen Bool
+-- prop_recovered_forever = do
+--   g   <- genStdGen
+--   ais <- genAgentIds
+--   es  <- vectorOf 1000 (genEvent ais)
+--   (Positive t) <- arbitrary
+
+--   let a   = recoveredAgent
+--       aos = runAgentEventsOut es g a t ais
+
+--   return (all (==Recovered) aos)
+
+-- -- infected never back to susceptible 
+-- -- NOTE: already covered in infected invariants!
+-- prop_infected_neversusceptible :: Gen Bool
+-- prop_infected_neversusceptible = do
+--   g   <- genStdGen
+--   ais <- genAgentIds
+--   es  <- vectorOf 1000 (genEvent ais) 
+--   (Positive ai) <- arbitrary
+--   (Positive t)  <- arbitrary
+
+--   let a   = infectedAgent ai
+--       aos = runAgentEventsOut es g a t ais
+
+--   return (not $ any (==Susceptible) aos)
+
+
+-- susceptible becomes infected on average with infectivity
+-- NOTE: already covered in susceptible invariants!
+-- prop_susceptible_meanInfectivity :: Property
+-- prop_susceptible_meanInfectivity = checkCoverage $ do
+--     let repls = 100
+--     is <- vectorOf repls genMeanInfectivity
+
+--     let confidence = 0.95
+--         csTTest    = tTestSamples TwoTail infectivity (1 - confidence) is
+
+--     return $ cover 95 (fromMaybe True csTTest) "mean infectivity" True
+--   where
+--     genMeanInfectivity :: Gen Double
+--     genMeanInfectivity = do
+--       let repls = 100
+--       is <- catMaybes <$> vectorOf repls genSusceptibleAgentInfected
+
+--       let infectedCount = length is
+--           infectedRatio = (fromIntegral infectedCount / fromIntegral repls) :: Double
+
+--       return infectedRatio
+
+-- susceptible schedules on average contactrate events
+-- NOTE: covered already by the faster prop_susceptible_meancontactrate test
+-- prop_susceptible_meancontactrate_ttest :: Property
+-- prop_susceptible_meancontactrate_ttest = checkCoverage $ do
+--   let cor = 5
+--       inf = 0.05 -- not relevant here, use default
+--       ild = 15.0 -- not relevant here, use default
+
+--   cs <- map fromIntegral <$> vectorOf 1000 (genSusceptibleAgentMakeContact cor inf ild)
+
+--   let confidence = 0.95
+--       csTTest    = tTestSamples TwoTail (fromIntegral cor) (1 - confidence) cs
+
+--   return $ 
+--     cover 95 (fromMaybe True csTTest) 
+--       ("susceptibles have mean contact rate of " ++ show cor) True
+
+-- infected agent recovering schedules event with average illnessduration
+-- NOTE: covered already by the much faster prop_infected_meanIllnessDuration test
+-- prop_infected_meanIllnessDuration_ttest :: Property
+-- prop_infected_meanIllnessDuration_ttest = checkCoverage $ do
+--   let ild   = 15.0
+--       repls = 1000
+
+--   -- infectivity of 1 and higher contact rate to make sure high number of infections
+--   is <- catMaybes <$> vectorOf repls (genSusceptibleAgentInfected 10 1 ild)
+
+--   let confidence = 0.95
+--       csTTest    = tTestSamples TwoTail ild (1 - confidence) is
+
+--   return $ 
+--     cover 95 (fromMaybe True csTTest) 
+--       ("infected have a mean illness duration of " ++ show ild) True

@@ -24,6 +24,10 @@ main = defaultMain $ testGroup "Agent Tests"
           , QC.testProperty 
              "Infected agent mean illness duration"
              prop_infected_meanIllnessDuration
+          
+          , QC.testProperty 
+             "Infected agent mean illness duration t-test"
+             prop_infected_meanIllnessDuration_ttest
           ]
 
 --------------------------------------------------------------------------------
@@ -43,11 +47,12 @@ prop_susceptible_infected = checkCoverage $ do
       n               = length population
 
   -- curiously a large dt works here...
-  let dt = 1.0
+  -- TODO: no, it does NOT, when setting dt to e.g. 0.1 or 0.01 then the cover 
+  -- increases substantially!
+  let dt = 0.01
 
-  -- NOTE: the probability of agents to become infected follows the CDF of the
-  -- exponential distribution due to the use of occasionally which follows
-  -- the exponential distribution.
+  -- use CDF to get probability that up to contactRate contacts have occurred
+  -- because making contact events are distributed with the exponential distribution
   let expContactProb = 100 * expCDF (1 / contactRate) contactRate
       infectedRatio  = if n == 0 then 0 else fromIntegral i / fromIntegral n
 
@@ -59,10 +64,40 @@ prop_susceptible_infected = checkCoverage $ do
 
   -- expect given percentage of Susceptible agents to have become infected
   return $ cover expProb infected 
-          ("susceptible agents became infected, expected at least " ++ printf "%.2f" expProb) True
+          ("susceptible agents became infected, expected at least " 
+            ++ printf "%.2f" expProb ++ "%") True
 
 prop_infected_meanIllnessDuration :: Property
 prop_infected_meanIllnessDuration = checkCoverage $ do
+    let illnessDuration = 15.0 -- delta
+
+    let prob = 100 * expCDF (1 / illnessDuration) illnessDuration
+
+    idr <- genInfectedIllnessDuration illnessDuration
+    
+    return $ cover prob (idr <= illnessDuration)
+             ("infected agents have an illness duration of  " ++ show illnessDuration ++
+              " or less, expected " ++ printf "%.2f" prob) True
+  where
+    genInfectedIllnessDuration :: Double -> Gen Double
+    genInfectedIllnessDuration illnessDuration = do
+      g  <- genStdGen
+      ss <- listOf genSIRState
+
+      let a   = infectedAgent illnessDuration g
+          dt  = 0.1
+          dts = repeat (dt, Nothing)
+          aos = embed a (ss, dts)
+      
+      -- we are searching in a potentially infinite list...
+      let mrec = elemIndex Recovered aos
+      -- ... thus when elemIndex returns it will have Just
+      let recIdx = fromJust mrec 
+
+      return $ dt * fromIntegral recIdx
+
+prop_infected_meanIllnessDuration_ttest:: Property
+prop_infected_meanIllnessDuration_ttest = checkCoverage $ do
     let illnessDuration = 15.0 -- delta
     -- run 100 random infected agents until they recover and return the 
     -- duration they were ill

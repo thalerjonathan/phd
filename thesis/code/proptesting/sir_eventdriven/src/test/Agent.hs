@@ -15,7 +15,7 @@ import Test.Tasty.QuickCheck as QC
 import SIR.SIR
 import StatsUtils
 
--- clear & stack test sir-event:sir-agent-test --test-arguments="--quickcheck-tests=1000"
+-- clear & stack test sir-event:sir-agent-test
 
 main :: IO ()
 main = do
@@ -52,7 +52,6 @@ main = do
 -- goes to recovered with 1 event - it either stays Susceptible or becomes
 -- infected. This becomes clear from observing the output and making sure
 -- that we have covered all cases
--- TODO: refactor
 prop_susceptible_invariants :: Property
 prop_susceptible_invariants = checkCoverage $ do
     let contactRate = 5
@@ -98,7 +97,7 @@ prop_susceptible_invariants = checkCoverage $ do
     case evt of
       Recover -> do
         let cp = 100 * (fromIntegral recEvtFreq / fromIntegral evtFreqSum)
-        return $ cover cp True "Susceptible receives Recover" 
+        return $ cover cp True "Susceptible receives Recover"
                     (null es && ao == Susceptible)
 
       MakeContact -> do
@@ -126,11 +125,11 @@ prop_susceptible_invariants = checkCoverage $ do
             if ao /= Infected
               -- not infected, nothing happens
               then return $ 
-                    cover (contInfProb - infProb) True "Susceptible receives Contact * Infected, stays Infected" 
+                    cover (contInfProb - infProb) True "Susceptible receives Contact * Infected, stays Susceptible" 
                       (null es && ao == Susceptible) 
               -- infected, check invariants
               else return $ 
-                    cover infProb True ("Susceptible receives Contact * Infected, becomes Infected with prob " ++ show infProb)
+                    cover infProb True ("Susceptible receives Contact * Infected, becomes Infected with prob " ++ printf "%.2f" infProb)
                       (checkInfectedInvariants ai t es)
   where
     checkInfectedInvariants :: AgentId
@@ -158,14 +157,14 @@ prop_susceptible_invariants = checkCoverage $ do
                                       -> (Bool, Bool)
         checkMakeContactInvariantsAux 
             (QueueItem receiver (Event (Contact sender' Susceptible)) t') (b, mkb)
-          = (b && sender == sender' && -- the sender in Contact must be the Susceptible agent
-                  receiver `elem` ais  -- the receiver of Contact must be in the agent ids
-                  && t == t', mkb)     -- the Contact event is scheduled immediately
+          = (b && sender == sender'    -- the sender in Contact must be the Susceptible agent
+               && receiver `elem` ais  -- the receiver of Contact must be in the agent ids
+               && t == t', mkb)        -- the Contact event is scheduled immediately
         checkMakeContactInvariantsAux 
             (QueueItem receiver (Event MakeContact) t') (b, mkb) 
-          = (b && receiver == sender &&  -- the receiver of MakeContact is the Susceptible agent itself
-                  t' == t + 1.0 &&       -- the MakeContact event is scheduled 1 time-unit into the future
-                  not mkb, True)         -- there can only be one MakeContact event
+          = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
+               && t' == t + 1.0        -- the MakeContact event is scheduled 1 time-unit into the future
+               &&  not mkb, True)      -- there can only be one MakeContact event
         checkMakeContactInvariantsAux evt (_, mkb) = error ("failure " ++ show evt) (False, mkb)
 
 -- INFECTED INVARIANTS WHEN RECEIVING EVENTS

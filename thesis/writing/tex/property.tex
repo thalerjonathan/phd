@@ -28,7 +28,7 @@ Although it would be interesting to see how we can apply unit testing to our app
 
 \medskip
 
-The main idea of property-based testing is to express model-specifications and laws directly in code and test them through \textit{automated} and \textit{randomised} test-data generation. Thus one hypothesis of this thesis is that due to ABS \textit{stochastic} and \textit{exploratory / generative / constructive } nature, property-based testing is a natural fit for testing ABS in general and pure functional ABS implementations in particular. It thus should pose a valuable addition to the already existing testing methods in this field, worth exploring. To substantiate and test our hypothesis, we present two case-studies. First, the agent-based SIR model as introduced in Chapter \ref{sec:sir_model}, which is of explanatory nature, where we show how to express formal model-specifications in property-tests. Second, the SugarScape model as introduced in Chapter \ref{sec:sugarscape}, which is of exploratory nature, where we show how to express hypotheses in property-tests and how to property-test agent functionality. 
+The main idea of property-based testing is to express model-specifications and laws directly in code and test them through \textit{automated} and \textit{randomised} test-data generation. Thus one hypothesis of this thesis is that due to ABS \textit{stochastic} and \textit{exploratory / generative / constructive } nature, property-based testing is a natural fit for testing ABS in general and pure functional ABS implementations in particular. It thus should pose a valuable addition to the already existing testing methods in this field, worth exploring. To substantiate and test our hypothesis, we present two case-studies. First, the agent-based SIR model as introduced in Chapter \ref{sec:sir_model}, which is of explanatory nature, where we show how to express formal model-specifications in property-tests. Second, the SugarScape model as introduced in Chapter \ref{sec:sugarscape}, which is of exploratory nature, where we show how to express hypotheses in property-tests and how to property-test agent functionality. Note that we only focus on ABS specific testing in the form of model verification, individual agent behaviour and agent interaction testing. We don't look into obvious applications of QuickCheck like testing boundary-checks of the environment, helper functions of agents,... as although they are used within ABS, there is nothing new in testing them with QuickCheck.
 %Again, we emphasise that we see it as an addition to TDD, where it works in combination with unit testing to verify and validate a simulation to increase the confidence in its correctness. % and is a useful tool for expressing regression tests.
 
 \medskip
@@ -50,10 +50,6 @@ Although property-based testing has its origins in Haskell, similar libraries ha
 \input{./tex/property/agentsTimeDriven.tex}
 
 \input{./tex/property/agentsEventDriven.tex}
-
-\input{./tex/property/agents.tex}
-
-\input{./tex/property/others.tex}
 
 \input{./tex/property/exploratory.tex}
 

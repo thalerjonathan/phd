@@ -122,5 +122,8 @@ Infected agent mean illness duration: OK (4.79s)
 
 Although we don't hit the 95\% in every case, QuickChecks statistical tests are convinced enough that the coverage of 95\% is sound and thus deems the property-test to be successful.
 
+\subsection{An alternative approach}
+TODO: using CDF because illness duration follows the exponential distribution
+
 \section{Discussion}
 Testing time-driven agents seems to be quite forward if one can derive properties for them. A crucial thing to get right in time-driven ABS is $\Delta t$ - property-tests can be of help here by stating properties which have to hold and then refining $\Delta t$ until the property holds.

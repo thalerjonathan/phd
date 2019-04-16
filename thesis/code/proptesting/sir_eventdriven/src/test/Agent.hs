@@ -8,7 +8,6 @@ import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Data.MonadicStreamFunction.InternalCore
-import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
@@ -357,14 +356,6 @@ genSusceptibleAgentInfected contactRate infectivity illnessDuration = do
       let [QueueItem _ (Event Recover) t'] = es
       return $ Just (t' - t)
     _        -> return Nothing
-
---------------------------------------------------------------------------------
--- LABELING
---------------------------------------------------------------------------------
-labelSIREvent :: SIREvent -> String
-labelSIREvent (Contact _ s) = "Contact " ++ show s
-labelSIREvent evt           = show evt
---------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- AGENT RUNNER

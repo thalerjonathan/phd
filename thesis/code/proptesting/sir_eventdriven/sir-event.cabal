@@ -133,7 +133,40 @@ Test-Suite sir-agent-test
                       , mtl
                       , MonadRandom
                       , pqueue
+                      , tasty
+                      , tasty-quickcheck
+                      , random
+                      , statistics
+                      , vector
+                      
+  ghc-options:        -O2
+                      -Wall 
+                      -Werror
+                      -fno-warn-orphans
+
+Test-Suite sir-agent-state-test
+  default-language:     Haskell2010
+
+  type:                 exitcode-stdio-1.0
+
+  other-modules:        StatsUtils
+                      
+                      , SIR.SIR
+
+  hs-source-dirs:       src/
+                      , src/test
+
+  main-is:              AgentStateful.hs
+
+  build-depends:        base
+                      , containers
+                      , dequeue 
+                      , dunai
+                      , mtl
+                      , MonadRandom
+                      , pqueue
                       , QuickCheck
+                      , quickcheck-state-machine
                       , tasty
                       , tasty-quickcheck
                       , random

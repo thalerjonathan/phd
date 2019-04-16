@@ -24,7 +24,7 @@ data AgentTestState g = AgentTestState
 type AgentCmd = QueueItem SIREvent
 -- the output of an agent is its current SIRState and the events it has scheduled
 data AgentResp = AgentResp SIRState [QueueItem SIREvent]
--- the model
+-- a model for the implementation to be tested against.
 type Model = AgentTestState StdGen
 
 -- clear & stack test sir-event:sir-agent-state-test
@@ -55,6 +55,8 @@ prop_recovered_forever = do
     let a  = recoveredAgent
         sm = createSM g a
 
+    -- The sequential property checks if the model is consistent with respect
+    -- to the semantics. 
     forAllCommands sm Nothing (\cmds -> monadicIO $ do
       (hist, _model, res) <- runCommands sm' cmds
       prettyCommands sm' hist (checkCommandNames cmds (res === Ok)))
@@ -77,24 +79,43 @@ prop_recovered_forever = do
         semantics
         mock
 
-    transition ::  Model -> AgentCmd -> AgentResp -> Model 
+    -- The transition function explains how actions change the model. Note that 
+    -- the transition function is polymorphic in r. The reason for this is that 
+    -- we use the transition function both while generating and executing.
+    transition :: Model -> AgentCmd -> AgentResp -> Model 
     transition = undefined
 
+    -- The pre-condition of an action specifies in what context the action is
+    -- well-defined. The pre-conditions are used while generating programs 
+    -- (lists of actions).
     precondition :: Model -> AgentCmd -> Logic
     precondition = undefined
 
+    -- Post-conditions are checked after we executed an action and got access to 
+    -- the result.
     postcondition :: Model -> AgentCmd -> AgentResp -> Logic
     postcondition = undefined
 
+    -- To stop the generation of new commands, e.g., when the model has reached
+    -- a terminal or error state, let generator return Nothing.
     generator :: Model -> Maybe (Gen AgentCmd)
     generator = undefined
 
+    -- shrinks commands
     shrinker :: Model -> AgentCmd -> [AgentCmd]
     shrinker = undefined
 
+    -- the semantics actually run the command within the underlying semantic
+    -- Note that if an example has no meaningful semantics, we merely 
+    -- model-check. This is the case for us, so here we can generate expected
+    -- responses to given commands. TODO: this is not sufficient! because it
+    -- changes when the agent changes
     semantics :: AgentCmd -> IO AgentResp
     semantics = undefined
 
+    -- mocks responses given a model.
+    -- Note: in this case we can run the given command using the model because
+    -- all data is there to be able to do it.
     mock :: Model -> AgentCmd -> GenSym AgentResp
     mock = undefined
 

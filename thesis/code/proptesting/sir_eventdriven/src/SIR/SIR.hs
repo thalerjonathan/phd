@@ -208,9 +208,9 @@ runSIR ss cr inf illDur maxEvents tLimit g = (adus', ect)
              else adus
 
     act = do
-      let asEvtWriter  = runReaderT (sequence asWIds) 0
-          asAsIdsRader = runWriterT asEvtWriter
-          asDomWriter  = runReaderT asAsIdsRader asIds
+      let asEvtWriter   = runReaderT (sequence asWIds) 0
+          asAsIdsReader = runWriterT asEvtWriter
+          asDomWriter   = runReaderT asAsIdsReader asIds
           
       ((as0', es), dus0) <- runWriterT asDomWriter
 

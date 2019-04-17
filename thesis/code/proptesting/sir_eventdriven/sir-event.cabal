@@ -144,7 +144,7 @@ Test-Suite sir-agent-test
                       -Werror
                       -fno-warn-orphans
 
-Test-Suite sir-agent-state-test
+Test-Suite sir-agent-history-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
@@ -156,7 +156,7 @@ Test-Suite sir-agent-state-test
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              AgentStateful.hs
+  main-is:              AgentHistory.hs
 
   build-depends:        base
                       , containers
@@ -166,7 +166,6 @@ Test-Suite sir-agent-state-test
                       , MonadRandom
                       , pqueue
                       , QuickCheck
-                      , quickcheck-state-machine
                       , tasty
                       , tasty-quickcheck
                       , random

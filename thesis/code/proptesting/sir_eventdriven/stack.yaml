@@ -46,6 +46,7 @@ extra-deps:
 #  commit: 9828b997bd3c818ca3ccc611a429dd7379596c50
 - git: https://github.com/stevana/quickcheck.git
   commit: 9ccdcbb3eaad7fe96c08ea5ecbbdfe852615bd49
+- quickcheck-state-machine-0.6.0@sha256:3e4f8df0f6b5d415e3c8840dc75034a63e37f56f5f8cfa1035ded16345235ac4
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

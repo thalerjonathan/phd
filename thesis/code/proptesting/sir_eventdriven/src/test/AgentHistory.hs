@@ -5,17 +5,16 @@ import Text.Printf
 
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.Writer
-import Data.MonadicStreamFunction.InternalCore
+-- import Control.Monad.Writer
+-- import Data.MonadicStreamFunction.InternalCore
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
+import qualified Data.IntMap.Strict as Map 
 
 import SIR.SIR
 
-instance Arbitrary SIRState where
-  arbitrary :: Gen SIRState
-  arbitrary = elements [Susceptible, Infected, Recovered]
+import Debug.Trace
 
 -- represent the testing state 
 data AgentTestState g = AgentTestState
@@ -30,13 +29,14 @@ type Command = QueueItem SIREvent
 -- the output of an agent is its current SIRState and the events it has scheduled
 data Response = Resp SIRState [QueueItem SIREvent]
 
--- clear & stack test sir-event:sir-agent-history-test
+-- clear & stack test sir-event:sir-agent-history-test --test-arguments="--quickcheck-replay=557780"
 
 main :: IO ()
 main = do
   let t = testGroup "Agent History Tests" 
           [ 
-            QC.testProperty "SIR invariants" prop_sir_invariants
+            QC.testProperty "SIR random sampling invariants" prop_sir_random_invariants
+          -- QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
           ]
 
   defaultMain t
@@ -44,38 +44,25 @@ main = do
 --------------------------------------------------------------------------------
 -- TEST-CASES
 --------------------------------------------------------------------------------
-
--- TODO: RANDOM EVENT SAMPLING OF A SYSTEM WITH A RANDOM AGENT POPULATION
-
-prop_sir_invariants :: Property
-prop_sir_invariants = property $ do
+prop_sir_simulation_invariants :: Property
+prop_sir_simulation_invariants = property $ do
   let cor = 5
       inf = 0.05
       ild = 15
 
+  ss <- listOf genSIRState
   g  <- genStdGen
-  ss <- arbitrary
-  
+
   -- total agent count
   let n = length ss
   
-  let maxSteps = 150
-
   -- run simulation with no restrictions on events AND time!
-  let ret = map snd $ fst $ runSIR ss cor inf ild (-1) maxSteps g
-
-
-
+  let ret = trace ("test-case with: " ++ show ss) map snd $ fst $ runSIR ss cor inf ild (-1) (1/0) g
+  
   -- after a finite number of steps SIR will reach equilibrium, when there
   -- are no more infected agents
-  -- let retFin = takeWhile ((>0).snd3) ret
-  -- TODO: length ret does not work if it s infintie :D
-  -- let retFin = if length ret < maxSteps 
-  --               then ret
-  --               else take maxSteps ret
-
-  let retFin = ret
-  let sirEquilibrium = (==0) $ snd3 $ last retFin
+  -- TODO
+  let retFin = ret --takeWhile ((>0).snd3) ret
 
   -- number of agents stays constant in each step
   let aci = all (agentCountInvariant n) retFin
@@ -86,19 +73,102 @@ prop_sir_invariants = property $ do
   -- number of recovered R can only increase
   let recDec = monotonousIncrasing (trd3 $ unzip3 retFin)
 
-  let prop = susInc && infConst && recDec && aci && sirEquilibrium
+  let prop = susInc && infConst && recDec && aci
   
   return $ label (show (length ss)) prop
 
-  -- ss <- vector (length ais)
-  -- -- TODO: generate random population
-  -- let (am, eq) = evalRand (initAgents ss cor inf ild) g
-  --     ais = Map.keys am
+prop_sir_random_invariants :: Property
+prop_sir_random_invariants = property $ do
+  let cor = 5
+      inf = 0.05
+      ild = 15
 
-  -- return $ monadic (\propReader -> evalRand (runWriterT (runReaderT propReader ais))) (do
-  --   n <- processQueue (-1) (1/0) am eq
+  ss <- listOf1 genSIRState
+  
+  -- total agent count
+  let n = length ss
+  
+  let maxEvents = 100000
+  ret <- trace (show ss) map snd <$> genRandomEventSIR ss cor inf ild maxEvents
+  
+  -- after a finite number of steps SIR will reach equilibrium, when there
+  -- are no more infected agents
+  -- TODO
+  let retFin = ret --takeWhile ((>0).snd3) ret
+  
+  -- number of agents stays constant in each step
+  let aci = all (agentCountInvariant n) retFin
+  -- number of susceptible can only decrease
+  let susInc = monotonousDecreasing (fst3 $ unzip3 retFin)
+  -- number of infected i = N - (S + R)
+  let infConst = all (infectedInvariant n) retFin
+  -- number of recovered R can only increase
+  let recDec = monotonousIncrasing (trd3 $ unzip3 retFin)
 
-  --evt <- genEventFreq 1 1 1 (1,1,1) ais
+  let prop = susInc && infConst && recDec && aci
+  
+  return $ label (show (length ss)) prop
+
+genRandomEventSIR :: [SIRState]
+                  -> Int
+                  -> Double
+                  -> Double 
+                  -> Integer
+                  -> Gen [(Time, (Int, Int, Int))]
+genRandomEventSIR ss cr inf illDur maxEvents = do
+    g <- genStdGen 
+
+    -- ignore initial events
+    let (am0, _) = evalRand (initSIR ss cr inf illDur) g
+    let ais = Map.keys am0
+
+    evtStream <- genQueueItemStream 0 ais
+    let (_amFinal, ds) = evalRand (runReaderT (executeAgents maxEvents evtStream am0 []) ais) g
+    return ds
+  where
+    executeAgents :: RandomGen g
+                  => Integer
+                  -> [QueueItem SIREvent]
+                  -> AgentMap (SIRMonad g) SIREvent SIRState
+                  -> [(Time, (Int, Int, Int))]
+                  -> ReaderT [AgentId] (Rand g)
+                            (SIRAgentMap g, [(Time, (Int, Int, Int))])
+    executeAgents 0 _ am acc  = return (am, reverse acc)
+    executeAgents _ [] am acc = return (am, reverse acc)
+    executeAgents n (evt:es) am acc = do
+      retMay <- processEvent am evt 
+      case retMay of 
+        Nothing -> executeAgents (n-1) es am acc
+        -- ignore events produced by agents
+        (Just (am', _)) -> do
+          let acc' = (eventTime evt, aggregateAgentMap am) : acc
+          executeAgents (n-1) es am' acc'
+
+eventTime :: QueueItem e -> Time
+eventTime (QueueItem _ _ et) = et
+
+genSIRState :: Gen SIRState
+genSIRState = elements [Susceptible, Infected, Recovered]
+
+genQueueItemStream :: Double 
+                   -> [AgentId]
+                   -> Gen [QueueItem SIREvent]
+genQueueItemStream t ais = do
+  evt  <- genQueueItem t ais
+  evts <- genQueueItemStream (eventTime evt) ais
+  return (evt : evts)
+
+genQueueItem :: Double 
+             -> [AgentId]
+             -> Gen (QueueItem SIREvent)
+genQueueItem t ais = do
+  (Positive dt) <- arbitrary
+  e <- genEvent ais
+  receiver <- elements ais
+
+  let evtTime = t + dt
+
+  return $ QueueItem receiver (Event e) evtTime
 
 agentCountInvariant :: Int -> (Int, Int, Int) -> Bool
 agentCountInvariant n (s,i,r) = s+i+r == n
@@ -185,33 +255,33 @@ genStdGen = do
 --------------------------------------------------------------------------------
 -- AGENT API INTERPRETER
 --------------------------------------------------------------------------------
-runAgent :: RandomGen g
-         => AgentTestState g             -- ^ The current testing state
-         -> Command                      -- ^ An instance of an agent API 'call'
-         -> (AgentTestState g, Response) -- ^ Results in a new testing state with some agent output
-runAgent as (QueueItem _ai (Event e) t) = (as', ao)
-  where
-    g   = rng as 
-    a   = agent as
-    ais = agentIds as
+-- runAgent :: RandomGen g
+--          => AgentTestState g             -- ^ The current testing state
+--          -> Command                      -- ^ An instance of an agent API 'call'
+--          -> (AgentTestState g, Response) -- ^ Results in a new testing state with some agent output
+-- runAgent as (QueueItem _ai (Event e) t) = (as', ao)
+--   where
+--     g   = rng as 
+--     a   = agent as
+--     ais = agentIds as
 
-    aMsf       = unMSF a e
-    aEvtWriter = runReaderT aMsf t
-    aAisReader = runWriterT aEvtWriter
-    aDomWriter = runReaderT aAisReader ais
-    aRand      = runWriterT aDomWriter
-    ((((o, a'), es), _dus), g') = runRand aRand g
+--     aMsf       = unMSF a e
+--     aEvtWriter = runReaderT aMsf t
+--     aAisReader = runWriterT aEvtWriter
+--     aDomWriter = runReaderT aAisReader ais
+--     aRand      = runWriterT aDomWriter
+--     ((((o, a'), es), _dus), g') = runRand aRand g
 
-    as' = as { rng = g', agent = a', time = t }
-    ao  = Resp o es
+--     as' = as { rng = g', agent = a', time = t }
+--     ao  = Resp o es
 
-mkInitState :: RandomGen g
-            => g
-            -> SIRAgentCont g
-            -> AgentTestState g
-mkInitState g a = AgentTestState
-  { rng      = g
-  , agent    = a
-  , time     = 0
-  , agentIds = []
-  }
+-- mkInitState :: RandomGen g
+--             => g
+--             -> SIRAgentCont g
+--             -> AgentTestState g
+-- mkInitState g a = AgentTestState
+--   { rng      = g
+--   , agent    = a
+--   , time     = 0
+--   , agentIds = []
+--   }

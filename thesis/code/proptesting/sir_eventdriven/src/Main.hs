@@ -29,7 +29,7 @@ maxEvents = -1
 
 -- use 1 / 0 for unrestricted time
 maxTime :: Double
-maxTime = 150.0
+maxTime = 1/0 -- 150.0
 
 main :: IO ()
 main = do
@@ -39,7 +39,7 @@ main = do
   let _ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
-      (ss, evtCnt) = runSIR _ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
+      (ss, evtCnt) = runSIR [Recovered,Susceptible,Susceptible] contactRate infectivity illnessDuration maxEvents maxTime g0 
 
   print $ "Finished at t = " ++ show (fst $ last ss) ++ 
           ", after " ++ show evtCnt ++ 

@@ -60,11 +60,17 @@
 This thesis shows how to implement Agent-Based Simulations (ABS) using the \textit{pure} functional programming paradigm and what the benefits and drawbacks are when doing so. As language of choice, Haskell is used due to its modern nature, increasing use in real-world applications and \textit{pure} nature. The thesis presents various implementation techniques to ABS and then discusses concurrency and parallelism and verification and validation in ABS in a pure functional setting. Additionally the thesis briefly discusses the use of dependent types in ABS, to close the gap between specification and implementation - something the presented implementation techniques don't focus on.
 Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS. \\
 
-
-TODO "first draft" milestone until end of May 2019
+TODO "finalise research" milestone until end of June 2019
 \begin{enumerate}
-	\item Write property-based testing chapter with same narrative like in the summer sim paper but with much more technical detail and code replaced by actual haskell code and monadic code-testing refined with monadic quickcheck	
+	\item property-based testing on event-driven sir
 	
+	\item implement SIR equilibrium-totality correspondence in Idris, closely related to the property-based testing
+	
+	\item implement Gintis Case-Study and focus on property-tests and reasoning and potential directions for a dependently-typed implementation
+\end{enumerate}
+
+TODO "first draft" milestone until end of July 2019
+\begin{enumerate}
 	\item Revise and finalise methodology.
 
 	\item Write short monad transformer section in methodology
@@ -76,10 +82,8 @@ TODO "first draft" milestone until end of May 2019
 	\item Read full first draft twice and refine it.
 \end{enumerate}
 
-TODO "filling in holes" milestone until end of July 2019
+TODO "filling in holes and reflections" milestone until end of August 2019
 \begin{enumerate}
-	\item Do work left over from "first draft" milestone
-	
 	\item Reading: Ionescu thesis
 	
 	\item Understand Ionescu: check what ionescou wants from his students and what literaure he cites, watch YouTube video
@@ -87,9 +91,6 @@ TODO "filling in holes" milestone until end of July 2019
 	\item Generalising ABS: extract the foundational properties: agents as monad / comonad / arrow and discuss their implications from an abstract point of view
 
 	\item Read full first draft twice and refine it
-	
-	\item optional: implement Gintis Case-Study with Haskell if time (probably there wont be)
-	\item optional: implement Gintis Case-Study with Idris if time (probably there wont be)
 \end{enumerate}
 
 TODO "cleaning up / polishing" milestone until beginning of September 2019

@@ -46,9 +46,7 @@ main = do
 --------------------------------------------------------------------------------
 
 -- TODO: RANDOM EVENT SAMPLING OF A SYSTEM WITH A RANDOM AGENT POPULATION
--- TODO: after a finite number of steps SIR will reach equilibrium, when there
--- are no more infected agents
--- => but how can we express this in a property?
+
 prop_sir_invariants :: Property
 prop_sir_invariants = property $ do
   let cor = 5
@@ -60,20 +58,35 @@ prop_sir_invariants = property $ do
   
   -- total agent count
   let n = length ss
+  
+  let maxSteps = 150
 
   -- run simulation with no restrictions on events AND time!
-  let ret = map snd $ fst $ runSIR ss cor inf ild (-1) (1/0) g
+  let ret = map snd $ fst $ runSIR ss cor inf ild (-1) maxSteps g
+
+
+
+  -- after a finite number of steps SIR will reach equilibrium, when there
+  -- are no more infected agents
+  -- let retFin = takeWhile ((>0).snd3) ret
+  -- TODO: length ret does not work if it s infintie :D
+  -- let retFin = if length ret < maxSteps 
+  --               then ret
+  --               else take maxSteps ret
+
+  let retFin = ret
+  let sirEquilibrium = (==0) $ snd3 $ last retFin
 
   -- number of agents stays constant in each step
-  let aci = all (agentCountInvariant n) ret
+  let aci = all (agentCountInvariant n) retFin
   -- number of susceptible can only decrease
-  let susInc = monotonousDecreasing (fst3 $ unzip3 ret)
+  let susInc = monotonousDecreasing (fst3 $ unzip3 retFin)
   -- number of infected i = N - (S + R)
-  let infConst = all (infectedInvariant n) ret
+  let infConst = all (infectedInvariant n) retFin
   -- number of recovered R can only increase
-  let recDec = monotonousIncrasing (trd3 $ unzip3 ret)
+  let recDec = monotonousIncrasing (trd3 $ unzip3 retFin)
 
-  let prop = susInc && infConst && recDec && aci
+  let prop = susInc && infConst && recDec && aci && sirEquilibrium
   
   return $ label (show (length ss)) prop
 

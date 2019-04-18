@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module SIR.SIR where
 
+import Data.Foldable
 import Data.Maybe
 
 import Control.Monad.Random
@@ -13,13 +14,13 @@ import Data.MonadicStreamFunction
 import qualified Data.IntMap.Strict as Map 
 import qualified Data.PQueue.Min as PQ
 
--- import Debug.Trace
+--import Debug.Trace
 
 type EventId      = Integer
 type Time         = Double
 type AgentId      = Int
 newtype Event e   = Event e deriving Show
-data QueueItem e  = QueueItem AgentId (Event e) Time deriving Show
+data QueueItem e  = QueueItem !AgentId !(Event e) Time deriving Show
 type EventQueue e = PQ.MinQueue (QueueItem e)
 
 instance Eq (QueueItem e) where
@@ -31,10 +32,18 @@ instance Ord (QueueItem e) where
 type ABSMonad m e s    = ReaderT Time (WriterT [QueueItem e] (ReaderT [AgentId] (WriterT [s] m)))
 type AgentCont m e s o = MSF (ABSMonad m e s) e o
 type Agent m e s o     = AgentId -> (ABSMonad m e s) (AgentCont m e s o)
-type AgentMap m e s o  = Map.IntMap (AgentCont m e s o)
+type AgentMap m e s o  = Map.IntMap (AgentCont m e s o, o)
 
-data SIRDomainOp     = Inc | Dec deriving (Show, Eq)
-data SIRDomainUpdate = SIRDomainUpdate SIRDomainOp SIRState Time deriving (Show, Eq)
+-- only those operations are valid, no increment susceptible and no decrement
+-- infected
+data SIRDomainOp 
+  = SusToInf
+  | InfToRec
+  deriving (Show, Eq)
+
+data SIRDomainUpdate 
+  = SIRDomainUpdate !Time !SIRDomainOp
+  deriving (Show, Eq)
 
 data SIRState 
   = Susceptible
@@ -56,6 +65,9 @@ type SIRAgentCont g = AgentCont (SIRMonad g) SIREvent SIRDomainUpdate SIRState
 makeContactInterval :: Double
 makeContactInterval = 1.0
 
+--------------------------------------------------------------------------------
+-- AGENT CONSTRUCTOR
+--------------------------------------------------------------------------------
 -- | A sir agent which is in one of three states
 sirAgent :: RandomGen g 
          => Int         -- ^ the contact rate
@@ -65,18 +77,18 @@ sirAgent :: RandomGen g
          -> SIRAgent g  -- ^ the continuation
 sirAgent cr inf illDur Susceptible aid = do
   -- on start
-  incSus
   scheduleMakeContact aid 
   return $ susceptibleAgent aid cr inf illDur 
 sirAgent _ _ illDur Infected aid = do
   -- on start
-  incInf
   scheduleRecovery aid illDur
   return $ infectedAgent aid
-sirAgent _ _ _ Recovered _ = do
-  incRec
+sirAgent _ _ _ Recovered _ = 
   return recoveredAgent
 
+--------------------------------------------------------------------------------
+-- AGENTS
+--------------------------------------------------------------------------------
 susceptibleAgent :: RandomGen g 
                  => AgentId
                  -> Int
@@ -104,8 +116,7 @@ susceptibleAgent aid cr inf illDur =
       r <- lift $ lift $ lift $ lift $ randomBoolM inf
       if r 
         then do
-          decSus
-          incInf
+          susToInf
           scheduleRecovery aid illDur
           return $ Just ()
         else return Nothing
@@ -145,8 +156,7 @@ infectedAgent aid =
       replyContact sender
       return Nothing
     handleEvent Recover = do
-      decInf
-      incRec
+      infToRec
       return $ Just ()
     handleEvent _ = return Nothing
 
@@ -156,6 +166,9 @@ infectedAgent aid =
 recoveredAgent :: SIRAgentCont g
 recoveredAgent = arr (const Recovered)
 
+--------------------------------------------------------------------------------
+-- AGENT UTILS
+--------------------------------------------------------------------------------
 scheduleMakeContact :: AgentId -> (SIRMonadT g) ()
 scheduleMakeContact aid = scheduleEvent aid MakeContact makeContactInterval
 
@@ -164,97 +177,17 @@ scheduleRecovery aid illnessDuration = do
   dt <- lift $ lift $ lift $ lift $ randomExpM (1 / illnessDuration)
   scheduleEvent aid Recover dt
 
-incSus :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
-incSus = changeDomState Inc Susceptible
+susToInf :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
+susToInf = addDomOp SusToInf
 
-decSus :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
-decSus = changeDomState Dec Susceptible
+infToRec :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
+infToRec = addDomOp InfToRec
 
-incInf :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
-incInf = changeDomState Inc Infected
-
-decInf :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
-decInf = changeDomState Dec Infected
-
-incRec :: Monad m => (ABSMonad m e SIRDomainUpdate) ()
-incRec = changeDomState Inc Recovered
-
-changeDomState :: Monad m 
-               => SIRDomainOp
-               -> SIRState
-               -> (ABSMonad m e SIRDomainUpdate) ()
-changeDomState op ss = ask >>= \t -> lift $ lift $ lift $ tell [SIRDomainUpdate op ss t]
-
-runSIR :: RandomGen g
-       => [SIRState]
-       -> Int
-       -> Double
-       -> Double 
-       -> Integer
-       -> Double    
-       -> g
-       -> ([(Time, (Int, Int, Int))], Integer)
-runSIR ss cr inf illDur maxEvents tLimit g = (adus', ect)
-  where
-    as0    = map (sirAgent cr inf illDur) ss
-    asIds  = [0.. length ss - 1]
-    asWIds = Prelude.zipWith (\a aid -> a aid) as0 asIds
-
-    (dus, ect) = evalRand act g
-    adus = aggregateDomainUpdates dus
-
-    adus' = if null ss
-             then (0, (0,0,0)) : adus
-             else adus
-
-    act = do
-      let asEvtWriter   = runReaderT (sequence asWIds) 0
-          asAsIdsReader = runWriterT asEvtWriter
-          asDomWriter   = runReaderT asAsIdsReader asIds
-          
-      ((as0', es), dus0) <- runWriterT asDomWriter
-
-      let asMap = Prelude.foldr (\(aid, a) acc -> Map.insert aid a acc) Map.empty (Prelude.zip asIds as0')
-          eq    = foldr PQ.insert PQ.empty es
-
-          simDomWriter = runReaderT (stepClock maxEvents asMap eq) asIds
-
-      (relEvtCnt, dusSim) <- runWriterT simDomWriter
-
-      let evtCnt = if maxEvents < 0
-                    then -(relEvtCnt + 1)
-                    else maxEvents - relEvtCnt
-
-      return (dus0 ++ dusSim, evtCnt)
-
-    stepClock :: Monad m --(MonadReader [AgentId] m, MonadWriter [s] m, MonadRandom m)
-              => Integer 
-              -> AgentMap m e s o
-              -> EventQueue e
-              -> ReaderT [AgentId] (WriterT [s] m) Integer
-    stepClock 0 _ _ = return 0 -- processed all events
-    stepClock n as q
-        | isNothing mayHead = return n -- finished, no more events
-        | evtTime > tLimit  = return n -- finished, hit time-limit
-        | isNothing am      = stepClock (n-1) as q' -- event-receiver not found, next event
-        | otherwise         = do
-          let aReaderTime   = unMSF a e
-              aWriterEvents = runReaderT aReaderTime evtTime
-              amsf          = runWriterT aWriterEvents
-
-          ((_ao, a'), es) <- amsf
-
-          let q'' = foldr PQ.insert q' es
-              as' = Map.insert aid a' as
-
-          stepClock (n-1) as' q''
-      where
-        mayHead = PQ.getMin q
-        (QueueItem aid (Event e) evtTime) = fromJust mayHead
-
-        q' = PQ.drop 1 q
-        am = Map.lookup aid as
-        a  = fromJust am
+addDomOp :: Monad m 
+         => SIRDomainOp
+         -> (ABSMonad m e SIRDomainUpdate) ()
+addDomOp op
+  = ask >>= \t -> lift $ lift $ lift $ tell [SIRDomainUpdate t op]
 
 allAgentIds :: Monad m => (ABSMonad m e s) [AgentId]
 allAgentIds = lift $ lift ask
@@ -269,6 +202,128 @@ scheduleEvent aid e dt = do
   let qe = QueueItem aid (Event e) (t + dt)  
   lift $ tell [qe]
 
+--------------------------------------------------------------------------------
+-- SIMULATION KERNEL
+--------------------------------------------------------------------------------
+processQueue :: Monad m --(MonadReader [AgentId] m, MonadWriter [s] m, MonadRandom m)
+             => Integer 
+             -> Double
+             -> AgentMap m e s o
+             -> EventQueue e
+             -> ReaderT [AgentId] (WriterT [s] m) Integer
+                    -- after changing the return-type to tuple, we got a memory leak even if no variable is kept
+processQueue 0 _ _ _ = return 0 -- processed all events
+processQueue n tLimit as q
+    | isNothing mayHead = return n -- finished, no more events
+    | evtTime > tLimit  = return n -- finished, hit time-limit
+    | otherwise         = do
+      retMay <- processEvent as evt 
+      case retMay of 
+        Nothing -> processQueue (n-1) tLimit as q' -- event-receiver not found, next event
+        (Just (as', _, es)) -> do
+          let q'' = foldr PQ.insert q' es
+          processQueue (n-1) tLimit as' q''
+  where
+    mayHead = PQ.getMin q
+    evt     = fromJust mayHead
+    evtTime = eventTime evt
+
+    q' = PQ.drop 1 q
+
+    eventTime :: QueueItem e -> Time
+    eventTime (QueueItem _ _ et) = et
+
+processEvent :: Monad m 
+             => AgentMap m e s o
+             -> QueueItem e
+             -> ReaderT [AgentId] (WriterT [s] m)
+                        -- no idea why have to use full expansion of AgentMap here...
+                        (Maybe (Map.IntMap (AgentCont m e s o, o), o, [QueueItem e]))
+processEvent as (QueueItem receiver (Event e) evtTime)
+  | isNothing aMay = return Nothing
+  | otherwise = do
+    let aReaderTime   = unMSF a e
+        aWriterEvents = runReaderT aReaderTime evtTime
+        amsf          = runWriterT aWriterEvents
+
+    ((ao, a'), es) <- amsf
+
+    let as' = Map.insert receiver (a', ao) as
+
+    return $ Just (as', ao, es)
+  where
+    aMay  = Map.lookup receiver as
+    (a,_) = fromJust aMay
+
+--------------------------------------------------------------------------------
+-- SIR SPECIFIC SIMULATION KERNEL
+--------------------------------------------------------------------------------
+runSIR :: RandomGen g
+       => [SIRState]
+       -> Int
+       -> Double
+       -> Double 
+       -> Integer
+       -> Double    
+       -> g
+       -> ([(Time, (Int, Int, Int))], Integer)
+runSIR ss cr inf illDur maxEvents tLimit g = (adus', ect)
+  where
+    s = length $ filter (==Susceptible) ss
+    i = length $ filter (==Infected) ss
+    r = length $ filter (==Recovered) ss
+
+    (dus, ect) = evalRand executeAgents g
+    adus = aggregateDomainUpdates (s,i,r) dus
+    -- there is always a last element in adus because there is always
+    -- (0, (s,i,r)) added to the list
+    adus' = adus -- ++ [(tFinal, snd $ last adus)]
+
+    executeAgents = do
+      (asMap, eq) <- initSIR ss cr inf illDur
+          
+      let asIds = Map.keys asMap
+
+      let simDomWriter = runReaderT (processQueue maxEvents tLimit asMap eq) asIds
+      (relEvtCnt, dusSim) <- runWriterT simDomWriter
+
+      let evtCnt = if maxEvents < 0
+                    then -(relEvtCnt + 1)
+                    else maxEvents - relEvtCnt
+
+      return (dusSim, evtCnt)
+
+initSIR :: RandomGen g
+        => [SIRState]
+        -> Int
+        -> Double
+        -> Double
+        -> SIRMonad g 
+            (AgentMap (SIRMonad g) SIREvent SIRDomainUpdate SIRState, EventQueue SIREvent)
+initSIR ss cr inf illDur = do
+    let asEvtWriter   = runReaderT (sequence asWIds) 0
+        asAsIdsReader = runWriterT asEvtWriter
+        asDomWriter   = runReaderT asAsIdsReader asIds
+  
+    -- NOTE: ignore domain upates in initialisation
+    ((as0', es), _) <- runWriterT asDomWriter
+
+    let asMap = Prelude.foldr 
+                  (\(aid, a, s) acc -> Map.insert aid (a, s) acc) 
+                  Map.empty 
+                  (Prelude.zip3 asIds as0' ss)
+
+        eq = foldr PQ.insert PQ.empty es
+
+    return (asMap, eq)
+  where
+    as0    = map (sirAgent cr inf illDur) ss
+    asIds  = [0.. length ss - 1]
+    asWIds = Prelude.zipWith (\a aid -> a aid) as0 asIds
+
+--------------------------------------------------------------------------------
+-- RANDOM UTILS
+--------------------------------------------------------------------------------
 randomElem :: RandomGen g => [e] -> Rand g e
 randomElem es = do
   let len = length es
@@ -289,25 +344,23 @@ randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
         else return r
 
 --------------------------------------------------------------------------------
--- UTILS
-aggregateDomainUpdates :: [SIRDomainUpdate] -> [(Time, (Int, Int, Int))]
-aggregateDomainUpdates dus = reverse $ snd $ foldr aggregateDomainUpdatesAux ((0,0,0), []) (reverse dus)
+-- AGGREGATION UTILS
+--------------------------------------------------------------------------------
+aggregateDomainUpdates :: (Int, Int, Int)
+                       -> [SIRDomainUpdate]
+                       -> [(Time, (Int, Int, Int))]
+aggregateDomainUpdates agr0 dus
+    = reverse $ snd aggr
   where
-    aggregateDomainUpdatesAux :: SIRDomainUpdate
+    aggr = foldl' aggregateDomainUpdatesAux (agr0, [(0, agr0)]) dus
+
+    aggregateDomainUpdatesAux :: ((Int, Int, Int), [(Time, (Int, Int, Int))])
+                              -> SIRDomainUpdate
                               -> ((Int, Int, Int), [(Time, (Int, Int, Int))])
-                              -> ((Int, Int, Int), [(Time, (Int, Int, Int))])
-    aggregateDomainUpdatesAux (SIRDomainUpdate Inc Susceptible t) ((s,i,r), acc) 
-      = let sir = (s+1,i,r) in (sir, (t, sir) : acc)
-    aggregateDomainUpdatesAux (SIRDomainUpdate Dec Susceptible t) ((s,i,r), acc) 
-      = let sir = (s-1,i,r) in (sir, (t, sir) : acc)
-    aggregateDomainUpdatesAux (SIRDomainUpdate Inc Infected t) ((s,i,r), acc) 
-      = let sir = (s,i+1,r) in (sir, (t, sir) : acc)
-    aggregateDomainUpdatesAux (SIRDomainUpdate Dec Infected t) ((s,i,r), acc) 
-      = let sir = (s,i-1,r) in (sir, (t, sir) : acc)
-    aggregateDomainUpdatesAux (SIRDomainUpdate Inc Recovered t) ((s,i,r), acc) 
-      = let sir = (s,i,r+1) in (sir, (t, sir) : acc)
-    aggregateDomainUpdatesAux (SIRDomainUpdate Dec Recovered t) ((s,i,r), acc) 
-      = let sir = (s,i,r-1) in (sir, (t, sir) : acc)
+    aggregateDomainUpdatesAux ((s,i,r), acc) (SIRDomainUpdate t SusToInf) 
+      = let sir = (s-1,i+1,r) in (sir, (t, sir) : acc)
+    aggregateDomainUpdatesAux ((s,i,r), acc) (SIRDomainUpdate t InfToRec)
+      = let sir = (s,i-1,r+1) in (sir, (t, sir) : acc)
 
 compressOutput :: [(Time, (Int, Int, Int))] -> [(Time, (Int, Int, Int))]
 compressOutput = foldr compressOutputAux []

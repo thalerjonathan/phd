@@ -36,11 +36,11 @@ main = do
   --let g0 = mkStdGen seed
   g0 <- getStdGen
 
-  let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
+  let _ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
-      (ss, evtCnt) = runSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
-    
+      (ss, evtCnt) = runSIR _ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
+
   print $ "Finished at t = " ++ show (fst $ last ss) ++ 
           ", after " ++ show evtCnt ++ 
           " events"

@@ -1,6 +1,8 @@
 {-# LANGUAGE InstanceSigs #-}
 module Main where
 
+import Text.Printf
+
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
@@ -10,6 +12,10 @@ import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
+
+instance Arbitrary SIRState where
+  arbitrary :: Gen SIRState
+  arbitrary = elements [Susceptible, Infected, Recovered]
 
 -- represent the testing state 
 data AgentTestState g = AgentTestState
@@ -30,7 +36,7 @@ main :: IO ()
 main = do
   let t = testGroup "Agent History Tests" 
           [ 
-            QC.testProperty "Recovered forever" prop_recovered_forever
+            QC.testProperty "SIR invariants" prop_sir_invariants
           ]
 
   defaultMain t
@@ -39,77 +45,84 @@ main = do
 -- TEST-CASES
 --------------------------------------------------------------------------------
 
--- RANDOM EVENT SAMPLING OF A SYSTEM WITH A RANDOM AGENT POPULATION
+-- TODO: RANDOM EVENT SAMPLING OF A SYSTEM WITH A RANDOM AGENT POPULATION
 -- TODO: after a finite number of steps SIR will reach equilibrium, when there
 -- are no more infected agents
 -- => but how can we express this in a property?
--- TODO: all S,I,R counts have to respect S+I+R = N - the number of agents
---       stays constant
--- TODO: number of susceptible S can only decrease
--- TODO: number of recovered R can only increase
--- TODO: number of infected I = N - (S + R)
-prop_random_sir :: Property
-prop_random_sir = do
+prop_sir_invariants :: Property
+prop_sir_invariants = property $ do
   let cor = 5
       inf = 0.05
       ild = 15
 
-  mkInitState
+  g  <- genStdGen
+  ss <- arbitrary
+  
+  -- total agent count
+  let n = length ss
 
-runSir :: [(AgentId, SIRAgentCont g)]
-       -> Time
-       -> Gen ([(AgentId, SIRAgentCont g)], Time)
-runSir as t = do
-  let (ais, acs) = unzip as
+  -- run simulation with no restrictions on events AND time!
+  let ret = map snd $ fst $ runSIR ss cor inf ild (-1) (1/0) g
 
-  evt <- genEvent ais
+  -- number of agents stays constant in each step
+  let aci = all (agentCountInvariant n) ret
+  -- number of susceptible can only decrease
+  let susInc = monotonousDecreasing (fst3 $ unzip3 ret)
+  -- number of infected i = N - (S + R)
+  let infConst = all (infectedInvariant n) ret
+  -- number of recovered R can only increase
+  let recDec = monotonousIncrasing (trd3 $ unzip3 ret)
 
-  a  
+  let prop = susInc && infConst && recDec && aci
+  
+  return $ label (show (length ss)) prop
 
-genEvent :: [AgentId] -> Gen SIREvent
-genEvent = genEventFreq 1 1 1 (1,1,1)
+  -- ss <- vector (length ais)
+  -- -- TODO: generate random population
+  -- let (am, eq) = evalRand (initAgents ss cor inf ild) g
+  --     ais = Map.keys am
 
-genEventFreq :: Int
-             -> Int
-             -> Int
-             -> (Int, Int, Int)
-             -> [AgentId]
-             -> Gen SIREvent
-genEventFreq mcf _ rcf _ []  
-  = frequency [ (mcf, return MakeContact), (rcf, return Recover)]
-genEventFreq mcf cof rcf (s,i,r) ais
-  = frequency [ (mcf, return MakeContact)
-              , (cof, do
-                  ss <- frequency [ (s, return Susceptible)
-                                  , (i, return Infected)
-                                  , (r, return Recovered)]
-                  ai <- elements ais
-                  return $ Contact ai ss)
-              , (rcf, return Recover)]
+  -- return $ monadic (\propReader -> evalRand (runWriterT (runReaderT propReader ais))) (do
+  --   n <- processQueue (-1) (1/0) am eq
+
+  --evt <- genEventFreq 1 1 1 (1,1,1) ais
+
+agentCountInvariant :: Int -> (Int, Int, Int) -> Bool
+agentCountInvariant n (s,i,r) = s+i+r == n
+
+infectedInvariant :: Int -> (Int, Int, Int) -> Bool
+infectedInvariant n (s,i,r) = i == n - (s + r)
+
+fst3 :: (a,b,c) -> a
+fst3 (a,_,_) = a
+
+snd3 :: (a,b,c) -> b
+snd3 (_,b,_) = b
+
+trd3 :: (a,b,c) -> c
+trd3 (_,_,c) = c
+
+monotonousDecreasing :: [Int] -> Bool
+monotonousDecreasing xs = and [x' <= x | (x,x') <- zip xs (tail xs)]
+
+monotonousIncrasing :: [Int] -> Bool
+monotonousIncrasing xs = and [x' >= x | (x,x') <- zip xs (tail xs)]
+
+labelPopulation :: [SIRState] -> String
+labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
+  where
+    s = fromIntegral $ length $ filter (==Susceptible) as
+    i = fromIntegral $ length $ filter (==Infected) as
+    r = fromIntegral $ length $ filter (==Recovered) as
+    n = fromIntegral $ length as
+
+    ss = printf "%.2f" ((s / n) :: Double)
+    is = printf "%.2f" (i / n)
+    rs = printf "%.2f" (r / n)
 
 -- Recovered Agent generates no events and stays recovered FOREVER. This means:
 --  pre-condition:   in Recovered state and ANY event
 --  post-condition:  in Recovered state and 0 scheduled events
-
-prop_recovered_forever :: Property
-prop_recovered_forever = property $ do
-    let cor = 5
-        inf = 0.05
-        ild = 15
-
-    ais <- genNonEmptyAgentIds
-    ai  <- elements ais 
-    g   <- genStdGen
-
-    let a = sirAgent cor inf ild Susceptible ai
-
-    let asEvtWriter    = runReaderT a 0
-        asAsIdsReader  = runWriterT asEvtWriter
-        asDomWriter    = runReaderT asAsIdsReader ais
-        aRand          = runWriterT asDomWriter
-        (((_a', _es), _), _g') = runRand aRand g
-
-    return True
 
 -- Susceptible Agent MIGHT become Infected and Recovered
 -- TODO:

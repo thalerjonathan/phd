@@ -3,38 +3,42 @@ So far, our tests were stateless: only one computational step of an agent was co
 
 In this chapter we will discuss how we can encode properties and specifications which require stateful testing. We define stateful testing here as: evolving a simulation state consisting of one or more agents over multiple events. Note that this also includes running the whole simulation.
 
-\section{SIR invariants}
+\section{Agent invariants over time}
+TODO
+
+\section{SIR invariants over time}
 By informally reasoning about the agent-specification and by realising that they are in fact a state-machine with a on-directional flow from Susceptible to Infected to Recovered, we can come up with a few invariants which have to hold for any SIR simulation run independent of the random-number stream and the population:
 
 \begin{enumerate}
-	\item Simulation time is monotonic increasing. For each event an output of the current number of S,I and R agents is generated together with the time when the events occurred. This event time can stay the same between steps and will eventually increase but can never decrease. Obviously this invariant is a fundamental assumption in most simulations: time advances into the future and does not flow backwards.
+	\item Simulation time is monotonic increasing. For each event an output of the current number of S,I and R agents is generated together with the time when the events occurred. This event time can stay the same between steps, will eventually increase but must never decrease. Obviously this invariant is a fundamental assumption in most simulations: time advances into the future and does not flow backwards.
 	
 	\item The number of total agents $N$ stays constant in SIR. The SIR model does not specify the dynamic creation or removal of agents during simulation. This is in contrast to the Sugarscape where, depending on the model parameters, this can be very well the case.
 	
-	\item The number of \textit{Susceptible} agents $S$ is monotonic decreasing. Susceptile agents \textit{might} become infected, reducing the total number of susceptible agents but they can never increase because neither an infected or recovered agent can go back to susceptible.
+	\item The number of \textit{Susceptible} agents $S$ is monotonic decreasing. Susceptile agents \textit{might} become infected, reducing the total number of susceptible agents but they can never increase because neither an infected nor recovered agent can go back to susceptible.
 	
 	\item The number of \textit{Recovered} agents $R$ is monotonic increasing. This is due to infected agents \textit{will} recover, leading to an increase of recovered agents but once the recovered state is reached, there is no escape from it.
 	
-	\item The number of \textit{Infected} agents is a function which follows the equation of in every step $I = N - (S + R)$. This follows directly from the first property which says $N = S + I + R$.
+	\item The number of \textit{Infected} agents respects the invariant of the equation $I = N - (S + R)$ for every step. This follows directly from the first property which says $N = S + I + R$.
 \end{enumerate}
 
-All of those properties are easily written directly in code (TODO: add a note in the benefits how extremely well this is encoded in functional programming).
+All of those properties are easily expressed directly in code (TODO: add a note in the benefits how extremely well this is encoded in functional programming).
 
 \begin{HaskellCode}
 sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
-sirInvariants n xs = timeInc && aConst && susDec && recInc && infInv
+sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
   where
-    (ts, sirs) = unzip xs
+    (ts, sirs)  = unzip aos
+    (ss, _, rs) = unzip3 sirs
 
     -- 1. time is monotonic increasing
-    timeInc = monoInc ts
-    -- 2. number of agents stays constant in each step
+    timeInc = mono (<=)  ts
+    -- 2. number of agents N stays constant in each step
     aConst = all agentCountInv sirs
-    -- 3. number of susceptible can only decrease
-    susDec = monoDec (fst3 (unzip3 sirs))
-    -- 4. number of recovered R can only increase
-    recInc = monoInc (trd3 (unzip3 sirs))
-    -- 5. number of infected i = N - (S + R)
+    -- 3. number of susceptible S is monotonic decreasing
+    susDec = mono (>=) ss
+    -- 4. number of recovered R is monotonic increasing
+    recInc = mono (<=)  rs
+    -- 5. number of infected I = N - (S + R)
     infInv = all infectedInv sirs
 
     agentCountInv :: (Int, Int, Int) -> Bool
@@ -43,12 +47,34 @@ sirInvariants n xs = timeInc && aConst && susDec && recInc && infInv
     infectedInv :: (Int, Int, Int) -> Bool
     infectedInv (s,i,r) = i == n - (s + r)
 
-    monoDec :: (Ord a, Num a) => [a] -> Bool
-    monoDec xs = all (uncurry (>=)) (pairs xs)
-
-    monoInc :: (Ord a, Num a) => [a] -> Bool
-    monoInc xs = all (uncurry (<=)) (pairs xs)
+    mono :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
+    mono f xs = all (uncurry f) (pairs xs)
 
     pairs :: [a] -> [(a,a)]
     pairs xs = zip xs (tail xs)
 \end{HaskellCode}
+
+Putting this property into a QuickCheck test is straightforward:
+
+\begin{HaskellCode}
+prop_sir_simulation_invariants :: Property
+prop_sir_simulation_invariants = property (do
+  let cor = 5    -- beta, contact rate
+      inf = 0.05 -- gamma, infectivitry
+      ild = 15   -- delta, illness duration
+
+  -- generate population with size of up to 1000
+  ss <- resize 1000 (listOf genSIRState)
+  -- total agent count
+  let n = length ss
+
+  -- run the SIR simulation with a new RNG for up to t = 150 
+  ret <- genSimulationSIR ss cor inf ild (-1) 150
+  -- check invariants and return result
+  return (sirInvariants n ret)
+\end{HaskellCode}
+
+Unsurprisingly all 100 tests pass. Note that we put a time-limit of 150 on the simulations to run, meaning that if a simulation does not terminate before that limit, it will be terminated at $t=150$. This is actually not necessary because we can reason that the SIR simulation \textit{will always} reach an equilibrium in finite steps thus not requiring an actual time-limit - we discuss this more in-depth in Chapter \ref{ch:equilibrium_totality}.
+
+\paragraph{Random Event Sampling}
+An interesting question is whether or not these properties depend on correct interdependencies of events the agents send to each other in reaction to events they receive. Put in other words: do these invariants also hold under \textit{random event sampling}? To test this, instead of using the actual SIR implementation, which inserts the events generated by the agents into the event-queue, we wrote a new SIR kernel. It completely ignores the events generated by the agents and instead makes use of an infinite stream of random queue-elements from which it executes a given number, 100,000 in our case. Note that queue-elements contain a time-stamp, the receiver agent id and the actual event: the time-stamp is ensured to be increasing, to hold up the monotonic time property, the receiver agent id is drawn randomly from the constant list of all agents in the simulation and the actual event is generated completely randomly. As it turns out, the implementation of the agents ensure that the SIR properties are also invariant under \textit{random event sampling} - all tests pass.

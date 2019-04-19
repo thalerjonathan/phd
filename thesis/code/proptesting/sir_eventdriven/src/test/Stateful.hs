@@ -31,8 +31,8 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Stateful Tests" 
           [ 
-            QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
-          , QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
+          --  QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
+            QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
           ]
 
   defaultMain t
@@ -47,12 +47,12 @@ prop_sir_simulation_invariants = property $ do
       ild = 15    -- delta, illness duration
 
   -- generate population with size of up to 1000
-  ss <- resize 1000 (listOf genSIRState)
+  as <- resize 1000 (listOf genSIRState)
   -- total agent count
-  let n = length ss
+  let n = length as
 
   -- run simulation UNRESTRICTED in both time and event count
-  ret <- genSimulationSIR ss cor inf ild (-1) (1/0)
+  ret <- genSimulationSIR as cor inf ild (-1) (1/0)
   
   -- after a finite number of steps SIR will reach equilibrium, when there
   -- are no more infected agents. WARNING: this could be a potentially non-
@@ -69,15 +69,15 @@ prop_sir_random_invariants = property $ do
       ild = 15    -- delta, illness duration
 
   -- generate random population with size of up to 1000
-  ss <- resize 1000 (listOf genSIRState)
+  as <- resize 1000 (listOf genSIRState)
   -- total agent count
-  let n = length ss
+  let n = length as
   -- number of infected at t=0
-  let i0 = length (filter (==Infected) ss)
+  let i0 = length (filter (==Infected) as)
   -- number of random events to generate
-  let eventCount = 10000
+  let eventCount = 100000
   -- run simulation with random population and random events
-  ret <- genRandomEventSIR ss cor inf ild eventCount
+  ret <- genRandomEventSIR as cor inf ild eventCount
 
   let equilibrium = any ((>0).snd3.snd) ret
 
@@ -88,17 +88,18 @@ prop_sir_random_invariants = property $ do
 sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
 sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
   where
-    (ts, sirs) = unzip aos
+    (ts, sirs)  = unzip aos
+    (ss, _, rs) = unzip3 sirs
 
     -- 1. time is monotonic increasing
-    timeInc = monoInc ts
-    -- 2. number of agents stays constant in each step
+    timeInc = mono (<=)  ts
+    -- 2. number of agents N stays constant in each step
     aConst = all agentCountInv sirs
-    -- 3. number of susceptible can only decrease
-    susDec = monoDec (fst3 $ unzip3 sirs)
-    -- 4. number of recovered R can only increase
-    recInc = monoInc (trd3 $ unzip3 sirs)
-    -- 5. number of infected i = N - (S + R)
+    -- 3. number of susceptible S is monotonic decreasing
+    susDec = mono (>=) ss
+    -- 4. number of recovered R is monotonic increasing
+    recInc = mono (<=)  rs
+    -- 5. number of infected I = N - (S + R)
     infInv = all infectedInv sirs
 
     agentCountInv :: (Int, Int, Int) -> Bool
@@ -107,11 +108,8 @@ sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
     infectedInv :: (Int, Int, Int) -> Bool
     infectedInv (s,i,r) = i == n - (s + r)
 
-    monoDec :: (Ord a, Num a) => [a] -> Bool
-    monoDec xs = all (uncurry (>=)) (pairs xs)
-
-    monoInc :: (Ord a, Num a) => [a] -> Bool
-    monoInc xs = all (uncurry (<=)) (pairs xs)
+    mono :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
+    mono f xs = all (uncurry f) (pairs xs)
 
     pairs :: [a] -> [(a,a)]
     pairs xs = zip xs (tail xs)
@@ -137,34 +135,35 @@ genRandomEventSIR :: [SIRState]
                   -> Double 
                   -> Integer
                   -> Gen [(Time, (Int, Int, Int))]
-genRandomEventSIR ss cr inf illDur maxEvents = do
+genRandomEventSIR as cr inf illDur maxEvents = do
     g <- genStdGen 
 
     -- ignore initial events
-    let (am0, _) = evalRand (initSIR ss cr inf illDur) g
-    let ais = Map.keys am0
+    let (am0, _) = evalRand (initSIR as cr inf illDur) g
+        ais = Map.keys am0
 
+    -- infinite stream of events, prevents us from calling genQueueItem in
+    -- the execEvents function - lazy evaluation is really awesome!
     evtStream <- genQueueItemStream 0 ais
-    let (_amFinal, ds) = evalRand (runReaderT (executeAgents maxEvents evtStream am0 []) ais) g
-    return ds
+    
+    return $ evalRand (runReaderT (executeEvents maxEvents evtStream am0) ais) g
   where
-    executeAgents :: RandomGen g
+    executeEvents :: RandomGen g
                   => Integer
                   -> [QueueItem SIREvent]
                   -> AgentMap (SIRMonad g) SIREvent SIRState
-                  -> [(Time, (Int, Int, Int))]
-                  -> ReaderT [AgentId] (Rand g)
-                            (SIRAgentMap g, [(Time, (Int, Int, Int))])
-    executeAgents 0 _ am acc  = return (am, reverse acc)
-    executeAgents _ [] am acc = return (am, reverse acc)
-    executeAgents n (evt:es) am acc = do
+                  -> ReaderT [AgentId] (Rand g) [(Time, (Int, Int, Int))]
+    executeEvents 0 _ _  = return []
+    executeEvents _ [] _ = return []
+    executeEvents n (evt:es) am = do
       retMay <- processEvent am evt 
       case retMay of 
-        Nothing -> executeAgents (n-1) es am acc
+        Nothing -> executeEvents (n-1) es am
         -- ignore events produced by agents
         (Just (am', _)) -> do
-          let acc' = (eventTime evt, aggregateAgentMap am) : acc
-          executeAgents (n-1) es am' acc'
+          let s = (eventTime evt, aggregateAgentMap am)
+          ss <- executeEvents (n-1) es am'
+          return (s : ss)
           
 --------------------------------------------------------------------------------
 -- AGENT API INTERPRETER

@@ -1,6 +1,36 @@
 \chapter{The Equilibrium-Totality Correspondence}
 \label{ch:equilibrium_totality}
 
+In the property test of SIR invariants in chapter \ref{ch:stateful_testing} we limited the time an individual simulation is run to 150 following the configuration for the simulation runs of chapter \ref{ch:timedriven}. In this context, the decision to do so was rather practical to ensure that we will actually terminate. The \textit{internal} termination criteria of the simulation kernel, which is implemented in a SIR agnostic manner, is an empty event-queue. For the SIR model on the other hand, we know that susceptible agents will start with scheduling a \textit{MakeContact} event to themselves 1 time-unit into the future and upon reception will to this again, resulting in an infinite stream of events. Thus we need to impose an \textit{external} termination criteria either in the form of limiting the number of events executed or the limiting the virtual simulation time.
+
+For the SIR model though, we have another option which would allow us to run the simulation with on restrictions both on events or time. We can show that the SIR model \textit{will} reach an equilibrium / a steady state within a \textit{after finite time}. This equilibrium can then serve as termination criteria for the data-generation.
+
+We can change the quickcheck test from the previous chapter:
+
+\begin{HaskellCode}
+prop_sir_simulation_invariants :: Property
+prop_sir_simulation_invariants = property (do
+  let cor = 5     -- beta, contact rate
+      inf = 0.05  -- gamma, infectivitry
+      ild = 15    -- delta, illness duration
+
+  -- generate population with size of up to 1000
+  as <- resize 1000 (listOf genSIRState)
+  -- total agent count
+  let n = length as
+  
+  -- CHANGED: run simulation UNRESTRICTED in both time and event count
+  ret <- genSimulationSIR as cor inf ild (-1) (1/0)
+  
+  -- after a finite number of steps SIR will reach equilibrium, when there
+  -- are no more infected agents. WARNING: this could be a potentially non-
+  -- terminating computation but a correct SIR implementation will always
+  -- lead to a termination of this 
+  let equilibriumData = takeWhile ((>0).snd3.snd) ret
+
+  return (sirInvariants n equilibriumData)
+\end{HaskellCode}
+
 The idea is to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial).  We argue that the underlying SIR model actually has a steady state.
 
 The dynamics of the System Dynamics SIR model are in equilibrium (won't change any more) when the infected stock is 0. This might be shown formally but intuitively it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. 

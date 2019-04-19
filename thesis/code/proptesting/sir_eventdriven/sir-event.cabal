@@ -87,7 +87,7 @@ Test-Suite sir-model-test
   type:                 exitcode-stdio-1.0
 
   other-modules:        StatsUtils
-                      
+                      , SIRGenerators
                       , SIR.SIR
 
   hs-source-dirs:       src/
@@ -105,6 +105,8 @@ Test-Suite sir-model-test
                       , QuickCheck
                       , random
                       , statistics
+                      , tasty
+                      , tasty-quickcheck
                       , vector
                       
   ghc-options:        -O2
@@ -112,19 +114,19 @@ Test-Suite sir-model-test
                       -Werror
                       -fno-warn-orphans
 
-Test-Suite sir-agent-test
+Test-Suite sir-stateless-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
 
   other-modules:        StatsUtils
-                      
+                      , SIRGenerators
                       , SIR.SIR
 
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              Agent.hs
+  main-is:              Stateless.hs
 
   build-depends:        base
                       , containers
@@ -144,19 +146,19 @@ Test-Suite sir-agent-test
                       -Werror
                       -fno-warn-orphans
 
-Test-Suite sir-agent-history-test
+Test-Suite sir-stateful-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
 
   other-modules:        StatsUtils
-                      
+                      , SIRGenerators
                       , SIR.SIR
 
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              AgentHistory.hs
+  main-is:              Stateful.hs
 
   build-depends:        base
                       , containers
@@ -165,7 +167,6 @@ Test-Suite sir-agent-history-test
                       , mtl
                       , MonadRandom
                       , pqueue
-                      , QuickCheck
                       , tasty
                       , tasty-quickcheck
                       , random

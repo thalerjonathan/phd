@@ -2,12 +2,12 @@
 module Main where
 
 import Data.Maybe
-import System.Random
 
 import Test.QuickCheck
 --import Test.QuickCheck.Random
 
 import SIR.SIR
+import SIRGenerators
 import StatsUtils
 
 --import Debug.Trace
@@ -41,17 +41,20 @@ main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tes
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
                               } prop_sir_sd_random_size
 
-prop_sir_sd_random_size :: [SIRState] -> Gen Bool
-prop_sir_sd_random_size as = do
-  -- TODO: use resize 1000 (listOf genSIRState) to ensure larger population sizes
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as)
+prop_sir_sd_random_size :: Gen Bool
+prop_sir_sd_random_size = do
+  -- TODO: all tests seem to fail with this population size, WHY?
+  -- as <- resize 1000 (listOf genSIRState)
+  -- TODO: this seems to work
+  as <- listOf genSIRState
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
   return $ checkSirSDSpec as ss is rs
 
 prop_sir_sd_fixed_size :: Gen Bool
 prop_sir_sd_fixed_size = do
   -- TODO: use resize 1000 (listOf genSIRState)  to ensure larger population sizes
   as           <- vector 100
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as)
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
   return $ checkSirSDSpec as ss is rs
 
 labelPopulation :: [SIRState] -> String
@@ -65,14 +68,6 @@ labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
     ss = printf "%.2f" ((s / n) :: Double)
     is = printf "%.2f" (i / n)
     rs = printf "%.2f" (r / n)
-
-sir :: [SIRState] -> Gen (Int, Int, Int)
-sir as = do
-    seed <- choose (minBound, maxBound)
-    let g = mkStdGen seed
-    return $ snd $
-            last $ 
-            fst $ runSIR as contactRate infectivity illnessDuration (-1) 1.0 g
 
 sdSpec :: Double 
        -> Double 
@@ -148,3 +143,13 @@ checkSirSDSpec as ssI isI rsI = allPass
     -- _isMean = mean is
     -- _rsMean = mean rs
     
+genLastSir :: [SIRState] -> Gen (Int, Int, Int)
+genLastSir as = do
+  ret <- map snd <$> genSimulationSIR as contactRate infectivity illnessDuration (-1) 1.0 
+  if null ret
+    then do
+      let s = length (filter (==Susceptible) as)
+      let i = length (filter (==Infected) as)
+      let r = length (filter (==Recovered) as)
+      return (s,i,r)
+    else return (last ret)

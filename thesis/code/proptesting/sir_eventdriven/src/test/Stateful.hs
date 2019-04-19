@@ -1,20 +1,16 @@
 {-# LANGUAGE InstanceSigs #-}
 module Main where
 
-import Text.Printf
-
 import Control.Monad.Random
 import Control.Monad.Reader
 -- import Control.Monad.Writer
 -- import Data.MonadicStreamFunction.InternalCore
-import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 import qualified Data.IntMap.Strict as Map 
 
 import SIR.SIR
-
--- import Debug.Trace
+import SIRGenerators
 
 -- represent the testing state 
 data AgentTestState g = AgentTestState
@@ -29,11 +25,11 @@ type Command = QueueItem SIREvent
 -- the output of an agent is its current SIRState and the events it has scheduled
 data Response = Resp SIRState [QueueItem SIREvent]
 
--- clear & stack test sir-event:sir-agent-history-test --test-arguments="--quickcheck-replay=557780 --quickcheck-verbose"
+-- clear & stack test sir-event:sir-stateful-test --test-arguments="--quickcheck-replay=557780 --quickcheck-verbose"
 
 main :: IO ()
 main = do
-  let t = testGroup "Agent History Tests" 
+  let t = testGroup "SIR Stateful Tests" 
           [ 
             QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
           , QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
@@ -129,54 +125,6 @@ sirInvariants n aos = aci && susInc && infConst && recDec && timeInc
 -- that is part of the susceptible agent, which makes it difficult to test
 -- what can we do?
 
---------------------------------------------------------------------------------
--- CUSTOM GENERATORS
---------------------------------------------------------------------------------
-genNonEmptyAgentIds :: Gen [AgentId]
-genNonEmptyAgentIds = listOf1 (do 
-  (Positive t) <- arbitrary :: Gen (Positive Int)
-  return t)
-
-genAgentIds :: Gen [AgentId]
-genAgentIds = map (\(Positive i) -> i) <$> (arbitrary :: Gen [Positive Int])
-
-genEventFreq :: Int
-             -> Int
-             -> Int
-             -> (Int, Int, Int)
-             -> [AgentId]
-             -> Gen SIREvent
-genEventFreq mcf _ rcf _ []  
-  = frequency [ (mcf, return MakeContact), (rcf, return Recover)]
-genEventFreq mcf cof rcf (s,i,r) ais
-  = frequency [ (mcf, return MakeContact)
-              , (cof, do
-                  ss <- frequency [ (s, return Susceptible)
-                                  , (i, return Infected)
-                                  , (r, return Recovered)]
-                  ai <- elements ais
-                  return $ Contact ai ss)
-              , (rcf, return Recover)]
-
-genEvent :: [AgentId] -> Gen SIREvent
-genEvent = genEventFreq 1 1 1 (1,1,1)
-
-genStdGen :: Gen StdGen
-genStdGen = do
-  seed <- choose (minBound, maxBound)
-  return $ mkStdGen seed
-
-genSimulationSIR :: [SIRState]
-                 -> Int
-                 -> Double
-                 -> Double 
-                 -> Integer
-                 -> Double
-                 -> Gen [(Time, (Int, Int, Int))]
-genSimulationSIR ss cr inf illDur maxEvents maxTime = do
-  g <- genStdGen 
-  return $ fst $ runSIR ss cr inf illDur maxEvents maxTime g
-
 genRandomEventSIR :: [SIRState]
                   -> Int
                   -> Double
@@ -211,32 +159,7 @@ genRandomEventSIR ss cr inf illDur maxEvents = do
         (Just (am', _)) -> do
           let acc' = (eventTime evt, aggregateAgentMap am) : acc
           executeAgents (n-1) es am' acc'
-
-eventTime :: QueueItem e -> Time
-eventTime (QueueItem _ _ et) = et
-
-genSIRState :: Gen SIRState
-genSIRState = elements [Susceptible, Infected, Recovered]
-
-genQueueItemStream :: Double 
-                   -> [AgentId]
-                   -> Gen [QueueItem SIREvent]
-genQueueItemStream t ais = do
-  evt  <- genQueueItem t ais
-  evts <- genQueueItemStream (eventTime evt) ais
-  return (evt : evts)
-
-genQueueItem :: Double 
-             -> [AgentId]
-             -> Gen (QueueItem SIREvent)
-genQueueItem t ais = do
-  (Positive dt) <- arbitrary
-  e <- genEvent ais
-  receiver <- elements ais
-
-  let evtTime = t + dt
-
-  return $ QueueItem receiver (Event e) evtTime
+          
 --------------------------------------------------------------------------------
 -- AGENT API INTERPRETER
 --------------------------------------------------------------------------------

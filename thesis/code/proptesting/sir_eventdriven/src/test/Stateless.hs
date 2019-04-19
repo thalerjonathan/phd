@@ -12,13 +12,14 @@ import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
+import SIRGenerators
 import StatsUtils
 
--- clear & stack test sir-event:sir-agent-test
+-- clear & stack test sir-event:sir-stateless-test
 
 main :: IO ()
 main = do
-  let t = testGroup "Agent Tests" 
+  let t = testGroup "SIR Stateless (Agent) Tests" 
           [ 
             QC.testProperty "Susceptible invariants" prop_susceptible_invariants
           , QC.testProperty "Infected invariants" prop_infected_invariants
@@ -283,47 +284,13 @@ prop_infected_meanIllnessDuration = checkCoverage $ do
 --------------------------------------------------------------------------------
 -- CUSTOM GENERATORS
 --------------------------------------------------------------------------------
-genNonEmptyAgentIds :: Gen [AgentId]
-genNonEmptyAgentIds = listOf1 (do 
-  (Positive t) <- arbitrary :: Gen (Positive Int)
-  return t)
-
-genAgentIds :: Gen [AgentId]
-genAgentIds = map (\(Positive i) -> i) <$> (arbitrary :: Gen [Positive Int])
-
-genEventFreq :: Int
-             -> Int
-             -> Int
-             -> (Int, Int, Int)
-             -> [AgentId]
-             -> Gen SIREvent
-genEventFreq mcf _ rcf _ []  
-  = frequency [ (mcf, return MakeContact), (rcf, return Recover)]
-genEventFreq mcf cof rcf (s,i,r) ais
-  = frequency [ (mcf, return MakeContact)
-              , (cof, do
-                  ss <- frequency [ (s, return Susceptible)
-                                  , (i, return Infected)
-                                  , (r, return Recovered)]
-                  ai <- elements ais
-                  return $ Contact ai ss)
-              , (rcf, return Recover)]
-
-genEvent :: [AgentId] -> Gen SIREvent
-genEvent = genEventFreq 1 1 1 (1,1,1)
-
-genStdGen :: Gen StdGen
-genStdGen = do
-  seed <- choose (minBound, maxBound)
-  return $ mkStdGen seed
-
 genSusceptibleAgentMakeContact :: Int
                                -> Double
                                -> Double
                                -> Gen Int
 genSusceptibleAgentMakeContact contactRate infectivity illnessDuration = do
     g            <- genStdGen
-    ais          <- genAgentIds
+    ais          <- genNonEmptyAgentIds -- always have at least one agent, itself
     (Positive t) <- arbitrary
 
     let ag  = susceptibleAgent 0 contactRate infectivity illnessDuration
@@ -372,11 +339,9 @@ runAgent g a e t ais  = (g', a', ao, es)
     aMsf       = unMSF a e
     aEvtWriter = runReaderT aMsf t
     aAisReader = runWriterT aEvtWriter
-    aDomWriter = runReaderT aAisReader ais
-    aRand      = runWriterT aDomWriter
+    aRand      = runReaderT aAisReader ais
 
-    ((((ao, a'), es), _dus), g') = runRand aRand g
-
+    (((ao, a'), es), g') = runRand aRand g
 
 --------------------------------------------------------------------------------
 -- OBSOLETE TESTS

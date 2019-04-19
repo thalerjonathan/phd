@@ -179,6 +179,11 @@ scheduleEvent aid e dt = do
 --------------------------------------------------------------------------------
 -- SIMULATION KERNEL
 --------------------------------------------------------------------------------
+-- NOTE: this is implemented in a way that it the output [s] can be treated as
+-- an infinite list, which is definitely the case when the simulation does not
+-- terminate by itself when running out of events (or no time-/event-limit)
+-- This also requires that no function which needs to look at all elements
+-- is used, like reverse.
 processQueue :: Monad m 
              => Integer 
              -> Double
@@ -186,37 +191,29 @@ processQueue :: Monad m
              -> EventQueue e
              -> (AgentMap m e o -> Double -> s)
              -> ReaderT [AgentId] m [s]
-processQueue evtLimit tLimit as0 q0 doms0 = do
-    ret <- processQueueAux evtLimit as0 q0 doms0 []
-    return $ reverse ret
+processQueue 0 _ _ _ _ = return [] -- terminated by externals of simulation: hit event limit
+processQueue n tLimit am q dsf 
+    | isNothing mayHead = return [] -- terminated by internals of simulation model: no more events
+    | evtTime > tLimit  = return [] -- terminated by externals of simulation: hit time limit
+    | otherwise = do
+      retMay <- processEvent am evt 
+      -- receiver not found, remove event and carray on
+      case retMay of
+        Nothing -> processQueue (n-1) tLimit am q' dsf  -- event-receiver not found, next event
+        (Just (am', es)) -> do
+          let q'' = foldr PQ.insert q' es
+              s   = dsf am' evtTime
+          ss <- processQueue (n-1) tLimit am' q'' dsf 
+          return (s : ss)
   where
-    processQueueAux :: Monad m 
-                    => Integer
-                    -> AgentMap m e o
-                    -> EventQueue e
-                    -> (AgentMap m e o -> Double -> s)
-                    -> [s]
-                    -> ReaderT [AgentId] m [s]
-    processQueueAux 0 _ _ _ acc = return acc -- processed max event count
-    processQueueAux n as q doms acc
-        | isNothing mayHead = return acc -- finished, no more events
-        | evtTime > tLimit  = return acc -- finished, hit time-limit
-        | otherwise         = do
-          retMay <- processEvent as evt 
-          case retMay of 
-            Nothing -> processQueueAux (n-1) as q' doms acc  -- event-receiver not found, next event
-            (Just (as', es)) -> do
-              let q'' = foldr PQ.insert q' es
-              processQueueAux (n-1) as' q'' doms (doms as evtTime : acc)
-      where
-        mayHead = PQ.getMin q
-        evt     = fromJust mayHead
-        evtTime = eventTime evt
+    mayHead = PQ.getMin q
+    evt     = fromJust mayHead
+    evtTime = eventTime evt
 
-        q' = PQ.drop 1 q
+    q' = PQ.drop 1 q
 
-        eventTime :: QueueItem e -> Time
-        eventTime (QueueItem _ _ et) = et
+    eventTime :: QueueItem e -> Time
+    eventTime (QueueItem _ _ et) = et
 
 processEvent :: Monad m 
              => AgentMap m e o
@@ -252,23 +249,15 @@ runSIR :: RandomGen g
        -> Double    
        -> g
        -> ([(Time, (Int, Int, Int))], Integer)
-runSIR ss cr inf illDur maxEvents tLimit g = (ds, 0)
+runSIR ss cr inf illDur maxEvents tLimit g 
+    = (ds, 0)
   where
-    -- s = length $ filter (==Susceptible) ss
-    -- i = length $ filter (==Infected) ss
-    -- r = length $ filter (==Recovered) ss
-
     ds = evalRand executeAgents g
-    --adus = [(0, (s,i,r))]
-    -- there is always a last element in adus because there is always
-    -- (0, (s,i,r)) added to the list
-    -- adus' = adus  ++ [(tFinal, snd $ last adus)]
-
+    
     executeAgents = do
       (asMap, eq) <- initSIR ss cr inf illDur
           
       let asIds = Map.keys asMap
-
       let doms as t = (t, aggregateAgentMap as)
 
       runReaderT (processQueue maxEvents tLimit asMap eq doms) asIds
@@ -276,8 +265,6 @@ runSIR ss cr inf illDur maxEvents tLimit g = (ds, 0)
       -- let evtCnt = if maxEvents < 0
       --               then -(relEvtCnt + 1)
       --               else maxEvents - relEvtCnt
-
-      --return ds
 
 aggregateAgentMap :: SIRAgentMap g -> (Int, Int, Int) 
 aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)

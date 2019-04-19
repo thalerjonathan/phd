@@ -14,7 +14,7 @@ import qualified Data.IntMap.Strict as Map
 
 import SIR.SIR
 
---import Debug.Trace
+-- import Debug.Trace
 
 -- represent the testing state 
 data AgentTestState g = AgentTestState
@@ -35,54 +35,36 @@ main :: IO ()
 main = do
   let t = testGroup "Agent History Tests" 
           [ 
-          --  QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
-          --, QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
-           QC.testProperty "SIR random sampling equilibrium" prop_sir_random_equilibrium
+            QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
+          , QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
           ]
 
   defaultMain t
 
 --------------------------------------------------------------------------------
--- TEST-CASES
+-- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
 prop_sir_simulation_invariants :: Property
 prop_sir_simulation_invariants = property $ do
-  let cor = 5
-      inf = 0.05
-      ild = 15
-
-  -- random agents
-  ss <- listOf genSIRState
-  -- total agent count
-  let n = length ss
-
-  -- don't restrict
-  ret <- genSimulationSIR ss cor inf ild (-1) (1/0)
-  
-  -- after a finite number of steps SIR will reach equilibrium, when there
-  -- are no more infected agents
-  let retFin = takeWhile ((>0).snd3.snd) ret
-
-  return (sirInvariants n retFin)
-
-prop_sir_random_equilibrium :: Property
-prop_sir_random_equilibrium = property $ do
   let cor = 5     -- beta, contact rate
       inf = 0.05  -- gamma, infectivitry
       ild = 15    -- delta, illness duration
 
-  -- generate non-empty random population
-  ss <- listOf1 genSIRState
-  -- number of random events to generate
-  let eventCount = 100000
-  -- run simulation with random population and random events
-  ret <- genRandomEventSIR ss cor inf ild eventCount
-  
-  -- 
-  let _i0 = length (filter (==Infected) ss)
-  let equilibrium = any ((>0).snd3.snd) ret
+  -- generate population with size of up to 1000
+  ss <- resize 1000 (listOf genSIRState)
+  -- total agent count
+  let n = length ss
 
-  return $ cover 10 (_i0 > 0 && equilibrium) "Reached equilibrium" True 
+  -- run simulation UNRESTRICTED in both time and event count
+  ret <- genSimulationSIR ss cor inf ild (-1) (1/0)
+  
+  -- after a finite number of steps SIR will reach equilibrium, when there
+  -- are no more infected agents. WARNING: this could be a potentially non-
+  -- terminating computation but a correct SIR implementation will always
+  -- lead to a termination of this 
+  let equilibriumData = takeWhile ((>0).snd3.snd) ret
+
+  return (sirInvariants n equilibriumData)
 
 prop_sir_random_invariants :: Property
 prop_sir_random_invariants = property $ do
@@ -90,19 +72,25 @@ prop_sir_random_invariants = property $ do
       inf = 0.05  -- gamma, infectivitry
       ild = 15    -- delta, illness duration
 
-  -- generate non-empty random population
-  ss <- listOf1 genSIRState
+  -- generate random population with size of up to 1000
+  ss <- resize 1000 (listOf genSIRState)
   -- total agent count
   let n = length ss
+  -- number of infected at t=0
+  let i0 = length (filter (==Infected) ss)
   -- number of random events to generate
-  let eventCount = 500000
+  let eventCount = 10000
   -- run simulation with random population and random events
   ret <- genRandomEventSIR ss cor inf ild eventCount
-  
-  return (sirInvariants n ret)
+
+  let equilibrium = any ((>0).snd3.snd) ret
+
+  return $ cover 90 (i0 > 0 && equilibrium) 
+            "Random event sampling reached equilibrium" 
+              (sirInvariants n ret)
 
 sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
-sirInvariants n aos = susInc && infConst && recDec && aci && timeInc
+sirInvariants n aos = aci && susInc && infConst && recDec && timeInc
   where
     (ts, sirs) = unzip aos
 
@@ -124,22 +112,10 @@ sirInvariants n aos = susInc && infConst && recDec && aci && timeInc
     infectedInvariant (s,i,r) = i == n - (s + r)
 
     monotonousDecreasing :: (Ord a, Num a) => [a] -> Bool
-    monotonousDecreasing xs = and [x' <= x | (x,x') <- zip xs (tail xs)]
+    monotonousDecreasing xs = and [ x' <= x | (x, x') <- zip xs (tail xs) ]
 
     monotonousIncrasing :: (Ord a, Num a) => [a] -> Bool
-    monotonousIncrasing xs = and [x' >= x | (x,x') <- zip xs (tail xs)]
-
-labelPopulation :: [SIRState] -> String
-labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
-  where
-    s = fromIntegral $ length $ filter (==Susceptible) as
-    i = fromIntegral $ length $ filter (==Infected) as
-    r = fromIntegral $ length $ filter (==Recovered) as
-    n = fromIntegral $ length as
-
-    ss = printf "%.2f" ((s / n) :: Double)
-    is = printf "%.2f" (i / n)
-    rs = printf "%.2f" (r / n)
+    monotonousIncrasing xs = and [ x' >= x | (x, x') <- zip xs (tail xs) ]
 
 -- Recovered Agent generates no events and stays recovered FOREVER. This means:
 --  pre-condition:   in Recovered state and ANY event

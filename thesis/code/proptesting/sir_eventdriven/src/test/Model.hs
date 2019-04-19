@@ -43,11 +43,13 @@ main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tes
 
 prop_sir_sd_random_size :: [SIRState] -> Gen Bool
 prop_sir_sd_random_size as = do
+  -- TODO: use resize 1000 (listOf genSIRState) to ensure larger population sizes
   (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as)
   return $ checkSirSDSpec as ss is rs
 
 prop_sir_sd_fixed_size :: Gen Bool
 prop_sir_sd_fixed_size = do
+  -- TODO: use resize 1000 (listOf genSIRState)  to ensure larger population sizes
   as           <- vector 100
   (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as)
   return $ checkSirSDSpec as ss is rs

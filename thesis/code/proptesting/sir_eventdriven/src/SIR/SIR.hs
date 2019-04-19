@@ -183,7 +183,8 @@ scheduleEvent aid e dt = do
 -- an infinite list, which is definitely the case when the simulation does not
 -- terminate by itself when running out of events (or no time-/event-limit)
 -- This also requires that no function which needs to look at all elements
--- is used, like reverse.
+-- is used, like reverse. Also it means we cannot use an accumulator, and can
+-- not use tail-recursion
 processQueue :: Monad m 
              => Integer 
              -> Double
@@ -199,18 +200,22 @@ processQueue n tLimit am q dsf
       retMay <- processEvent am evt 
       -- receiver not found, remove event and carray on
       case retMay of
-        Nothing -> processQueue (n-1) tLimit am q' dsf  -- event-receiver not found, next event
+        -- event-receiver not found, next event
+        Nothing -> processQueue (n-1) tLimit am q' dsf  
+        -- event receiver found
         (Just (am', es)) -> do
+          -- insert new events into queue
           let q'' = foldr PQ.insert q' es
-              s   = dsf am' evtTime
-          ss <- processQueue (n-1) tLimit am' q'' dsf 
+          -- sample domain-state for current event
+          let s = dsf am' evtTime
+          -- non tail-recursive call to support infinite [s]
+          ss <- processQueue (n-1) tLimit am' q'' dsf
           return (s : ss)
   where
     mayHead = PQ.getMin q
     evt     = fromJust mayHead
     evtTime = eventTime evt
-
-    q' = PQ.drop 1 q
+    q'      = PQ.drop 1 q
 
     eventTime :: QueueItem e -> Time
     eventTime (QueueItem _ _ et) = et

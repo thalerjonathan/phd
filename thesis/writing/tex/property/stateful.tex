@@ -1,0 +1,54 @@
+\chapter{Stateful testing}
+So far, our tests were stateless: only one computational step of an agent was considered by feeding a single event and ignoring the agent continuation. Also the events didn't contain any notion of time as they would carry within the queue. Feeding follow-up events into the continuation would make testing inherently stateful as we introduce history into the system. Such tests would allow to test the full life-cycle of one  agent or a full population.
+
+In this chapter we will discuss how we can encode properties and specifications which require stateful testing. We define stateful testing here as: evolving a simulation state consisting of one or more agents over multiple events. Note that this also includes running the whole simulation.
+
+\section{SIR invariants}
+By informally reasoning about the agent-specification and by realising that they are in fact a state-machine with a on-directional flow from Susceptible to Infected to Recovered, we can come up with a few invariants which have to hold for any SIR simulation run independent of the random-number stream and the population:
+
+\begin{enumerate}
+	\item Simulation time is monotonic increasing. For each event an output of the current number of S,I and R agents is generated together with the time when the events occurred. This event time can stay the same between steps and will eventually increase but can never decrease. Obviously this invariant is a fundamental assumption in most simulations: time advances into the future and does not flow backwards.
+	
+	\item The number of total agents $N$ stays constant in SIR. The SIR model does not specify the dynamic creation or removal of agents during simulation. This is in contrast to the Sugarscape where, depending on the model parameters, this can be very well the case.
+	
+	\item The number of \textit{Susceptible} agents $S$ is monotonic decreasing. Susceptile agents \textit{might} become infected, reducing the total number of susceptible agents but they can never increase because neither an infected or recovered agent can go back to susceptible.
+	
+	\item The number of \textit{Recovered} agents $R$ is monotonic increasing. This is due to infected agents \textit{will} recover, leading to an increase of recovered agents but once the recovered state is reached, there is no escape from it.
+	
+	\item The number of \textit{Infected} agents is a function which follows the equation of in every step $I = N - (S + R)$. This follows directly from the first property which says $N = S + I + R$.
+\end{enumerate}
+
+All of those properties are easily written directly in code (TODO: add a note in the benefits how extremely well this is encoded in functional programming).
+
+\begin{HaskellCode}
+sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
+sirInvariants n xs = timeInc && aConst && susDec && recInc && infInv
+  where
+    (ts, sirs) = unzip xs
+
+    -- 1. time is monotonic increasing
+    timeInc = monoInc ts
+    -- 2. number of agents stays constant in each step
+    aConst = all agentCountInv sirs
+    -- 3. number of susceptible can only decrease
+    susDec = monoDec (fst3 (unzip3 sirs))
+    -- 4. number of recovered R can only increase
+    recInc = monoInc (trd3 (unzip3 sirs))
+    -- 5. number of infected i = N - (S + R)
+    infInv = all infectedInv sirs
+
+    agentCountInv :: (Int, Int, Int) -> Bool
+    agentCountInv (s,i,r) = s + i + r == n
+
+    infectedInv :: (Int, Int, Int) -> Bool
+    infectedInv (s,i,r) = i == n - (s + r)
+
+    monoDec :: (Ord a, Num a) => [a] -> Bool
+    monoDec xs = all (uncurry (>=)) (pairs xs)
+
+    monoInc :: (Ord a, Num a) => [a] -> Bool
+    monoInc xs = all (uncurry (<=)) (pairs xs)
+
+    pairs :: [a] -> [(a,a)]
+    pairs xs = zip xs (tail xs)
+\end{HaskellCode}

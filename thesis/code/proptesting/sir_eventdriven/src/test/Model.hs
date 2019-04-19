@@ -43,10 +43,11 @@ main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tes
 
 prop_sir_sd_random_size :: Gen Bool
 prop_sir_sd_random_size = do
-  -- TODO: all tests seem to fail with this population size, WHY?
-  -- as <- resize 1000 (listOf genSIRState)
-  -- TODO: this seems to work
-  as <- listOf genSIRState
+  -- TODO: all tests seem to fail with this population size, WHY??? 
+  -- I assumed that the more agents, the more simliar it is on average
+  as <- resize 1000 (listOf genSIRState)
+  -- TODO: this seems to work, WHY??
+  --as <- listOf genSIRState
   (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
   return $ checkSirSDSpec as ss is rs
 

@@ -86,32 +86,35 @@ prop_sir_random_invariants = property $ do
               (sirInvariants n ret)
 
 sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
-sirInvariants n aos = aci && susInc && infConst && recDec && timeInc
+sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
   where
     (ts, sirs) = unzip aos
 
-    -- number of agents stays constant in each step
-    aci = all agentCountInvariant sirs
-    -- number of susceptible can only decrease
-    susInc = monotonousDecreasing (fst3 $ unzip3 sirs)
-    -- number of infected i = N - (S + R)
-    infConst = all infectedInvariant sirs
-    -- number of recovered R can only increase
-    recDec = monotonousIncrasing (trd3 $ unzip3 sirs)
-    -- time is monotonously increasing
-    timeInc = monotonousIncrasing ts
+    -- 1. time is monotonic increasing
+    timeInc = monoInc ts
+    -- 2. number of agents stays constant in each step
+    aConst = all agentCountInv sirs
+    -- 3. number of susceptible can only decrease
+    susDec = monoDec (fst3 $ unzip3 sirs)
+    -- 4. number of recovered R can only increase
+    recInc = monoInc (trd3 $ unzip3 sirs)
+    -- 5. number of infected i = N - (S + R)
+    infInv = all infectedInv sirs
 
-    agentCountInvariant :: (Int, Int, Int) -> Bool
-    agentCountInvariant (s,i,r) = s + i + r == n
+    agentCountInv :: (Int, Int, Int) -> Bool
+    agentCountInv (s,i,r) = s + i + r == n
 
-    infectedInvariant :: (Int, Int, Int) -> Bool
-    infectedInvariant (s,i,r) = i == n - (s + r)
+    infectedInv :: (Int, Int, Int) -> Bool
+    infectedInv (s,i,r) = i == n - (s + r)
 
-    monotonousDecreasing :: (Ord a, Num a) => [a] -> Bool
-    monotonousDecreasing xs = and [ x' <= x | (x, x') <- zip xs (tail xs) ]
+    monoDec :: (Ord a, Num a) => [a] -> Bool
+    monoDec xs = all (uncurry (>=)) (pairs xs)
 
-    monotonousIncrasing :: (Ord a, Num a) => [a] -> Bool
-    monotonousIncrasing xs = and [ x' >= x | (x, x') <- zip xs (tail xs) ]
+    monoInc :: (Ord a, Num a) => [a] -> Bool
+    monoInc xs = all (uncurry (<=)) (pairs xs)
+
+    pairs :: [a] -> [(a,a)]
+    pairs xs = zip xs (tail xs)
 
 -- Recovered Agent generates no events and stays recovered FOREVER. This means:
 --  pre-condition:   in Recovered state and ANY event
@@ -125,6 +128,9 @@ sirInvariants n aos = aci && susInc && infConst && recDec && timeInc
 -- that is part of the susceptible agent, which makes it difficult to test
 -- what can we do?
 
+--------------------------------------------------------------------------------
+-- CUSTOM GENERATOR, ONLY RELEVANT TO STATEFUL TESTING 
+--------------------------------------------------------------------------------
 genRandomEventSIR :: [SIRState]
                   -> Int
                   -> Double

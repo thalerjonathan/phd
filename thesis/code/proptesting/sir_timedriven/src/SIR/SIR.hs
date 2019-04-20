@@ -2,6 +2,7 @@
 module SIR.SIR 
   ( SIRSimCtx (..)
   , SIRState (..)
+  , SIRAgent 
 
   , defaultSIRCtx
 

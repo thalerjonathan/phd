@@ -95,6 +95,8 @@ Test-Suite sir-model-test
                       , MonadRandom
                       , parallel
                       , QuickCheck
+                      , tasty
+                      , tasty-quickcheck
                       , random
                       , statistics
                       , vector

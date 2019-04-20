@@ -2,13 +2,13 @@
 module Main where
 
 import Data.Maybe
-import System.Random
 
 import Test.QuickCheck
 -- import Test.QuickCheck.Random
 
 import SIR.SIR
 import StatsUtils
+import SIRGenerators
 
 instance Arbitrary SIRState where
   arbitrary :: Gen SIRState
@@ -30,27 +30,28 @@ illnessDuration = 15.0
 replications :: Int
 replications = 100
 
--- clear & stack test sir:sir-model-test
+-- clear & stack test sir-time:sir-model-test
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 10000      -- number successful tests
+main = quickCheckWith stdArgs { maxSuccess = 100      -- number successful tests
                               , maxFailPercent = 100    -- number of maximum failed tests
                               , maxShrinks = 0          -- NO SHRINKS, doesn't make sense
                               --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
-                              } prop_sir_sd_spec_random_size
+                              } prop_sir_sd_spec_fixed_size
 
 prop_sir_sd_spec_random_size :: [SIRState] -> Gen Property
 prop_sir_sd_spec_random_size as = do
   let dt = 0.01
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as dt)
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (genSIRLast dt as)
   return $ label (show $ length as) $ property $ checkSirSDspec as ss is rs
 
 prop_sir_sd_spec_fixed_size :: Gen Property
 prop_sir_sd_spec_fixed_size = do
   let dt = 0.01
 
-  as           <- vector 100
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (sir as dt)
+  -- with resize 1000 most tests fail
+  as           <- resize 1000 (listOf genSIRState)
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (genSIRLast dt as)
 
   return $ label (show $ length as) $ property $ checkSirSDspec as ss is rs
 
@@ -79,6 +80,12 @@ prop_sir_sd_spec_random_uncorrelated_sir as = do
         i <- choose (0, n)
         r <- choose (0, n)
         return (s, i, r)
+
+genSIRLast :: Double
+           -> [SIRState] 
+           -> Gen (Int, Int, Int)
+genSIRLast dt as
+  = last <$> genSIR 1.0 dt as contactRate infectivity illnessDuration
 
 sdSpec :: Double 
        -> Double

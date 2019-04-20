@@ -114,7 +114,7 @@ Test-Suite sir-model-test
                       -Werror
                       -fno-warn-orphans
 
-Test-Suite sir-stateless-test
+Test-Suite sir-agentspecs-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
@@ -126,7 +126,7 @@ Test-Suite sir-stateless-test
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              Stateless.hs
+  main-is:              AgentSpecs.hs
 
   build-depends:        base
                       , containers
@@ -146,7 +146,7 @@ Test-Suite sir-stateless-test
                       -Werror
                       -fno-warn-orphans
 
-Test-Suite sir-stateful-test
+Test-Suite sir-invariants-test
   default-language:     Haskell2010
 
   type:                 exitcode-stdio-1.0
@@ -158,7 +158,7 @@ Test-Suite sir-stateful-test
   hs-source-dirs:       src/
                       , src/test
 
-  main-is:              Stateful.hs
+  main-is:              Invariants.hs
 
   build-depends:        base
                       , containers

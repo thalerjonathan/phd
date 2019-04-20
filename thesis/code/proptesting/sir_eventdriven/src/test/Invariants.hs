@@ -3,8 +3,6 @@ module Main where
 
 import Control.Monad.Random
 import Control.Monad.Reader
--- import Control.Monad.Writer
--- import Data.MonadicStreamFunction.InternalCore
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 import qualified Data.IntMap.Strict as Map 
@@ -12,27 +10,14 @@ import qualified Data.IntMap.Strict as Map
 import SIR.SIR
 import SIRGenerators
 
--- represent the testing state 
-data AgentTestState g = AgentTestState
-  { rng      :: g
-  , agent    :: SIRAgentCont g
-  , time     :: Time
-  , agentIds :: [AgentId]
-  }
-
--- the api of the agent is represented by the QueueItem SIREvent
-type Command = QueueItem SIREvent
--- the output of an agent is its current SIRState and the events it has scheduled
-data Response = Resp SIRState [QueueItem SIREvent]
-
--- clear & stack test sir-event:sir-stateful-test --test-arguments="--quickcheck-replay=557780 --quickcheck-verbose"
+-- clear & stack test sir-event:sir-invariants-test --test-arguments="--quickcheck-replay=557780 --quickcheck-verbose"
 
 main :: IO ()
 main = do
-  let t = testGroup "SIR Stateful Tests" 
+  let t = testGroup "SIR Invariants Tests" 
           [ 
-          --  QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
-            QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
+            QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
+          , QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
           ]
 
   defaultMain t
@@ -114,17 +99,13 @@ sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
     pairs :: [a] -> [(a,a)]
     pairs xs = zip xs (tail xs)
 
--- Recovered Agent generates no events and stays recovered FOREVER. This means:
+-- NOTE: all these properties are already implicitly checked in the agent 
+-- specifications and sir invariants
+-- > Recovered Agent generates no events and stays recovered FOREVER. This means:
 --  pre-condition:   in Recovered state and ANY event
 --  post-condition:  in Recovered state and 0 scheduled events
-
--- Susceptible Agent MIGHT become Infected and Recovered
--- TODO:
-
--- Infected Agent will NEVER become Susceptible and WILL become Recovered
--- TODO: right its not in the control of the infected to become recovered,
--- that is part of the susceptible agent, which makes it difficult to test
--- what can we do?
+-- > Susceptible Agent MIGHT become Infected and Recovered
+-- > Infected Agent will NEVER become Susceptible and WILL become Recovered
 
 --------------------------------------------------------------------------------
 -- CUSTOM GENERATOR, ONLY RELEVANT TO STATEFUL TESTING 
@@ -164,49 +145,9 @@ genRandomEventSIR as cr inf illDur maxEvents = do
           let s = (eventTime evt, aggregateAgentMap am)
           ss <- executeEvents (n-1) es am'
           return (s : ss)
-          
---------------------------------------------------------------------------------
--- AGENT API INTERPRETER
---------------------------------------------------------------------------------
--- runAgent :: RandomGen g
---          => AgentTestState g             -- ^ The current testing state
---          -> Command                      -- ^ An instance of an agent API 'call'
---          -> (AgentTestState g, Response) -- ^ Results in a new testing state with some agent output
--- runAgent as (QueueItem _ai (Event e) t) = (as', ao)
---   where
---     g   = rng as 
---     a   = agent as
---     ais = agentIds as
-
---     aMsf       = unMSF a e
---     aEvtWriter = runReaderT aMsf t
---     aAisReader = runWriterT aEvtWriter
---     aDomWriter = runReaderT aAisReader ais
---     aRand      = runWriterT aDomWriter
---     ((((o, a'), es), _dus), g') = runRand aRand g
-
---     as' = as { rng = g', agent = a', time = t }
---     ao  = Resp o es
-
--- mkInitState :: RandomGen g
---             => g
---             -> SIRAgentCont g
---             -> AgentTestState g
--- mkInitState g a = AgentTestState
---   { rng      = g
---   , agent    = a
---   , time     = 0
---   , agentIds = []
---   }
 
 --------------------------------------------------------------------------------
 -- UTILS
 --------------------------------------------------------------------------------
-fst3 :: (a,b,c) -> a
-fst3 (a,_,_) = a
-
 snd3 :: (a,b,c) -> b
 snd3 (_,b,_) = b
-
-trd3 :: (a,b,c) -> c
-trd3 (_,_,c) = c

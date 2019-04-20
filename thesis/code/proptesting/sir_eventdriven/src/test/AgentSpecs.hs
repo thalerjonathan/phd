@@ -19,7 +19,7 @@ import StatsUtils
 
 main :: IO ()
 main = do
-  let t = testGroup "SIR Stateless (Agent) Tests" 
+  let t = testGroup "SIR Agent Specifications Tests" 
           [ 
             QC.testProperty "Susceptible invariants" prop_susceptible_invariants
           , QC.testProperty "Infected invariants" prop_infected_invariants

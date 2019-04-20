@@ -71,7 +71,7 @@ runSIRFor t dt as0 cr inf0 dur g0
     = map sirAggregate ass 
   where
     steps = floor $ t / dt
-    dts   = replicate steps (dt, Nothing)
+    dts   = if t == 0 then repeat (dt, Nothing) else replicate steps (dt, Nothing)
 
     (rngs, _) = rngSplits g0 (length as0) []
     sfs       = zipWith (sirAgent cr inf0 dur) rngs as0
@@ -85,11 +85,12 @@ runSIRFor t dt as0 cr inf0 dur g0
         inf  = length $ filter (==Infected) as
         recs = length $ filter (==Recovered) as
 
+
 stepSimulation :: [SIRAgent] 
                -> [SIRState] 
                -> SF () [SIRState]
 stepSimulation sfs as =
-    dpSwitch
+    dpSwitch 
       (\_ sfs' -> map (\sf -> (as, sf)) sfs')
       sfs
       -- if we switch immediately we end up in endless switching, so always wait for 'next'
@@ -119,7 +120,11 @@ susceptibleAgent :: RandomGen g
                  -> SIRAgent
 susceptibleAgent contactRate infectivity illnessDuration g0 = 
     switch 
-      susceptible
+      -- need to delay by one step to prevent agent from moving from 
+      -- Susceptible directly to Recovered. Besides being a violation of the
+      -- specification, this leads to violation of Susceptible monotonic
+      -- decreasing property, which was found using QuickCheck.
+      (susceptible >>> iPre (Susceptible, NoEvent))
       (const $ infectedAgent illnessDuration gInf)
   where
     -- avoid correlation of RNG-streams
@@ -148,7 +153,7 @@ infectedAgent :: RandomGen g
               -> SIRAgent
 infectedAgent illnessDuration g = 
     switch
-      infected
+      (infected >>> iPre (Infected, NoEvent))
       (const recoveredAgent)
   where
     infected :: SF [SIRState] (SIRState, Event ())
@@ -190,7 +195,7 @@ defaultSIRCtx :: RandomGen g
               -> SIRSimCtx g 
 defaultSIRCtx g = SIRSimCtx {
     syCtxTimeLimit   = 150
-  , syCtxTimeDelta   = 0.01
+  , syCtxTimeDelta   = 0.1
 
   , syCtxRng         = g
 

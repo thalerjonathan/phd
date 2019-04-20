@@ -12,10 +12,10 @@ import Test.Tasty.QuickCheck as QC
 import SIR.SIR
 import StatsUtils
 
--- clear & stack test sir:sir-agent-test
+-- clear & stack test sir-time:sir-agentspecs-test
 
 main :: IO ()
-main = defaultMain $ testGroup "Agent Tests" 
+main = defaultMain $ testGroup "SIR Agent Specifications Tests" 
           [ 
             QC.testProperty 
               "Susceptible agents become infected"

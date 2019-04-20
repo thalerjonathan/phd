@@ -13,7 +13,6 @@ genStdGen = do
   seed <- choose (minBound, maxBound)
   return $ mkStdGen seed
 
-
 genNonEmptyAgentIds :: Gen [AgentId]
 genNonEmptyAgentIds = listOf1 (do 
   (Positive t) <- arbitrary :: Gen (Positive Int)

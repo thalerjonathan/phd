@@ -80,14 +80,6 @@ prop_sir_sd_spec_random_uncorrelated_sir as = do
         r <- choose (0, n)
         return (s, i, r)
 
-sir :: [SIRState] -> Double -> Gen (Int, Int, Int)
-sir as dt = do
-  seed <- choose (minBound, maxBound)
-  let g = mkStdGen seed
-  return $
-    last $ 
-    runSIRFor 1.0 dt as contactRate infectivity illnessDuration g
-
 sdSpec :: Double 
        -> Double
        -> Double

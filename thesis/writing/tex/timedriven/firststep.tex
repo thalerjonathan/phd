@@ -97,7 +97,7 @@ runSimulation g t dt as
     sfs       = zipWith sirAgent rngs as
 \end{HaskellCode}
 
-What we need to implement next is a closed feedback-loop - the heart of every agent-based simulation. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns this step's new agent states. Note the use of \textit{notYet}, which is required because in Yampa switching occurs immediately at $t = 0$. If we don't delay the switching at $t = 0$ until the next step, we would enter an infinite switching loop - \textit{notYet} simply delays the first switching until the next time-step.
+What we need to implement next is a closed feedback-loop - the heart of every agent-based simulation. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns this step's new agent states. Note the use of \textit{notYet}, which is required to delay switching by one step to break a potentially infinite recursive switching. This is necessary because we are recursively switching back into the \textit{stepSimulation}, which would result in the immediate evaluation of the next step, overriding the output of the current step, recursively switching back into \textit{stepSimulation} and so on. The combinator \textit{notYet} breaks this by delaying the switching event by one step.
 
 \begin{HaskellCode}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
@@ -107,7 +107,8 @@ stepSimulation sfs as =
       (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
       -- the signal functions
       sfs
-      -- switching event, ignored at t = 0         
+      -- switching event, delay by one step to prevent
+      -- infinite recursion
       (switchingEvt >>> notYet)
       -- recursively switch back into stepSimulation         
       stepSimulation                            
@@ -131,7 +132,7 @@ dpSwitch :: Functor col
          -> SF a (col c)
 \end{HaskellCode}
 
-Its first argument is the pairing-function, which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function, which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function, which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time-step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
+Its first argument is the pairing-function, which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function, which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function, which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. %NOTE: THIS IS SIMPLY WRONG! The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time-step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
 
 Conceptually, \textit{dpSwitch} allows us to recursively switch back into the \textit{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. 
 

@@ -3,9 +3,9 @@
 
 In this chapter we are showing how to use QuickCheck to encode full agent-specifications directly in code as property-tests. These tests serve then both as formal specification and tests at the same time - a fundamental strength of property-based testing, not possible with unit-testing in this strong expressive form. Besides the high expressivity, QuickCheck also allows us to state statistical coverage for certain cases, which allows to express statistical properties of the agents behaviour, something not directly possible with unit-testing. This is a very strong indication that property-based testing is a natural fit to test agent-based simulation. We discuss both time- and event-driven  implementations of the agent-based SIR model as introduced in Chapter \ref{sec:sir_model}.
 
-\input{./tex/property/agentSpecTime.tex}
-
 \input{./tex/property/agentSpecEvent.tex}
+
+\input{./tex/property/agentSpecTime.tex}
 
 \section{Discussion}
 TODO: comparison of time- vs. event-driven testing
@@ -16,3 +16,5 @@ Funnily the implementation of all the specifications and property-tests is longe
 We have not looked into more complex testing patterns like the synchronous agent-interactions of Sugarscape. We didn't look into testing full agent and interacting agent behaviour using property-tests due to its complexity which would justify a whole paper alone. Due to its inherent stateful nature with complex dependencies between valid states and agents actions we need a more sophisticated approach as outlined in \cite{de_vries_-depth_2019}, where the authors show how to build a meta-model and commands which allow to specify properties and valid state-transitions which can be generated automatically. We leave this for further research.
 
 What is particularly powerful is that one has complete control and insight over the changed state before and after e.g. a function was called on an agent: thus it is very easy to check if the function just tested has changed the agent-state itself or the environment: the new environment is returned after running the agent and can be checked for equality of the initial one - if the environments are not the same, one simply lets the test fail. This behaviour is very hard to emulate in OOP because one can not exclude side-effect at compile time, which means that some implicit data-change might slip away unnoticed. In FP we get this for free.
+
+TODO: with lazy evaluation we scratch on what is conveniently possible in established approaches to ABS: we can let the simulation run potentially forever as in the case of the infected agent and rely on the correctness of the implementation to terminate in finite step when consuming the potentially infinite stream.

@@ -13,7 +13,9 @@ import SIR.SIR
 import SIRGenerators
 import StatsUtils
 
--- clear & stack test sir-time:sir-agentspecs-test
+-- import Debug.Trace
+
+-- clear & stack test sir-time:sir-agentspecs-test --test-arguments="--quickcheck-tests=1000"
 
 main :: IO ()
 main = defaultMain $ testGroup "SIR Agent Specifications Tests" 
@@ -34,40 +36,49 @@ main = defaultMain $ testGroup "SIR Agent Specifications Tests"
 --------------------------------------------------------------------------------
 -- PROPERTIES
 --------------------------------------------------------------------------------
-prop_susceptible_invariants :: Property
-prop_susceptible_invariants = property $ do  
-    -- NOTE: these parameteres can be varied arbitrarily and the test will
-    -- still work. Also note that we have to fix the population instead of taking
-    -- a random one, otherwise percentage of coverage would change in every
-    -- test-case, which would not make sense.
-    let cor = 5    -- beta, contact rate
-        inf = 0.05 -- gamma, infectivity
-        ild = 1.0  -- delta, illness duration NOTE: doesn't matter in this test, set to 1
-      
+prop_susceptible_invariants :: Positive Double  -- ^ Random beta, contact rate
+                            -> Positive Double  -- ^ Random gamma, infectivity
+                            -> Positive Double  -- ^ Random delta, illness duration
+                            -> Positive Double  -- ^ Random t, duration 
+                            -> Property
+prop_susceptible_invariants 
+      (Positive t) (Positive cor) (Positive inf) (Positive ild) = property $ do  
     -- generate population with size of up to 1000
     as <- resize 1000 (listOf genSIRState)
+    -- population contains an infected agent True/False
+    let infInPop = Infected `elem` as
 
-    let dt = 0.01
-        t  = 1
+    -- run a random susceptible agent for random time-units with 
+    -- sampling rate dt 0.01 and return its stream of output
+    aos <- genSusceptible cor inf ild as t 0.01
 
-    -- run a random susceptible agent for 1.0 time-unit and return its outputs
-    aos <- genSusceptible cor inf ild as t dt
-
-    return (susceptibleInvariants aos)
+    return $
+        -- label all test-cases
+        label (labelTestCase aos) 
+        -- check invariants on output stream
+        (property $ susceptibleInvariants aos infInPop)
   where
-    susceptibleInvariants :: [SIRState] -> Bool
-    susceptibleInvariants aos 
+    labelTestCase :: [SIRState] -> String
+    labelTestCase aos
+      | Recovered `elem` aos = "Susceptible -> Infected -> Recovered"
+      | Infected `elem` aos  = "Susceptible -> Infected"
+      | otherwise            = "Susceptible"
+
+    susceptibleInvariants :: [SIRState] -> Bool -> Bool
+    susceptibleInvariants aos infInPop
         -- Susceptible became Infected and then Recovered
         | isJust recIdxMay 
           = infIdx < recIdx &&
             all (==Susceptible) (take infIdx aos) &&
             all (==Infected) (take (recIdx - infIdx) (drop infIdx aos)) &&
-            all (==Recovered) (drop recIdx aos)
+            all (==Recovered) (drop recIdx aos) &&
+            infInPop -- can only happen if there are infected in the population
 
         -- Susceptible became Infected
         | isJust infIdxMay 
           = all (==Susceptible) (take infIdx aos) &&
-            all (==Infected) (drop infIdx aos)
+            all (==Infected) (drop infIdx aos) &&
+            infInPop -- can only happen if there are infected in the population
 
         -- Susceptible stayed Susceptible
         | otherwise = all (==Susceptible) aos
@@ -80,41 +91,45 @@ prop_susceptible_invariants = property $ do
 
 prop_infected_invariants :: Property
 prop_infected_invariants = checkCoverage $ do
-    let illnessDuration = 15.0 -- delta, illnes duration
+     -- delta, illnes duration
+    let illnessDuration = 15.0
+    -- compute perc of agents which recover in less or equal 
+    -- illnessDuration time-units. Follows the exponential distribution
+    -- thus we use the CDF to compute the probability.
     let prob = 100 * expCDF (1 / illnessDuration) illnessDuration
-    let dt = 0.01
-        t = 0 -- forever
+    -- fixed sampling rate
+    let dt = 0.1
 
     -- generate population with size of up to 1000
     as <- resize 1000 (listOf genSIRState)
 
-    aos <- genInfected illnessDuration as t dt
+    -- run a random infected agent without time-limit (0) and sampling rate
+    -- of 0.01 and return its infinite output stream 
+    aos <- genInfected illnessDuration as 0 dt
 
+    -- compute the recovery time
     let dur = infectedInvariant aos dt
 
     return $ cover prob (fromJust dur <= illnessDuration)
-              ("infected agents have an illness duration of  " ++ show illnessDuration ++
+              ("infected agents have an illness duration of " ++ show illnessDuration ++
               " or less, expected " ++ printf "%.2f" prob) (isJust dur)
   where
     infectedInvariant :: [SIRState] -> Double -> Maybe Double
     infectedInvariant aos dt  = do
-      -- an infected agent WILL recover after finite time. 
-      -- we search in an infinite list...
       recIdx <- elemIndex Recovered aos
 
       if all (==Infected) (take recIdx aos) 
         then Just (dt * fromIntegral recIdx)
         else Nothing
 
-prop_recovered_invariants :: Property
-prop_recovered_invariants = property $ do
-  let dt = 0.01
-      t  = 1000
+prop_recovered_invariants :: Positive Double -> Property
+prop_recovered_invariants (Positive t) = property $ do
+  let dt = 0.1
 
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
 
-  aos <- genRecovered as t dt
+  aos <- genRecovered as t dt -- trace (show t) 
   return $ all (==Recovered) aos
 
 --------------------------------------------------------------------------------
@@ -130,7 +145,8 @@ genAgent a as tMax dt = do
 
   let ag  = a g
       n   = floor (tMax / dt)
-      dts = if n == 0 then repeat (dt, Nothing) else replicate n (dt, Nothing)
+      -- dts = if tMax == 0 then trace "infinite" repeat (dt, Nothing) else trace ("steps = " ++ show n) replicate n (dt, Nothing)
+      dts = if tMax == 0 then repeat (dt, Nothing) else replicate n (dt, Nothing)
       aos = embed ag (as, dts)
 
   return aos 

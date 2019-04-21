@@ -86,7 +86,6 @@ runSIRFor t dt as0 cr inf0 dur g0
         inf  = length $ filter (==Infected) as
         recs = length $ filter (==Recovered) as
 
-
 stepSimulation :: [SIRAgent] 
                -> [SIRState] 
                -> SF () [SIRState]

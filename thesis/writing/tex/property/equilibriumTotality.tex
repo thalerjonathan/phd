@@ -1,6 +1,9 @@
 \chapter{The Equilibrium-Totality Correspondence}
 \label{ch:equilibrium_totality}
 
+TODO FINISH NON-DEPENDENTLY TYPED ARGUMENT
+TODO NEEDS SUBSTANTIAL RESEARCH: IMPLEMENT A TOTAL SIR IMPLEMENTATION IN IDRIS
+
 In the property test of SIR invariants in chapter \ref{ch:stateful_testing} we limited the time an individual simulation is run to 150 following the configuration for the simulation runs of chapter \ref{ch:timedriven}. In this context, the decision to do so was rather practical to ensure that we will actually terminate. The \textit{internal} termination criteria of the simulation kernel, which is implemented in a SIR agnostic manner, is an empty event-queue. For the SIR model on the other hand, we know that susceptible agents will start with scheduling a \textit{MakeContact} event to themselves 1 time-unit into the future and upon reception will to this again, resulting in an infinite stream of events. Thus we need to impose an \textit{external} termination criteria either in the form of limiting the number of events executed or the limiting the virtual simulation time.
 
 For the SIR model though, we have another option which would allow us to run the simulation with on restrictions both on events or time. We can show that the SIR model \textit{will} reach an equilibrium / a steady state within a \textit{after finite time}. This equilibrium can then serve as termination criteria for the data-generation.

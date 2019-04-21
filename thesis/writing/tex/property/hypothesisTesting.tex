@@ -1,4 +1,4 @@
-\section{Hypotheses in Sugarscape}
+\chapter{Hypotheses in Sugarscape}
 \label{ch:prop_exploratory}
 
 In this chapter we look at how property-based testing can be made of use to verify the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996} as already introduced in Chapter \ref{sec:sugarscape}. Whereas in the previous chapter on testing the explanatory SIR case-study we had an analytical solution, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a mode.
@@ -25,7 +25,7 @@ The property we test for is whether \textit{the emergent property / hypothesis u
 	\item Terracing - When resources regrow immediately, after a few steps the simulation becomes static. Agents will stay on their terraces and will not move any more because they have found the best spot due to their behaviour. About 45\% will be on terraces and 95\% - 100\% are static and not moving any more.
 \end{enumerate}
 
-\subsection{Implementation}
+\section{Implementation}
 To implement this, we make use of QuickChecks \textit{Generator} concept. A \textit{Generator} defines how specific (random) data can be generated and is implemented using the \textit{Gen} monad where all of QuickChecks random distribution functionality is available. Thus it is only natural that we implement a \textit{Generator} to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
 
 \begin{HaskellCode}
@@ -90,12 +90,12 @@ genGiniCoeff ticks params = do
   return (giniCoeff agentWealths)
 \end{HaskellCode}
 
-\subsection{Running the tests}
+\section{Running the tests}
 As already pointed out, QuickCheck tries to run by default up to 100 replications  of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first predicate which evalutes to \textit{False} and marks the whole property-test as failed, no matter how many replications got through already. 
 
 Due to the duration even 1,000 ticks can take to compute, to get a first estimate of our hypotheses tests within reasonable time, we reduce the number of maximum successful replications required to 10 and when doing t-tests 10 replications are run there as well. Unfortunately, when running the tests only the Disease Dynamics (1) and (2) go through, all the other tests fail. It is important to understand that QuickCheck is always initialised with a new random-number seed when run, thus we might have just been unlucky. Unfortunately, when we run it again, this happens again, thus there seems to be something wrong with our approach.
 
-\subsubsection{Allowing failure}
+\subsection{Allowing failure}
 It is arguably the case that the binary approach of QuickCheck, where the whole property-test fails when a single replication fails, is too strict for testing ABS in general and our hypotheses in particular. The reason for that is, that due to ABS stochastic nature, the hypotheses might hold for a large number of replications but not strictly for all.
 
 As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck, which allows the failure of a given percentage of replications. The argument behaves in a way that it tries to run up to the 100 default (or whatever the configuration is) successful replications but fails the overall property-test if the percentage of failed replications is reached. By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a more appropriate tool for testing the suitability of our hypotheses. 
@@ -124,5 +124,5 @@ With the exception of the Gini Coefficient, we accept the failure rate of the hy
 
 Note that we disabled shrinking for hypothesis testing as it has no meaning here. The only thing which would be shrunk would be the seed of the random-number generator, which has no intrinsic meaning.
 
-\subsection{Discussion}
+\section{Discussion}
 In this chapter we showed how to use QuickCheck to formalise and check hypotheses about an \textit{exploratory} agent-based model, in which no ground truth exists. Due to ABS stochastic nature in general it became obvious that to get a good measure of a hypotheses validity we need to allow failure using the \textit{maxFailPercent} argument of QuickCheck. This allowed us to show that the hypotheses we have presented are sufficiently valid for the task at hand and can indeed be used for expressing and formalising emergent properties of the model and also as regression tests within a TDD cycle.

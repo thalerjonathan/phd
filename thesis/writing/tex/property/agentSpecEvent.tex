@@ -1,0 +1,246 @@
+\section{Event-Driven specification}
+In this section we present how QuickCheck can be used to test event-driven agents by expressing their \textit{specification} as property-tests in the case of the event-driven SIR implementation from chapter \ref{sec:eventdriven_sir}.
+
+In general, testing event-driven agents is fundamentally different and more complex than testing time-driven agents, as their interface surface is generally much larger: events form the input to the agents to which they react with new events - the dependencies between those can be quite complex and deep. Using property-based tests we can encode the invariants and end up with an actual specification of their behaviour, acting as documentation, regression test within a TDD and property tests.
+
+Note that the concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details - after all we are interested in deriving concepts, not dealing with specific technicalities.
+
+With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only 3 events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. 
+
+\subsection{Deriving the specification}
+We start by giving the full \textit{specification} of the \textit{susceptible}, \textit{infected} and \textit{recovered} agent by stating the input-to-output event relations. The \textit{susceptible} agent is specified as follows:
+
+\begin{enumerate}
+	\item \textit{MakeContact} - If the agent receives this event it will output a random number of \textit{Contact ai Susceptible} events, where ai is the agents self id and the random number follows an exponential distribution with $\lambda = \beta$ (contact rate). The events have to be scheduled immediately without delay, thus having the current time as scheduling time-stamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
+	
+	\item \textit{Contact * Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it won't change its state, stays \textit{Susceptible} and does not schedule any events.
+	
+	\item \textit{Contact * *} or \textit{Recover}  - If the agent receives any of these (other) events it won't change its state, stays \textit{Susceptible} and does not schedule any events.
+\end{enumerate}
+
+This specification implicitly covers that a \textit{susceptible} agent can never transition from a \textit{Susceptible} to a \textit{Recovered} state within a single event - it can only make the transition to \textit{Infected} or stays \textit{Susceptible}. The \textit{infected} agents are specified as follows:
+
+\begin{enumerate}
+	\item \textit{Recover} - If the agent receives this, it will not schedule any events and make the transition to the \textit{Recovered} state.
+	
+	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to the sender, where \textit{ai} is the infected agents id and the scheduling time-stamp is the current time. It will not schedule any events and stays \textit{Infected}.
+	
+	\item In case of any other event, the agent will not schedule any events and stays \textit{Infected}.
+\end{enumerate}
+
+This specification implicitly covers that an \textit{infected} agent never goes back to the \textit{Susceptible} state - it can only make the transition to \textit{Recovered} or stay \textit{Infected}. From the specification of the \textit{susceptible} agent it becomes clear that a susceptible agent who became infected, will always recover as the transition to \textit{Infected} includes the scheduling of \textit{Recovered} to itself. 
+
+The \textit{recovered} agents specification is very simple. It stays \textit{Recovered} forever and does not schedule any events.
+
+The question is now how to put these into a property-test with QuickCheck. We focus on the \textit{susceptible} agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property-tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property-tests.
+
+\subsection{Encoding invariants}
+We start by giving our property a name and use \textit{checkCoverage} to ask QuickCheck to enforce statistical testing to ensure soundness of our coverage which we will encode within this property. Also we define default values for the model parameters $\beta$, $\gamma$ and $\delta$.
+
+\begin{HaskellCode}
+prop_susceptible_invariants :: Property
+prop_susceptible_invariants = checkCoverage (do
+  let contactRate     = 5     -- beta
+      infectivity     = 0.05  -- gamma
+      illnessDuration = 15.0  -- delta
+\end{HaskellCode}
+
+Next we generate random attributes for the agent we want to create
+
+\begin{HaskellCode}
+-- need a random number generator
+g <- genStdGen
+-- generate non-empty list of agent ids, we have at least one agent
+-- the susceptible agent itself
+ais <- genNonEmptyAgentIds
+-- generate positive time
+(Positive t) <- arbitrary
+-- the susceptible agents id is picked randomly from all empty agent ids
+ai <- elements ais 
+\end{HaskellCode}
+
+Next we need to generate a random event out of \textit{MakeContact}, \textit{Recover} and \textit{Contact Int SIRState}. For this we have written a custom \textit{Generator}, which allows to specify frequencies and the agent ids to draw the contact ids from:
+
+\begin{HaskellCode}
+genEventFreq :: Int -> Int -> Int -> (Int, Int, Int) -> [AgentId] -> Gen SIREvent
+genEventFreq mcf _ rcf _ []  
+  -- no agent ids, will not generate Contact event
+  = frequency [ (mcf, return MakeContact), (rcf, return Recover)]
+genEventFreq mcf cof rcf (s,i,r) ais
+  = frequency [ (mcf, return MakeContact)
+              , (cof, do
+                  -- draw SIRState with frequency 
+                  ss <- frequency [ (s, return Susceptible)
+                                  , (i, return Infected)
+                                  , (r, return Recovered)]
+                  -- draw random element from agent ids
+                  ai <- elements ais
+                  return (Contact ai ss))
+              , (rcf, return Recover)]
+\end{HaskellCode}
+
+It is important to understand that together with the $\gamma$ (infectivity) parameter, the frequency of the \textit{Contact * Infected} event determines the probability of a susceptible agent to become infected. Thus we explicitly state the frequencies so we can compute the probabilities for the coverage feature.
+
+\begin{HaskellCode}
+let mkEvtFreq = 1
+    -- will never happen as Recover will never be sent to a Susceptible
+    recEvtFreq = 0
+    contEvtFreq = 5
+    contSusEvtFreq = 1
+    contInfEvtFreq = 3
+    -- will never happen, as a Recovered agent does not send any event,
+    contRecEvtFreq = 0
+    sirFreq    = (contSusEvtFreq, contInfEvtFreq, contRecEvtFreq)
+    sirFreqSum = contSusEvtFreq + contInfEvtFreq + contRecEvtFreq
+    evtFreqSum = mkEvtFreq + recEvtFreq + contEvtFreq
+    
+-- generate a random event with given frequencies
+evt <- genEventFreq mkEvtFreq contEvtFreq recEvtFreq sirFreq ais
+\end{HaskellCode}
+
+Then we simply create and run the random susceptible agent and collect its output.
+
+\begin{HaskellCode}
+-- create susceptible agent with agen id
+let a = susceptibleAgent ai contactRate infectivity illnessDuration
+-- run agent with given event and configuration and collect its output state ao
+-- the events es it has scheduled
+let (_, _, ao, es) = runAgent g a evt t ais
+\end{HaskellCode}
+
+Having generated the output of the random susceptible agent, we can now start encoding the invariants. In case the random generated event was \textit{Recover} we encode that the agent stays Susceptible and does not schedule any events. Further we compute its coverage given the frequencies of the events.
+
+\begin{HaskellCode}
+case evt of
+  Recover -> do
+    -- compute coverage
+    let cp = 100 * (recEvtFreq / evtFreqSum)
+    return (cover cp True "Susceptible receives Recover"
+           -- must stay Susceptible and not schedule any events
+           (null es && ao == Susceptible))
+\end{HaskellCode}
+
+Next is the invariant of the \textit{MakeContact} event. This is quite complex as it has a lot of small invariants encoded. We use a helper function to iterate over all events generated by the agent in which most of the invariants are encoded.
+
+\begin{HaskellCode}
+MakeContact -> do
+  -- compute coverage
+  let cp  = 100 * (mkEvtFreq / evtFreqSum)
+  -- check invariants
+  let ret = checkMakeContactInvariants ai ais t es
+  return (cover cp True "Susceptible receives MakeContact" 
+         -- must stay Susceptible 
+         (ret && ao == Susceptible))
+         
+checkMakeContactInvariants :: AgentId -> [AgentId] -> Time -> [QueueItem SIREvent] -> Bool
+checkMakeContactInvariants sender ais t es 
+    -- make sure there was exactly one MakeContact event
+    = uncurry (&&) ret
+  where
+    -- start out with all OK and no MakeContact event found
+    ret = foldr checkMakeContactInvariantsAux (True, False) es
+
+    checkMakeContactInvariantsAux :: QueueItem SIREvent -> (Bool, Bool) -> (Bool, Bool)
+    checkMakeContactInvariantsAux 
+        (QueueItem receiver (Event (Contact sender' Susceptible)) t') (b, mkb)
+      = (b && sender == sender'    -- the sender in Contact must be the Susceptible agent
+           && receiver `elem` ais  -- the receiver of Contact must be in the agent ids
+           && t == t', mkb)        -- the Contact event is scheduled immediately
+    checkMakeContactInvariantsAux 
+        (QueueItem receiver (Event MakeContact) t') (b, mkb) 
+      = (b && receiver == sender  -- the receiver of MakeContact is the Susceptible agent itself
+           && t' == t + 1.0       -- the MakeContact event is scheduled 1 time-unit into the future
+           && not mkb, True)      -- there can only be one MakeContact event
+    checkMakeContactInvariantsAux evt (_, mkb) = error ("failure " ++ show evt) (False, mkb)
+\end{HaskellCode}
+
+What is left is the \textit{Contact} event. We have to differentiate between the \textit{SIRState} it carries. We start by looking into \textit{Recovered}. In this case the agent stays \textit{Susceptible} and schedules no events. 
+
+\begin{HaskellCode}
+Contact _ s -> 
+  case s of
+    Recovered -> do
+      -- compute coverage
+      let cp = contEvtSplitProb * (contRecEvtFreq / sirFreqSum)
+      return (cover cp True "Susceptible receives Contact * Recovered"
+              -- stays Susceptible and schedules no events
+              (null es && ao == Susceptible))
+\end{HaskellCode}
+
+The behaviour in case of \textit{Susceptible} within the \textit{Contact} event is the same and thus not repeated here. What is left is the handling of a \textit{Contact} event with \textit{Infected}. In case the \textit{susceptible} agent didn't get infected nothing happens and the agent stays \textit{Susceptible}. On the other hand, in case of infection, the invariants of scheduled events must be checked.
+
+\begin{HaskellCode}
+Infected -> do
+  -- compute coverage
+  let contInfProb = contEvtSplitProb * (contInfEvtFreq / sirFreqSum)
+  -- compute infection coverage
+  let infProb = contInfProb * infectivity
+
+  if ao /= Infected
+    -- not infected, nothing happens
+    then return
+          cover (contInfProb - infProb) True "Susceptible receives Contact * Infected, stays Susceptible"
+            -- stays Susceptible and does not schedule any events 
+            (null es && ao == Susceptible) 
+    -- infected, check invariants
+    else return 
+          cover infProb True ("Susceptible receives Contact * Infected, becomes Infected with prob " ++ show infProb)
+            (checkInfectedInvariants ai t es)
+            
+checkInfectedInvariants :: AgentId -> Time -> [QueueItem SIREvent] -> Bool
+checkInfectedInvariants sender t 
+    -- pattern match on exactly one Recovery event
+    [QueueItem receiver (Event Recover) t'] 
+  = sender == receiver && t' >= t           -- receiver is sender (self) and scheduled into the future
+checkInfectedInvariants _ _ _ = False       -- no other event allowed
+\end{HaskellCode}
+
+The specifications and encodings of the infected and recovered agent follow same patterns and are not repeated here.
+
+\subsection{Encoding probabilities}
+In the invariant we only checked the probability that a susceptible agent can become infected. What is missing is the property that the contact rate $\beta$, as well as the illness duration $\delta$ follow an exponential distribution. To test this we again make use of the coverage features of QuickCheck and encoding the property that the number of \textit{Contact} events scheduled follows the exponential distribution. Technically this can be checked by using the cummulative densitiy functions (CDF) which gives the probability that a random variable $X$ has a value less or equal than a given $x$. Using this, we can state that percentage of the test-cases where the susceptible agent generates less or equal $\beta$ \textit{Contact} events has to be probability of the given CDF parametrised by $\beta$.
+
+\begin{HaskellCode}
+prop_susceptible_meancontactrate :: Property
+prop_susceptible_meancontactrate = checkCoverage (do
+  let contactRate = 5 -- beta
+  
+  -- run a random susceptible agent making contactRate contacts
+  -- on average and get number c of Contact events
+  c <- genSusceptibleAgentMakeContact contactRate
+
+  -- compute probability that c is less than or equal contactRate
+  -- which follows the CDF of the exponential distribution
+  let prob = 100 * expCDF (1 / contactRate) contactRate
+
+  return
+    -- the test-case belongs to the class if the number of Contact events
+    -- scheduled is less or equal the contactRate
+    cover prob (c <= contactRate) 
+      ("susceptibles have mean contact rate of up " ++ show contactRate ++ 
+        ", expected " ++ printf "\%.2f" prob)  True
+\end{HaskellCode}
+
+The encoding of the illness duration probability follows the exactly same pattern and is not repeated here.
+
+TODO: shortly discuss that time-driven testing follows exactly the same approach only without events and only by advancing time. can be used to get the right time-delta
+
+\subsection{Running the tests}
+When running the tests we see QuickChecks coverage features at work. It will generate as many test-cases as necessary to ensure the soundness and robustness of the coverage properties and indeed all go through.
+
+\begin{verbatim}
+  Susceptible invariants:               OK (29.00s)
+    +++ OK, passed 204800 tests:
+    59.4336% Susceptible receives Contact * Infected, stays Susceptible
+    20.8301% Susceptible receives Contact * Susceptible
+    16.6772% Susceptible receives MakeContact
+     3.0591% Susceptible receives Contact * Infected, becomes Infected with prob 3.13
+     
+  Susceptible agent mean contact rate:  OK (0.19s)
+    +++ OK, passed 1600 tests (66.31% susceptibles have mean contact rate of up 5, expected 63.21).
+    
+  Infected agent mean illness duration: OK (0.81s)
+    +++ OK, passed 3200 tests (63.59% infected have an illness duration of up to 15.0, expected 63.21).
+\end{verbatim}
+
+We see that the mean contact rate lies 3\% above the expected value, which is normal due to ABS stochastic nature, which makes the actual values vary. In repeated runs of the tests we get slightly different percentages due to different random number streams and random behaviour - still our properties hold.

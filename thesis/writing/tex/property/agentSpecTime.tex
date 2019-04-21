@@ -1,0 +1,10 @@
+\section{Time-driven specification}
+
+\subsection{Deriving the specification}
+Our time-driven SIR agents have a very small interface: they only receive the agent-population from the previous step and output the state they are after the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas arrowized FRP. Thus a specification in time-driven approach is given in terms of probabilities and timeouts, rather than in events as in event-driven approaches (see below).
+
+\begin{itemize}
+	\item Susceptible agent - Per time-unit a \textit{susceptible} agent makes \textit{on average} contact with $\beta$ (contact rate) agents from the population. The distribution follows the exponential distribution with $\lambda = \frac{1}{\beta}$. If a \textit{susceptible} agents get into contact with an \textit{infected} agent, it will become infected with a uniform probability of $\gamma$ (infectivity). 
+	
+	\item Infected agent - an infected agent \textit{will} recover \textit{on average} after $\delta$ 
+\end{itemize}

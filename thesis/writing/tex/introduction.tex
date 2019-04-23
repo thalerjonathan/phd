@@ -5,6 +5,7 @@ TODO ARGUMENT REFINEMENT: make it clear, that the aim of the thesis and the way 
 
 TODO SCIENTIFIC WORK: WARNING: i must be careful not to show some evidence of benefits / drawbacks. otherwise its not scientific. so i need a very careful argument / narrative which avoids FP vs OOP but still allows some judgement over both in terms of Advantages and drawbacks
 
+TODO: one thing we are lucky in ABS is that most models at their core are pure computations without IO like user-interactions. this fact makes it a lot more promising to approach it from a pure functional approach! if this would not be the case, we would have a harder time selling pure functional programming. there are ways of dealing with IO in a pure functional way e.g. constructing IO actions and executing them outside of the agents but this only complicates things and we might as well make the agents run in IO (really? don't we gain something?)
 
 % THE PROBLEM
 The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007} which still holds up today.

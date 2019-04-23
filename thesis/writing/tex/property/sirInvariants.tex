@@ -54,15 +54,14 @@ sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
     pairs xs = zip xs (tail xs)
 \end{HaskellCode}
 
-Putting this property into a QuickCheck test is straightforward:
+Putting this property into a QuickCheck test is straightforward. Note that we use randomise the model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) because the properties have to hold for all positive, finite model parameters.
 
 \begin{HaskellCode}
-prop_sir_simulation_invariants :: Property
-prop_sir_simulation_invariants = property (do
-  let cor = 5    -- beta, contact rate
-      inf = 0.05 -- gamma, infectivitry
-      ild = 15   -- delta, illness duration
-
+prop_sir_invariants :: Positive Double -- ^ Random beta, contact rate
+                    -> Positive Double -- ^ Random gamma, infectivity
+                    -> Positive Double -- ^ Random delta, illness duration
+                    -> Property
+prop_sir_invariants (Positive cor) (Positive inf) (Positive ild) = property (do
   -- generate population with size of up to 1000
   ss <- resize 1000 (listOf genSIRState)
   -- total agent count

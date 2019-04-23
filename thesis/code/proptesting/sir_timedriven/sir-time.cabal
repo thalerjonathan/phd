@@ -82,6 +82,7 @@ Test-Suite sir-model-test
 
   other-modules:        StatsUtils
                       , SIRGenerators
+                      , SIRSD
                       , SIR.Utils
                       , SIR.SIR
 
@@ -94,7 +95,6 @@ Test-Suite sir-model-test
                       , Yampa
                       , MonadRandom
                       , parallel
-                      , QuickCheck
                       , tasty
                       , tasty-quickcheck
                       , random

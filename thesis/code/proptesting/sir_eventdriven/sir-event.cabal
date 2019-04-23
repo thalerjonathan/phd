@@ -88,6 +88,7 @@ Test-Suite sir-model-test
 
   other-modules:        StatsUtils
                       , SIRGenerators
+                      , SIRSD
                       , SIR.SIR
 
   hs-source-dirs:       src/
@@ -102,12 +103,12 @@ Test-Suite sir-model-test
                       , mtl
                       , MonadRandom
                       , pqueue
-                      , QuickCheck
                       , random
                       , statistics
                       , tasty
                       , tasty-quickcheck
                       , vector
+                      , Yampa
                       
   ghc-options:        -O2
                       -Wall 

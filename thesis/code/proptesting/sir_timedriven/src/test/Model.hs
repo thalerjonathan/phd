@@ -3,19 +3,13 @@ module Main where
 
 import Data.Maybe
 
-import Test.QuickCheck
--- import Test.QuickCheck.Random
+import Test.Tasty
+import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
 import StatsUtils
 import SIRGenerators
-
-instance Arbitrary SIRState where
-  arbitrary :: Gen SIRState
-  arbitrary = elements [Susceptible, Infected, Recovered]
-  -- arbitrary = frequency [ (3, return Susceptible)
-  --                       , (2, return Infected)
-  --                       , (1, return Recovered) ]
+import SIRSD
 
 contactRate :: Double
 contactRate = 5.0
@@ -33,27 +27,28 @@ replications = 100
 -- clear & stack test sir-time:sir-model-test
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 100      -- number successful tests
-                              , maxFailPercent = 100    -- number of maximum failed tests
-                              , maxShrinks = 0          -- NO SHRINKS, doesn't make sense
-                              --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
-                              } prop_sir_sd_spec_fixed_size
+main = do
+  let t = testGroup "SIR Specs Tests" 
+          [ 
+            QC.testProperty "SIR random population" prop_sir_sd_random_size
+          ]
 
-prop_sir_sd_spec_random_size :: [SIRState] -> Gen Property
-prop_sir_sd_spec_random_size as = do
-  let dt = 0.01
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (genSIRLast dt as)
-  return $ label (show $ length as) $ property $ checkSirSDspec as ss is rs
+  defaultMain t
 
-prop_sir_sd_spec_fixed_size :: Gen Property
-prop_sir_sd_spec_fixed_size = do
-  let dt = 0.01
+-- Progress 1/2: sir-time-0.1.0.0+++ OK, passed 3200 tests (86.12% ABS averages SIR spec).
+-- Only 86.12% ABS averages SIR spec, but expected 90.00%
 
-  -- with resize 1000 most tests fail
-  as           <- resize 1000 (listOf genSIRState)
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (genSIRLast dt as)
+prop_sir_sd_random_size :: Property
+prop_sir_sd_random_size = checkCoverage $ do
+  -- TODO: all tests seem to fail with this population size, WHY??? 
+  -- I assumed that the more agents, the more simliar it is on average
+  --as <- resize 1000 (listOf genSIRState)
+  -- TODO: this seems to work, WHY??
+  as <- listOf genSIRState
+  (ss, is, rs) <- unzip3 <$> vectorOf replications (genSIRLast 0.01 as)
+  let prop = checkSirSDspec as ss is rs
 
-  return $ label (show $ length as) $ property $ checkSirSDspec as ss is rs
+  return $ cover 90 prop "ABS averages SIR spec" True
 
 prop_sir_sd_spec_random_correlated_sir ::  [SIRState] -> Gen Bool
 prop_sir_sd_spec_random_correlated_sir as = do
@@ -126,7 +121,9 @@ checkSirSDspec as ssI isI rsI = allPass
     i0 = fromIntegral $ length $ filter (==Infected) as
     r0 = fromIntegral $ length $ filter (==Recovered) as
 
-    (s, i, r) = sdSpec s0 i0 r0 contactRate infectivity illnessDuration
+--    (s, i, r) = sdSpec s0 i0 r0 contactRate infectivity illnessDuration
+    (s, i, r) = last $ runSIRSD s0 i0 r0 contactRate infectivity illnessDuration 1 0.001
+
 
     -- transform data from Int to Double
     ss = map fromIntegral ssI

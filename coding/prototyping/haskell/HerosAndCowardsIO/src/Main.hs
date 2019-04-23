@@ -17,7 +17,7 @@ main :: IO ()
 main = do
     let dt = 0.01
     let wt = Border -- Infinite | Border | Wraping | InfiniteWraping
-    let agentCount = 1000
+    let agentCount = 2000
     let heroDist = 0.25
     let rngSeed = 42
     setStdGen $ mkStdGen rngSeed
@@ -25,7 +25,7 @@ main = do
     let simIn = Sim.SimIn { Sim.simInInitAgents = agents, Sim.simInWorldType = wt }
     GLO.simulateIO Front.display
         GLO.white
-        30                                      -- Number of simulation steps to take for each second of real time.
+        3                                     -- Number of simulation steps to take for each second of real time.
         simIn                                   -- The initial model.
         (\model -> Front.renderFrame model)            -- A function to convert the model to a picture.
         (\viewport dtRendering model ->  -- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds

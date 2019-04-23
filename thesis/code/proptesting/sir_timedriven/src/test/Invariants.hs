@@ -6,8 +6,6 @@ import Test.Tasty.QuickCheck as QC
 
 import SIRGenerators
 
-import SIR.SIR
-
 -- import Debug.Trace 
 
 -- --quickcheck-replay=557780
@@ -24,18 +22,14 @@ main = do
 
   defaultMain t
 
-instance Arbitrary SIRState where
-  arbitrary = elements [Susceptible, Infected, Recovered]
-
 --------------------------------------------------------------------------------
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
-prop_sir_invariants :: Property
-prop_sir_invariants = property $ do
-  let cor = 5     -- beta, contact rate
-      inf = 0.05  -- gamma, infectivitry
-      ild = 15    -- delta, illness duration
-
+prop_sir_invariants :: Positive Double -- ^ Random beta, contact rate
+                    -> Positive Double -- ^ Random gamma, infectivity
+                    -> Positive Double -- ^ Random delta, illness duration
+                    -> Property
+prop_sir_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count

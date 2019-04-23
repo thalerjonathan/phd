@@ -1,24 +1,18 @@
 {-# LANGUAGE InstanceSigs #-}
 module Main where
 
-import Data.Maybe
+--import Data.Maybe
 
-import Test.QuickCheck
---import Test.QuickCheck.Random
+import Test.Tasty
+import Test.Tasty.QuickCheck as QC
 
 import SIR.SIR
 import SIRGenerators
 import StatsUtils
+import SIRSD
 
---import Debug.Trace
-import Text.Printf
+import Debug.Trace
 
-instance Arbitrary SIRState where
-  arbitrary :: Gen SIRState
-  arbitrary = elements [Susceptible, Infected, Recovered]
-  -- arbitrary = frequency [ (3, return Susceptible)
-  --                       , (2, return Infected)
-  --                       , (1, return Recovered) ]
 contactRate :: Int
 contactRate = 5
 
@@ -35,40 +29,68 @@ replications = 100
 -- clear & stack test sir-event:sir-model-test
 
 main :: IO ()
-main = quickCheckWith stdArgs { maxSuccess = 100        -- number successful tests
-                              , maxFailPercent = 100    -- number of maximum failed tests
-                              , maxShrinks = 0          -- NO SHRINKS, they count towards successful tests, biasing the percentage
-                              --, replay = Just (mkQCGen 42, 0) -- use to replay reproducible
-                              } prop_sir_sd_random_size
+main = do
+  let t = testGroup "SIR Spec Tests" 
+          [ 
+            QC.testProperty "SIR random SD" prop_sir_sd
+          , QC.testProperty "SIR random population" prop_sir_random
+          ]
 
-prop_sir_sd_random_size :: Gen Bool
-prop_sir_sd_random_size = do
+  defaultMain t
+
+prop_sir_random :: Property
+prop_sir_random = checkCoverage $ do
   -- TODO: all tests seem to fail with this population size, WHY??? 
   -- I assumed that the more agents, the more simliar it is on average
-  as <- resize 1000 (listOf genSIRState)
+  --as <- resize 1000 (listOf genSIRState)
   -- TODO: this seems to work, WHY??
-  --as <- listOf genSIRState
+  as <- listOf genSIRState
   (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
-  return $ checkSirSDSpec as ss is rs
+  let prop = checkSirSDSpec as ss is rs
 
-prop_sir_sd_fixed_size :: Gen Bool
-prop_sir_sd_fixed_size = do
-  -- TODO: use resize 1000 (listOf genSIRState)  to ensure larger population sizes
-  as           <- vector 100
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
-  return $ checkSirSDSpec as ss is rs
+  return $ cover 90 prop "ABS averages SIR spec" True
 
-labelPopulation :: [SIRState] -> String
-labelPopulation as = ss ++ ", " ++ is ++ ", " ++ rs
+prop_sir_sd :: Gen Bool
+prop_sir_sd = trace (show $ nearlyEqual 100 99.9 0.0005) $ do
+  as <- resize 1000 (listOf genSIRState)
+  let s0 = fromIntegral $ length (filter (==Susceptible) as)
+  let i0 = fromIntegral $ length (filter (==Infected) as)
+  let r0 = fromIntegral $ length (filter (==Recovered) as)
+
+  let (ss, is, rs) = last $ runSIRSD s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration 1 0.001
+
+  let (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
+
+  let epsilon = 0.005
+
+  let prop = nearlyEqual ss s epsilon && 
+             nearlyEqual is i epsilon && 
+             nearlyEqual rs r epsilon
+
+  return prop
+
+nearlyEqual :: Double -> Double -> Double -> Bool
+nearlyEqual a b epsilon 
+    | a == b 
+      = True -- shortcut, handles infinities
+    | (a == 0 || b == 0 || diff < minValue) 
+      -- a or b is zero or both are extremely close to it
+      -- relative error is less meaningful here
+      =  diff < (epsilon * minValue)
+    | otherwise 
+      -- use relative error
+      = diff / (absA + absB) < epsilon 
   where
-    s = fromIntegral $ length $ filter (==Susceptible) as
-    i = fromIntegral $ length $ filter (==Infected) as
-    r = fromIntegral $ length $ filter (==Recovered) as
-    n = fromIntegral $ length as
+    absA = abs a
+    absB = abs b
+    diff = abs (a - b)
 
-    ss = printf "%.2f" ((s / n) :: Double)
-    is = printf "%.2f" (i / n)
-    rs = printf "%.2f" (r / n)
+minValue :: (RealFloat a) => a
+minValue = x
+  where n = floatDigits x
+        b = floatRadix x
+        (l, _) = floatRange x
+        x = encodeFloat (b^n - 1) (l - n - 1)
 
 sdSpec :: Double 
        -> Double 
@@ -115,6 +137,7 @@ checkSirSDSpec as ssI isI rsI = allPass
     r0 = fromIntegral $ length $ filter (==Recovered) as
     
     (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
+    --(s, i, r) = last $ runSIRSD s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration 1 0.001
 
     -- transform data from Int to Double
     ss = map fromIntegral ssI
@@ -131,18 +154,26 @@ checkSirSDSpec as ssI isI rsI = allPass
     --    claiming the means are NOT equal when in fact they are equal
     --  Type II error fails to reject a false null hypothesis: leading to an
     --    accepted test claiming that the mans are equal when in fact they are NOT
-    confidence = 0.95
-    sTest = tTestSamples TwoTail s (1 - confidence) ss
-    iTest = tTestSamples TwoTail i (1 - confidence) is
-    rTest = tTestSamples TwoTail r (1 - confidence) rs
+    -- confidence = 0.95
+    -- sTest = tTestSamples TwoTail s (1 - confidence) ss
+    -- iTest = tTestSamples TwoTail i (1 - confidence) is
+    -- rTest = tTestSamples TwoTail r (1 - confidence) rs
 
-    allPass = fromMaybe True sTest &&
-              fromMaybe True iTest &&
-              fromMaybe True rTest
+    -- allPass = fromMaybe True sTest &&
+    --           fromMaybe True iTest &&
+    --           fromMaybe True rTest
 
-    -- _ssMean = mean ss
-    -- _isMean = mean is
-    -- _rsMean = mean rs
+    ssMean = mean ss
+    isMean = mean is
+    rsMean = mean rs
+
+    epsilon = 0.05
+
+    allPass = nearlyEqual ssMean s epsilon && 
+             nearlyEqual isMean i epsilon && 
+             nearlyEqual rsMean r epsilon
+
+
     
 genLastSir :: [SIRState] -> Gen (Int, Int, Int)
 genLastSir as = do

@@ -25,19 +25,18 @@ main = do
 --------------------------------------------------------------------------------
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
-prop_sir_simulation_invariants :: Property
-prop_sir_simulation_invariants = property $ do
-  let cor = 5     -- beta, contact rate
-      inf = 0.05  -- gamma, infectivitry
-      ild = 15    -- delta, illness duration
-
+prop_sir_invariants :: Positive Double 
+                    -> Positive Double 
+                    -> Positive Double 
+                    -> Property
+prop_sir_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count
   let n = length as
 
   -- run simulation UNRESTRICTED in both time and event count
-  ret <- genSimulationSIR as cor inf ild (-1) (1/0)
+  ret <- genSimulationSIR as (floor cor) inf ild (-1) (1/0)
   
   -- after a finite number of steps SIR will reach equilibrium, when there
   -- are no more infected agents. WARNING: this could be a potentially non-
@@ -47,6 +46,7 @@ prop_sir_simulation_invariants = property $ do
 
   return (sirInvariants n equilibriumData)
 
+-- NOTE: can't use random model parameters because otherwise cover does not work
 prop_sir_random_invariants :: Property
 prop_sir_random_invariants = property $ do
   let cor = 5     -- beta, contact rate

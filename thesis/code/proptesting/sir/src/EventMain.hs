@@ -41,7 +41,7 @@ main = do
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
-      (ss, evtCnt) = runSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
+      (ss, evtCnt) = runEventSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
 
   print $ "Finished at t = " ++ show (fst $ last ss) ++ 
           ", after " ++ show evtCnt ++ 

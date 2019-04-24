@@ -15,7 +15,7 @@ main = do
   g <- getStdGen
 
   let ctx = defaultSIRCtx g
-      ret = runSIR ctx
+      ret = runTimeSIR ctx
 
   let retCompr = compressOutput ret
   let ret' = map (\(t, (s, i, r)) -> (t, (fromIntegral s, fromIntegral i, fromIntegral r))) retCompr

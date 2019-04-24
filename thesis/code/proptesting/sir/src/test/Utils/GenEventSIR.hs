@@ -67,4 +67,4 @@ genEventSIR :: [SIRState]
             -> Double
             -> Gen [(Time, (Int, Int, Int))]
 genEventSIR as cor inf ild maxEvents maxTime 
-  = fst . runSIR as cor inf ild maxEvents maxTime <$> genStdGen
+  = fst . runEventSIR as cor inf ild maxEvents maxTime <$> genStdGen

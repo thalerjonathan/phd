@@ -241,16 +241,16 @@ processEvent as (QueueItem receiver (Event e) evtTime)
 --------------------------------------------------------------------------------
 -- SIR SPECIFIC SIMULATION KERNEL
 --------------------------------------------------------------------------------
-runSIR :: RandomGen g
-       => [SIRState]
-       -> Int
-       -> Double
-       -> Double 
-       -> Integer
-       -> Double    
-       -> g
-       -> ([(Time, (Int, Int, Int))], Integer)
-runSIR ss cr inf illDur maxEvents tLimit g 
+runEventSIR :: RandomGen g
+            => [SIRState]
+            -> Int
+            -> Double
+            -> Double 
+            -> Integer
+            -> Double    
+            -> g
+            -> ([(Time, (Int, Int, Int))], Integer)
+runEventSIR ss cr inf illDur maxEvents tLimit g 
     = (ds, 0)
   where
     ds = evalRand executeAgents g

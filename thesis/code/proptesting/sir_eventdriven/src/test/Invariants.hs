@@ -7,17 +7,25 @@ import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 import qualified Data.IntMap.Strict as Map 
 
-import SIR.SIR
-import SIRGenerators
+import SIR.Model
+import SIR.Event
+import Utils.GenEventSIR
+import Utils.GenTimeSIR
+import Utils.GenSIR
 
--- clear & stack test sir-event:sir-invariants-test --test-arguments="--quickcheck-replay=557780 --quickcheck-verbose"
+-- --quickcheck-replay=557780
+-- --quickcheck-tests=1000
+-- --quickcheck-verbose
+-- --test-arguments=""
+-- clear & stack test sir:sir-invariants-tests
 
 main :: IO ()
 main = do
-  let t = testGroup "SIR Invariants Tests" 
+  let t = testGroup "SIR Invariant Tests" 
           [ 
-            QC.testProperty "SIR simulation invariants" prop_sir_simulation_invariants
-          , QC.testProperty "SIR random event sampling invariants" prop_sir_random_invariants
+            QC.testProperty "SIR event-driven simulation invariant" prop_sir_event_invariants
+          , QC.testProperty "SIR event-driven random event sampling invariant" prop_sir_random_invariants
+          , QC.testProperty "SIR time-driven simulation invariant" prop_sir_time_invariants
           ]
 
   defaultMain t
@@ -25,19 +33,44 @@ main = do
 --------------------------------------------------------------------------------
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
-prop_sir_invariants :: Positive Double 
-                    -> Positive Double 
-                    -> Positive Double 
-                    -> Property
-prop_sir_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
+-- TODO: reduce code duplication
+prop_sir_event_invariants :: Positive Double 
+                          -> Positive Double 
+                          -> Positive Double 
+                          -> Property
+prop_sir_event_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count
   let n = length as
 
   -- run simulation UNRESTRICTED in both time and event count
-  ret <- genSimulationSIR as (floor cor) inf ild (-1) (1/0)
+  ret <- genEventSIR as (floor cor) inf ild (-1) (1/0)
   
+  -- after a finite number of steps SIR will reach equilibrium, when there
+  -- are no more infected agents. WARNING: this could be a potentially non-
+  -- terminating computation but a correct SIR implementation will always
+  -- lead to a termination of this
+  let equilibriumData = takeWhile ((>0).snd3.snd) ret
+
+  return (sirInvariants n equilibriumData)
+
+-- TODO: reduce code duplication
+prop_sir_time_invariants :: Positive Double -- ^ Random beta, contact rate
+                         -> Positive Double -- ^ Random gamma, infectivity
+                         -> Positive Double -- ^ Random delta, illness duration
+                         -> Property
+prop_sir_time_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
+  -- generate population with size of up to 1000
+  as <- resize 1000 (listOf genSIRState)
+  -- total agent count
+  let n = length as
+
+  -- run for inifinite time
+  let t  = 0
+      dt = 0.1
+  ret <- genTimeSIR as cor inf ild t dt
+
   -- after a finite number of steps SIR will reach equilibrium, when there
   -- are no more infected agents. WARNING: this could be a potentially non-
   -- terminating computation but a correct SIR implementation will always

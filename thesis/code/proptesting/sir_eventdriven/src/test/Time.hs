@@ -9,13 +9,17 @@ import FRP.Yampa
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import SIR.SIR
-import SIRGenerators
-import StatsUtils
+import SIR.Time
+import Utils.GenSIR
+import Utils.Stats
 
 -- import Debug.Trace
 
--- clear & stack test sir-time:sir-agentspecs-test --test-arguments="--quickcheck-tests=1000"
+-- --quickcheck-replay=557780
+-- --quickcheck-tests=1000
+-- --quickcheck-verbose
+-- --test-arguments=""
+-- clear & stack test sir:sir-time-tests
 
 main :: IO ()
 main = defaultMain $ testGroup "SIR Agent Specifications Tests" 

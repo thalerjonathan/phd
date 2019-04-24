@@ -1,4 +1,4 @@
-module StatsUtils 
+module Utils.Stats 
   ( TTestTail (..)
   , tTestSamples
 
@@ -9,15 +9,17 @@ module StatsUtils
 
   , avgTest
 
-  , StatsUtils.mean
-  , StatsUtils.std
+  , Utils.Stats.mean
+  , Utils.Stats.std
 
   , expCDF
   
   , median
 
-  , StatsUtils.skewness
-  , StatsUtils.kurtosis
+  , nearlyEqual
+  
+  , Utils.Stats.skewness
+  , Utils.Stats.kurtosis
   ) where
 
 import Data.Maybe
@@ -131,9 +133,9 @@ tTestSamples tt mu0 alpha xs
     -- get number of samples
     n  = List.length xs     
     -- compute mean of samples
-    mu = StatsUtils.mean xs
+    mu = Utils.Stats.mean xs
     -- compute standard deviation of samples
-    s  = StatsUtils.std xs
+    s  = Utils.Stats.std xs
     -- compute t-value (t-statistics)
     t  = tValue mu0 mu s n
     -- compute p (proabilitiy) value for t-value: the p-value gives us the 
@@ -195,7 +197,7 @@ avgTest :: [Double]
 avgTest ys mu0 eps 
     = abs (mu - mu0) <= eps
   where
-    mu = StatsUtils.mean ys
+    mu = Utils.Stats.mean ys
 
 expCDF :: Double -> Double -> Double
 expCDF lambda = Distr.cumulative exptDist
@@ -206,6 +208,12 @@ expCDF lambda = Distr.cumulative exptDist
 -- but they don't support simple lists ...
 mean :: [Double] -> Double
 mean xs = Sample.mean (Vect.fromList xs :: Sample)
+
+-- statistics package obviously provides mean and variance implementations
+-- but they don't support simple lists ...
+_median :: [Double] -> Double
+_median xs = Sample.mean (Vect.fromList xs :: Sample)
+
 
 std :: [Double] -> Double
 std xs = Sample.stdDev (Vect.fromList xs :: Sample)
@@ -228,6 +236,29 @@ skewness xs = Sample.skewness (Vect.fromList xs :: Sample)
 
 kurtosis :: [Double] -> Double
 kurtosis xs = Sample.kurtosis (Vect.fromList xs :: Sample)
+
+nearlyEqual :: Double -> Double -> Double -> Bool
+nearlyEqual a b epsilon 
+    | a == b 
+      = True -- shortcut, handles infinities
+    | (a == 0 || b == 0 || diff < minValue) 
+      -- a or b is zero or both are extremely close to it
+      -- relative error is less meaningful here
+      =  diff < (epsilon * minValue)
+    | otherwise 
+      -- use relative error
+      = diff / (absA + absB) < epsilon 
+  where
+    absA = abs a
+    absB = abs b
+    diff = abs (a - b)
+
+minValue :: (RealFloat a) => a
+minValue = x
+  where n = floatDigits x
+        b = floatRadix x
+        (l, _) = floatRange x
+        x = encodeFloat (b^n - 1) (l - n - 1)
 
 {-
 histogram :: [Double] -> Int -> [(Double, Int)]

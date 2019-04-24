@@ -2,8 +2,10 @@ module Main where
 
 import System.Random
 
-import SIR.SIR
-import SIR.Export
+import Export.Compress
+import Export.Matlab
+import SIR.Event
+import SIR.Model
 
 seed :: Int
 seed = 42
@@ -29,17 +31,17 @@ maxEvents = -1
 
 -- use 1 / 0 for unrestricted time
 maxTime :: Double
-maxTime = 1/0 -- 150.0
+maxTime = 150.0
 
 main :: IO ()
 main = do
   --let g0 = mkStdGen seed
   g0 <- getStdGen
 
-  let _ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
+  let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
-      (ss, evtCnt) = runSIR [Recovered,Susceptible,Susceptible] contactRate infectivity illnessDuration maxEvents maxTime g0 
+      (ss, evtCnt) = runSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
 
   print $ "Finished at t = " ++ show (fst $ last ss) ++ 
           ", after " ++ show evtCnt ++ 
@@ -47,6 +49,6 @@ main = do
 
   let ssCompr = compressOutput ss
 
-  let ssCompr' = map (\(t, (s, i, r)) -> (t, fromIntegral s, fromIntegral i, fromIntegral r)) ssCompr
-  writeDynamicsToFile ("sir-event" ++ show agentCount ++ "agents.m") ssCompr'
+  let ssCompr' = map (\(t, (s, i, r)) -> (t, (fromIntegral s, fromIntegral i, fromIntegral r))) ssCompr
+  writeMatlabFile ("sir-event" ++ show agentCount ++ "agents.m") ssCompr'
 

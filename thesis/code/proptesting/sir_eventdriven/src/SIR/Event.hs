@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows           #-}
 {-# LANGUAGE FlexibleContexts #-}
-module SIR.SIR where
+module SIR.Event where
 
 import Data.Maybe
 
@@ -12,6 +12,8 @@ import Data.MonadicStreamFunction.InternalCore
 import Data.MonadicStreamFunction
 import qualified Data.IntMap.Strict as Map 
 import qualified Data.PQueue.Min as PQ
+
+import SIR.Model
 
 --import Debug.Trace
 
@@ -32,12 +34,6 @@ type ABSMonad m e    = ReaderT Time (WriterT [QueueItem e] (ReaderT [AgentId] m)
 type AgentCont m e o = MSF (ABSMonad m e) e o
 type Agent m e o     = AgentId -> (ABSMonad m e) (AgentCont m e o)
 type AgentMap m e o  = Map.IntMap (AgentCont m e o, o)
-
-data SIRState
-  = Susceptible
-  | Infected
-  | Recovered
-  deriving (Show, Eq)
 
 data SIREvent 
   = MakeContact
@@ -327,17 +323,3 @@ randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
       if r == x
         then avoid x
         else return r
-
---------------------------------------------------------------------------------
--- AGGREGATION UTILS
---------------------------------------------------------------------------------
-compressOutput :: [(Time, (Int, Int, Int))] -> [(Time, (Int, Int, Int))]
-compressOutput = foldr compressOutputAux []
-  where
-    compressOutputAux :: (Time, (Int, Int, Int))
-                      -> [(Time, (Int, Int, Int))]
-                      -> [(Time, (Int, Int, Int))]
-    compressOutputAux ts [] = [ts]
-    compressOutputAux (t, s) ((t', s') : acc) 
-      | t == t'   = (t, s) : acc
-      | otherwise = (t, s) : (t', s') : acc

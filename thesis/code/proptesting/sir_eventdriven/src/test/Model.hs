@@ -6,92 +6,123 @@ module Main where
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
-import SIR.SIR
-import SIRGenerators
-import StatsUtils
-import SIRSD
+--import SIR.Event
+import SIR.Model
+import SIR.SD
+--import SIR.Time
+import Utils.GenSIR
+import Utils.GenEventSIR
+--import Utils.GenTimeSIR
+import Utils.Stats
 
-import Debug.Trace
-
-contactRate :: Int
-contactRate = 5
-
-infectivity :: Double
-infectivity = 0.05
-
-illnessDuration :: Double
-illnessDuration = 15.0
+--import Debug.Trace
 
 -- need to run replications because ABS is stochastic
 replications :: Int
 replications = 100
 
--- clear & stack test sir-event:sir-model-test
+-- --quickcheck-replay=557780
+-- --quickcheck-tests=1000
+-- --quickcheck-verbose
+-- --test-arguments=""
+-- clear & stack test sir:sir-model-tests
 
 main :: IO ()
 main = do
   let t = testGroup "SIR Spec Tests" 
           [ 
-            QC.testProperty "SIR random SD" prop_sir_sd
-          , QC.testProperty "SIR random population" prop_sir_random
+            QC.testProperty "SIR event-driven" prop_sir_event_spec
           ]
 
   defaultMain t
 
-prop_sir_random :: Property
-prop_sir_random = checkCoverage $ do
-  -- TODO: all tests seem to fail with this population size, WHY??? 
-  -- I assumed that the more agents, the more simliar it is on average
-  --as <- resize 1000 (listOf genSIRState)
-  -- TODO: this seems to work, WHY??
-  as <- listOf genSIRState
-  (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
-  let prop = checkSirSDSpec as ss is rs
+-- TODO: need to iterate using a (correct) SD implementation, just computing 
+-- the expected after 1.0 time without iterating does NOT WORK! OTherwise we 
+-- could simply compute the value at 150 bcs it is linear but obviously that
+-- does not work because we have feedback (integral!)
+
+-- TODO: question is how to compare? using t-test? using mean and using nearlyEqual?
+
+-- TODO: compare time-driven and event-driven with each other
+
+prop_sir_event_spec :: Positive Int 
+                    -> Positive Double 
+                    -> Positive Double 
+                    -> Positive Double 
+                    -> Property
+prop_sir_event_spec (Positive cor) (Positive inf) (Positive ild) (Positive _t) = checkCoverage $ do
+  let t = 1.0
+  as <- resize 1000 (listOf genSIRState)
+  (ss, is, rs) <- unzip3 . map snd . last <$> vectorOf replications (genEventSIR as cor inf ild (-1) t)
+
+  let prop = checkSirSDSpec as ss is rs cor inf ild t
 
   return $ cover 90 prop "ABS averages SIR spec" True
 
-prop_sir_sd :: Gen Bool
-prop_sir_sd = trace (show $ nearlyEqual 100 99.9 0.0005) $ do
-  as <- resize 1000 (listOf genSIRState)
-  let s0 = fromIntegral $ length (filter (==Susceptible) as)
-  let i0 = fromIntegral $ length (filter (==Infected) as)
-  let r0 = fromIntegral $ length (filter (==Recovered) as)
 
-  let (ss, is, rs) = last $ runSIRSD s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration 1 0.001
+-- prop_sir_time_random :: Property
+-- prop_sir_time_random = checkCoverage $ do
+--   as <- listOf genSIRState
+--   (ss, is, rs) <- unzip3 <$> vectorOf replications (genLastSir as)
+--   let prop = checkSirSDSpec as ss is rs
 
-  let (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
+--   return $ cover 90 prop "ABS averages SIR spec" True
 
-  let epsilon = 0.005
+-- prop_sir_sd :: Gen Bool
+-- prop_sir_sd = trace (show $ nearlyEqual 100 99.9 0.0005) $ do
+--   as <- resize 1000 (listOf genSIRState)
+--   let s0 = fromIntegral $ length (filter (==Susceptible) as)
+--   let i0 = fromIntegral $ length (filter (==Infected) as)
+--   let r0 = fromIntegral $ length (filter (==Recovered) as)
 
-  let prop = nearlyEqual ss s epsilon && 
-             nearlyEqual is i epsilon && 
-             nearlyEqual rs r epsilon
+--   let (ss, is, rs) = snd $ last $ runSIRSD s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration 1 0.001
 
-  return prop
+--   let (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
 
-nearlyEqual :: Double -> Double -> Double -> Bool
-nearlyEqual a b epsilon 
-    | a == b 
-      = True -- shortcut, handles infinities
-    | (a == 0 || b == 0 || diff < minValue) 
-      -- a or b is zero or both are extremely close to it
-      -- relative error is less meaningful here
-      =  diff < (epsilon * minValue)
-    | otherwise 
-      -- use relative error
-      = diff / (absA + absB) < epsilon 
-  where
-    absA = abs a
-    absB = abs b
-    diff = abs (a - b)
+--   let epsilon = 0.005
 
-minValue :: (RealFloat a) => a
-minValue = x
-  where n = floatDigits x
-        b = floatRadix x
-        (l, _) = floatRange x
-        x = encodeFloat (b^n - 1) (l - n - 1)
+--   let prop = nearlyEqual ss s epsilon && 
+--              nearlyEqual is i epsilon && 
+--              nearlyEqual rs r epsilon
 
+--   return prop
+
+-- prop_sir_sd_random_size :: Property
+-- prop_sir_sd_random_size = checkCoverage $ do
+--   as <- listOf genSIRState
+--   (ss, is, rs) <- unzip3 <$> vectorOf replications (genSIRLast 0.01 as)
+--   let prop = checkSirSDspec as ss is rs
+
+--   return $ cover 90 prop "ABS averages SIR spec" True
+
+-- prop_sir_sd_spec_random_correlated_sir ::  [SIRState] -> Gen Bool
+-- prop_sir_sd_spec_random_correlated_sir as = do
+--     let n = length as
+--     (ss, is, rs) <- unzip3 <$> vectorOf replications (sirSimRandomCorrelated n)
+--     return $ checkSirSDspec as ss is rs
+--   where
+--     sirSimRandomCorrelated :: Int -> Gen (Int, Int, Int)
+--     sirSimRandomCorrelated n = do
+--         s <- choose (0, n)
+--         i <- choose (0, n - s)
+--         let r = n - s - i
+--         return (s, i, r)
+
+-- prop_sir_sd_spec_random_uncorrelated_sir ::  [SIRState] -> Gen Bool
+-- prop_sir_sd_spec_random_uncorrelated_sir as = do
+--     let n = length as
+--     (ss, is, rs) <- unzip3 <$> vectorOf replications (sirSimRandomUncorr n)
+--     return $ checkSirSDspec as ss is rs
+--   where
+--     sirSimRandomUncorr :: Int -> Gen (Int, Int, Int)
+--     sirSimRandomUncorr n = do
+--         s <- choose (0, n)
+--         i <- choose (0, n)
+--         r <- choose (0, n)
+--         return (s, i, r)
+
+-- TODO: this doesn't work! we are integrating over infinitesimal small steps
+-- thus the larger the step the more inaccurate
 sdSpec :: Double 
        -> Double 
        -> Double
@@ -120,12 +151,27 @@ sdSpec s0 i0 r0 beta gamma delta = (s, i, r)
     --    add recovery-rate to initial R value
     r = r0 + rr
 
+sdRun :: Double 
+      -> Double 
+      -> Double
+      -> Double 
+      -> Double
+      -> Double
+      -> Double
+      -> (Double, Double, Double)
+sdRun s0 i0 r0 beta gamma delta t
+  = snd . last $ runSIRSD s0 i0 r0 beta gamma delta t 0.001
+
 checkSirSDSpec :: [SIRState] 
                -> [Int]
                -> [Int]
                -> [Int]
+               -> Int
+               -> Double
+               -> Double
+               -> Double
                -> Bool
-checkSirSDSpec as ssI isI rsI = allPass
+checkSirSDSpec as ssI isI rsI cor inf ild t = allPass
   -- = trace ( "---------------------------------------------------------------------------------------" ++
   --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++ ", \t n = " ++ show n ++
   --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
@@ -136,8 +182,7 @@ checkSirSDSpec as ssI isI rsI = allPass
     i0 = fromIntegral $ length $ filter (==Infected) as
     r0 = fromIntegral $ length $ filter (==Recovered) as
     
-    (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
-    --(s, i, r) = last $ runSIRSD s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration 1 0.001
+    (s, i, r) = sdRun s0 i0 r0 (fromIntegral cor) inf ild t
 
     -- transform data from Int to Double
     ss = map fromIntegral ssI
@@ -167,21 +212,20 @@ checkSirSDSpec as ssI isI rsI = allPass
     isMean = mean is
     rsMean = mean rs
 
-    epsilon = 0.05
+    epsilon = 0.001
 
     allPass = nearlyEqual ssMean s epsilon && 
-             nearlyEqual isMean i epsilon && 
-             nearlyEqual rsMean r epsilon
+              nearlyEqual isMean i epsilon && 
+              nearlyEqual rsMean r epsilon
 
 
-    
-genLastSir :: [SIRState] -> Gen (Int, Int, Int)
-genLastSir as = do
-  ret <- map snd <$> genSimulationSIR as contactRate infectivity illnessDuration (-1) 1.0 
-  if null ret
-    then do
-      let s = length (filter (==Susceptible) as)
-      let i = length (filter (==Infected) as)
-      let r = length (filter (==Recovered) as)
-      return (s,i,r)
-    else return (last ret)
+-- genLastSir :: [SIRState] -> Gen (Int, Int, Int)
+-- genLastSir as = do
+--   ret <- map snd <$> genSimulationSIR as contactRate infectivity illnessDuration (-1) 1.0 
+--   if null ret
+--     then do
+--       let s = length (filter (==Susceptible) as)
+--       let i = length (filter (==Infected) as)
+--       let r = length (filter (==Recovered) as)
+--       return (s,i,r)
+--     else return (last ret)

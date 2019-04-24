@@ -1,17 +1,13 @@
-module SIRGenerators where
+module Utils.GenEventSIR where
 
-import Control.Monad.Random
-import Test.Tasty.QuickCheck as QC
+import Test.Tasty.QuickCheck
 
-import SIR.SIR
+import SIR.Event
+import SIR.Model
+import Utils.GenSIR
 
 genEvent :: [AgentId] -> Gen SIREvent
 genEvent = genEventFreq 1 1 1 (1,1,1)
-
-genStdGen :: Gen StdGen
-genStdGen = do
-  seed <- choose (minBound, maxBound)
-  return $ mkStdGen seed
 
 genNonEmptyAgentIds :: Gen [AgentId]
 genNonEmptyAgentIds = listOf1 (do 
@@ -39,8 +35,6 @@ genEventFreq mcf cof rcf (s,i,r) ais
                   return $ Contact ai ss)
               , (rcf, return Recover)]
 
-genSIRState :: Gen SIRState
-genSIRState = elements [Susceptible, Infected, Recovered]
 
 genQueueItemStream :: Double 
                    -> [AgentId]
@@ -65,12 +59,12 @@ genQueueItem t ais = do
 eventTime :: QueueItem e -> Time
 eventTime (QueueItem _ _ et) = et
 
-genSimulationSIR :: [SIRState]
-                 -> Int
-                 -> Double
-                 -> Double 
-                 -> Integer
-                 -> Double
-                 -> Gen [(Time, (Int, Int, Int))]
-genSimulationSIR ss cr inf illDur maxEvents maxTime 
-  = fst . runSIR ss cr inf illDur maxEvents maxTime <$> genStdGen
+genEventSIR :: [SIRState]
+            -> Int
+            -> Double
+            -> Double 
+            -> Integer
+            -> Double
+            -> Gen [(Time, (Int, Int, Int))]
+genEventSIR as cor inf ild maxEvents maxTime 
+  = fst . runSIR as cor inf ild maxEvents maxTime <$> genStdGen

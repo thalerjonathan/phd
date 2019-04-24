@@ -1,12 +1,12 @@
-module SIR.Export 
-  ( writeDynamicsToFile
+module Export.Matlab 
+  ( writeMatlabFile
   ) where
 
 import System.IO
 import Text.Printf
 
-writeDynamicsToFile :: String -> [(Double, Double, Double, Double)] -> IO ()
-writeDynamicsToFile fileName dynamics = do
+writeMatlabFile :: String -> [(Double, (Double, Double, Double))] -> IO ()
+writeMatlabFile fileName dynamics = do
   fileHdl <- openFile fileName WriteMode
   hPutStrLn fileHdl "dynamics = ["
   mapM_ (hPutStrLn fileHdl . sirDynamicToString) dynamics
@@ -37,8 +37,8 @@ writeDynamicsToFile fileName dynamics = do
 
   hClose fileHdl
 
-sirDynamicToString :: (Double, Double, Double, Double) -> String
-sirDynamicToString (t, s, i, r) =
+sirDynamicToString :: (Double, (Double, Double, Double)) -> String
+sirDynamicToString (t, (s, i, r)) =
   printf "%f" t ++
   "," ++ printf "%f" s ++
   "," ++ printf "%f" i ++ 

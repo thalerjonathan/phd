@@ -1,13 +1,13 @@
 {-# LANGUAGE Arrows #-}
-module SIR.SIR 
+module SIR.Time 
   ( SIRSimCtx (..)
   , SIRState (..)
   , SIRAgent 
 
   , defaultSIRCtx
 
-  , runSIR
-  , runSIRFor
+  , runTimeSIR
+  , runTimeSIRFor
 
   -- expose agents behaviour functions as well for testing
   , susceptibleAgent
@@ -16,9 +16,10 @@ module SIR.SIR
   ) where
 
 import Control.Monad.Random
+import Data.List
 import FRP.Yampa
 
-import SIR.Utils
+import SIR.Model
 
 data SIRSimCtx g = SIRSimCtx
   { syCtxTimeLimit   :: !Double
@@ -35,15 +36,13 @@ data SIRSimCtx g = SIRSimCtx
   , syCtxIllnessDur  :: !Double
   }
 
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
-
 type SIRAgent = SF [SIRState] SIRState
 
-runSIR :: RandomGen g 
-       => SIRSimCtx g
-       -> [(Int, Int, Int)]
-runSIR simCtx
-    = runSIRFor t dt as cr inf dur g
+runTimeSIR :: RandomGen g 
+           => SIRSimCtx g
+           -> [(Double, (Int, Int, Int))]
+runTimeSIR simCtx
+    = runTimeSIRFor as cr inf dur t dt g
   where
     t  = syCtxTimeLimit simCtx
     dt = syCtxTimeDelta simCtx
@@ -59,20 +58,21 @@ runSIR simCtx
 
     as = initAgents s i r
 
-runSIRFor :: RandomGen g
-          => DTime
-          -> DTime
-          -> [SIRState]
-          -> Double
-          -> Double
-          -> Double
-          -> g
-          -> [(Int, Int, Int)]
-runSIRFor t dt as0 cr inf0 dur g0
-    = map sirAggregate ass 
+runTimeSIRFor :: RandomGen g
+              => [SIRState]
+              -> Double
+              -> Double
+              -> Double
+              -> DTime
+              -> DTime
+              -> g
+              -> [(Double, (Int, Int, Int))]
+runTimeSIRFor as0 cr inf0 dur tMax dt  g0 
+    = zip ts (map sirAggregate ass)
   where
-    steps = floor $ t / dt
-    dts   = if t == 0 then repeat (dt, Nothing) else replicate steps (dt, Nothing)
+    steps = floor $ tMax / dt
+    dts   = if tMax == 0 then repeat (dt, Nothing) else replicate steps (dt, Nothing)
+    ts    = unfoldr (\t -> Just (t + dt, t + dt)) 0
 
     (rngs, _) = rngSplits g0 (length as0) []
     sfs       = zipWith (sirAgent cr inf0 dur) rngs as0
@@ -207,3 +207,9 @@ defaultSIRCtx g = SIRSimCtx {
   , syCtxInfectivity = 0.05
   , syCtxIllnessDur  = 15
   }
+
+rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
+rngSplits g 0 acc = (acc, g)
+rngSplits g n acc = rngSplits g'' (n - 1) (g' : acc)
+  where
+    (g', g'') = split g

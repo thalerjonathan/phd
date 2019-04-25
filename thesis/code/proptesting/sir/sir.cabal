@@ -247,9 +247,10 @@ Test-Suite sir-invariants-tests
   other-modules:        Utils.GenEventSIR
                       , Utils.GenTimeSIR
                       , Utils.GenSIR
-                      , Utils.Stats
+                      , Utils.Numeric
                       , SIR.Event
                       , SIR.Model
+                      , SIR.SD
                       , SIR.Time
 
   hs-source-dirs:       src/

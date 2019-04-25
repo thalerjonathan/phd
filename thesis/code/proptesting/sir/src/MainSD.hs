@@ -15,10 +15,14 @@ illnessDuration = 15.0
 tLimit :: Double
 tLimit = 150
 
-dt :: Double
-dt = 0.1
-
 main :: IO ()
 main = do
-  let ret = runSIRSD 999 1 0 contactRate infectivity illnessDuration tLimit dt
+  let ret = runSIRSD 
+              0.1     -- Susceptible
+              0.1    -- Infected
+              0.1     -- Recovered
+              0.1     -- contact rate
+              0.55    -- infectivity
+              0.1     -- illness duration
+              0.1     -- time
   writeMatlabFile "sir-sd.m" ret

@@ -13,8 +13,8 @@ genTimeSIR :: [SIRState]
            -> Double
            -> Double
            -> Gen [(Double, (Int, Int, Int))]
-genTimeSIR as cor inf ild tMax dt 
-  = runTimeSIRFor as cor inf ild tMax dt <$> genStdGen
+genTimeSIR as cor inf ild dt tMax 
+  = runTimeSIRFor as cor inf ild dt tMax <$> genStdGen
 
 genLastTimeSIR :: [SIRState]
                -> Double
@@ -24,8 +24,8 @@ genLastTimeSIR :: [SIRState]
                -> Double
                -> Gen (Double, (Int, Int, Int))
 genLastTimeSIR [] _ _ _ _ _ = return (0, (0,0,0))
-genLastTimeSIR as cor inf ild tMax dt = do
-  ret <- genTimeSIR as cor inf ild tMax dt
+genLastTimeSIR as cor inf ild dt tMax = do
+  ret <- genTimeSIR as cor inf ild dt tMax
   if null ret
     then return (tMax, aggregateSIRStates as)
     else return (last ret)

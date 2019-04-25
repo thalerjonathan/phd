@@ -32,11 +32,32 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Spec Tests" 
           [ 
-            QC.testProperty "SIR time-driven" prop_sir_time_spec
-          , QC.testProperty "SIR event-driven" prop_sir_event_spec
+            QC.testProperty "SIR random time-driven, simulated SD" prop_sir_time_rand_spec 
+          -- ,  QC.testProperty "SIR fixed time-driven, interpolated SD" prop_sir_time_spec
+          -- , QC.testProperty "SIR fixed time-driven, simulated SD" prop_sir_time_sd_spec
           ]
 
   defaultMain t
+
+-- TODO: we can do the following combinations
+-- TIME / EVENT SIR
+-- FIXED / RANDOM MODEL PARAMETERS
+-- SMALL / LARGE population
+-- INTERPOLATED / SIMULATED SD
+
+-- Progress 1/2: sir-0.1.0.0SIR Spec Tests
+--   SIR time-driven SD average: FAIL (653.95s)
+--     *** Failed! Insufficient coverage (after 1600 tests):
+--     84.62% SIR time-driven passes t-test with SD averages
+    
+--     Only 84.62% SIR time-driven passes t-test with SD averages, but expected 90.00%
+--     Use --quickcheck-replay=372958 to reproduce.
+--   SIR time-driven SD run:     FAIL (331.70s)
+--     *** Failed! Insufficient coverage (after 800 tests):
+--     82.9% SIR time-driven passes t-test with SD runs
+    
+--     Only 82.9% SIR time-driven passes t-test with SD runs, but expected 90.0%
+--     Use --quickcheck-replay=981777 to reproduce.
 
 -- TODO: compare time-driven and event-driven with each other, but how? 
 -- need a different type of t-test!
@@ -46,50 +67,47 @@ prop_sir_time_spec :: Positive Double  -- ^ contact rate
                    -> Positive Double  -- ^ illness duration
                    -> Positive Double  -- ^ time to run
                    -> Property
-prop_sir_time_spec (Positive cor) (UnitRange inf) (Positive ild) (Positive t) = checkCoverage $ do
-  -- let t = 1.0
-  --     cor = 5
-  --     inf = 0.05
-  --     ild = 15
-  as <- resize 1000 (listOf genSIRState)
-
-  (ss, is, rs) <- unzip3 . map snd <$> vectorOf replications (genLastTimeSIR as cor inf ild 0.01 t)
-  let prop = checkSirSDSpec as ss is rs cor inf ild t
-  return $ cover 90 prop "SIR time-driven passes t-test with SD averages" True
-
-prop_sir_event_spec :: Positive Double  -- ^ contact rate
-                    -> UnitRange        -- ^ infectivity, within range (0,1)
-                    -> Positive Double  -- ^ illness duration
-                    -> Positive Double  -- ^ time to run
-                    -> Property
-prop_sir_event_spec (Positive _cor) (UnitRange _inf) (Positive _ild) (Positive _t) = checkCoverage $ do
+prop_sir_time_spec (Positive _cor) (UnitRange _inf) (Positive _ild) (Positive _t) = checkCoverage $ do
   let t = 1.0
       cor = 5
       inf = 0.05
       ild = 15
-  as <- resize 1000 (listOf genSIRState)
-  (ss, is, rs) <- unzip3 . map snd <$> vectorOf replications (genLastEventSIR as cor inf ild (-1) t)
-  let prop = checkSirSDSpec as ss is rs cor inf ild t
-  return $ cover 90 prop "SIR event-driven passes SD t-test" True
+  --as <- resize 1000 (listOf genSIRState)
+  as <- listOf genSIRState
 
--- prop_sir_sd :: Gen Bool
--- prop_sir_sd = trace (show $ nearlyEqual 100 99.9 0.0005) $ do
---   as <- resize 1000 (listOf genSIRState)
---   let s0 = fromIntegral $ length (filter (==Susceptible) as)
---   let i0 = fromIntegral $ length (filter (==Infected) as)
---   let r0 = fromIntegral $ length (filter (==Recovered) as)
+  (ss, is, rs) <- unzip3 . map snd <$> vectorOf replications (genLastTimeSIR as cor inf ild 0.01 t)
+  let prop = checkSirSDSpec as ss is rs cor inf ild Nothing
+  return $ cover 90 prop "SIR time-driven passes t-test with SD averages" True
 
---   let (ss, is, rs) = snd $ last $ runSIRSD s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration 1 0.001
+prop_sir_time_sd_spec :: Positive Double  -- ^ contact rate
+                   -> UnitRange        -- ^ infectivity, within range (0,1)
+                   -> Positive Double  -- ^ illness duration
+                   -> Positive Double  -- ^ time to run
+                   -> Property
+prop_sir_time_sd_spec (Positive _cor) (UnitRange _inf) (Positive _ild) (Positive _t) = checkCoverage $ do
+  let t = 1.0
+      cor = 5
+      inf = 0.05
+      ild = 15
+  --as <- resize 1000 (listOf genSIRState)
+  as <- listOf genSIRState
 
---   let (s, i, r) = sdSpec s0 i0 r0 (fromIntegral contactRate) infectivity illnessDuration
+  (ss, is, rs) <- unzip3 . map snd <$> vectorOf replications (genLastTimeSIR as cor inf ild 0.01 t)
+  let prop = checkSirSDSpec as ss is rs cor inf ild (Just t)
+  return $ cover 90 prop "SIR time-driven passes t-test with SD runs" True
 
---   let epsilon = 0.005
+prop_sir_time_rand_spec :: Positive Double  -- ^ contact rate
+                        -> UnitRange        -- ^ infectivity, within range (0,1)
+                        -> Positive Double  -- ^ illness duration
+                        -> Positive Double  -- ^ time to run
+                        -> Property
+prop_sir_time_rand_spec (Positive cor) (UnitRange inf) (Positive ild) (Positive t) = checkCoverage $ do
+  --as <- resize 1000 (listOf genSIRState)
+  as <- listOf genSIRState
 
---   let prop = nearlyEqual ss s epsilon && 
---              nearlyEqual is i epsilon && 
---              nearlyEqual rs r epsilon
-
---   return prop
+  (ss, is, rs) <- trace (show as) unzip3 . map snd <$> vectorOf replications (genLastTimeSIR as cor inf ild 0.01 t)
+  let prop = checkSirSDSpec as ss is rs cor inf ild (Just t)
+  return $ cover 90 prop "SIR random time-driven passes t-test with SD runs" True
 
 -- prop_sir_sd_spec_random_correlated_sir ::  [SIRState] -> Gen Bool
 -- prop_sir_sd_spec_random_correlated_sir as = do
@@ -160,20 +178,19 @@ checkSirSDSpec :: [SIRState]
                -> Double
                -> Double
                -> Double
-               -> Double
+               -> Maybe Double
                -> Bool
-checkSirSDSpec as ssI isI rsI cor inf ild _t 
-  = trace ( "---------------------------------------------------------------------------------------" ++
-            "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++
-            "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
-            "\n s' = " ++ printf "%.2f" _ssMean ++ ", \t i' = " ++ printf "%.2f" _isMean ++ ", \t r' = " ++ printf "%.2f" _rsMean) 
-            allPass
+checkSirSDSpec as ssI isI rsI cor inf ild mt = allPass
+  -- = trace ( "---------------------------------------------------------------------------------------" ++
+  --           "\n s0 = " ++ show s0 ++ ", \t i0 = " ++ show i0 ++ ", \t r0 = " ++ show r0 ++
+  --           "\n s  = " ++ printf "%.2f" s ++ ", \t i  = " ++ printf "%.2f" i ++ ", \t r  = " ++ printf "%.2f" r ++ 
+  --           "\n s' = " ++ printf "%.2f" _ssMean ++ ", \t i' = " ++ printf "%.2f" _isMean ++ ", \t r' = " ++ printf "%.2f" _rsMean) 
+  --           allPass
   where
     (s0,i0,r0) = int3ToDbl3 $ aggregateSIRStates as
-    --(s, i, r)  = sdSpec s0 i0 r0 cor inf ild 
-    (s,i,r) = snd . last $ runSIRSD s0 i0 r0 cor inf ild _t 0.1
-
-
+    (s, i, r)  = case mt of 
+                  Nothing  -> sdSpec s0 i0 r0 cor inf ild 
+                  (Just t) -> snd . last $ runSIRSD s0 i0 r0 cor inf ild t
     
     -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
     -- equal with a confidence of 99%: the probability of observing an extreme

@@ -42,7 +42,7 @@ runTimeSIR :: RandomGen g
            => SIRSimCtx g
            -> [(Double, (Int, Int, Int))]
 runTimeSIR simCtx
-    = runTimeSIRFor as cr inf dur t dt g
+    = runTimeSIRFor as cr inf dur dt t g
   where
     t  = syCtxTimeLimit simCtx
     dt = syCtxTimeDelta simCtx
@@ -67,7 +67,7 @@ runTimeSIRFor :: RandomGen g
               -> DTime
               -> g
               -> [(Double, (Int, Int, Int))]
-runTimeSIRFor as0 cr inf0 dur tMax dt  g0 
+runTimeSIRFor as0 cr inf0 dur dt tMax g0 
     = zip ts (map aggregateSIRStates ass)
   where
     steps = floor $ tMax / dt

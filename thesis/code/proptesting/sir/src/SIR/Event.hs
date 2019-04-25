@@ -252,7 +252,7 @@ runEventSIR :: RandomGen g
             -> Double    
             -> g
             -> ([(Time, (Int, Int, Int))], Integer)
-runEventSIR ss cr inf illDur maxEvents tLimit g 
+runEventSIR ss cr inf illDur maxEvents tLimit g
     = (ds, 0)
   where
     ds = evalRand executeAgents g

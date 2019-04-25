@@ -47,7 +47,7 @@ cabal-version:       >=1.10
 
 executable sir-event
   -- .hs or .lhs file containing the Main module.
-  main-is:             EventMain.hs
+  main-is:             MainEvent.hs
   
   -- Modules included in this executable, other than Main.
   other-modules:       Export.Compress
@@ -80,7 +80,7 @@ executable sir-event
 
 executable sir-time
   -- .hs or .lhs file containing the Main module.
-  main-is:              TimeMain.hs
+  main-is:              MainTime.hs
 
   -- Modules included in this executable, other than Main.
   other-modules:        Export.Compress
@@ -106,8 +106,34 @@ executable sir-time
   ghc-options:         -O2
                        -Wall 
                        -Werror 
-                       -fwarn-tabs
                        -threaded -with-rtsopts=-N
+
+executable sir-sd
+  -- .hs or .lhs file containing the Main module.
+  main-is:              MainSD.hs
+
+  -- Modules included in this executable, other than Main.
+  other-modules:        Export.Matlab
+                      , SIR.SD
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+
+  -- Other library packages from which modules are imported.
+  build-depends:        base 
+                      , Yampa
+                      , MonadRandom
+                      , random
+                      
+  -- Directories containing source files.
+  hs-source-dirs:      src
+
+  -- Base language which the package is written in.
+  default-language:    Haskell2010
+
+  ghc-options:         -O2
+                       -Wall 
+                       -Werror 
 
 Test-Suite sir-event-tests
   default-language:     Haskell2010
@@ -211,6 +237,7 @@ Test-Suite sir-model-tests
                       -Wall 
                       -Werror
                       -fno-warn-orphans
+                      -fno-warn-unused-imports
 
 Test-Suite sir-invariants-tests
   default-language:     Haskell2010

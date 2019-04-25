@@ -55,14 +55,16 @@ makeContactInterval = 1.0
 --------------------------------------------------------------------------------
 -- | A sir agent which is in one of three states
 sirAgent :: RandomGen g 
-         => Int         -- ^ the contact rate
+         => Double      -- ^ the contact rate
          -> Double      -- ^ the infectivity
          -> Double      -- ^ the illness duration
          -> SIRState    -- ^ the initial state of the agent
          -> SIRAgent g  -- ^ the continuation
 sirAgent cr inf illDur Susceptible aid = do
   -- on start
-  scheduleMakeContact aid 
+  --scheduleMakeContact aid 
+  -- schedule MakeContact for t=0
+  scheduleEvent aid MakeContact 0
   return $ susceptibleAgent aid cr inf illDur 
 sirAgent _ _ illDur Infected aid = do
   -- on start
@@ -76,7 +78,7 @@ sirAgent _ _ _ Recovered _ =
 --------------------------------------------------------------------------------
 susceptibleAgent :: RandomGen g 
                  => AgentId
-                 -> Int
+                 -> Double
                  -> Double
                  -> Double
                  -> SIRAgentCont g
@@ -107,7 +109,7 @@ susceptibleAgent aid cr inf illDur =
 
     handleEvent MakeContact = do
       ais       <- allAgentIds
-      crExp     <- lift $ lift $ lift $ randomExpM (1 / fromIntegral cr)
+      crExp     <- lift $ lift $ lift $ randomExpM (1 / cr)
       receivers <- lift $ lift $ lift $ forM [1..crExp] (const $ randomElem ais)
       mapM_ makeContactWith receivers
       scheduleMakeContact aid
@@ -243,7 +245,7 @@ processEvent as (QueueItem receiver (Event e) evtTime)
 --------------------------------------------------------------------------------
 runEventSIR :: RandomGen g
             => [SIRState]
-            -> Int
+            -> Double
             -> Double
             -> Double 
             -> Integer
@@ -279,7 +281,7 @@ aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)
 
 initSIR :: RandomGen g
         => [SIRState]
-        -> Int
+        -> Double
         -> Double
         -> Double
         -> SIRMonad g (SIRAgentMap g, EventQueue SIREvent)

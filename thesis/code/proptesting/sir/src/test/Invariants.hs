@@ -34,11 +34,11 @@ main = do
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
 -- TODO: reduce code duplication
-prop_sir_event_invariants :: Positive Double 
-                          -> Positive Double 
-                          -> Positive Double 
+prop_sir_event_invariants :: Positive Double  -- ^ Random beta, contact rate
+                          -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range
+                          -> Positive Double  -- ^ Random delta, illness duration
                           -> Property
-prop_sir_event_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
+prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) = property $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count
@@ -57,10 +57,10 @@ prop_sir_event_invariants (Positive cor) (Positive inf) (Positive ild) = propert
 
 -- TODO: reduce code duplication
 prop_sir_time_invariants :: Positive Double -- ^ Random beta, contact rate
-                         -> Positive Double -- ^ Random gamma, infectivity
+                         -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
                          -> Positive Double -- ^ Random delta, illness duration
                          -> Property
-prop_sir_time_invariants (Positive cor) (Positive inf) (Positive ild) = property $ do
+prop_sir_time_invariants (Positive cor) (UnitRange inf) (Positive ild) = property $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count

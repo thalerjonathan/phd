@@ -68,7 +68,7 @@ runTimeSIRFor :: RandomGen g
               -> g
               -> [(Double, (Int, Int, Int))]
 runTimeSIRFor as0 cr inf0 dur tMax dt  g0 
-    = zip ts (map sirAggregate ass)
+    = zip ts (map aggregateSIRStates ass)
   where
     steps = floor $ tMax / dt
     dts   = if tMax == 0 then repeat (dt, Nothing) else replicate steps (dt, Nothing)
@@ -78,13 +78,6 @@ runTimeSIRFor as0 cr inf0 dur tMax dt  g0
     sfs       = zipWith (sirAgent cr inf0 dur) rngs as0
 
     ass       = embed (stepSimulation sfs as0) ((), dts)
-
-    sirAggregate :: [SIRState] -> (Int, Int, Int)
-    sirAggregate as = (sus, inf, recs)
-      where
-        sus  = length $ filter (==Susceptible) as
-        inf  = length $ filter (==Infected) as
-        recs = length $ filter (==Recovered) as
 
 stepSimulation :: [SIRAgent] 
                -> [SIRState] 
@@ -195,7 +188,7 @@ defaultSIRCtx :: RandomGen g
               -> SIRSimCtx g 
 defaultSIRCtx g = SIRSimCtx {
     syCtxTimeLimit   = 150
-  , syCtxTimeDelta   = 0.1
+  , syCtxTimeDelta   = 0.01
 
   , syCtxRng         = g
 

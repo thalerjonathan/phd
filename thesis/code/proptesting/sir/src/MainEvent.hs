@@ -16,7 +16,7 @@ agentCount = 1000
 infectedCount :: Int
 infectedCount = 1
 
-contactRate :: Int
+contactRate :: Double
 contactRate = 5
 
 infectivity :: Double
@@ -35,8 +35,8 @@ maxTime = 150.0
 
 main :: IO ()
 main = do
-  --let g0 = mkStdGen seed
-  g0 <- getStdGen
+  let g0 = mkStdGen seed
+  --g0 <- getStdGen
 
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
@@ -50,5 +50,4 @@ main = do
   let ssCompr = compressOutput ss
 
   let ssCompr' = map (\(t, (s, i, r)) -> (t, (fromIntegral s, fromIntegral i, fromIntegral r))) ssCompr
-  writeMatlabFile ("sir-event" ++ show agentCount ++ "agents.m") ssCompr'
-
+  writeMatlabFile "sir-event.m" ssCompr'

@@ -86,8 +86,22 @@ prop_sir_time_spec
 When running the tests for the time- and event-driven implementation, QuickCheck reports the following:
 
 \begin{verbatim}
+OK (5784.64s)
+    +++ OK, passed 100 tests (71% SIR time-driven passes t-test with simulated SD).
+    Only 71% SIR time-driven passes t-test with simulated SD, but expected 90%
 
+OK (3339.98s)
+    +++ OK, passed 100 tests (37% SIR event-driven passes t-test with simulated SD).
+        Only 37% SIR event-driven passes t-test with simulated SD, but expected 90%
 \end{verbatim}
+
+TODO:
+1. 71\% for time-driven is ok, this is what i roughly expected and is consistent with macals results
+2. 37\% for event-driven is NOT ok, it should reach the same level as time-driven, there is something wrong
+3. when testing the equal mean of random time- and even-driven property-tests they all failed, which is at least consistent with the event-driven implementation failing to to reach the same \% as the time-driven one.
+4. TODO: investigate why event-driven is lacking behind and FIX IT! It has to reach roughly the same level as time-driven AND the comparison tests of paired t-test have to pass (most of them at least e.g. 95\%).
+5. Performance is awful (for both tests above 9000seconds which is about 2.5 hours, this is unacceptable). Also we just ran for 1.0 time-unit, can we do something about it? e.g. parallelising?
+6. Use Mann-Whittney U test because it does not assume normal distribution as t-test does, maybe this results in better result.
 
 TODO: use mann whitney u test instead of two-sided t-test because our data is bi-modal and not normally distributed! This should arrive at a much higher coverage than with a two-sided t-test
 

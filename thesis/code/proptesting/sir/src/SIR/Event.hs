@@ -60,15 +60,13 @@ sirAgent :: RandomGen g
          -> Double      -- ^ the illness duration
          -> SIRState    -- ^ the initial state of the agent
          -> SIRAgent g  -- ^ the continuation
-sirAgent cr inf illDur Susceptible aid = do
+sirAgent cor inf ild Susceptible aid = do
   -- on start
-  --scheduleMakeContact aid 
-  --schedule MakeContact for t=0
-  scheduleEvent aid MakeContact 0
-  return $ susceptibleAgent aid cr inf illDur 
-sirAgent _ _ illDur Infected aid = do
+  scheduleMakeContact aid cor
+  return $ susceptibleAgent aid cor inf ild 
+sirAgent _ _ ild Infected aid = do
   -- on start
-  scheduleRecovery aid illDur
+  scheduleRecovery aid ild
   return $ infectedAgent aid
 sirAgent _ _ _ Recovered _ = 
   return recoveredAgent
@@ -82,7 +80,7 @@ susceptibleAgent :: RandomGen g
                  -> Double
                  -> Double
                  -> SIRAgentCont g
-susceptibleAgent aid cr inf illDur = 
+susceptibleAgent aid cor inf ild = 
     switch
       susceptibleAgentInfected
       (const $ infectedAgent aid)
@@ -103,19 +101,31 @@ susceptibleAgent aid cr inf illDur =
       r <- lift $ lift $ lift $ randomBoolM inf
       if r 
         then do
-          scheduleRecovery aid illDur
+          scheduleRecovery aid ild
           return $ Just ()
         else return Nothing
 
     handleEvent MakeContact = do
       ais       <- allAgentIds
-      crExp     <- lift $ lift $ lift $ randomExpM (1 / cr)
-      receivers <- lift $ lift $ lift $ forM [1..crExp] (const $ randomElem ais)
+      --crExp     <- lift $ lift $ lift $ randomExpM (1 / cr)
+      receivers <- lift $ lift $ lift $ forM [1..cor] (const $ randomElem ais)
       mapM_ makeContactWith receivers
-      scheduleMakeContact aid
+      scheduleMakeContact aid makeContactInterval
       return Nothing
 
     handleEvent _ = return Nothing
+
+    -- handleEvent MakeContact = do
+    --   makeRandomContact
+    --   scheduleMakeContact aid cor
+    --   return Nothing
+
+
+    -- makeRandomContact :: RandomGen g => (SIRMonadT g) ()
+    -- makeRandomContact = do
+    --   ais      <- allAgentIds
+    --   receiver <- lift $ lift $ lift $ randomElem ais
+    --   makeContactWith receiver
 
     makeContactWith :: AgentId -> (SIRMonadT g) ()
     makeContactWith receiver = 
@@ -153,12 +163,14 @@ recoveredAgent = arr (const Recovered)
 --------------------------------------------------------------------------------
 -- AGENT UTILS
 --------------------------------------------------------------------------------
-scheduleMakeContact :: AgentId -> (SIRMonadT g) ()
-scheduleMakeContact aid = scheduleEvent aid MakeContact makeContactInterval
+scheduleMakeContact :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
+scheduleMakeContact aid cor = do
+  dt <- lift $ lift $ lift $ randomExpM (1 / cor)
+  scheduleEvent aid MakeContact dt
 
 scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
-scheduleRecovery aid illnessDuration = do
-  dt <- lift $ lift $ lift $ randomExpM (1 / illnessDuration)
+scheduleRecovery aid ild = do
+  dt <- lift $ lift $ lift $ randomExpM (1 / ild)
   scheduleEvent aid Recover dt
 
 allAgentIds :: Monad m => (ABSMonad m e) [AgentId]

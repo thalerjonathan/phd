@@ -29,8 +29,8 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Spec Tests" 
           [ 
-            QC.testProperty "SIR time-driven" prop_sir_time_spec
-          , QC.testProperty "SIR event-driven" prop_sir_event_spec
+          --  QC.testProperty "SIR time-driven" prop_sir_time_spec
+            QC.testProperty "SIR event-driven" prop_sir_event_spec
           ]
 
   defaultMain t
@@ -58,7 +58,7 @@ prop_sir_time_spec
   -- generate large random population
   as <- resize 1000 (listOf genSIRState)
   -- run replications
-  (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as ss is rs cor inf ild 0.01 t
+  (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as cor inf ild 0.01 t
   -- check if they match 
   let prop = compareSDToABS as ss is rs cor inf ild t
 
@@ -88,7 +88,7 @@ prop_sir_event_spec
   -- generate large random population
   as <- resize 1000 (listOf genSIRState)
   -- run replications
-  (ss, is, rs) <- unzip3 <$> genEventSIRRepls repls as ss is rs cor inf ild t
+  (ss, is, rs) <- unzip3 <$> genEventSIRRepls repls as cor inf ild (-1) t
   -- check if they match 
   let prop = compareSDToABS as ss is rs cor inf ild t
 

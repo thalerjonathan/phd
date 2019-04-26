@@ -18,16 +18,23 @@ module Utils.Stats
   
   , Utils.Stats.skewness
   , Utils.Stats.kurtosis
+
+  , ttestTwoSample
+  , mannWhitneyOneSample
+  , mannWhitneyTwoSample
   ) where
 
 import Data.Maybe
 import Data.List as List
 import Data.Vector.Generic as Vect
 
-import Statistics.Distribution  as Distr
+import Statistics.Distribution as Distr
 import Statistics.Distribution.StudentT as StudT
 import Statistics.Distribution.Exponential as Exp
 import Statistics.Sample as Sample
+import Statistics.Test.StudentT
+import Statistics.Test.MannWhitneyU
+import Statistics.Types
 
 --------------------------------------------------------------------------------
 -- NOTE: THIS MODULE WAS VALIDATED AND SHOULD BE CORRECT!
@@ -212,7 +219,6 @@ mean xs = Sample.mean (Vect.fromList xs :: Sample)
 _median :: [Double] -> Double
 _median xs = Sample.mean (Vect.fromList xs :: Sample)
 
-
 std :: [Double] -> Double
 std xs = Sample.stdDev (Vect.fromList xs :: Sample)
 
@@ -243,3 +249,32 @@ histogram xs bins = Vect.toList histVect
     (intervals, samples) = Hist.histogram bins xsVect
     histVect = Vect.zip intervals samples
 -}
+
+
+ttestTwoSample :: [Double]    -- ^ first samples
+               -> [Double]    -- ^ second samples
+               -> Double      -- ^ p value
+               -> Maybe Bool  -- ^ Just True in case the means are the same
+ttestTwoSample xs ys p = do
+  let xsVect = Vect.fromList xs :: Sample
+  let ysVect = Vect.fromList ys :: Sample
+  ret <- studentTTest SamplesDiffer xsVect ysVect
+
+  let sig = isSignificant (mkPValue p) ret
+  return (NotSignificant == sig)
+
+mannWhitneyTwoSample :: [Double]
+                     -> [Double]
+                     -> Double
+                     -> Maybe Bool
+mannWhitneyTwoSample xs ys p = do
+  let xsVect = Vect.fromList xs
+  let ysVect = Vect.fromList ys
+  ret <- mannWhitneyUtest SamplesDiffer (mkPValue p) xsVect ysVect
+  return (NotSignificant == ret)
+
+mannWhitneyOneSample :: [Double]
+                     -> Double
+                     -> Double
+                     -> Maybe Bool
+mannWhitneyOneSample xs mu = mannWhitneyTwoSample xs (repeat mu)

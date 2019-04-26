@@ -82,4 +82,14 @@ genLastEventSIR as cor inf ild maxEvents maxTime = do
   if null ret
     then return (maxTime, aggregateSIRStates as)
     else return (last ret)
-
+    
+genEventSIRRepls :: Int 
+                  -> [SIRState]
+                  -> Double
+                  -> Double
+                  -> Double 
+                  -> Integer
+                  -> Double
+                  -> Gen [(Int, Int, Int)]
+genEventSIRRepls n as cor inf ild maxEvents tMax
+  = map snd <$> vectorOf n (genLastEventSIR as cor inf ild maxEvents tMax)

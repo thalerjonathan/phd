@@ -29,8 +29,8 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Spec Tests" 
           [ 
-          --  QC.testProperty "SIR time-driven" prop_sir_time_spec
-            QC.testProperty "SIR event-driven" prop_sir_event_spec
+            QC.testProperty "SIR time-driven" prop_sir_time_spec
+          , QC.testProperty "SIR event-driven" prop_sir_event_spec
           ]
 
   defaultMain t
@@ -38,61 +38,65 @@ main = do
 -- TODO: compare time-driven and event-driven with each other, but how? 
 -- need a different type of t-test! 
 
+-- OK (5784.64s)
+--     +++ OK, passed 100 tests (71% SIR time-driven passes t-test with simulated SD).
+    
+--     Only 71% SIR time-driven passes t-test with simulated SD, but expected 90%
+
+-- NOTE: don't run with checkCoverage for now because each test-case can take
+-- a considerable amount of time, so restrict to 100 runs to estimate a rough
+-- coverage
 prop_sir_time_spec :: Positive Double  -- ^ contact rate
                    -> UnitRange        -- ^ infectivity, within range (0,1)
                    -> Positive Double  -- ^ illness duration
                    -> TimeRange        -- ^ time to run
                    -> Property
 prop_sir_time_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = checkCoverage $ do
-    let repls = 100
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = property $ do
+  let repls = 100
 
-    -- generate large random population
-    as <- resize 1000 (listOf genSIRState)
-    -- run replications
-    (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as
-    -- check if they match 
-    let prop = compareSDToABS as ss is rs cor inf ild t
+  -- generate large random population
+  as <- resize 1000 (listOf genSIRState)
+  -- run replications
+  (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as ss is rs cor inf ild 0.01 t
+  -- check if they match 
+  let prop = compareSDToABS as ss is rs cor inf ild t
 
-    -- we expect 80% to pass, use checkCoverage to get statistical robust result
-    -- Note that we return True in every case, we are only interested in the
-    -- coverage and allow failure!
-    return $ trace (show prop) 
-      cover 90 prop "SIR time-driven passes t-test with simulated SD" True
-  where
-    genTimeSIRRepls :: Int 
-                    -> [SIRState]
-                    -> Gen [(Int, Int, Int)]
-    genTimeSIRRepls n as
-      = map snd <$> vectorOf n (genLastTimeSIR as cor inf ild 0.01 t)
+  -- we expect 80% to pass, use checkCoverage to get statistical robust result
+  -- Note that we return True in every case, we are only interested in the
+  -- coverage and allow failure!
+  return $ trace (show prop) 
+    cover 90 prop "SIR time-driven passes t-test with simulated SD" True
 
+-- OK (3339.98s)
+--     +++ OK, passed 100 tests (37% SIR event-driven passes t-test with simulated SD).
+    
+--     Only 37% SIR event-driven passes t-test with simulated SD, but expected 90%
+
+-- NOTE: don't run with checkCoverage for now because each test-case can take
+-- a considerable amount of time, so restrict to 100 runs to estimate a rough
+-- coverage
 prop_sir_event_spec :: Positive Double  -- ^ contact rate
                     -> UnitRange        -- ^ infectivity, within range (0,1)
                     -> Positive Double  -- ^ illness duration
                     -> TimeRange        -- ^ time to run
                     -> Property
 prop_sir_event_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = checkCoverage $ do
-    let repls = 100
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = property $ do
+  let repls = 100
 
-    -- generate large random population
-    as <- resize 1000 (listOf genSIRState)
-    -- run replications
-    (ss, is, rs) <- unzip3 <$> genEventSIRRepls repls as
-    -- check if they match 
-    let prop = compareSDToABS as ss is rs cor inf ild t
+  -- generate large random population
+  as <- resize 1000 (listOf genSIRState)
+  -- run replications
+  (ss, is, rs) <- unzip3 <$> genEventSIRRepls repls as ss is rs cor inf ild t
+  -- check if they match 
+  let prop = compareSDToABS as ss is rs cor inf ild t
 
-    -- we expect 80% to pass, use checkCoverage to get statistical robust result
-    -- Note that we return True in every case, we are only interested in the
-    -- coverage and allow failure!
-    return $ trace (show prop) 
-      cover 90 prop "SIR event-driven passes t-test with simulated SD" True
-  where
-    genEventSIRRepls :: Int 
-                     -> [SIRState]
-                     -> Gen [(Int, Int, Int)]
-    genEventSIRRepls n as
-      = map snd <$> vectorOf n (genLastEventSIR as cor inf ild (-1) t)
+  -- we expect 80% to pass, use checkCoverage to get statistical robust result
+  -- Note that we return True in every case, we are only interested in the
+  -- coverage and allow failure!
+  return $ trace (show prop) 
+    cover 90 prop "SIR event-driven passes t-test with simulated SD" True
 
 -- NOTE: need to iterate using a (correct) SD implementation, just computing 
 -- the expected after 1.0 time without iterating does NOT WORK! OTherwise we 

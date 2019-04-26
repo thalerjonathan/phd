@@ -244,14 +244,15 @@ Test-Suite sir-invariants-tests
 
   type:                 exitcode-stdio-1.0
 
-  other-modules:        Utils.GenEventSIR
-                      , Utils.GenTimeSIR
-                      , Utils.GenSIR
-                      , Utils.Numeric
-                      , SIR.Event
+  other-modules:        SIR.Event
                       , SIR.Model
                       , SIR.SD
                       , SIR.Time
+                      , Utils.GenEventSIR
+                      , Utils.GenTimeSIR
+                      , Utils.GenSIR
+                      , Utils.Numeric
+                      , Utils.Stats
 
   hs-source-dirs:       src/
                       , src/test

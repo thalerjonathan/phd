@@ -29,3 +29,14 @@ genLastTimeSIR as cor inf ild dt tMax = do
   if null ret
     then return (tMax, aggregateSIRStates as)
     else return (last ret)
+
+genTimeSIRRepls :: Int 
+                -> [SIRState]
+                -> Double
+                -> Double
+                -> Double 
+                -> Double
+                -> Double
+                -> Gen [(Int, Int, Int)]
+genTimeSIRRepls n as cor inf ild dt t
+  = map snd <$> vectorOf n (genLastTimeSIR as cor inf ild dt t)

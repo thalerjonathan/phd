@@ -62,9 +62,9 @@ sirAgent :: RandomGen g
          -> SIRAgent g  -- ^ the continuation
 sirAgent cr inf illDur Susceptible aid = do
   -- on start
-  scheduleMakeContact aid 
+  --scheduleMakeContact aid 
   --schedule MakeContact for t=0
-  --scheduleEvent aid MakeContact 0
+  scheduleEvent aid MakeContact 0
   return $ susceptibleAgent aid cr inf illDur 
 sirAgent _ _ illDur Infected aid = do
   -- on start

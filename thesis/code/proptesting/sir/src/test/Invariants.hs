@@ -6,6 +6,7 @@ import Control.Monad.Reader
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 import qualified Data.IntMap.Strict as Map 
+import Data.Maybe
 
 import SIR.Model
 import SIR.Event
@@ -14,8 +15,9 @@ import Utils.GenEventSIR
 import Utils.GenTimeSIR
 import Utils.GenSIR
 import Utils.Numeric
+import Utils.Stats
 
--- import Debug.Trace
+import Debug.Trace
 
 -- --quickcheck-replay=557780
 -- --quickcheck-tests=1000
@@ -27,7 +29,8 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Invariant Tests" 
           [ 
-            QC.testProperty "SIR SD invariant" prop_sir_sd_invariants
+            QC.testProperty "SIR time- and event-driven distribution" prop_sir_event_time_equal
+          -- , QC.testProperty "SIR SD invariant" prop_sir_sd_invariants
           -- , QC.testProperty "SIR event-driven invariant" prop_sir_event_invariants
           -- , QC.testProperty "SIR event-driven random event sampling invariant" prop_sir_random_invariants
           -- , QC.testProperty "SIR time-driven invariant" prop_sir_time_invariants
@@ -38,6 +41,44 @@ main = do
 --------------------------------------------------------------------------------
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
+-- OK (3095.86s)
+--     +++ OK, passed 100 tests.
+--     Only 0% SIR event- and time-driven produce equal distributions, but expected 99%
+
+prop_sir_event_time_equal :: Positive Double  -- ^ Random beta, contact rate
+                          -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range
+                          -> Positive Double  -- ^ Random delta, illness duration
+                          -- -> TimeRange        -- ^ time to run
+                          -> Property
+prop_sir_event_time_equal 
+    (Positive _cor) (UnitRange _inf) (Positive _ild) = property $ do
+  -- generate population with size of up to 1000
+  as <- resize 1000 (listOf genSIRState)
+  -- total agent count
+  let repls = 100
+
+  let t = 1.0
+      cor = 5.0
+      inf = 0.05
+      ild = 15
+
+  -- run simulation UNRESTRICTED in both time and event count
+  (ssTime, isTime, rsTime)    <- unzip3 . map int3ToDbl3 <$> genTimeSIRRepls repls as cor inf ild 0.01 t
+  (ssEvent, isEvent, rsEvent) <- unzip3 . map int3ToDbl3 <$> genEventSIRRepls repls as cor inf ild (-1) t
+  
+  let p = 0.05
+
+  let ssTest = ttestTwoSample ssTime ssEvent p
+      isTest = ttestTwoSample isTime isEvent p
+      rsTest = ttestTwoSample rsTime rsEvent p
+
+  let prop = fromMaybe True ssTest &&
+             fromMaybe True isTest &&
+             fromMaybe True rsTest 
+
+  return $ trace (show prop) cover 99 prop "SIR event- and time-driven produce equal distributions" True
+
+
 -- TODO: reduce code duplication
 prop_sir_event_invariants :: Positive Double  -- ^ Random beta, contact rate
                           -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range

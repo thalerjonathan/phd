@@ -89,6 +89,10 @@ When running the tests for the time- and event-driven implementation, QuickCheck
 
 \end{verbatim}
 
+TODO: use mann whitney u test instead of two-sided t-test because our data is bi-modal and not normally distributed! This should arrive at a much higher coverage than with a two-sided t-test
+
+TODO: note that comparing of averages is normally not sufficient and one also has to look at variance - this is not possible with SD because it is deterministic without any stochastic influence, thus we cant do any comparison of variance.
+
 It seems that a much higher percentage of tests if failing than expected and our initial guess of 95\% is too high and a more realistic coverage is around 80\%, as computed by QuickChecks sequential hypothesis testing. Indeed, this very fact that we are failing more tests than expected reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
 
 The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the author shows that it generates a bimodal distribution. Indeed, that is also supported by our observations. When looking at the samples of failed t-tests by plotting them in a histogram, it shows clearly that the values exhibit strong outliers, arriving at a skewed / fat tailed / bimodal histogram. %This means that they are not normally distributed, which is a base assumption and a necessity for t-tests.

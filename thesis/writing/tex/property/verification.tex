@@ -13,7 +13,7 @@ TODO REFINE WEAK ARGUMENTS
 
 TODO: replace maxFailPercent with cover and checkCoverage and configure quickcheck to run only 10 tests
 
-As first use-case we discuss how we can use property-based testing to verify the \textit{explanatory} agent-based SIR model as introduced in Chapter \ref{sec:sir_model}. To verify it, we need to make sure it is correct up to some specification. We aim at connecting the agent-based implementation to the SD specification, by formalising it into properties within a property-test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
+In the previous chapters we have established the correctness of our event- and time-driven implementation up to our informal specification, we derived from the formal SD specification from Chapter \ref{sec:sir_model}. What we are lacking is a verification whether the implementations also match the formal SD specification or not. In the process of verification, we need to make sure it is correct up to some specification. We aim at connecting the agent-based implementation to the SD specification, by formalising it into properties within a property-test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
 
 \begin{equation}
 \begin{split}

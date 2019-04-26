@@ -7,8 +7,13 @@ import SIR.Model
 
 newtype UnitRange = UnitRange Double deriving Show
 
+newtype TimeRange = TimeRange Double deriving Show
+
 instance Arbitrary UnitRange where
-  arbitrary =  UnitRange <$> choose (0, 1)
+  arbitrary = UnitRange <$> choose (0, 1)
+
+instance Arbitrary TimeRange where
+  arbitrary = TimeRange <$> choose (0, 10)
 
 genStdGen :: Gen StdGen
 genStdGen = do

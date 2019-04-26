@@ -1,0 +1,92 @@
+\chapter{Testing the SIR model specification}
+\label{ch:prop_sirspec}
+
+In the previous chapters we have established the correctness of our event- and time-driven implementation up to our informal specification, we derived from the formal SD specification from Chapter \ref{sec:sir_model}. What we are lacking is a verification whether the implementations also match the formal SD specification or not. In the process of verification, we need to make sure it is correct up to some specification. We aim at connecting the agent-based implementation to the SD specification, by formalising it into properties within a property-test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
+
+\begin{equation}
+\begin{split}
+\frac{\mathrm d S}{\mathrm d t} = -infectionRate \\
+\frac{\mathrm d I}{\mathrm d t} = infectionRate - recoveryRate \\
+\frac{\mathrm d R}{\mathrm d t} = recoveryRate 
+\end{split}
+\quad
+\begin{split}
+infectionRate = \frac{I \beta S \gamma}{N} \\
+recoveryRate = \frac{I}{\delta} 
+\end{split}
+\end{equation}
+\label{eq:sir_delta_rates}
+
+Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
+
+\begin{align}
+S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
+I(0) &= 1 \\
+I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
+R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
+\end{align}
+
+\section{Deriving a property}
+
+TODO: make clear that we compare the numbers of susceptible, infected and recovered in the last step of the ABS and SD implementations.
+
+The goal is now to derive a property which connects those equations with our implementation. We have to be careful and realis a fundamental difference between the SD and ABS implementations: SD is deterministic and continuous, ABS is stochastic and discrete. Thus we cannot compare single runs but we can only compare averages: stated informally, the property we want to implement is that the ABS dynamics matches the SD ones \textit{on average}, independent of the finite population size, model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) and duration of the simulation. To be able to compare averages, we run 100 replications of the ABS simulation with same parameters except a different random-number generator in each replication. We then run a two-sided t-test on the replication values with the expected values from the SD dynamics.
+
+\begin{HaskellCode}
+compareSDToABS :: Int     -- ^ Initial number of susceptibles
+               -> Int     -- ^ Initial number of infected
+               -> Int     -- ^ Initial number of recovered
+               -> [Int]   -- ^ Final Number of susceptibles in replications
+               -> [Int]   -- ^ Final Number of infected in replications
+               -> [Int]   -- ^ Final Number of recovered in replications
+               -> Double  -- ^ beta (contact rate)
+               -> Double  -- ^ gamma (infectivity)
+               -> Double  -- ^ delta (illness duration)
+               -> Time    -- ^ duration of simulation
+               -> Bool
+compareSDToABS s0 r0 i0
+               ss is rs
+               beta gamma delta t = sTest && iTest && rTest
+  where
+    -- run SD simulation to get expected averages
+    (s, i, r) = simulateSD s0 i0 r0 beta gamma delta t
+    
+    confidence = 0.95
+    sTest = tTestSamples TwoTail s (1 - confidence) ss
+    iTest = tTestSamples TwoTail i (1 - confidence) is
+    rTest = tTestSamples TwoTail r (1 - confidence) rs
+\end{HaskellCode}
+
+The implementation of \textit{simulateSD} is discussed in-depth in the Appendix \ref{app:sdSimulation}. We are very well aware that comparing the output against an SD simulation is dangerous: after all, why should be trust the SD implementation? As outlined in the Appendix \ref{app:sdSimulation}, great care has been taken to ensure the correctness: the formulas from the SIR specification are directly encoded in code, allowed by Yampas arrowized FRP which guarantees that at least that translation step is correct - we then only rely on a small enough sampling rate and the correctness of the Yampa library. The former one is very well in our reach and we pick a sufficiently small samply rate; the latter one is beyond our reach but we expect the library to me mature enough to be correct for our purposes.
+
+\section{Running the tests}
+Implementing a property-test is straight-forward. Here we give the implementation for the time-driven SIR implementation, the implementation for the event-driven SIR implementation is exactly the same with the exception of \textit{genTimeSIRRepls}. We again make use of the \textit{checkCoverage} feature of QuickCheck to get statistical robust results: we expect that in 90\% of all test-cases the SD and ABS dynamics match \textit{on average}. QuickCheck will run as many tests as necessary to reach a statistically robust result which either allows to reject or accept this hypothesis.
+
+\begin{HaskellCode}
+prop_sir_time_spec :: Positive Double  -- ^ contact rate
+                   -> UnitRange        -- ^ infectivity, within range (0,1)
+                   -> Positive Double  -- ^ illness duration
+                   -> TimeRange        -- ^ time to run
+                   -> Property
+prop_sir_time_spec 
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = checkCoverage (do
+  -- running 100 replications for the ABS SIR implementation
+  let repls = 100
+  -- generate large random population
+  as <- resize 1000 (listOf genSIRState)
+  -- run replications of time-driven SIR implementation
+  (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as cor inf ild t
+  -- check if they match 
+  let prop = compareSDToABS as ss is rs cor inf ild t
+  -- we expect 80% to pass and use checkCoverage to get statistical robust result
+  return $ cover 80 prop "SIR time-driven passes t-test with simulated SD" True
+\end{HaskellCode}
+
+TODO: run the tests
+
+\section{Discussion}
+By using QuickCheck, we showed how to connect the ABS implementation to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested through generating random test-cases with random agent populations. We assumed that the underlying SIR implementation, more specific, that all agent behaviour, is correct - we explore testing of individual agent behaviour in the later chapters.
+
+Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. By allowing failure in our tests using the \textit{maxFailPercent} parameter, we confirmed the importance of selecting an optimal $\Delta t$ as already pointed out in Chapter \ref{sub:timedriven_results}. By having measure of failure, we can use a property-test also as a way of systematically searching for the smallest optimal $\Delta t$, relieving us from making conservative guesses. For the event-driven implementation, there is no such issue and we have verified that it produces qualitatively the same results.
+
+The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. % for which a proper statistical analysis is not the aim and focus of this thesis is left for other researchers to dwell upon.

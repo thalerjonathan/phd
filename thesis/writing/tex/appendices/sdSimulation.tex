@@ -96,7 +96,7 @@ We have run the simulation with varying $\Delta t$ to show what difference varyi
   \label{tab:delta_influence}
 \end{table}
 
-As additional validation we added the results of a System Dynamics simulation in AnyLogic Personal Learning Edition 8.3.1, which is reported in the last row in the Table \ref{tab:delta_influence}. Also we provided a visualisation of the AnyLogics simulation dynamics in Figure \ref{fig:sir_sd_anylogic}. By comparing the results in Table \ref{tab:delta_influence} and the dynamics in Figure \ref{fig:sir_sd_anylogic} to \ref{fig:sir_sd_dynamics} we can conclude that we arrive at the same dynamics, validating the correctness of our simulation also against an existing, well-known and established System Dynamics software package.
+As additional validation we added the results of a System Dynamics simulation in AnyLogic Personal Learning Edition 8.3.1, which is reported in the last row in the Table \ref{tab:delta_influence}. Also we provided a visualisation of the AnyLogics simulation dynamics in Figure \ref{fig:sir_sd_anylogic}. By comparing the results in Table \ref{tab:delta_influence} and the dynamics in Figure \ref{fig:sir_sd_anylogic} to \ref{fig:sir_sd_haskell_dynamics} we can conclude that we arrive at the same dynamics, validating the correctness of our simulation also against an existing, well-known and established System Dynamics software package.
 
 \begin{figure}
 \begin{center}
@@ -114,7 +114,7 @@ As additional validation we added the results of a System Dynamics simulation in
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./fig/appendix/sdsimulation/SIR_SD_1000agents_100t_0001dt.png}
 			\caption{Dynamics of the SIR compartment model following this implementation. Population Size $N$ = 1,000, contact rate $\beta =  \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ with initially 1 infected agent. Simulation run until $t = 150$. Plot generated from data by this Haskell implementation using Octave.}
-			\label{fig:sir_sd_dynamics}
+			\label{fig:sir_sd_haskell_dynamics}
 		\end{subfigure}
 	\end{tabular}
 	

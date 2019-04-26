@@ -59,7 +59,7 @@ compareSDToABS s0 r0 i0
 
 The implementation of \textit{simulateSD} is discussed in-depth in the Appendix \ref{app:sdSimulation}. We are very well aware that comparing the output against an SD simulation is dangerous: after all, why should be trust the SD implementation? As outlined in the Appendix \ref{app:sdSimulation}, great care has been taken to ensure the correctness: the formulas from the SIR specification are directly encoded in code, allowed by Yampas arrowized FRP which guarantees that at least that translation step is correct - we then only rely on a small enough sampling rate and the correctness of the Yampa library. The former one is very well in our reach and we pick a sufficiently small samply rate; the latter one is beyond our reach but we expect the library to me mature enough to be correct for our purposes.
 
-\section{Running the tests}
+\section{Implementing the test}
 Implementing a property-test is straight-forward. Here we give the implementation for the time-driven SIR implementation, the implementation for the event-driven SIR implementation is exactly the same with the exception of \textit{genTimeSIRRepls}. We again make use of the \textit{checkCoverage} feature of QuickCheck to get statistical robust results: we expect that in 90\% of all test-cases the SD and ABS dynamics match \textit{on average}. QuickCheck will run as many tests as necessary to reach a statistically robust result which either allows to reject or accept this hypothesis.
 
 \begin{HaskellCode}
@@ -78,15 +78,24 @@ prop_sir_time_spec
   (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as cor inf ild t
   -- check if they match 
   let prop = compareSDToABS as ss is rs cor inf ild t
-  -- we expect 80% to pass and use checkCoverage to get statistical robust result
-  return $ cover 80 prop "SIR time-driven passes t-test with simulated SD" True
+  -- we expect 95% to pass and use checkCoverage to get statistical robust result
+  return $ cover 95 prop "SIR time-driven passes t-test with simulated SD" True
 \end{HaskellCode}
 
-TODO: run the tests
+\section{Running the test}
+When running the tests for the time- and event-driven implementation, QuickCheck reports the following:
+
+\begin{verbatim}
+
+\end{verbatim}
+
+It seems that a much higher percentage of tests if failing than expected and our initial guess of 95\% is too high and a more realistic coverage is around 80\%, as computed by QuickChecks sequential hypothesis testing. Indeed, this very fact that we are failing more tests than expected reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
+
+The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the author shows that it generates a bimodal distribution. Indeed, that is also supported by our observations. When looking at the samples of failed t-tests by plotting them in a histogram, it shows clearly that the values exhibit strong outliers, arriving at a skewed / fat tailed / bimodal histogram. %This means that they are not normally distributed, which is a base assumption and a necessity for t-tests.
+The authors \cite{figueredo_comparing_2014} approach the problem of comparing ABS to SD more generally and propose different statistical techniques of how to approach the problem.
+We don't go into further statistical analysis of this problem here as it is not the aim of this thesis. A possible direction would be to use a different statistical test, more suitable to test for bi-modal distributions, as the t-test assumes normal distribution - we leave this for further research. We simply accept that we can only reach a proximity of 80\% between those two approaches but never get an exact verification due to both systematic difference.
 
 \section{Discussion}
 By using QuickCheck, we showed how to connect the ABS implementation to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested through generating random test-cases with random agent populations. We assumed that the underlying SIR implementation, more specific, that all agent behaviour, is correct - we explore testing of individual agent behaviour in the later chapters.
 
-Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. By allowing failure in our tests using the \textit{maxFailPercent} parameter, we confirmed the importance of selecting an optimal $\Delta t$ as already pointed out in Chapter \ref{sub:timedriven_results}. By having measure of failure, we can use a property-test also as a way of systematically searching for the smallest optimal $\Delta t$, relieving us from making conservative guesses. For the event-driven implementation, there is no such issue and we have verified that it produces qualitatively the same results.
-
-The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. % for which a proper statistical analysis is not the aim and focus of this thesis is left for other researchers to dwell upon.
+Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using QuickCheck. The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{macal_agent-based_2010, figueredo_comparing_2014} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR. % for which a proper statistical analysis is not the aim and focus of this thesis is left for other researchers to dwell upon.

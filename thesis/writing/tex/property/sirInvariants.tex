@@ -97,6 +97,17 @@ Lets assume that at $t = t + \Delta t$ the agents receive as input the populatio
 
 One way to solve this problem would be to use \textit{pSwitch}. It is the non-delayed, stricht version of \textit{dpSwitch}, which output at time of switching is the output of the \textit{new} signal functions. Using \textit{pSwitch} instead of \textit{dpSwitch} solves the problem because it will use the new signal functions in the second run because it is strict. Indeed, when using this, the property-test passes. This comes though at a high cost: due to \textit{pSwitch} strict semantics, which runs all the signal functions before and at time of switching, all agents are run twice in each step! This is clearly an unacceptable solution, especially because the time-driven approach already suffers severe performance problems. A more performant solution is to delay the susceptible agents output, as we have done already in \ref{sec:timedriven_firststep}. This solves the problem as well and the property-test passes. 
 
+\section{Comparing time- and event-driven}
+TODO: run event-driven properly with full random values, compare three runs:
+-> MakeContact 1.0 dt with fixed number of contacts
+-> MakeContact 1.0 dt with number of contacts exponentially distributed
+-> MakeContact exponential dt with fixed number of contacts
+
+Having two conceptually different implementations of the same model, an obvious idea is to compare the outputs of the two and verify whether both are producing the same dynamics or not. Speaking more technically, we are checking whether both simulations produce the same distributions under random model parameters and simulation time. We use QuickCheck to generate random values for $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) as well as a random population. Then both simulation types are run with the same random parameters and random duration for 100 replications, collecting the output in the final step. The samples of these replications are then compared using a Mann-Whitney test with a 95\% confidence (p-value of 0.05). The reason for choosing this statistical test over e.g. a two sample t-test is that the Mann-Whitney test does not require the samples to be normally distributed, whereas the t-test assumes this. We know that the both implementations produce a bi-modal distribution as already discussed in \cite{macal_agent-based_2010} thus we cannot employ a two sample t-test to compare the distributions.
+Our initial assumption is that we will reach a coverage of 90-95\%, meaning that this percentage of tests pass, indicating similar distributions. When running the default 100 random-test case though only in 81\% of the test-cases the difference in the distributions are statistically not significant and thus pass the Mann-Whitney test. Although this gives some robust evidence that both implementations produce similar distributions, they are not as close as we initially assumed. We look into this more in-depth in the verification against the SD specification in Chapter \ref{ch:prop_sirspec}.
+
+TODO: more discussion about this! this is the place where we can really introduce that. also macal only discusses event-driven and not time-driven, why can we then assume that time-driven also produces a bi-modal distribution? show some histograms of failing test-cases with t-tests
+
 \section{Discussion}
 TODO
 

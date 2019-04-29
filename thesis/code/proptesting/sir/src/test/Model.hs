@@ -46,7 +46,7 @@ main = do
 -- NOTE: don't run with checkCoverage for now because each test-case can take
 -- a considerable amount of time, so restrict to 100 runs to estimate a rough
 -- coverage
-prop_sir_time_spec :: Positive Double  -- ^ contact rate
+prop_sir_time_spec :: Positive Int  -- ^ contact rate
                    -> UnitRange        -- ^ infectivity, within range (0,1)
                    -> Positive Double  -- ^ illness duration
                    -> TimeRange        -- ^ time to run
@@ -58,7 +58,7 @@ prop_sir_time_spec
   -- generate large random population
   as <- resize 1000 (listOf genSIRState)
   -- run replications
-  (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as cor inf ild 0.01 t
+  (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as (fromIntegral cor) inf ild 0.01 t
   -- check if they match 
   let prop = compareSDToABS as ss is rs cor inf ild t
 
@@ -76,7 +76,7 @@ prop_sir_time_spec
 -- NOTE: don't run with checkCoverage for now because each test-case can take
 -- a considerable amount of time, so restrict to 100 runs to estimate a rough
 -- coverage
-prop_sir_event_spec :: Positive Double  -- ^ contact rate
+prop_sir_event_spec :: Positive Int  -- ^ contact rate
                     -> UnitRange        -- ^ infectivity, within range (0,1)
                     -> Positive Double  -- ^ illness duration
                     -> TimeRange        -- ^ time to run
@@ -106,7 +106,7 @@ compareSDToABS :: [SIRState]
                -> [Int]
                -> [Int]
                -> [Int]
-               -> Double
+               -> Int
                -> Double
                -> Double
                -> Double
@@ -114,7 +114,7 @@ compareSDToABS :: [SIRState]
 compareSDToABS as ssI isI rsI cor inf ild t = allPass
   where
     (s0,i0,r0) = int3ToDbl3 $ aggregateSIRStates as
-    (s, i, r)  = snd . last $ runSIRSD s0 i0 r0 cor inf ild t    
+    (s, i, r)  = snd . last $ runSIRSD s0 i0 r0 (fromIntegral cor) inf ild t    
 
     -- Perform a 2-tailed t-test with H0 (null hypothesis) that the means are 
     -- equal with a confidence of 99%: the probability of observing an extreme
@@ -135,6 +135,9 @@ compareSDToABS as ssI isI rsI cor inf ild t = allPass
     sTest = tTestSamples TwoTail s (1 - confidence) ss
     iTest = tTestSamples TwoTail i (1 - confidence) is
     rTest = tTestSamples TwoTail r (1 - confidence) rs
+    -- sTest = mannWhitneyOneSample ss s (1 - confidence)
+    -- iTest = mannWhitneyOneSample is i (1 - confidence)
+    -- rTest = mannWhitneyOneSample rs r (1 - confidence)
     -- pass if all 3 tests pass
     allPass = fromMaybe True sTest &&
               fromMaybe True iTest &&

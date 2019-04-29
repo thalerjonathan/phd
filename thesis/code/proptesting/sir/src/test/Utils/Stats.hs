@@ -250,7 +250,6 @@ histogram xs bins = Vect.toList histVect
     histVect = Vect.zip intervals samples
 -}
 
-
 ttestTwoSample :: [Double]    -- ^ first samples
                -> [Double]    -- ^ second samples
                -> Double      -- ^ p value
@@ -277,4 +276,4 @@ mannWhitneyOneSample :: [Double]
                      -> Double
                      -> Double
                      -> Maybe Bool
-mannWhitneyOneSample xs mu = mannWhitneyTwoSample xs (repeat mu)
+mannWhitneyOneSample xs mu = mannWhitneyTwoSample xs (List.replicate (List.length xs) mu)

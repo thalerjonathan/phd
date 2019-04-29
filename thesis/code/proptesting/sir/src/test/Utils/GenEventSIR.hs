@@ -60,7 +60,7 @@ eventTime :: QueueItem e -> Time
 eventTime (QueueItem _ _ et) = et
 
 genEventSIR :: [SIRState]
-            -> Double
+            -> Int
             -> Double
             -> Double 
             -> Integer
@@ -70,7 +70,7 @@ genEventSIR as cor inf ild maxEvents maxTime
   = fst . runEventSIR as cor inf ild maxEvents maxTime <$> genStdGen
 
 genLastEventSIR :: [SIRState]
-                -> Double
+                -> Int
                 -> Double
                 -> Double 
                 -> Integer
@@ -84,12 +84,12 @@ genLastEventSIR as cor inf ild maxEvents maxTime = do
     else return (last ret)
     
 genEventSIRRepls :: Int 
-                  -> [SIRState]
-                  -> Double
-                  -> Double
-                  -> Double 
-                  -> Integer
-                  -> Double
-                  -> Gen [(Int, Int, Int)]
+                 -> [SIRState]
+                 -> Int
+                 -> Double
+                 -> Double 
+                 -> Integer
+                 -> Double
+                 -> Gen [(Int, Int, Int)]
 genEventSIRRepls n as cor inf ild maxEvents tMax
   = map snd <$> vectorOf n (genLastEventSIR as cor inf ild maxEvents tMax)

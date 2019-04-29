@@ -55,14 +55,14 @@ makeContactInterval = 1.0
 --------------------------------------------------------------------------------
 -- | A sir agent which is in one of three states
 sirAgent :: RandomGen g 
-         => Double      -- ^ the contact rate
+         => Int         -- ^ the contact rate
          -> Double      -- ^ the infectivity
          -> Double      -- ^ the illness duration
          -> SIRState    -- ^ the initial state of the agent
          -> SIRAgent g  -- ^ the continuation
 sirAgent cor inf ild Susceptible aid = do
   -- on start
-  scheduleMakeContact aid cor
+  scheduleMakeContact aid makeContactInterval
   return $ susceptibleAgent aid cor inf ild 
 sirAgent _ _ ild Infected aid = do
   -- on start
@@ -76,7 +76,7 @@ sirAgent _ _ _ Recovered _ =
 --------------------------------------------------------------------------------
 susceptibleAgent :: RandomGen g 
                  => AgentId
-                 -> Double
+                 -> Int
                  -> Double
                  -> Double
                  -> SIRAgentCont g
@@ -107,25 +107,12 @@ susceptibleAgent aid cor inf ild =
 
     handleEvent MakeContact = do
       ais       <- allAgentIds
-      --crExp     <- lift $ lift $ lift $ randomExpM (1 / cr)
       receivers <- lift $ lift $ lift $ forM [1..cor] (const $ randomElem ais)
       mapM_ makeContactWith receivers
       scheduleMakeContact aid makeContactInterval
       return Nothing
 
     handleEvent _ = return Nothing
-
-    -- handleEvent MakeContact = do
-    --   makeRandomContact
-    --   scheduleMakeContact aid cor
-    --   return Nothing
-
-
-    -- makeRandomContact :: RandomGen g => (SIRMonadT g) ()
-    -- makeRandomContact = do
-    --   ais      <- allAgentIds
-    --   receiver <- lift $ lift $ lift $ randomElem ais
-    --   makeContactWith receiver
 
     makeContactWith :: AgentId -> (SIRMonadT g) ()
     makeContactWith receiver = 
@@ -163,9 +150,11 @@ recoveredAgent = arr (const Recovered)
 --------------------------------------------------------------------------------
 -- AGENT UTILS
 --------------------------------------------------------------------------------
+-- NOTE: need to draw dt from exponential distribution because we are making
+-- contact ON AVERAGE per time-unit! 
 scheduleMakeContact :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
-scheduleMakeContact aid cor = do
-  dt <- lift $ lift $ lift $ randomExpM (1 / cor)
+scheduleMakeContact aid avgTime = do
+  dt <- lift $ lift $ lift $ randomExpM (1 / avgTime)
   scheduleEvent aid MakeContact dt
 
 scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
@@ -257,20 +246,20 @@ processEvent as (QueueItem receiver (Event e) evtTime)
 --------------------------------------------------------------------------------
 runEventSIR :: RandomGen g
             => [SIRState]
-            -> Double
+            -> Int
             -> Double
             -> Double 
             -> Integer
             -> Double    
             -> g
             -> ([(Time, (Int, Int, Int))], Integer)
-runEventSIR ss cr inf illDur maxEvents tLimit g
+runEventSIR ss cor inf ild maxEvents tLimit g
     = (ds, 0)
   where
     ds = evalRand executeAgents g
     
     executeAgents = do
-      (asMap, eq) <- initSIR ss cr inf illDur
+      (asMap, eq) <- initSIR ss cor inf ild
           
       let asIds = Map.keys asMap
       let doms as t = (t, aggregateAgentMap as)
@@ -293,11 +282,11 @@ aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)
 
 initSIR :: RandomGen g
         => [SIRState]
-        -> Double
+        -> Int
         -> Double
         -> Double
         -> SIRMonad g (SIRAgentMap g, EventQueue SIREvent)
-initSIR ss cr inf illDur = do
+initSIR ss cor inf ild = do
     let asEvtWriter   = runReaderT (sequence asWIds) 0
         asAsIdsReader = runWriterT asEvtWriter
   
@@ -312,7 +301,7 @@ initSIR ss cr inf illDur = do
 
     return (asMap, eq)
   where
-    as0    = map (sirAgent cr inf illDur) ss
+    as0    = map (sirAgent cor inf ild) ss
     asIds  = [0.. length ss - 1]
     asWIds = Prelude.zipWith (\a aid -> a aid) as0 asIds
 

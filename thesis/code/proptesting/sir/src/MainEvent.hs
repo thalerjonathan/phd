@@ -16,7 +16,7 @@ agentCount = 1000
 infectedCount :: Int
 infectedCount = 1
 
-contactRate :: Double
+contactRate :: Int
 contactRate = 5
 
 infectivity :: Double

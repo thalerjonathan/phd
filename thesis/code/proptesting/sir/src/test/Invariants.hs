@@ -41,46 +41,39 @@ main = do
 --------------------------------------------------------------------------------
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
--- OK (3095.86s)
---     +++ OK, passed 100 tests.
---     Only 0% SIR event- and time-driven produce equal distributions, but expected 99%
-
-prop_sir_event_time_equal :: Positive Double  -- ^ Random beta, contact rate
-                          -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range
-                          -> Positive Double  -- ^ Random delta, illness duration
-                          -- -> TimeRange        -- ^ time to run
+-- NOTE: need to use mann whitney because both produce bi-modal distributions
+-- thus t-test does not work because it assumes normally distributed samples
+prop_sir_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
+                          -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
+                          -> Positive Double -- ^ Random delta, illness duration
+                          -> TimeRange    -- ^ time to run
                           -> Property
-prop_sir_event_time_equal 
-    (Positive _cor) (UnitRange _inf) (Positive _ild) = property $ do
+prop_sir_event_time_equal
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = property $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count
   let repls = 100
-
-  let t = 1.0
-      cor = 5.0
-      inf = 0.05
-      ild = 15
-
+  
   -- run simulation UNRESTRICTED in both time and event count
-  (ssTime, isTime, rsTime)    <- unzip3 . map int3ToDbl3 <$> genTimeSIRRepls repls as cor inf ild 0.01 t
+  (ssTime, isTime, rsTime)    <- unzip3 . map int3ToDbl3 <$> genTimeSIRRepls repls as (fromIntegral cor) inf ild 0.01 t
   (ssEvent, isEvent, rsEvent) <- unzip3 . map int3ToDbl3 <$> genEventSIRRepls repls as cor inf ild (-1) t
   
   let p = 0.05
 
-  let ssTest = ttestTwoSample ssTime ssEvent p
-      isTest = ttestTwoSample isTime isEvent p
-      rsTest = ttestTwoSample rsTime rsEvent p
+  let ssTest = mannWhitneyTwoSample ssTime ssEvent p
+      isTest = mannWhitneyTwoSample isTime isEvent p
+      rsTest = mannWhitneyTwoSample rsTime rsEvent p
 
   let prop = fromMaybe True ssTest &&
              fromMaybe True isTest &&
              fromMaybe True rsTest 
 
-  return $ trace (show prop) cover 99 prop "SIR event- and time-driven produce equal distributions" True
-
+  return $ trace (show prop) 
+    cover 90 prop "SIR event- and time-driven produce equal distributions" True
 
 -- TODO: reduce code duplication
-prop_sir_event_invariants :: Positive Double  -- ^ Random beta, contact rate
+prop_sir_event_invariants :: Positive Int  -- ^ Random beta, contact rate
                           -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range
                           -> Positive Double  -- ^ Random delta, illness duration
                           -> Property
@@ -237,7 +230,7 @@ sirInvariantsFloating n aos = timeInc && aConst && susDec && recInc
 -- CUSTOM GENERATOR, ONLY RELEVANT TO STATEFUL TESTING 
 --------------------------------------------------------------------------------
 genRandomEventSIR :: [SIRState]
-                  -> Double
+                  -> Int
                   -> Double
                   -> Double 
                   -> Integer

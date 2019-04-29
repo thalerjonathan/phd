@@ -27,7 +27,6 @@ R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
 \section{Deriving a property}
-
 TODO: make clear that we compare the numbers of susceptible, infected and recovered in the last step of the ABS and SD implementations.
 
 The goal is now to derive a property which connects those equations with our implementation. We have to be careful and realis a fundamental difference between the SD and ABS implementations: SD is deterministic and continuous, ABS is stochastic and discrete. Thus we cannot compare single runs but we can only compare averages: stated informally, the property we want to implement is that the ABS dynamics matches the SD ones \textit{on average}, independent of the finite population size, model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) and duration of the simulation. To be able to compare averages, we run 100 replications of the ABS simulation with same parameters except a different random-number generator in each replication. We then run a two-sided t-test on the replication values with the expected values from the SD dynamics.
@@ -103,9 +102,22 @@ TODO:
 5. Performance is awful (for both tests above 9000seconds which is about 2.5 hours, this is unacceptable). Also we just ran for 1.0 time-unit, can we do something about it? e.g. parallelising?
 6. Use Mann-Whittney U test because it does not assume normal distribution as t-test does, maybe this results in better result.
 
+TODO: run event-driven properly with full random values, compare three runs:
+-> MakeContact 1.0 dt with fixed number of contacts
+-> MakeContact 1.0 dt with number of contacts exponentially distributed
+-> MakeContact exponential dt with fixed number of contacts
+
+FIXED EVENT-DRIVEN: generate on average 1 MakeContact event per time-unit and in each case make contact rate number of contacts
+
+TODO: as figuerdo already put it: stochasticity in both  present outcomes with difference which are statistically but look look similar. further, abs can contribute additional insight through extra patterns, not possible with SD 
+
+TODO: further research: inclusion of Environment: all  properties should still hold under different Environments which can be generated randomly as Well e.g. random Networks.
+
 TODO: use mann whitney u test instead of two-sided t-test because our data is bi-modal and not normally distributed! This should arrive at a much higher coverage than with a two-sided t-test
 
 TODO: note that comparing of averages is normally not sufficient and one also has to look at variance - this is not possible with SD because it is deterministic without any stochastic influence, thus we cant do any comparison of variance.
+
+TODO: we can see quickcheck not only as testing but also as verification and validation allowing to test hypotheses and properties during the development process, also has connections to Monte-Carlo simulation
 
 It seems that a much higher percentage of tests if failing than expected and our initial guess of 95\% is too high and a more realistic coverage is around 80\%, as computed by QuickChecks sequential hypothesis testing. Indeed, this very fact that we are failing more tests than expected reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
 

@@ -98,16 +98,27 @@ Lets assume that at $t = t + \Delta t$ the agents receive as input the populatio
 One way to solve this problem would be to use \textit{pSwitch}. It is the non-delayed, stricht version of \textit{dpSwitch}, which output at time of switching is the output of the \textit{new} signal functions. Using \textit{pSwitch} instead of \textit{dpSwitch} solves the problem because it will use the new signal functions in the second run because it is strict. Indeed, when using this, the property-test passes. This comes though at a high cost: due to \textit{pSwitch} strict semantics, which runs all the signal functions before and at time of switching, all agents are run twice in each step! This is clearly an unacceptable solution, especially because the time-driven approach already suffers severe performance problems. A more performant solution is to delay the susceptible agents output, as we have done already in \ref{sec:timedriven_firststep}. This solves the problem as well and the property-test passes. 
 
 \section{Comparing time- and event-driven}
-TODO: run event-driven properly with full random values, compare three runs:
--> MakeContact 1.0 dt with fixed number of contacts
-TODO
-
--> MakeContact 1.0 dt with number of contacts exponentially distributed
-TODO
-
+%TODO: use checkCoverage
+%---------------------------------------------------------------------------------------------------------------------------
+%ON AVERAGE CONTACT RATE
+%NOTE: it seems that with random parameters and normal population but t = 1.0 we reach a coverage around 35\% 
+%NOTE: it seems that with random parameters and normal population and random t = 0-10 we reach a coverage around 57\% 
+%
+%FIXED CONTACT RATE
+%NOTE: it seems that with random parameters and normal population but t = 1.0 we reach a coverage around 58\% 
+%NOTE: it seems that with random parameters and normal population and random t = 0-10 we reach a coverage around 64\%
+%---------------------------------------------------------------------------------------------------------------------------
+%
+%NOTE: it seems that fixed contact rate works better than average contact rate => macal was right after all...
+%with t between 0 and 50 reaching up to 87\% !!
 
 Having two conceptually different implementations of the same model, an obvious questions we want to answer whether they are producing the same dynamics or not. Speaking more technically, we are checking whether both simulations produce the same distributions under random model parameters and simulation time. We use QuickCheck to generate random values for $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) as well as a random population. Then both simulation types are run with the same random parameters and random duration for 100 replications, collecting the output in the final step. The samples of these replications are then compared using a Mann-Whitney test with a 95\% confidence (p-value of 0.05). The reason for choosing this statistical test over e.g. a two sample t-test is that the Mann-Whitney test does not require the samples to be normally distributed, whereas the t-test assumes this. We know that the both implementations produce a bi-modal distribution as already discussed in \cite{macal_agent-based_2010} thus we cannot employ a two sample t-test to compare the distributions.
-Our initial assumption is that we will reach a high coverage of over 90\%, because we expect that despite their different underlying implementations, they should produce the same distributions. Unfortunately this is not the case and we see that 
+Our initial assumption is that we will reach a high coverage of over 90\%, because we expect that despite their different underlying implementations, they should produce the same distributions. Indeed when running it with checkCoverage after 800 tests QuickCheck passes the test:
+
+\begin{verbatim}
+OK (11880.87s)
+    +++ OK, passed 800 tests (90.4% SIR event- and time-driven produce equal distributions).
+\end{verbatim}
 
 TODO: more discussion about this! this is the place where we can really introduce that. also macal only discusses event-driven and not time-driven, why can we then assume that time-driven also produces a bi-modal distribution? show some histograms of failing test-cases with t-tests
 

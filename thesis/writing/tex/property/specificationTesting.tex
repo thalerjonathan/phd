@@ -82,24 +82,46 @@ prop_sir_time_spec
 \end{HaskellCode}
 
 \section{Running the test}
+TODO: use checkCoverage
 When running the tests for the time- and event-driven implementation, QuickCheck reports the following:
 
 \begin{verbatim}
-OK (5784.64s)
-    +++ OK, passed 100 tests (71% SIR time-driven passes t-test with simulated SD).
-    Only 71% SIR time-driven passes t-test with simulated SD, but expected 90%
-
-OK (3339.98s)
-    +++ OK, passed 100 tests (37% SIR event-driven passes t-test with simulated SD).
-        Only 37% SIR event-driven passes t-test with simulated SD, but expected 90%
+OK (2476.69s)
+    +++ OK, passed 200 tests (84.5% SIR time-driven passes t-test with simulated SD).
+    
+OK (390.33s)
+    +++ OK, passed 100 tests (74% SIR event-driven passes t-test with simulated SD).
 \end{verbatim}
 
-TODO: run event-driven properly with full random values, compare three runs:
--> MakeContact 1.0 dt with fixed number of contacts
-TODO
+WITH t = 0-50 and checkCoverage we reach:
+FAIL (8645.59s)
+    *** Failed! Insufficient coverage (after 800 tests):
+    82.4% SIR time-driven passes t-test with simulated SD
+    
+    Only 82.4% SIR time-driven passes t-test with simulated SD, but expected 90.0%
+    Use --quickcheck-replay=530023 to reproduce.
+    
+TODO: the same for event-driven with checkcoverage
+OK (204.91s)
+    +++ OK, passed 100 tests (75% SIR event-driven passes t-test with simulated SD).
+    
+    Only 75% SIR event-driven passes t-test with simulated SD, but expected 80%
 
--> MakeContact 1.0 dt with number of contacts exponentially distributed
-TODO
+%---------------------------------------------------------------------------------------------------------------------------
+%ON AVERAGE CONTACT RATE
+%NOTE: it seems that with random parameters and normal population but t = 1.0 we reach a coverage around 27\% for EVENT-driven
+%NOTE: it seems that with random parameters and normal population AND random time 0-10 we reach a coverage around 38\% for EVENT-driven
+%
+%FIXED CONTACT RATE
+%NOTE: it seems that with random parameters and normal population but t = 1.0 we reach a coverage around 38\% for EVENT-driven
+%NOTE: it seems that with random parameters and normal population AND random time 0-10 we reach a coverage around 48\% for EVENT-driven
+%
+%TIME-DRIVEN
+%NOTE: it seems that with random parameters and normal population but t = 1.0 we reach a coverage around 70\% for TIME-driven
+%NOTE: it seems that with random parameters and normal population AND random time 0-10 we reach a coverage up to 85\% for TIME-driven
+%---------------------------------------------------------------------------------------------------------------------------
+%NOTE: it seems that fixed contact rate works better than average contact rate in event-driven => macal was right after all...
+%with t between 0 and 50 we reach 73\%
 
 The results of the time-driven approach seem to be in accordance with the results reported in \cite{macal_agent-based_2010}, where the authors report that a 70\% envelopes contains both the results of the SD and ABS implementation. We reach 71\% 
 
@@ -110,6 +132,8 @@ Still the question is whether it actually even makes sense to compare the approa
 The implication from this is, that depending on what our intention is, picking a time-driven or an event-driven implementation can and will make a statistical difference. If one is transferring an SD to an ABS model, one might consider to follow the time-driven approach as it seems to come much closer to the SD dynamics than the event-driven approach. The event-driven approach on the other hand is quicker and often much more explicit in its behaviour as all events are revealed and testing is easier due to decoupled actions.
 A technical explanation for the differences is that we are dealing with discrete events, jumping from time to time instead of moving forward in time continuously as it happens conceptually in the time-driven approach. Time is also continuous in SD, thus it seems intuitively clear that a time-driven approach is closer at the SD implementation than the event-driven one. This is especially visible when making contact which happens every 1.0 time-units.
 In our implementation we follow the idea as presented in \cite{macal_agent-based_2010}. Their specification states that in each time-step of 1 time-unit the susceptible make contact with a fixed number (contact rate) of other agents. This is a valid ABS model but it deviates to come closer to the SD as it fixes the number of contacts instead of making contact \textit{on average}. In SD and the time-driven approach, these are all averages and thus we are drawing from the exponential distribution in the time-driven case. This is not the case in our event-drive implementation, following \cite{macal_agent-based_2010}. If we change this behaviour to incorporate the exponential distribution we get a higher match to the SD dynamics of 37\% which is still a far cry form the time-driven approach but it at least indicates that this is a viable option to push the results further towards the SD dynamics. 
+
+TODO: produce some nice graphs which compare them 
 
 It seems that a much higher percentage of tests if failing than expected and our initial guess of 95\% is too high and a more realistic coverage is around 80\%, as computed by QuickChecks sequential hypothesis testing. Indeed, this very fact that we are failing more tests than expected reveals the fundamental difference between SD and ABS: due to ABS' stochastic nature, an ABS cannot match an SD exactly because it is much richer in its dynamics. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
 

@@ -13,7 +13,7 @@ instance Arbitrary UnitRange where
   arbitrary = UnitRange <$> choose (0, 1)
 
 instance Arbitrary TimeRange where
-  arbitrary = TimeRange <$> choose (0, 10)
+  arbitrary = TimeRange <$> choose (0, 50)
 
 genStdGen :: Gen StdGen
 genStdGen = do

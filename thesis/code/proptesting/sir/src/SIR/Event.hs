@@ -153,7 +153,6 @@ recoveredAgent = arr (const Recovered)
 --------------------------------------------------------------------------------
 scheduleMakeContact :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
 scheduleMakeContact aid = scheduleEvent aid MakeContact
-  --dt <- lift $ lift $ lift $ randomExpM (1 / avgTime)
 
 scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
 scheduleRecovery aid ild = do

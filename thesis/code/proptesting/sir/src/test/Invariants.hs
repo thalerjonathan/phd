@@ -49,12 +49,12 @@ prop_sir_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
                           -> TimeRange       -- ^ time to run
                           -> Property
 prop_sir_event_time_equal
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = property $ do
-  -- generate population with size of up to 1000
-  as <- resize 1000 (listOf genSIRState)
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = checkCoverage $ do
+  -- generate random population
+  as <- listOf genSIRState
   -- total agent count
   let repls = 100
-  
+ 
   -- run simulation UNRESTRICTED in both time and event count
   (ssTime, isTime, rsTime)    <- unzip3 . map int3ToDbl3 <$> genTimeSIRRepls repls as (fromIntegral cor) inf ild 0.01 t
   (ssEvent, isEvent, rsEvent) <- unzip3 . map int3ToDbl3 <$> genEventSIRRepls repls as cor inf ild (-1) t
@@ -77,7 +77,7 @@ prop_sir_event_invariants :: Positive Int  -- ^ Random beta, contact rate
                           -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range
                           -> Positive Double  -- ^ Random delta, illness duration
                           -> Property
-prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) = property $ do
+prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) = checkCoverage $ do
   -- generate population with size of up to 1000
   as <- resize 1000 (listOf genSIRState)
   -- total agent count

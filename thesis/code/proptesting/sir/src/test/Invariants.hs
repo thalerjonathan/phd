@@ -46,7 +46,7 @@ main = do
 prop_sir_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
                           -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
                           -> Positive Double -- ^ Random delta, illness duration
-                          -> TimeRange    -- ^ time to run
+                          -> TimeRange       -- ^ time to run
                           -> Property
 prop_sir_event_time_equal
     (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = property $ do

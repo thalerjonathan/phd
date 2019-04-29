@@ -107,6 +107,7 @@ susceptibleAgent aid cor inf ild =
 
     handleEvent MakeContact = do
       ais       <- allAgentIds
+      --corExp    <- lift $ lift $ lift $ randomExpM (1 / fromIntegral cor)
       receivers <- lift $ lift $ lift $ forM [1..cor] (const $ randomElem ais)
       mapM_ makeContactWith receivers
       scheduleMakeContact aid makeContactInterval
@@ -150,12 +151,9 @@ recoveredAgent = arr (const Recovered)
 --------------------------------------------------------------------------------
 -- AGENT UTILS
 --------------------------------------------------------------------------------
--- NOTE: need to draw dt from exponential distribution because we are making
--- contact ON AVERAGE per time-unit! 
 scheduleMakeContact :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
-scheduleMakeContact aid avgTime = do
-  dt <- lift $ lift $ lift $ randomExpM (1 / avgTime)
-  scheduleEvent aid MakeContact dt
+scheduleMakeContact aid = scheduleEvent aid MakeContact
+  --dt <- lift $ lift $ lift $ randomExpM (1 / avgTime)
 
 scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
 scheduleRecovery aid ild = do

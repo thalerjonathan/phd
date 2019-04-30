@@ -29,11 +29,11 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Invariant Tests" 
           [ 
-            QC.testProperty "SIR time- and event-driven distribution" prop_sir_event_time_equal
-          -- , QC.testProperty "SIR SD invariant" prop_sir_sd_invariants
-          -- , QC.testProperty "SIR event-driven invariant" prop_sir_event_invariants
-          -- , QC.testProperty "SIR event-driven random event sampling invariant" prop_sir_random_invariants
-          -- , QC.testProperty "SIR time-driven invariant" prop_sir_time_invariants
+            QC.testProperty "SIR SD invariant" prop_sir_sd_invariants
+          , QC.testProperty "SIR event-driven invariant" prop_sir_event_invariants
+          , QC.testProperty "SIR event-driven random event sampling invariant" prop_sir_random_invariants
+          , QC.testProperty "SIR time-driven invariant" prop_sir_time_invariants
+          -- , QC.testProperty "SIR time- and event-driven distribution" prop_sir_event_time_equal
           ]
 
   defaultMain t
@@ -41,45 +41,12 @@ main = do
 --------------------------------------------------------------------------------
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
--- NOTE: need to use mann whitney because both produce bi-modal distributions
--- thus t-test does not work because it assumes normally distributed samples
-prop_sir_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
-                          -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
-                          -> Positive Double -- ^ Random delta, illness duration
-                          -> TimeRange       -- ^ time to run
+prop_sir_event_invariants :: Positive Int    -- ^ beta, contact rate
+                          -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                          -> Positive Double -- ^ delta, illness duration
+                          -> [SIRState]      -- ^ population
                           -> Property
-prop_sir_event_time_equal
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = checkCoverage $ do
-  -- generate random population
-  as <- listOf genSIRState
-  -- total agent count
-  let repls = 100
- 
-  -- run simulation UNRESTRICTED in both time and event count
-  (ssTime, isTime, rsTime)    <- unzip3 . map int3ToDbl3 <$> genTimeSIRRepls repls as (fromIntegral cor) inf ild 0.01 t
-  (ssEvent, isEvent, rsEvent) <- unzip3 . map int3ToDbl3 <$> genEventSIRRepls repls as cor inf ild (-1) t
-  
-  let p = 0.05
-
-  let ssTest = mannWhitneyTwoSample ssTime ssEvent p
-      isTest = mannWhitneyTwoSample isTime isEvent p
-      rsTest = mannWhitneyTwoSample rsTime rsEvent p
-
-  let prop = fromMaybe True ssTest &&
-             fromMaybe True isTest &&
-             fromMaybe True rsTest 
-
-  return $ trace (show prop) 
-    cover 90 prop "SIR event- and time-driven produce equal distributions" True
-
--- TODO: reduce code duplication
-prop_sir_event_invariants :: Positive Int  -- ^ Random beta, contact rate
-                          -> UnitRange        -- ^ Random gamma, infectivity, within (0,1) range
-                          -> Positive Double  -- ^ Random delta, illness duration
-                          -> Property
-prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) = checkCoverage $ do
-  -- generate population with size of up to 1000
-  as <- resize 1000 (listOf genSIRState)
+prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) as = checkCoverage $ do
   -- total agent count
   let n = length as
 
@@ -94,21 +61,18 @@ prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) = checkC
 
   return (sirInvariants n equilibriumData)
 
--- TODO: reduce code duplication
-prop_sir_time_invariants :: Positive Double -- ^ Random beta, contact rate
-                         -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
-                         -> Positive Double -- ^ Random delta, illness duration
+prop_sir_time_invariants :: Positive Double -- ^ beta, contact rate
+                         -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                         -> Positive Double -- ^ delta, illness duration
+                         -> [SIRState]      -- ^ population
                          -> Property
-prop_sir_time_invariants (Positive cor) (UnitRange inf) (Positive ild) = property $ do
-  -- generate population with size of up to 1000
-  as <- resize 1000 (listOf genSIRState)
+prop_sir_time_invariants (Positive cor) (UnitRange inf) (Positive ild) as = property $ do
   -- total agent count
   let n = length as
 
-  -- run for inifinite time
-  let t  = 0
-      dt = 0.1
-  ret <- genTimeSIR as cor inf ild dt t
+  let dt = 0.1
+  -- run simulation UNRESTRICTED TIME
+  ret <- genTimeSIR as cor inf ild dt 0
 
   -- after a finite number of steps SIR will reach equilibrium, when there
   -- are no more infected agents. WARNING: this could be a potentially non-
@@ -135,29 +99,20 @@ prop_sir_sd_invariants (Positive s) (Positive i) (Positive r)
     -- an infected of 0 => we always limit the duration but we do it randomly
     ret = runSIRSD s i r cor inf ild t
 
--- NOTE: can't use random model parameters because otherwise cover does not work
-prop_sir_random_invariants :: Property
-prop_sir_random_invariants = property $ do
-  let cor = 5     -- beta, contact rate
-      inf = 0.05  -- gamma, infectivitry
-      ild = 15    -- delta, illness duration
-
-  -- generate random population with size of up to 1000
-  as <- resize 1000 (listOf genSIRState)
+prop_sir_random_invariants :: Positive Int    -- ^ beta, contact rate
+                           -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                           -> Positive Double -- ^ delta, illness duration
+                           -> NonEmptyList SIRState -- ^ population
+                           -> Property
+prop_sir_random_invariants (Positive cor) (UnitRange inf) (Positive ild) (NonEmpty as) = property $ do
   -- total agent count
   let n = length as
-  -- number of infected at t=0
-  let i0 = length (filter (==Infected) as)
   -- number of random events to generate
-  let eventCount = 100000
+  let eventCount = 10000
   -- run simulation with random population and random events
   ret <- genRandomEventSIR as cor inf ild eventCount
 
-  let equilibrium = any ((>0).snd3.snd) ret
-
-  return $ cover 90 (i0 > 0 && equilibrium) 
-            "Random event sampling reached equilibrium" 
-              (sirInvariants n ret)
+  return (sirInvariants n ret)
 
 sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
 sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
@@ -211,12 +166,44 @@ sirInvariantsFloating n aos = timeInc && aConst && susDec && recInc
 
     agentCountInv :: (Double, Double, Double) -> Bool
     agentCountInv (s,i,r) = compareDouble n (s + i + r) epsilon
-
+    
     mono :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
     mono f xs = all (uncurry f) (pairs xs)
 
     pairs :: [a] -> [(a,a)]
     pairs xs = zip xs (tail xs)
+
+-- NOTE: need to use mann whitney because both produce bi-modal distributions
+-- thus t-test does not work because it assumes normally distributed samples
+prop_sir_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
+                          -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
+                          -> Positive Double -- ^ Random delta, illness duration
+                          -> TimeRange       -- ^ Random time to run, within (0, 50) range)
+                          -> [SIRState]      -- ^ Random population
+                          -> Property
+prop_sir_event_time_equal
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage $ do
+  -- run 100 replications
+  let repls = 100
+ 
+  -- run 100 replications for time- and event-driven simulation
+  (ssTime, isTime, rsTime) <- 
+    unzip3 . map int3ToDbl3 <$> genTimeSIRRepls repls as (fromIntegral cor) inf ild 0.01 t
+  (ssEvent, isEvent, rsEvent) <- 
+    unzip3 . map int3ToDbl3 <$> genEventSIRRepls repls as cor inf ild (-1) t
+  
+  let p = 0.05
+
+  let ssTest = mannWhitneyTwoSample ssTime ssEvent p
+      isTest = mannWhitneyTwoSample isTime isEvent p
+      rsTest = mannWhitneyTwoSample rsTime rsEvent p
+
+  let allPass = fromMaybe True ssTest &&
+                fromMaybe True isTest &&
+                fromMaybe True rsTest 
+
+  return $ trace (show allPass) 
+    cover 90 allPass "SIR event- and time-driven produce equal distributions" True
 
 -- NOTE: all these properties are already implicitly checked in the agent 
 -- specifications and sir invariants

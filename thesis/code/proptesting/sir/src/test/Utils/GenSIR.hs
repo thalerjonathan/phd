@@ -9,6 +9,9 @@ newtype UnitRange = UnitRange Double deriving Show
 
 newtype TimeRange = TimeRange Double deriving Show
 
+instance Arbitrary SIRState where
+  arbitrary = genSIRState
+
 instance Arbitrary UnitRange where
   arbitrary = UnitRange <$> choose (0, 1)
 

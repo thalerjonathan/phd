@@ -40,15 +40,14 @@ main = defaultMain $ testGroup "SIR Agent Specifications Tests"
 --------------------------------------------------------------------------------
 -- PROPERTIES
 --------------------------------------------------------------------------------
-prop_susceptible_invariants :: Positive Double  -- ^ Random beta, contact rate
-                            -> Positive Double  -- ^ Random gamma, infectivity
-                            -> Positive Double  -- ^ Random delta, illness duration
-                            -> Positive Double  -- ^ Random t, duration 
+prop_susceptible_invariants :: Positive Double  -- ^ beta, contact rate
+                            -> UnitRange        -- ^ gamma, infectivity within (0,1) range
+                            -> Positive Double  -- ^ delta, illness duration
+                            -> TimeRange        -- ^ duration, within (0,50) range
+                            -> [SIRState]       -- ^ population
                             -> Property
-prop_susceptible_invariants 
-      (Positive t) (Positive cor) (Positive inf) (Positive ild) = property $ do  
-    -- generate population with size of up to 1000
-    as <- resize 1000 (listOf genSIRState)
+prop_susceptible_invariants
+      (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = property $ do  
     -- population contains an infected agent True/False
     let infInPop = Infected `elem` as
 
@@ -93,8 +92,9 @@ prop_susceptible_invariants
         infIdx = fromJust infIdxMay
         recIdx = fromJust recIdxMay
 
-prop_infected_invariants :: Property
-prop_infected_invariants = checkCoverage $ do
+-- NOTE: can't use random illness duration, otherwise coverage would not work
+prop_infected_invariants :: [SIRState] -> Property
+prop_infected_invariants as = checkCoverage $ do
      -- delta, illnes duration
     let illnessDuration = 15.0
     -- compute perc of agents which recover in less or equal 
@@ -102,10 +102,7 @@ prop_infected_invariants = checkCoverage $ do
     -- thus we use the CDF to compute the probability.
     let prob = 100 * expCDF (1 / illnessDuration) illnessDuration
     -- fixed sampling rate
-    let dt = 0.1
-
-    -- generate population with size of up to 1000
-    as <- resize 1000 (listOf genSIRState)
+    let dt = 0.01
 
     -- run a random infected agent without time-limit (0) and sampling rate
     -- of 0.01 and return its infinite output stream 
@@ -126,14 +123,11 @@ prop_infected_invariants = checkCoverage $ do
         then Just (dt * fromIntegral recIdx)
         else Nothing
 
-prop_recovered_invariants :: Positive Double -> Property
-prop_recovered_invariants (Positive t) = property $ do
-  let dt = 0.1
-
-  -- generate population with size of up to 1000
-  as <- resize 1000 (listOf genSIRState)
-
-  aos <- genRecovered as t dt -- trace (show t) 
+prop_recovered_invariants :: TimeRange  -- ^ duration, within (0,50) range
+                          -> [SIRState] -- ^ population
+                          -> Property
+prop_recovered_invariants (TimeRange t) as = property $ do
+  aos <- genRecovered as t 0.01
   return $ all (==Recovered) aos
 
 --------------------------------------------------------------------------------

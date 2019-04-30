@@ -29,8 +29,8 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Spec Tests" 
           [ 
-            QC.testProperty "SIR time-driven" prop_sir_time_spec
-          , QC.testProperty "SIR event-driven" prop_sir_event_spec
+             QC.testProperty "SIR time-driven" prop_sir_time_spec
+          -- QC.testProperty "SIR event-driven" prop_sir_event_spec
           ]
 
   defaultMain t
@@ -42,48 +42,49 @@ prop_sir_time_spec :: Positive Int     -- ^ contact rate
                    -> UnitRange        -- ^ infectivity, within range (0,1)
                    -> Positive Double  -- ^ illness duration
                    -> TimeRange        -- ^ time to run
+                   -> [SIRState]       -- ^ Random population
                    -> Property
 prop_sir_time_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = checkCoverage $ do
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage $ do
   let repls = 100
-  
-  -- generate random population
-  as <- listOf genSIRState
-  -- run replications
+
+  -- run 100 replications
   (ss, is, rs) <- unzip3 <$> genTimeSIRRepls repls as (fromIntegral cor) inf ild 0.01 t
   -- check if they match 
   let prop = compareSDToABS as ss is rs cor inf ild t
 
-  -- we expect at least 70% to pass, use checkCoverage to get statistical robust result
+  -- we expect at least 75% to pass, use checkCoverage to get statistical robust result
   -- Note that we return True in every case, we are only interested in the
   -- coverage and allow failure!
-  -- why 70? because of macals results
+  -- why 75? because of macals results
+  -- through experiments it was statistically shown that 80 works as well
   return $ trace (show prop) 
-    cover 80 prop "SIR time-driven passes t-test with simulated SD" True
+    cover 75 prop "SIR time-driven passes t-test with simulated SD" True
 
 -- NOTE: don't run with checkCoverage for now because each test-case can take
 -- a considerable amount of time, so restrict to 100 runs to estimate a rough
 -- coverage
-prop_sir_event_spec :: Positive Int  -- ^ contact rate
+prop_sir_event_spec :: Positive Int     -- ^ contact rate
                     -> UnitRange        -- ^ infectivity, within range (0,1)
                     -> Positive Double  -- ^ illness duration
                     -> TimeRange        -- ^ time to run
+                    -> [SIRState]       -- ^ Random population
                     -> Property
 prop_sir_event_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) = property $ do
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage $ do
   let repls = 100
 
-  -- generate random population
-  as <- listOf genSIRState
   -- run replications
   (ss, is, rs) <- unzip3 <$> genEventSIRRepls repls as cor inf ild (-1) t
   -- check if they match 
   let prop = compareSDToABS as ss is rs cor inf ild t
 
-  -- we expect at least 70% to pass, use checkCoverage to get statistical robust result
+  -- we expect at least 75% to pass, use checkCoverage to get statistical robust result
   -- Note that we return True in every case, we are only interested in the
   -- coverage and allow failure!
-  -- why 70? because of macals results
+  -- why 75? because of macals results
+  -- through experiments it was shown that 75 works
+  -- TODO: does 80 work?
   return $ trace (show prop) 
     cover 75 prop "SIR event-driven passes t-test with simulated SD" True
 

@@ -124,9 +124,6 @@ compareSDToABS as ssI isI rsI cor inf ild t = allPass
     sTest = tTestSamples TwoTail s (1 - confidence) ss
     iTest = tTestSamples TwoTail i (1 - confidence) is
     rTest = tTestSamples TwoTail r (1 - confidence) rs
-    -- sTest = mannWhitneyOneSample ss s (1 - confidence)
-    -- iTest = mannWhitneyOneSample is i (1 - confidence)
-    -- rTest = mannWhitneyOneSample rs r (1 - confidence)
     -- pass if all 3 tests pass
     allPass = fromMaybe True sTest &&
               fromMaybe True iTest &&

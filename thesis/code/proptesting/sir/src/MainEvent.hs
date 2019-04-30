@@ -3,7 +3,7 @@ module Main where
 import System.Random
 
 import Export.Compress
-import Export.Matlab
+import Export.CSV
 import SIR.Event
 import SIR.Model
 
@@ -50,4 +50,5 @@ main = do
   let ssCompr = compressOutput ss
 
   let ssCompr' = map (\(t, (s, i, r)) -> (t, (fromIntegral s, fromIntegral i, fromIntegral r))) ssCompr
-  writeMatlabFile "sir-event.m" ssCompr'
+  --writeMatlabFile "sir-event.m" ssCompr'
+  writeCSVFile "sir-event.csv" ssCompr'

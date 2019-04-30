@@ -51,7 +51,7 @@ executable sir-event
   
   -- Modules included in this executable, other than Main.
   other-modules:       Export.Compress
-                     , Export.Matlab
+                     , Export.CSV
                      , SIR.Event
                      , SIR.Model
   
@@ -84,7 +84,7 @@ executable sir-time
 
   -- Modules included in this executable, other than Main.
   other-modules:        Export.Compress
-                      , Export.Matlab
+                      , Export.CSV
                       , SIR.Time
                       , SIR.Model
 
@@ -113,7 +113,7 @@ executable sir-sd
   main-is:              MainSD.hs
 
   -- Modules included in this executable, other than Main.
-  other-modules:        Export.Matlab
+  other-modules:        Export.CSV
                       , SIR.SD
 
   -- LANGUAGE extensions used by modules in this package.

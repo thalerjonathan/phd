@@ -63,12 +63,13 @@ prop_sir_invariants :: Positive Int    -- ^ beta, contact rate
                     -> TimeRange       -- ^ random duration in range (0, 50)
                     -> [SIRState]      -- ^ population
                     -> Property
-prop_sir_invariants (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as  = property (do
+prop_sir_invariants 
+    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as  = property (do
   -- total agent count
   let n = length ss
 
   -- run the SIR simulation with a new RNG 
-  ret <- genSimulationSIR ss cor inf ild (-1) t
+  ret <- genSimulationSIR ss cor inf ild t
   -- check invariants and return result
   return (sirInvariants n ret)
 \end{HaskellCode}

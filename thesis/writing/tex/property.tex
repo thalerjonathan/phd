@@ -1,19 +1,13 @@
 \chapter*{} %Property-Based Testing in pure functional ABS
 \label{ch:property}
 
-TODO: don't use resize population and always use normal size to be consistent
-TODO: feed random population as random parameter
-TODO: use TimeRange and UnitRange consistently everywhere
-
-TODO WORDING: don't use replications in terms of QuickCheck! we test properties with random test-cases
-
-TODO IMPROVE EXPLANATION: more explanations, its too flat, code straight in the face, prepare it gently as it is not directly clear what the intention is. discuss it more generally, otherwise it reads like an advanced technical report and not like a thesis.
-
-TODO: explain more how and why and when we use cover and checkCoverage. Also when using cover we cannot use random model parameters as it changes distributions
-
-TODO: only use cover with/without checkCoverage instead of maxFailPercent
-
-TODO: "Contrary to a lot of misinformation, unit testing in Haskell is quite common and robust. Although generally speaking unit tests tend to be of less importance in Haskell since the type system makes an enormous amount of invalid programs completely inexpressible by construction. Unit tests tend to be written later in the development lifecycle and generally tend to be about the core logic of the program and not the intermediate plumbing." cited from section "Testing" in Stephen Diel What I wish i knew \url{http://dev.stephendiehl.com/hask/#testing}.
+TODO REFINE
+- don't use resize population and always use normal size to be consistent and feed random population as random parameter
+- use TimeRange and UnitRange consistently everywhere
+- WORDING: don't use replications in terms of QuickCheck! we test properties with random test-cases
+- IMPROVE EXPLANATION: more introduction to quickcheck (generators, property, ==>, label and cover with checkCoverage), more explanations, its too flat, code straight in the face, prepare it gently as it is not directly clear what the intention is. discuss it more generally, otherwise it reads like an advanced technical report and not like a thesis.
+- explain more how and why and when we use cover and checkCoverage. Also when using cover we cannot use random model parameters as it changes distributions
+- only use cover with/without checkCoverage instead of maxFailPercent => rework sugarscape hypotheses chapter; need not much change only remove maxFailPercent and use cover and run all cases again.
 
 When implementing an Agent-Based Simulation (ABS) it is of fundamental importance that the implementation is correct up to some specification and that this specification matches the real world in some way. This process is called verification and validation (V\&V), where \textit{validation} is the process of ensuring that a model or specification is sufficiently accurate for the purpose at hand whereas \textit{verification} is the process of ensuring that the model design has been transformed into a computer model with sufficient accuracy \cite{robinson_simulation:_2014}. In other words, validation determines if we are we building the \textit{right model}, and verification if we are building the \textit{model right} up to some specification \cite{balci_verification_1998}.
 
@@ -36,7 +30,11 @@ The paper \cite{gurcan_generic_2013} gives an in-depth and detailed overview ove
 \medskip
 
 % the gap
-Although it would be interesting to see how we can apply unit testing to our approach, it is straight forward, nothing new and does not constitute unique research. Thus, in this chapter we introduce an additional technique for TDD: \textit{property-based testing}, which can be seen as complementary to unit testing. Property-based testing has its origins \cite{claessen_quickcheck_2000,claessen_testing_2002,runciman_smallcheck_2008} in Haskell, where it was first conceived and implemented. It has been successfully used for testing Haskell code for years and also been proven to be useful in the industry \cite{hughes_quickcheck_2007}. We show and discuss how this technique can be applied to test pure functional ABS implementations. To our best knowledge property-based testing has never been looked at in the context of ABS and this thesis is the first one to do so.
+Although it would be interesting to see how we can apply unit testing to our approach, it is straight forward, nothing new and does not constitute unique research. 
+
+\textit{"Contrary to a lot of misinformation, unit testing in Haskell is quite common and robust. Although generally speaking unit tests tend to be of less importance in Haskell since the type system makes an enormous amount of invalid programs completely inexpressible by construction. Unit tests tend to be written later in the development lifecycle and generally tend to be about the core logic of the program and not the intermediate plumbing."} cited from section "Testing" in Stephen Diel What I wish i knew \url{http://dev.stephendiehl.com/hask/#testing}.
+
+Thus, in this chapter we introduce an additional technique for TDD: \textit{property-based testing}, which can be seen as complementary to unit testing. Property-based testing has its origins \cite{claessen_quickcheck_2000,claessen_testing_2002,runciman_smallcheck_2008} in Haskell, where it was first conceived and implemented. It has been successfully used for testing Haskell code for years and also been proven to be useful in the industry \cite{hughes_quickcheck_2007}. We show and discuss how this technique can be applied to test pure functional ABS implementations. To our best knowledge property-based testing has never been looked at in the context of ABS and this thesis is the first one to do so.
 
 \medskip
 

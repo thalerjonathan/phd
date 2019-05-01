@@ -61,25 +61,36 @@
 % advanced: dependent types.
 
 \section{Introduction}
-\begin{frame}{Research Questions}
+\begin{frame}{The Metaphor}
 \begin{itemize}
-  \item \textbf{How} can we implement Agent-Based Simulation in (pure) functional programming using Haskell?
-  \item \textbf{What} are the benefits and drawbacks?
+  \item "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]"
+  
+  \item agents map naturally to objects (North et al 2007)
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Hypotheses}
+\begin{frame}{Outline}
 \begin{itemize}
-  \item Arrive at deeper understanding of the computational aspects of ABS due to functional programmings focus on structure in computing. 
-  \item Less bugs, more likely to be correct: stronger guarantees at compile time
-  \item Better support for concurrency
-  \item Natural fit for randomized property-based testing
-  \item Step toward dependently typed ABS
+  \item What is Agent-Based Simulation (ABS)?
+  
+  \item What is \textit{pure} Functional Programming (FP)?
+  
+  \item How can we do ABS + FP?  
+  
+  \item ABS + FP = Type Safety
+  
+  \item ABS + FP = Software Transactional Memory 
+  
+  \item ABS + FP = Property-Based Testing 
+  
+  \item ABS + FP = Dependent Types
+  
+  \item Conclusions
 \end{itemize}
 \end{frame}
 
-\section{Agent-Based Simulation}
-\begin{frame}{Agent-Based Simulation (ABS)} 
+\section{What is Agent-Based Simulation?}
+\begin{frame}{What is Agent-Based Simulation (ABS)?} 
   \begin{block}{Example}
     \textit{\textbf{Simulate} the spread of an infectious disease in a city. \\ What are the \textbf{dynamics} (peak, duration of disease)?}
   \end{block}
@@ -150,10 +161,10 @@
 \includemovie[rate=2]{11cm}{6.5cm}{./video/SIR_DUNAI_dt001.mp4}
 \end{frame}
 
-\section{Pure functional programming}
-TODO: explain monads: declare type of side-effects statically at compile-time
+\section{What is Pure functional programming?}
+TODO: explain monads: declare type of side-effects statically at compile-time, continuations and closures (which are simple objects with only 1 method)
 
-\section{Implementing pure functional ABS}
+\section{How can we do ABS + FP?}
 \begin{frame}{How to implement ABS?}
   \begin{block}{Established, state-of-the-art approach in ABS}
 	Object-Oriented Programming in Python, Java,...
@@ -226,16 +237,56 @@ iPre :: a -> SF a a
 \end{block}
 \end{frame}
 
+\section{ABS + FP = Type Saftey}
+\begin{frame}{ABS + FP = Type Saftey}
+  \begin{itemize}
+    \item Purity guarantees reproducibility
+    \item Enforce and guarantee update semantics
+  \end{itemize}
+\end{frame}
+
+\section{ABS + FP = Software Transactional Memory}
+\begin{frame}{ABS + FP = Software Transactional Memory}
+  \begin{itemize}
+    \item Concurrency using Software Transactional Memory (STM)
+    \item Lock free!
+    \item Tremendous performance improvement
+    \item Substantially outperforms lock-based implementation 
+    \item STM semantics retain guarantees about non-determinism
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{STM Semantics}
+  \begin{itemize}
+    \item With Haskell typesystem can be explicit in side-effects: STM only
+    \item Guarantees that the non-determinism comes only from concurrency within STM and nothing else
+  \end{itemize}
+\end{frame}
+
+\section{ABS + FP = Property-Based Testing}
+\begin{frame}{ABS + FP = Property-Based Testing}
+  \begin{itemize}
+    \item Express specifications directly in code and generate random test cases
+    \item Stochastic nature of Property-Based TEsting and ABS should be perfect match
+  \end{itemize}
+\end{frame}
+
+\section{ABS + FP = Dependent Types}
+\begin{frame}{ABS + FP = Dependent Types}
+  \begin{itemize}
+    \item Types as first class citizen: compute them at compile time
+    \item Types can contain values e.g. the size of a list 
+    \item Programs become proofs
+    \item Totality a central concept
+  \end{itemize}
+\end{frame}
 
 \section{Conclusion}
-
 \begin{frame}{Conclusion}
   \begin{itemize}
-    \item Purity guarantees reproducibility 
-    \item Enforce and guarantee update semantics 
-    \item Performance low but STM improves a lot
-    \item Property-based testing is a perfect match!
-    \item Further research: dependent types
+    \item The direction is towards an simulation which is more likely to be correct with the ultimate goal being a correct-by-construction implementation (up to some specification).
+    \item A correct-by-construction implementation does NOT relief us from actually running the simulation!
+    \item 
   \end{itemize}
 \end{frame}
 

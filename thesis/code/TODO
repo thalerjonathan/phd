@@ -1,0 +1,12 @@
+clean up code and organise it properly
+- pull sir out of proptesting
+- remove eventdriven, its all in sir (of proptesting)
+- pull sir_monadic and sir_nonmonadic out of parallel and rename to 
+  parallel_sir_monadic and parallel_sir_nonmonadic
+- pull inner_stm_semantics out of concurrent and rename to
+  stm_semantics_example
+- add code from Pure functional epidemics
+- add code from STM paper
+- add code from full sequential Sugarscape
+- add total SIR idris code 
+- leave barter for now

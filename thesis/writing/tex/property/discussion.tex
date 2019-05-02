@@ -1,0 +1,14 @@
+\chapter*{Discussion}
+TODO: wrap-up, comparison of time- and event-driven implementations.
+
+we can see quickcheck not only as testing but also as verification and validation allowing to test hypotheses and properties during the development process, also has connections to Monte-Carlo simulation
+
+further research: inclusion of Environment: all  properties should still hold under different Environments which can be generated randomly as Well e.g. random Networks.
+
+further research: does rng correlation as discussed in time-driven chapter implementation show up with property-tests?
+
+prop test with cover but without checkcoverage helps quick overview
+
+We found property-based testing particularly well suited for ABS firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and often exploratory nature of ABS. 
+
+Although property-based testing has its origins in Haskell, similar libraries have been developed for other languages e.g. Java, Pyhton, C++ as well and we hope that our research has sparked an interest in applying property-based testing to the established object-oriented languages in ABS as well.

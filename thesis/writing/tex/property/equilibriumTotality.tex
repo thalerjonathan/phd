@@ -7,46 +7,65 @@ TODO UNFINISHED
 - write a short intro into dependent types
 - the question will remain: does this chapter really belong in this thesis?
 
-In the property test of SIR invariants in Chapter \ref{ch:sir_invariants} we limited the time an individual simulation is run to 150 following the configuration for the simulation runs of chapter \ref{ch:timedriven}. In this context, the decision to do so was rather practical to ensure that we will actually terminate. The \textit{internal} termination criteria of the simulation kernel, which is implemented in a SIR agnostic manner, is an empty event-queue. For the SIR model on the other hand, we know that susceptible agents will start with scheduling a \textit{MakeContact} event to themselves 1 time-unit into the future and upon reception will to this again, resulting in an infinite stream of events. Thus we need to impose an \textit{external} termination criteria either in the form of limiting the number of events executed or the limiting the virtual simulation time.
+In the property-tests of Chapter \ref{ch:sir_invariants} and \ref{sec:timedriven_specification} we limited the time an individual simulation is run to a random range between 0 and 50. In this context, the decision to do so was practical to guarantee that we will actually terminate as both the event- and time-driven implementations would run forever if no time- and/or event-limit is specified \footnote{Note that the event-driven implementation would terminate if the event-queue is empty but in the case of the SIR this will never be the case due to susceptible agents keep scheduling \textit{MakeContact}, resulting in an infinite stream of events.}.
 
-For the SIR model though, we have another option which would allow us to run the simulation with on restrictions both on events or time. We can show that the SIR model \textit{will} reach an equilibrium / a steady state \textit{after finite time}. This equilibrium can then serve as termination criteria for the data-generation.
+However, restricting the simulation to a time- and/or event-limit is not necessary in a correct SIR implementation because it  \textit{will} reach an equilibrium \textit{within finite time} at which point the simulation can be terminated. This is the case as soon as there are no more infected agents: intuitively this is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. The infected agents themselves \textit{will} recover within finite time. Thus we can conclude that a correct implementation of the SIR model must enter a steady state in finite time.
 
-We can change the quickcheck test from the previous chapter:
+Using this informal reasoning, we change the property-test from Chapter \ref{ch:sir_invariants} to encode this property implicitly.
 
 \begin{HaskellCode}
 prop_sir_invariants :: Positive Int    -- ^ beta, contact rate
                     -> UnitRange       -- ^ gamma, infectivity in range (0,1)
                     -> Positive Double -- ^ delta, illness duration
-                    -> TimeRange       -- ^ random duration in range (0, 50)
                     -> [SIRState]      -- ^ population
                     -> Property
-prop_sir_invariants (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as  = property (do
-  -- total agent count
-  let n = length ss
-
-  -- run the SIR simulation with UNRESTRICTED time
+prop_sir_invariants 
+    (Positive cor) (UnitRange inf) (Positive ild) as  = property (do
+  -- CHANGED: run the SIR simulation with UNRESTRICTED time
   ret <- genSimulationSIR ss cor inf ild 0
-  
-  -- after a finite number of steps SIR will reach equilibrium, when there
-  -- are no more infected agents. WARNING: this could be a potentially non-
-  -- terminating computation but a correct SIR implementation will always
-  -- lead to a termination of this 
-  let equilibriumData = takeWhile ((>0).snd3.snd) ret  
-  
+  -- CHANGED: take data as long as not in equilibrium
+  let ret' = takeWhile ((>0).snd3.snd) ret
   -- check invariants and return result
-  return (sirInvariants n equilibriumData)
+  return (sirInvariants (length as) ret')
 \end{HaskellCode}
 
-criteras for termination
-- finite number of susceptible
-- finite number of infected
-- finite illness duration
+Unfortunately this code is dangerous: generally, we cannot distinguish between a very long or infinitely running simulation. It might be the case that there is a bug in our implementation which would violate the property that all infected agents eventually recover, in which case \textit{takeWhile} might run forever. This means that we cannot write a property-test, which could tell us whether this property holds or not for both our time- and event-driven implementations - it is in general non-computable. Obviously this is nothing new and was established in the 1930s through the work of Turing \cite{turing_computable_1937}. The question is now: what can we do about it?
 
-The idea is to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial).  We argue that the underlying SIR model actually has a steady state.
+The solution is to abandon the power of general recursion and Turing-completeness and switch to a different kind of pure functional programming language in which programs can be checked for totality by the compiler. These languages have a different kind of type system, called dependent types. Generally, dependent types add the following concepts to pure functional programming:
 
-The dynamics of the System Dynamics SIR model are in equilibrium (won't change any more) when the infected stock is 0. This might be shown formally but intuitively it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. 
+\begin{enumerate}
+	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017} as one that terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. In dependently typed languages which abandon Turing completeness this can be checked at compile time under certain circumstances.
+	
+	\item Types are first-class citizen - In dependently typed languages, types can depend on any \textit{values}, and can be \textit{computed} at compile-time which makes them first-class citizen. This allows to compute the return type of a function depending on its input values. Note that this requires totality, otherwise type-checking would non-decidable and potentially non-terminating.
+	
+	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions.
+\end{enumerate}
+
+There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, program_homotopy_2013, stump_verified_2016, brady_type-driven_2017, pierce_programming_2018}. We are using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
+
+Dependent types are a very powerful addition to functional programming as they allow us to express even stronger guarantees about the correctness of programs \textit{already at compile-time}. They go as far as allowing to formulate programs and types as constructive proofs which must be \textit{total} by definition \cite{thompson_type_1991, mckinna_why_2006, altenkirch_pi_2010}. 
+
+So far no research using dependent types in agent-based simulation exists at all. We have already started to explore this for the first time and ask more specifically how we can add dependent types to our functional approach, which conceptual implications this has for ABS and what we gain from doing so. We are using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
+
+We hypothesise, that  dependent types will allow us to push the correctness of agent-based simulations to a new, unprecedented level by narrowing the gap between model specification and implementation. The investigation of dependent types in ABS will be the main unique contribution to knowledge of my Ph.D.\\
+
+There is a strong relation between property-based tests and dependent types: in property-based testing we express specifications / properties / laws in code and test their invariance at run-time by random sampling the space. In dependent-types it is possible to express such properties already statically in types. This is the subject of the next part of the thesis which tries to move towards dependent types in ABS.
+
+
+
+%Idris is Turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem.
+
+\section{A total SIR implementation}
+In this section we want to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial).
+
+Dependent Types and Idris' ability for totality- and termination-checking should theoretically allow us to proof that an agent-based SIR implementation terminates after finite time: if an implementation of the agent-based SIR model in Idris is total it is a formal proof by construction. Note that such an implementation should not run for a limited virtual time but run unrestricted of the time and the simulation should terminate as soon as there are no more infected agents, returning the termination time as an output. Also if we find a total implementation of the SIR model and extend it to the SIR+S model, which adds a cycle from Recovered back to Susceptible, then the simulation should become again non-total as reasoned above.
+
+The HOTT book \cite{program_homotopy_2013} states that lists, trees,... are inductive types/inductively defined structures where each of them is characterized by a corresponding \textit{induction principle}. Thus, for a constructive proof of the totality of the agent-based SIR model we need to find the induction principle of it. This leaves us with the question of what the inductive, defining structure of the agent-based SIR model is? Is it a tree where a path through the tree is one way through the simulation or is it something else? It seems that such a tree would grow and then shrink again e.g. infected agents. Can we then apply this further to (agent-based) simulation in general?
+
+By this reasoning, a non-total, correctly implemented agent-based simulations of the SIR model will eventually terminate (note that this is independent of which environment is used and which parameters are selected). Still this does not formally proof that the agent-based approach itself will terminate and so far no formal proof of the totality of it was given.
 
 Thus an agent-based implementation of the SIR simulation has to terminate if it is implemented correctly because all infected agents will recover after a finite number of steps after then the dynamics will be in equilibrium. Thus we have the following conditions for totality:
+
 \begin{enumerate}
 	\item The simulation shall be terminated when there are no more infected agents.
 	
@@ -65,73 +84,9 @@ Thus an agent-based implementation of the SIR simulation has to terminate if it 
 	\item finite contact rate
 \end{enumerate}
 
-In case of an SD this will take forever to reach 0 due to the dynamics of the equations and floating point arithmetic is another difficulty. On the other hand, due to ABS discrete nature this is not an issue anymore: agents are discrete and as soon as we hit 0 infected agents - which, due to Integer representation, can be exact - an equilibrium is reached.
-
-Thus we can conclude that a SIR model must enter a steady state after finite steps / in finite time. %\footnote{Note that there exists a SIR+S model, which adds a cycle back from Recovered to Susceptible - if we find a total implementation of the SIR model and add this transition then the simulation should become non-total, checked by the compiler.}.
-
-By this reasoning, a non-total, correctly implemented agent-based simulations of the SIR model will eventually terminate (note that this is independent of which environment is used and which parameters are selected). Still this does not formally proof that the agent-based approach itself will terminate and so far no formal proof of the totality of it was given.
-
-Dependent Types and Idris' ability for totality- and termination-checking should theoretically allow us to proof that an agent-based SIR implementation terminates after finite time: if an implementation of the agent-based SIR model in Idris is total it is a formal proof by construction. Note that such an implementation should not run for a limited virtual time but run unrestricted of the time and the simulation should terminate as soon as there are no more infected agents, returning the termination time as an output. Also if we find a total implementation of the SIR model and extend it to the SIR+S model, which adds a cycle from Recovered back to Susceptible, then the simulation should become again non-total as reasoned above.
-
-The HOTT book \cite{program_homotopy_2013} states that lists, trees,... are inductive types/inductively defined structures where each of them is characterized by a corresponding \textit{induction principle}. Thus, for a constructive proof of the totality of the agent-based SIR model we need to find the induction principle of it. This leaves us with the question of what the inductive, defining structure of the agent-based SIR model is? Is it a tree where a path through the tree is one way through the simulation or is it something else? It seems that such a tree would grow and then shrink again e.g. infected agents. Can we then apply this further to (agent-based) simulation in general?
+A central question in tackling this is whether to follow a model- or an agent-centric approach. The former one looks at the model and its specifications as a whole and encodes them e.g. one tries to directly find a total implementation of an agent-based model. The latter one looks only at the agent level and encodes that as dependently typed as possible and hopes that model guarantees emerge on a meta-level - put otherwise: does the totality of an implementation emerge when we follow an agent-centric approach?
 
 %TODO: \url{https://stackoverflow.com/questions/19642921/assisting-agdas-termination-checker/39591118}
-
-%We hypothesize that it should be possible due to the nature of the state transitions where there are no cycles and that all infected agents will eventually reach the recovered state. 
-%
-%-- TODO: express in the types
-%-- SUSCEPTIBLE: MAY become infected when making contact with another agent
-%-- INFECTED:    WILL recover after a finite number of time-steps
-%-- RECOVERED:   STAYS recovered all the time
-%
-%-- SIMULATION:  advanced in steps, time represented as Nat, as real numbers are not constructive and we want to be total
-%--              terminates when there are no more INFECTED agents
-
-\section{Dependent Types}
-TODO: THIS BELONGS PROBABLY BETTER IN CONCLUSIONS, FUTURE RESEARCH (together with linear types)
-
-TODO: connect to property-based testing and put emphasise on the constructive nature and hypothesis testing: this is a popperian approach.
-
-TODO: FP is the first step towards a more structural understanding of ABS implementations where dependent types should allow us to develop this even further. we leave this for further research and outline only broadly the ideas we want to follow.
-
-%My work is all nice and good but it solves problems the ABS community and implementations never really had. My FRP/MSF approach is quite complex and can be equally difficult to get right. Even worse, the bugs were not primarily those I am solving with FP but the REAL problem in ABS is translating the model into code. Can FP help us here? Can my pure FP approach help here? expressing invariants in FP code? can we express them in types? 
-
-The pure functional implementation techniques have a number of technical benefits but don't help as much in closing the gap between specification and implementation as one is used from functional programming in general. Therefore we take a step back and abstract from these highly complex implementation techniques and move towards dependent types. Follow \cite{botta_time_2010} and \cite{botta_functional_2011}.
-
-Conceptually discuss how dependent types can be made of use in ABS without going into lot of technical detail because: 1. i didn't do enough research on it and 2. dependent types seem to be nearly out of focus of the thesis.
-
-%Linear and Dependent Types with Idris 2: more general ideas / hints / research on how it is applicable to ABS
-
-%dependent types in ABS paper, explore totality - equilibrium correspondence idea
-%About 20\% finished.
-
-After having established the concepts of dependent types, we want to briefly discuss ideas where and how they could be made of use in ABS. We expect that dependent types will help ruling out even more classes of bugs at compile-time and encode even more invariants. Additionally by constructively implementing model specifications on the type level could allow the ABS community to reason about a model directly in code as it narrows the gap between model specification and implementation.
-
-By definition, ABS is of constructive nature, as described by Epstein \cite{epstein_chapter_2006}: "If you can't grow it, you can't explain it" - thus an agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently well. Although Epstein certainly wasn't talking about a constructive proof in any mathematical sense in this context (he was using the word \textit{generative}), dependent types \textit{might} be a perfect match and correspondence between the constructive nature of ABS and programs as proofs.
-
-When we talk about dependently typed programs to be proofs, then we also must attribute the same to dependently typed agent-based simulations, which are then constructive proofs as well. The question is then: a constructive proof of what? It is not entirely clear \textit{what we are proving} when we are constructing dependently typed agent-based simulations. Probably the answer might be that a dependently typed agent-based simulation is then indeed a constructive proof in a mathematical sense, explaining a real-world phenomenon sufficiently well - we have closed the gap between a rather informal constructivism as mentioned above when citing Epstein who certainly didn't mean it in a constructive mathematical sense, and a formal constructivism, made possible by the use of dependent types.
-
-In the following subsections we will discuss related work in this field (\ref{sub:dep_abs_relwork}), discuss general concepts where dependent types might be of benefit in ABS (\ref{sub:dep_abs_generalconcepts}), present a dependently typed implementation of a 2D discrete environment (\ref{sub:dep_abs_2denv}) and finally discuss potential use of dependent types in the SIR model (\ref{sub:dep_abs_sir}) and SugarScape model (\ref{sub:dep_abs_sugarscape}).
-
-Dependent types are a very powerful addition to functional programming as they allow us to express even stronger guarantees about the correctness of programs \textit{already at compile-time}. They go as far as allowing to formulate programs and types as constructive proofs which must be \textit{total} by definition \cite{thompson_type_1991, mckinna_why_2006, altenkirch_pi_2010}. 
-
-So far no research using dependent types in agent-based simulation exists at all. We have already started to explore this for the first time and ask more specifically how we can add dependent types to our functional approach, which conceptual implications this has for ABS and what we gain from doing so. We are using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
-
-We hypothesise, that  dependent types will allow us to push the correctness of agent-based simulations to a new, unprecedented level by narrowing the gap between model specification and implementation. The investigation of dependent types in ABS will be the main unique contribution to knowledge of my Ph.D.
-
-In the following section \ref{sec:dep_background}, we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the foundational and philosophical concepts behind dependent types. In Section \ref{sec:dep_absconcepts} we briefly discuss ideas of how the concepts of dependent types could be applied to agent-based simulation and in Section \ref{sec:dep_vav_deptypes} we very shortly discuss the connection between Verification \& Validation and dependent types.
-
-There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, program_homotopy_2013, stump_verified_2016, brady_type-driven_2017, pierce_programming_2018}.
-
-Generally, dependent types add the following concepts to pure functional programming:
-
-\begin{enumerate}
-	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile-time which makes them first-class citizen. This becomes apparent in Section \ref{sub:dep_vector} where we compute the return type of a function depending on its input values.
-
-	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017} as: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. This makes run-time overhead obsolete, as one does not need to drag around additional type-information as everything can be resolved at compile-time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete. All functions in Section \ref{sub:dep_vector} are total, they terminate under all inputs in finite steps.
-
-	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags. We implement a constructive proof of showing whether two natural numbers are decidable equal in the Section \ref{sub:dep_equality}.
-\end{enumerate}
 
 %The authors of \cite{ionescu_dependently-typed_2012} discuss how to use dependent types to specify fundamental theorems of economics, unfortunately they are not computable and thus not constructive, thus leaving it more to a theoretical, specification side.
 %Ionesus talk on dependently typed programming in scientific computing
@@ -143,37 +98,8 @@ Generally, dependent types add the following concepts to pure functional program
 %Ionescus talk on Dependently-Typed Programming in Economic Modelling
 %https://www.pik-potsdam.de/members/ionescu/ee-tt.pdf
 
-\paragraph{State-Machines}
-Often, Agent-Based Models define their agents in terms of state-machines. It is easy to make wrong state-transitions e.g. in the SIR model when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
-
-Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile-time. This would be a huge benefit for ABS because of the popularity of state-machines in agent-based models.
-
-\paragraph{Flow Of Time}
-State-Machines often have timed transitions e.g. in the SIR model, an infected agent recovers after a given time. Nothing prevents us from introducing a bug and \textit{never} doing the transition at all.
-
-With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps. Also can dependent types be used to express the flow of time and that it is strongly monotonic increasing?
-	
-\paragraph{Existence Of Agents}
-In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
-
-Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step. %So it is a proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. 
-\\
-
-\section{Equilibrium and Totality}
-For some agent-based simulations there exists equilibria, which means that from that point the dynamics won't change any more e.g. when a given type of agents vanishes from the simulation or resources are consumed. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. Very often, despite such a global termination criterion exists, such simulations are stepped for a fixed number of time-steps or events or the termination criterion is checked at run-time in the feedback-loop. 
-	
-Using dependent types it might be possible to encode equilibria properties in the types in a way that the simulation automatically terminates when they are reached. This results then in a \textit{total} simulation, creating a \textit{correspondence between the equilibrium of a simulation and the totality of its implementation}. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.
-
-A central question in tackling this is whether to follow a model- or an agent-centric approach. The former one looks at the model and its specifications as a whole and encodes them e.g. one tries to directly find a total implementation of an agent-based model. The latter one looks only at the agent level and encodes that as dependently typed as possible and hopes that model guarantees emerge on a meta-level - put otherwise: does the totality of an implementation emerge when we follow an agent-centric approach?
-
-\section{Hypotheses}
-Models like the Sugarscape are exploratory in nature and don't have a formal ground truth where one could derive equilibria or dynamics from and validate with. In such models the researchers work with informal hypotheses which they express before running the model and then compare them informally against the resulting dynamics.
-
-It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very interesting application as it allows for a more formal and automatic testable approach to hypothesis checking.
-
-\subsection{Philosophical Foundations: Constructivism}
+\section{Constructivism in ABS}
 \label{sub:dep_foundations}
-
 The main theoretical and philosophical underpinnings of dependent types as in Idris are the works of Martin-L\"of intuitionistic type theory. The view of dependently typed programs to be proofs is rooted in a deep philosophical discussion on the foundations of mathematics, which revolve around the existence of mathematical objects, with two conflicting positions known as classic vs. constructive \footnote{We follow the excellent introduction on constructive mathematics \cite{thompson_type_1991}, chapter 3.}. In general, the constructive position has been identified with realism and empirical computational content where the classical one with idealism and pragmatism.
 
 In the classical view, the position is that to prove $\exists x. P(x)$ it is sufficient to prove that $\forall x. \neg P(x)$ leads to a contradiction. The constructive view would claim that only the contradiction is established but that a proof of existence has to supply an evidence of an $x$ and show that $P(x)$ is provable. In the end this boils down whether to use proof by contradiction or not, which is sanctioned by the law of the excluded middle which says that $A \lor \neg A$ must hold. The classic position accepts that it does and such proofs of existential statements as above, which follow directly out of the law of the excluded middle, abound in mathematics \footnote{Polynomial of degree n has n complex roots; continuous functions which change sign over a compact real interval have a zero in that interval,...}. The constructive view rejects the law of the excluded middle and thus the position that every statement is seen as true or false, independently of any evidence either way. \cite{thompson_type_1991} (p. 61): \textit{The constructive view of logic concentrates on what it means to prove or to demonstrate convincingly the validity of a statement, rather than concentrating on the abstract truth conditions which constitute the semantic foundation of classical logic}.
@@ -195,24 +121,60 @@ Nonetheless, dependent types should allow to substantially reduce the amount of 
 Ultimately this leads to a very different development process than in the established object-oriented approaches, which follow a test-driven process. There one defines the necessary interface of an object with empty implementations for a given use-case first, then writes tests which cover all possible cases for the given use-case. Obviously all tests should fail because the functionality behind it was not implemented yet. Then one starts to implement the functionality behind it  step-by-step until no test-case fails. This means that one runs all tests repeatedly to both check if the test-case one is working on is not failing anymore and to make sure that old test-cases are not broken by new code. The resulting software is then trusted to be correct because no counter examples through test hypotheses, could be found. The problem is: we could forget / not think of cases, which is the easier the more complex the software becomes (and simulations are quite complex beasts). Thus in the end this is a deductive approach.
 
 With pure functional programming and dependent types the process is now mostly constructive, type-driven (see \cite{brady_type-driven_2017}). In that approach one defines types first and is then guided by these types and the compiler in an interactive fashion towards a correct implementation, ensured at compile-time. As already noted, the ABS methodology is constructive in nature but the established object-oriented test-driven implementation approach not as much, creating an impedance mismatch. We expect that a type-driven approach using dependent types reduces that mismatch by a substantial amount.
+Models like the Sugarscape are exploratory in nature and don't have a formal ground truth where one could derive equilibria or dynamics from and validate with. In such models the researchers work with informal hypotheses which they express before running the model and then compare them informally against the resulting dynamics.
+
+It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very interesting application as it allows for a more formal and automatic testable approach to hypothesis checking.
 
 Note that \textit{validation} is a different matter here: independent of our implementation approach we still need to validate the simulation against the real-world / ground-truth. This obviously requires to run the full simulation which could take up hours in either programming paradigm, making them absolutely equal in this respect. Also the comparison of the output to the real-world / ground-truth is completely independent to the paradigm. The fundamental difference happens in case of changes made to the code during validation: in case of the established test-driven object-oriented approach for every minor change one (should) re-run all tests, which could take up a substantial amount of additional time. Using a constructive, type-driven approach this is dramatically reduced and can often be completely omitted because the correctness of the change can be either guaranteed in the type or by informally reasoning about the code.
 
-%-------------------------
 %TODO: not sure where to put this
-%ABS as a constructive / generative science, follows Poperian approach of falsification: we try to construct a model which explains a real-world (empirical) phenomenon - if validation shows that the generated dynamics match the ones of the real-world sufficiently enough, we say that we have found \textit{a} hypothesis (the model) which emergent properties explains the real-world phenomenon sufficiently enough. This is not a proof but only one possible explanation which holds for now and might be falsified in the future.
+ABS as a constructive / generative science, follows Poperian approach of falsification: we try to construct a model which explains a real-world (empirical) phenomenon - if validation shows that the generated dynamics match the ones of the real-world sufficiently enough, we say that we have found \textit{a} hypothesis (the model) which emergent properties explains the real-world phenomenon sufficiently enough. This is not a proof but only one possible explanation which holds for now and might be falsified in the future.
+
+When we implement our simulation things change a bit as we add another layer: the conceptual model, describing the phenomenon, which is an abstraction of reality. This description can be of many forms but can be regarded on a line between completely formal (economic models) to informal (sociology) but the implementation will follow that description. The fundamental difference here is that in this case we want our implementation to be exactly the same as the conceptual model. Contrary to the real-world, where it is not possible to find a \textit{true} model (as was argued by Popper), on this level we actually can construct an implementation which matches the conceptual model exactly because we have a description of the conceptual model. In the end we transform the conceptual model description in code, which is itself a formal description. In this translation process (speak: implementation / programming), one can make an endless number of mistakes. Generally we can distinguish between two classes of mistakes: 
+1) conceptual mistakes - wrong translation of the model specifications into code due to various reasons e.g. imprecise description, human error. The more precise an unambiguous a model description is, the less probable conceptual mistakes will be.
+2) internal mistakes - normal programming mistakes e.g. access of arrays out of bounds, ... also using correlated Random Number generators.
 %
-%When we implement our simulation things change a bit as we add another layer: the conceptual model, describing the phenomenon, which is an abstraction of reality. This description can be of many forms but can be regarded on a line between completely formal (economic models) to informal (sociology) but the implementation will follow that description. The fundamental difference here is that in this case we want our implementation to be exactly the same as the conceptual model. Contrary to the real-world, where it is not possible to find a \textit{true} model (as was argued by Popper), on this level we actually can construct an implementation which matches the conceptual model exactly because we have a description of the conceptual model. In the end we transform the conceptual model description in code, which is itself a formal description. In this translation process (speak: implementation / programming), one can make an endless number of mistakes. Generally we can distinguish between two classes of mistakes: 
-%1) conceptual mistakes - wrong translation of the model specifications into code due to various reasons e.g. imprecise description, human error. The more precise an unambiguous a model description is, the less probable conceptual mistakes will be.
-%2) internal mistakes - normal programming mistakes e.g. access of arrays out of bounds, ... also using correlated Random Number generators.
+Level 0: Real-World phenomenon
+Level 1: Conceptual model of the real-world phenomenon
+Level 2: Implementation of the conceptual model
 %
-%Level 0: Real-World phenomenon
-%Level 1: Conceptual model of the real-world phenomenon
-%Level 2: Implementation of the conceptual model
-%
-%Note that we must speak of falsification and constructiveness on two different levels:
-%- validation level: do the results of the conceptual model match the real-world phenomenon? the conceptual model is the hypothesis which says that its mechanics are sufficient to generate / construct the real-world phenomenon. At this level we are not interested in the implementation level anymore - the implemented model \textit{is} (seen as) the conceptual model, and one only compares its output to the real-world. If the dynamics match, then we got a valid hypothesis which works for now. If the dynamics do NOT match, then the hypothesis (the model) is falsified and one needs to adjust / change the hypothesis (model). The validation will happen by tests, there is no other way, we have no formal specification of the real-world, we can only observe empirically the phenomena, so we run tests which try to falsify the outputs of the model: assuming it will generate phenomena of the real-world and test if it does.
-%- implementation \& verficiation level: in this step we are matching the code to the conceptual model. Here we are not only restricted to a test-driven approach because we have a more or less formal description of the conceptual model which we directly encode in our programming language. If the language allows to express model specifications already at compile-time then this means that the implementation narrows the gap between model specification and implementation which means it does not need to be tested at run-time because it is guaranteed for all inputs for all time. 
-%
-%The constructiveness of ABS and impendance mismatch: ABS methodology is constructive but the established implementation approach not too much, creating an impedance mismatch. this is especially visible in the test-driven development dependent types constructive nature could close this mismatch.
-%
+Note that we must speak of falsification and constructiveness on two different levels:
+- validation level: do the results of the conceptual model match the real-world phenomenon? the conceptual model is the hypothesis which says that its mechanics are sufficient to generate / construct the real-world phenomenon. At this level we are not interested in the implementation level anymore - the implemented model \textit{is} (seen as) the conceptual model, and one only compares its output to the real-world. If the dynamics match, then we got a valid hypothesis which works for now. If the dynamics do NOT match, then the hypothesis (the model) is falsified and one needs to adjust / change the hypothesis (model). The validation will happen by tests, there is no other way, we have no formal specification of the real-world, we can only observe empirically the phenomena, so we run tests which try to falsify the outputs of the model: assuming it will generate phenomena of the real-world and test if it does.
+- implementation \& verficiation level: in this step we are matching the code to the conceptual model. Here we are not only restricted to a test-driven approach because we have a more or less formal description of the conceptual model which we directly encode in our programming language. If the language allows to express model specifications already at compile-time then this means that the implementation narrows the gap between model specification and implementation which means it does not need to be tested at run-time because it is guaranteed for all inputs for all time. 
+
+The constructiveness of ABS and impendance mismatch: ABS methodology is constructive but the established implementation approach not too much, creating an impedance mismatch. this is especially visible in the test-driven development dependent types constructive nature could close this mismatch.
+
+\section{Discussion}
+In this chapter we have shown how to  encode equilibria properties in the types in a way that the simulation automatically terminates when they are reached. This results then in a \textit{total} simulation, creating a \textit{correspondence between the equilibrium of a simulation and the totality of its implementation}. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.
+
+Models like the Sugarscape are exploratory in nature and don't have a formal ground truth where one could derive equilibria or dynamics from and validate with. In such models the researchers work with informal hypotheses which they express before running the model and then compare them informally against the resulting dynamics.
+
+It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very interesting application as it allows for a more formal and automatic testable approach to hypothesis checking.
+
+Often, Agent-Based Models define their agents in terms of state-machines. It is easy to make wrong state-transitions e.g. in the SIR model when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
+
+Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile-time. This would be a huge benefit for ABS because of the popularity of state-machines in agent-based models.
+
+State-Machines often have timed transitions e.g. in the SIR model, an infected agent recovers after a given time. Nothing prevents us from introducing a bug and \textit{never} doing the transition at all.
+
+With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps. Also can dependent types be used to express the flow of time and that it is strongly monotonic increasing?
+	
+In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
+
+Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step. %So it is a proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. 
+
+
+In case of an SD this will take forever to reach 0 due to the dynamics of the equations and floating point arithmetic is another difficulty. On the other hand, due to ABS discrete nature this is not an issue anymore: agents are discrete and as soon as we hit 0 infected agents - which, due to Integer representation, can be exact - an equilibrium is reached.
+
+Note that there exists a SIR+S model, which adds a cycle back from Recovered to Susceptible - if we add this cycle in our total implementation, this should make it immediately non-total as an important criteria for totality gets violated: the source of susceptible is not finite anymore and we might run in non-stationary cycles like in a prey-predator model with Lotka-Volterra equations.
+
+
+TODO: connect to property-based testing and put emphasise on the constructive nature and hypothesis testing: this is a popperian approach.
+
+FP is the first step towards a more structural understanding of ABS implementations where dependent types should allow us to develop this even further. we leave this for further research and outline only broadly the ideas we want to follow.
+
+Linear and Dependent Types with Idris 2: more general ideas / hints / research on how it is applicable to ABS
+
+By definition, ABS is of constructive nature, as described by Epstein \cite{epstein_chapter_2006}: "If you can't grow it, you can't explain it" - thus an agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently well. Although Epstein certainly wasn't talking about a constructive proof in any mathematical sense in this context (he was using the word \textit{generative}), dependent types \textit{might} be a perfect match and correspondence between the constructive nature of ABS and programs as proofs.
+
+When we talk about dependently typed programs to be proofs, then we also must attribute the same to dependently typed agent-based simulations, which are then constructive proofs as well. The question is then: a constructive proof of what? It is not entirely clear \textit{what we are proving} when we are constructing dependently typed agent-based simulations. Probably the answer might be that a dependently typed agent-based simulation is then indeed a constructive proof in a mathematical sense, explaining a real-world phenomenon sufficiently well - we have closed the gap between a rather informal constructivism as mentioned above when citing Epstein who certainly didn't mean it in a constructive mathematical sense, and a formal constructivism, made possible by the use of dependent types.

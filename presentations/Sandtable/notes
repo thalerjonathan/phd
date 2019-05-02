@@ -1,0 +1,22 @@
+- no need for big introduction into ABS but focus more on that there are different ABS according to macal "all you ever wanted to know..." 
+	-> direct communication yes / no 
+	-> ...
+
+- very basic introduction into FP, take from UNNC
+
+- introduce Zero-Intelligence Gode&Sunder
+	-> implementation in python
+	-> my implementation in Haskell and Idris
+	-> show graphs produce with R
+
+- briefly go through Haskell / Idris implementation
+	-> code on slides, explain carefully
+
+- property-based testing
+
+- complex topics
+	-> stateful agents (with internal state)
+	-> communicating agents
+	-> lock-free concurrency in ABS
+
+- conclusions

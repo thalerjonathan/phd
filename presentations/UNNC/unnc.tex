@@ -52,20 +52,12 @@
   \titlepage
 \end{frame}
 
-% TODO STRUCTURE
-% introduce abs, implemented oop, how in fp? 
-% go into what is fp? 
-% the problems with fp and abs, frp, example code, 
-% shorty stm concurrency, 
-% short property based testing
-% advanced: dependent types.
-
 \section{Introduction}
 \begin{frame}{The Metaphor}
 \begin{itemize}
-  \item "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]"
+  \item "[..] object-oriented programming is a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (Epstein et al 1996)
   
-  \item agents map naturally to objects (North et al 2007)
+  \item "agents map naturally to objects" (North et al 2007)
 \end{itemize}
 \end{frame}
 
@@ -77,19 +69,13 @@
   
   \item How can we do ABS + FP?  
   
-  \item ABS + FP = Type Safety
-  
-  \item ABS + FP = Software Transactional Memory 
-  
-  \item ABS + FP = Property-Based Testing 
-  
-  \item ABS + FP = Dependent Types
+  \item ABS + FP = ?
   
   \item Conclusions
 \end{itemize}
 \end{frame}
 
-\section{What is Agent-Based Simulation?}
+\section{Agent-Based Simulation}
 \begin{frame}{What is Agent-Based Simulation (ABS)?} 
   \begin{block}{Example}
     \textit{\textbf{Simulate} the spread of an infectious disease in a city. \\ What are the \textbf{dynamics} (peak, duration of disease)?}
@@ -161,22 +147,94 @@
 \includemovie[rate=2]{11cm}{6.5cm}{./video/SIR_DUNAI_dt001.mp4}
 \end{frame}
 
-\section{What is Pure functional programming?}
-TODO: explain monads: declare type of side-effects statically at compile-time, continuations and closures (which are simple objects with only 1 method)
+\section{Pure functional programming}
+\begin{frame}[fragile]{What is pure functional programming?}
+  \begin{block}{Functions as first class citizens}
+  	Passed as arguments, returned as values and assigned to variables.
+  \end{block}
+  
+  \begin{block}{}
+  \begin{minted}[fontsize=\normalsize]{haskell}
+  map :: (a -> b) -> [a] -> [b]
+	
+  const :: a -> (b -> a)
+  const a = (\_ -> a)
+  \end{minted}
+  \end{block}
+\end{frame}
+ 
+\begin{frame}[fragile]{What is pure functional programming cont'd?}
+  \begin{block}{Immutable data}
+ 	Variables can not change, functions return new copy. \\ Data-Flow oriented programming.
+  \end{block}
+  
+  \begin{block}{}
+  \begin{minted}[fontsize=\normalsize]{haskell}
+  let x   = [1..10]
+      x'  = drop 5 x
+      x'' = x' ++ [10..20] 
+  \end{minted}
+  \end{block}
+\end{frame}
+ 
+\begin{frame}[fragile]{What is pure functional programming cont'd?}
+  \begin{block}{Recursion}
+ 	To iterate over and change data. 
+  \end{block}
+  
+  \begin{block}{}
+  \begin{minted}[fontsize=\normalsize]{haskell}
+  fact :: Int -> Int
+  fact 0 = 1
+  fact n = n * fact (n-1)
+  \end{minted}
+  \end{block}
+\end{frame}
+ 
+\begin{frame}[fragile]{What is pure functional programming cont'd?}
+  \begin{block}{Declarative style}
+  	Describe \textit{what} to compute instead of \textit{how}.
+  \end{block}
+  
+  \begin{block}{}
+  \begin{minted}[fontsize=\normalsize]{haskell}
+  mean :: [Double] -> Double
+  mean xs = sum xs / length xs
+  \end{minted}
+  \end{block}
+\end{frame}
+ 
+\begin{frame}[fragile]{What is pure functional programming cont'd?}
+  \begin{block}{Explicit about Side-Effects}
+  	Distinguish between side-effects of a function \textit{in its type}.
+  \end{block}
+  
+  \begin{block}{}
+  \begin{minted}[fontsize=\normalsize]{haskell}
+  readFromFile :: String -> IO String
+  randomExponential :: Double -> Rand Double
+  statefulAlgorihm :: State Int (Maybe Double)
+  produceData :: Writer [Double] ()
+  \end{minted}
+  \end{block}
+\end{frame}
 
-\section{How can we do ABS + FP?}
-\begin{frame}{How to implement ABS?}
-  \begin{block}{Established, state-of-the-art approach in ABS}
-	Object-Oriented Programming in Python, Java,...
-	TODO: the concept of agents maps particularly well to agents
+\section{ABS + FP}
+\begin{frame}{How can we do ABS + FP?}
+  \begin{block}{How can we represent an Agent, its local state and its interface?}
+	We don't have objects and mutable state...
   \end{block}
   
-  \begin{block}{We want (pure) functional programming}
-	Purity, explicit about side-effects, declarative, reasoning, parallelism, concurrency, property-based testing,...
+  \begin{block}{How can we implement direct agent-to-agent interactions?}
+	We don't have method calls and mutable state...
   \end{block}
   
-  \begin{block}{How can we do it?}
-  	Functional Reactive Programming
+  \begin{block}{How can we implement an environment and agent-to-environment interactions?}
+	We don't have method calls and mutable state...
+  \end{block}
+  
+  \begin{block}{Solution}
+  	Functional Reactive Programming with Monadic Stream Functions
   \end{block}
 \end{frame}
 
@@ -186,7 +244,6 @@ TODO: explain monads: declare type of side-effects statically at compile-time, c
  	\item Signal Function 
  	\item Events
  	\item Effects like random-numbers, global state, concurrency
- 	%\item Running signal-functions in pure way
  	\item \textit{Arrowized} FRP using the \textit{Dunai} library
   \end{itemize}
 \end{frame}
@@ -207,45 +264,43 @@ TODO: explain monads: declare type of side-effects statically at compile-time, c
   \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{FRP combinators}
-\begin{block}{Dynamic change of behaviour}
+\begin{frame}[fragile]{Arrowized Functional Reactive Programming (AFRP)}
+\begin{block}{}
 \begin{minted}[fontsize=\footnotesize]{haskell}
-switch :: SF inp (out, Event e) 
-       -> (e -> SF inp out) 
-       -> SF inp out
-\end{minted}
-\end{block}
-
-\begin{block}{Stochastic event source}
-\begin{minted}[fontsize=\footnotesize]{haskell}
-occasionally :: RandomGen g  
-             => g -> Time -> b -> SF a (Event b)
-\end{minted}
-\end{block}
-
-\begin{block}{Random number stream}
-\begin{minted}[fontsize=\footnotesize]{haskell}
-noiseR :: (RandomGen g, Random b) 
-       => (b, b) -> g -> SF a b
-\end{minted}
-\end{block}
-
-\begin{block}{Infinitesimal delay (1 step)}
-\begin{minted}[fontsize=\footnotesize]{haskell}
-iPre :: a -> SF a a
+type AgentId    = Int
+data Message    = Tick Int | MatingRequest AgentGender ... 
+data AgentState = AgentState { agentAge :: Int, ... }             
+data Observable = Observable { agentAgeObs :: Int, ... } 
+data AgentOut   = AgentOut
+  { kill       :: Bool
+  , observable :: Observable
+  , messages   :: [(AgentId, Message)] -- list of messages with receiver
+  }
+-- agent continuation has different types for input and output
+newtype AgentCont inp out = AgentCont (inp -> (out, AgentCont inp out))
+-- taking the initial AgentState as input and returns the continuation
+sugarscapeAgent :: AgentState -> AgentCont (AgentId, Message) AgentOut
+sugarscapeAgent asInit = AgentCont (\ (sender, msg) -> 
+  case msg of
+    agentCont (sender, Tick t) = ... handle tick
+    agentCont (sender, MatingRequest otherGender) = ... handle mating request)
 \end{minted}
 \end{block}
 \end{frame}
 
-\section{ABS + FP = Type Saftey}
+\section{ABS + FP = ?}
 \begin{frame}{ABS + FP = Type Saftey}
+	\begin{block}{Epstein et al (1996)}
+    "... when the sequence of random numbers is specified ex ante the model is deterministic. Stated yet another way, model output is invariant from run to run when all aspects of the model are kept constant including the stream of random numbers."
+    \end{block}
+    
   \begin{itemize}
-    \item Purity guarantees reproducibility
-    \item Enforce and guarantee update semantics
+  	%\item Can guarantee that in our pure functional approach already at compile time.
+    \item Purity guarantees reproducibility.
+    \item Enforce and guarantee update semantics.
   \end{itemize}
 \end{frame}
 
-\section{ABS + FP = Software Transactional Memory}
 \begin{frame}{ABS + FP = Software Transactional Memory}
   \begin{itemize}
     \item Concurrency using Software Transactional Memory (STM)
@@ -256,14 +311,13 @@ iPre :: a -> SF a a
   \end{itemize}
 \end{frame}
 
-\begin{frame}{STM Semantics}
+\begin{frame}{ABS + FP = Software Transactional Memory cont'd}
   \begin{itemize}
     \item With Haskell typesystem can be explicit in side-effects: STM only
     \item Guarantees that the non-determinism comes only from concurrency within STM and nothing else
   \end{itemize}
 \end{frame}
 
-\section{ABS + FP = Property-Based Testing}
 \begin{frame}{ABS + FP = Property-Based Testing}
   \begin{itemize}
     \item Express specifications directly in code and generate random test cases
@@ -271,13 +325,10 @@ iPre :: a -> SF a a
   \end{itemize}
 \end{frame}
 
-\section{ABS + FP = Dependent Types}
-\begin{frame}{ABS + FP = Dependent Types}
+\begin{frame}{ABS + FP = Property-Based Testing cont'd}
   \begin{itemize}
-    \item Types as first class citizen: compute them at compile time
-    \item Types can contain values e.g. the size of a list 
-    \item Programs become proofs
-    \item Totality a central concept
+    \item Express specifications directly in code and generate random test cases
+    \item Stochastic nature of Property-Based TEsting and ABS should be perfect match
   \end{itemize}
 \end{frame}
 

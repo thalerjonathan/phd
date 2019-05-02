@@ -73,7 +73,7 @@ data AgentOut   = AgentOut
   , messages   :: [(AgentId, Message)] -- list of messages with receiver
   }
 -- agent continuation has different types for input and output
-newtype AgentCont inp out = AgentCont (in -> (out, AgentCont inp out))
+newtype AgentCont inp out = AgentCont (inp -> (out, AgentCont inp out))
 -- taking the initial AgentState as input and returns the continuation
 sugarscapeAgent :: AgentState -> AgentCont (AgentId, Message) AgentOut
 sugarscapeAgent asInit = AgentCont (\ (sender, msg) -> 

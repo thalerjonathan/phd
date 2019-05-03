@@ -29,8 +29,8 @@ main :: IO ()
 main = do
   let t = testGroup "SIR Spec Tests" 
           [ 
-             QC.testProperty "SIR time-driven" prop_sir_time_spec
-          -- QC.testProperty "SIR event-driven" prop_sir_event_spec
+            QC.testProperty "SIR time-driven" prop_sir_time_spec
+          , QC.testProperty "SIR event-driven" prop_sir_event_spec
           ]
 
   defaultMain t
@@ -39,13 +39,13 @@ main = do
 -- a considerable amount of time, so restrict to 100 runs to estimate a rough
 -- coverage
 prop_sir_time_spec :: Positive Int     -- ^ contact rate
-                   -> UnitRange        -- ^ infectivity, within range (0,1)
+                   -> Probability      -- ^ infectivity, within range (0,1)
                    -> Positive Double  -- ^ illness duration
                    -> TimeRange        -- ^ time to run
                    -> [SIRState]       -- ^ Random population
                    -> Property
 prop_sir_time_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage $ do
+    (Positive cor) (P inf) (Positive ild) (T t) as = checkCoverage $ do
   let repls = 100
 
   -- run 100 replications
@@ -65,13 +65,13 @@ prop_sir_time_spec
 -- a considerable amount of time, so restrict to 100 runs to estimate a rough
 -- coverage
 prop_sir_event_spec :: Positive Int     -- ^ contact rate
-                    -> UnitRange        -- ^ infectivity, within range (0,1)
+                    -> Probability      -- ^ infectivity, within range (0,1)
                     -> Positive Double  -- ^ illness duration
                     -> TimeRange        -- ^ time to run
                     -> [SIRState]       -- ^ Random population
                     -> Property
 prop_sir_event_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage $ do
+    (Positive cor) (P inf) (Positive ild) (T t) as = checkCoverage $ do
   let repls = 100
 
   -- run replications

@@ -51,11 +51,106 @@ We see that QuickCheck generates 100 test-cases for each property-test and it do
 
 QuickCheck generates 100 test-cases by default and requires all to pass - if there is a test-case which fails, the overall property-test fails and QuickCheck shrinks the input to a minimal size for which the case still fails and reports it as a counter example. This is the case in the last property-test \textit{reverse\_distributive} which is wrong as \textit{xs} and \textit{ys} need to be swapped on the right-hand side. In this run, QuickCheck found a counter-example to the property after 5 tests and applied 6 shrinks to find the minimal failing example of \textit{xs = [0]} and \textit{ys = [1]}. If we swap \textit{xs} and \textit{ys}, the property-test passes 100 test-cases just like the other two did. Note that it is possible to configure QuickCheck to generate more or less random test-cases, which can be used to increase the coverage if the sampling space is quite large - this will become useful later.
 
-\subsubsection*{Properties and Generators}
-TODO: property
-TODO: label
-TODO: ==>
-TODO: generators
+\subsubsection*{Generators}
+QuickCheck comes with a lot of data-generators for existing types like Strings, Int, Double, Lists,... but in case one wants to randomize custom data-types one has to write custom data-generators. There are two ways to do this: fix them at compile-time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data-type can then be used as random argument to a function as in the examples above. 
+
+Lets implement a custom data-generator for the \textit{SIRState} for both cases. Lets start with the run-time option, by running in the \textit{Gen} Monad:
+
+\begin{HaskellCode}
+genSIRState :: Gen SIRState
+genSIRState = elements [Susceptible, Infected, Recovered]
+\end{HaskellCode}
+
+This implementation makes use of the \textit{elements :: [a] -> Gen a} functions, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \textit{frequency :: [(Int, Gen a)] -> Gen a} function, where a frequency can be specified for each element. For example to generate on average 80\% Susceptible and 15\% Infected and  5\% Recovered can be achieved using this function:
+
+\begin{HaskellCode}
+genSIRState :: Gen SIRState
+genSIRState = frequency [(80, Susceptible), (15, Infected), (5, Recovered)]
+\end{HaskellCode}
+
+Implementing an \textit{Arbitrary} instance is straight forward, one only needs to implement the \textit{arbitrary :: Gen a} method:
+
+\begin{HaskellCode}
+instance Arbitrary SIRState where
+  arbitrary = genSIRState
+\end{HaskellCode}
+
+When we have a random \textit{Double} as input to a function but want to reduce its random range to 0-1 because it reflects a probability we can do this easily with \textit{newtype} and implementing an \textit{Arbitrary} instance. The same can be done for limiting the simulation duration to a lower range than the full \textit{Double} range.
+
+\begin{HaskellCode}
+newtype Probability = P Double deriving Show
+newtype TimeRange   = T Double deriving Show
+
+instance Arbitrary Probability where
+  arbitrary = P <$> choose (0, 1)
+  
+instance Arbitrary TimeRange where
+  arbitrary = T <$> choose (0, 50)
+\end{HaskellCode}
+
+The simulations we run all rely on a random-number generator, thus we need a randomly initialised random-number generator each time we run a simulation (as will be shown later). This can be easily achieved by drawing a seed from the full \textit{Int} range and creating an \textit{StdGen} from it:
+
+\begin{HaskellCode}
+genStdGen :: Gen StdGen
+genStdGen = mkStdGen <$> choose (minBound, maxBound)
+
+instance Arbitrary StdGen where
+  arbitrary = genStdGen
+\end{HaskellCode}
+%$
+
+\subsubsection*{Distribution}
+As already mentioned, QuickCheck provides functions to measure the coverage of test-cases. This can be done using the 
+\textit{label :: Testable prop => String -> prop -> Property} function. It takes a \textit{String} as first argument and a testable property and constructs a \textit{Property}. QuickCheck collects all generates labels, counts their occurrences and reports their distribution. For example it could be used to get a rough idea about the length of the random lists created in the \textit{reverse\_reverse} property shown above:
+
+\begin{HaskellCode}
+reverse_reverse_label :: [Int] -> Property
+reverse_reverse_label xs  
+  = label ("length of random-list is " ++ show (length xs)) 
+          (reverse (reverse xs) == xs)
+\end{HaskellCode}
+%$
+When running the test, we see the following output:
+
+\begin{verbatim}
++++ OK, passed 100 tests:
+ 5% length of random-list is 27
+ 5% length of random-list is 15
+ 5% length of random-list is 0
+ 4% length of random-list is 4
+ 4% length of random-list is 19
+ ...
+\end{verbatim}
 
 \subsubsection*{Coverage}
-TODO: cover with checkCoverage
+The most powerful functions to work with test-case distributions though are \textit{cover} and \textit{checkCoverage}. The function \textit{cover :: Testable prop => Double -> Bool -> String -> prop -> Property} allows to explicitly specify that a given percentage of successful test-cases belong to a given class. The first argument is the expected percentage, the second argument is a \textit{Bool} which indicates whether the current test-case belongs to the class or not; the third argument is a label for the coverage; the fourth argument is the property which needs to hold for the test-case to succeed. 
+
+Lets look at an example - we use cover to express that we expect 15\% of all test-cases to have a random list with at least 50 elements.
+
+\begin{HaskellCode}
+reverse_reverse_cover :: [Int] -> Property
+reverse_reverse_cover xs  
+  = cover 15 (length xs >= 50) "Length of random-list at least 50"
+             (reverse (reverse xs) == xs)
+\end{HaskellCode}
+
+When repeatedly running the test, we see the following output:
+
+\begin{verbatim}
++++ OK, passed 100 tests (10% length of random-list at least 50).
+Only 10% Length of random-list at least 50, but expected 15%.
+
++++ OK, passed 100 tests (21% length of random-list at least 50).
+\end{verbatim}
+
+As can be seen, QuickCheck runs the default 100 test-cases and prints a warning if the expected coverage is not reached. This is quite nice but it is up to us to decide whether 100 test-cases are suitable and whether we can really claim that the given coverage will be reached or not. Fortunately, QuickCheck provides the powerful function \textit{checkCoverage :: Testable prop => prop -> Property} which does this for us. QuickCheck runs an increasing number of test-cases for a given property-test with a \textit{cover} function until it can decide whether the percentage in \textit{cover} was reached or cannot be reached at all. The way QuickCheck does it, is by using sequential statistical hypothesis testing \ref{wald_sequential_1992} - thus if QuickCheck comes to the conclusion that the given percentage can/cannot be reached, it is based on a very strong statistical test.
+
+When we run the example from above but now with \textit{checkCoverage} we get the following output:
+
+\begin{verbatim}
++++ OK, passed 12800 tests (15.445% length of random-list at least 50).
+\end{verbatim}
+
+We see that after QuickCheck has ran 12,800 tests it came to the statistically robust conclusion that indeed 15\% of the test-cases have a random-list with at least 50 elements. 
+
+Note that \textit{cover} can be used to emulate failure of test-cases and get a measure of failure. Instead of computing the \textit{True/False} property in the last \textit{prop} argument, we set the last argument always to \textit{True} and compute the \textit{True/False} property in the second \textit{Bool} argument. This has the effect that \textit{all} test-cases are successful but that we get a distribution of failed/successful ones. In combination with \textit{checkCoverage}, this is a particularly powerful pattern for testing ABS which allows us to test hypotheses and statistical tests on distributions as will be shown in later chapters.

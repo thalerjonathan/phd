@@ -41,13 +41,13 @@ main = defaultMain $ testGroup "SIR Agent Specifications Tests"
 -- PROPERTIES
 --------------------------------------------------------------------------------
 prop_susceptible_invariants :: Positive Double  -- ^ beta, contact rate
-                            -> UnitRange        -- ^ gamma, infectivity within (0,1) range
+                            -> Probability      -- ^ gamma, infectivity within (0,1) range
                             -> Positive Double  -- ^ delta, illness duration
                             -> TimeRange        -- ^ duration, within (0,50) range
                             -> [SIRState]       -- ^ population
                             -> Property
 prop_susceptible_invariants
-      (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = property $ do  
+      (Positive cor) (P inf) (Positive ild) (T t) as = property $ do  
     -- population contains an infected agent True/False
     let infInPop = Infected `elem` as
 
@@ -126,7 +126,7 @@ prop_infected_invariants as = checkCoverage $ do
 prop_recovered_invariants :: TimeRange  -- ^ duration, within (0,50) range
                           -> [SIRState] -- ^ population
                           -> Property
-prop_recovered_invariants (TimeRange t) as = property $ do
+prop_recovered_invariants (T t) as = property $ do
   aos <- genRecovered as t 0.01
   return $ all (==Recovered) aos
 

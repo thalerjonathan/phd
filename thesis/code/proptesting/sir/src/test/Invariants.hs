@@ -33,7 +33,7 @@ main = do
           , QC.testProperty "SIR event-driven invariant" prop_sir_event_invariants
           , QC.testProperty "SIR event-driven random event sampling invariant" prop_sir_random_invariants
           , QC.testProperty "SIR time-driven invariant" prop_sir_time_invariants
-          -- , QC.testProperty "SIR time- and event-driven distribution" prop_sir_event_time_equal
+          , QC.testProperty "SIR time- and event-driven distribution" prop_sir_event_time_equal
           ]
 
   defaultMain t
@@ -42,11 +42,11 @@ main = do
 -- SIMULATION INVARIANTS
 --------------------------------------------------------------------------------
 prop_sir_event_invariants :: Positive Int    -- ^ beta, contact rate
-                          -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                          -> Probability     -- ^ gamma, infectivity, within (0,1) range
                           -> Positive Double -- ^ delta, illness duration
                           -> [SIRState]      -- ^ population
                           -> Property
-prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) as = checkCoverage $ do
+prop_sir_event_invariants (Positive cor) (P inf) (Positive ild) as = checkCoverage $ do
   -- total agent count
   let n = length as
 
@@ -62,11 +62,11 @@ prop_sir_event_invariants (Positive cor) (UnitRange inf) (Positive ild) as = che
   return (sirInvariants n equilibriumData)
 
 prop_sir_time_invariants :: Positive Double -- ^ beta, contact rate
-                         -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                         -> Probability     -- ^ gamma, infectivity, within (0,1) range
                          -> Positive Double -- ^ delta, illness duration
                          -> [SIRState]      -- ^ population
                          -> Property
-prop_sir_time_invariants (Positive cor) (UnitRange inf) (Positive ild) as = property $ do
+prop_sir_time_invariants (Positive cor) (P inf) (Positive ild) as = property $ do
   -- total agent count
   let n = length as
 
@@ -86,12 +86,12 @@ prop_sir_sd_invariants :: Positive Double -- ^ Susceptible agents
                        -> Positive Double -- ^ Infected agents
                        -> Positive Double -- ^ Recovered agents
                        -> Positive Double -- ^ Random beta, contact rate
-                       -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
+                       -> Probability     -- ^ Random gamma, infectivity, within (0,1) range
                        -> Positive Double -- ^ Random delta, illness duration
                        -> Positive Double -- ^ Random time
                        -> Bool
 prop_sir_sd_invariants (Positive s) (Positive i) (Positive r) 
-                       (Positive cor) (UnitRange inf) (Positive ild) 
+                       (Positive cor) (P inf) (Positive ild) 
                        (Positive t)
       = sirInvariantsFloating (s + i + r) ret
   where
@@ -100,11 +100,11 @@ prop_sir_sd_invariants (Positive s) (Positive i) (Positive r)
     ret = runSIRSD s i r cor inf ild t
 
 prop_sir_random_invariants :: Positive Int    -- ^ beta, contact rate
-                           -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                           -> Probability     -- ^ gamma, infectivity, within (0,1) range
                            -> Positive Double -- ^ delta, illness duration
                            -> NonEmptyList SIRState -- ^ population
                            -> Property
-prop_sir_random_invariants (Positive cor) (UnitRange inf) (Positive ild) (NonEmpty as) = property $ do
+prop_sir_random_invariants (Positive cor) (P inf) (Positive ild) (NonEmpty as) = property $ do
   -- total agent count
   let n = length as
   -- number of random events to generate
@@ -176,13 +176,13 @@ sirInvariantsFloating n aos = timeInc && aConst && susDec && recInc
 -- NOTE: need to use mann whitney because both produce bi-modal distributions
 -- thus t-test does not work because it assumes normally distributed samples
 prop_sir_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
-                          -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
+                          -> Probability     -- ^ Random gamma, infectivity, within (0,1) range
                           -> Positive Double -- ^ Random delta, illness duration
                           -> TimeRange       -- ^ Random time to run, within (0, 50) range)
                           -> [SIRState]      -- ^ Random population
                           -> Property
 prop_sir_event_time_equal
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage $ do
+    (Positive cor) (P inf) (Positive ild) (T t) as = checkCoverage $ do
   -- run 100 replications
   let repls = 100
  

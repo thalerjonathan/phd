@@ -1,5 +1,9 @@
 module Utils.GenEventSIR where
 
+import Control.Monad.Random
+import Control.Monad.Reader
+import Control.Monad.Writer
+import Data.MonadicStreamFunction.InternalCore
 import Test.Tasty.QuickCheck
 
 import SIR.Event
@@ -59,6 +63,23 @@ genQueueItem t ais = do
 eventTime :: QueueItem e -> Time
 eventTime (QueueItem _ _ et) = et
 
+genRunSusceptibleAgent :: Int
+                       -> Double
+                       -> Double
+                       -> Double
+                       -> [AgentId]
+                       -> SIREvent
+                       -> Gen (AgentId, SIRState, [QueueItem SIREvent])
+genRunSusceptibleAgent cor inf ild t ais evt = do
+  g <- genStdGen
+  -- the susceptible agents id is picked randomly from all empty agent ids
+  ai <- elements ais 
+  -- create susceptible agent with agent id
+  let a = susceptibleAgent ai cor inf ild
+  -- run agent with given event and configuration
+  let (_g', _a', ao, es) = runAgent g a evt t ais
+  return (ai, ao, es)
+
 genEventSIR :: [SIRState]
             -> Int
             -> Double
@@ -93,3 +114,22 @@ genEventSIRRepls :: Int
                  -> Gen [(Int, Int, Int)]
 genEventSIRRepls n as cor inf ild maxEvents tMax
   = map snd <$> vectorOf n (genLastEventSIR as cor inf ild maxEvents tMax)
+
+--------------------------------------------------------------------------------
+-- AGENT RUNNER
+--------------------------------------------------------------------------------
+runAgent :: RandomGen g
+         => g
+         -> SIRAgentCont g
+         -> SIREvent
+         -> Time
+         -> [AgentId]
+         -> (g, SIRAgentCont g, SIRState, [QueueItem SIREvent])
+runAgent g a e t ais  = (g', a', ao, es)
+  where
+    aMsf       = unMSF a e
+    aEvtWriter = runReaderT aMsf t
+    aAisReader = runWriterT aEvtWriter
+    aRand      = runReaderT aAisReader ais
+
+    (((ao, a'), es), g') = runRand aRand g

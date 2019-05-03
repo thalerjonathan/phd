@@ -39,10 +39,6 @@ The \textit{recovered} agents specification is very simple. It stays \textit{Rec
 The question is now how to put these into a property-test with QuickCheck. We focus on the susceptible agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. % In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property-tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property-tests.
 
 \subsection{Encoding invariants}
-TODO: change to random model params: beta, gamma, delta, positive time, non-empty agent ids list all in function type
-TODO: remove cover and checkCoverage, that overcomplicates things and makes it really difficult for the reader to understand, move the cover bit into a separate infectivity test
-TODO: restructure and clean up: define the properties first in pure functions and then build the property-test around, like i did in other chapters. also use pattern matching instead of case analysis
-
 We start by giving our property a name and use \textit{checkCoverage} to ask QuickCheck to enforce statistical testing to ensure soundness of our coverage which we will encode within this property. Also we define default values for the model parameters $\beta$, $\gamma$ and $\delta$.
 
 \begin{HaskellCode}

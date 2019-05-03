@@ -4,13 +4,12 @@ import Data.List
 import Data.Maybe
 import Text.Printf
 
-import Control.Monad.Random
-import FRP.Yampa
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
 import SIR.Time
 import Utils.GenSIR
+import Utils.GenTimeSIR
 import Utils.Stats
 
 -- import Debug.Trace
@@ -129,53 +128,6 @@ prop_recovered_invariants :: TimeRange  -- ^ duration, within (0,50) range
 prop_recovered_invariants (T t) as = property $ do
   aos <- genRecovered as t 0.01
   return $ all (==Recovered) aos
-
---------------------------------------------------------------------------------
--- CUSTOM GENERATORS
---------------------------------------------------------------------------------
-genAgent :: (StdGen -> SIRAgent)
-         -> [SIRState]
-         -> Double
-         -> Double
-         -> Gen [SIRState]
-genAgent a as tMax dt = do
-  g <- genStdGen
-
-  let ag  = a g
-      n   = floor (tMax / dt)
-      -- dts = if tMax == 0 then trace "infinite" repeat (dt, Nothing) else trace ("steps = " ++ show n) replicate n (dt, Nothing)
-      dts = if tMax == 0 then repeat (dt, Nothing) else replicate n (dt, Nothing)
-      aos = embed ag (as, dts)
-
-  return aos 
-
-genSusceptible :: Double
-               -> Double 
-               -> Double
-               -> [SIRState]
-               -> Double
-               -> Double
-               -> Gen [SIRState]
-genSusceptible cor inf ild as tMax dt = do
-  let a = susceptibleAgent cor inf ild
-  genAgent a as tMax dt
-
-genInfected :: Double
-            -> [SIRState]
-            -> Double
-            -> Double
-            -> Gen [SIRState]
-genInfected ild as tMax dt = do
-  let a = infectedAgent ild
-  genAgent a as tMax dt
-
-genRecovered :: [SIRState]
-             -> Double
-             -> Double
-             -> Gen [SIRState]
-genRecovered as tMax dt = do
-  let a = const recoveredAgent
-  genAgent a as tMax dt
 
 --------------------------------------------------------------------------------
 -- OBSOLETE TESTS

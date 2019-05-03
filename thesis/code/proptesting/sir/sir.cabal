@@ -175,6 +175,7 @@ Test-Suite sir-time-tests
   type:                 exitcode-stdio-1.0
 
   other-modules:        Utils.GenSIR
+                      , Utils.GenTimeSIR
                       , Utils.Stats
                       , SIR.Time
                       , SIR.Model

@@ -8,33 +8,35 @@ Note that the concepts presented here are applicable with slight adjustments to 
 With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only 3 events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. 
 
 \subsection{Deriving the specification}
-TODO: MakeContact has changed
-
-We start by giving the full \textit{specification} of the \textit{susceptible}, \textit{infected} and \textit{recovered} agent by stating the input-to-output event relations. The \textit{susceptible} agent is specified as follows:
+We start by giving the full \textit{specification} of the susceptible, infected and recovered agent by stating the input-to-output event relations. The susceptible agent is specified as follows:
 
 \begin{enumerate}
-	\item \textit{MakeContact} - If the agent receives this event it will output a random number of \textit{Contact ai Susceptible} events, where ai is the agents self id and the random number follows an exponential distribution with $\lambda = \beta$ (contact rate). The events have to be scheduled immediately without delay, thus having the current time as scheduling time-stamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
+	\item \textit{MakeContact} - If the agent receives this event it will output $\beta$  \textit{Contact ai Susceptible} events, where ai is the agents self id. The events have to be scheduled immediately without delay, thus having the current time as scheduling time-stamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
 	
-	\item \textit{Contact * Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it won't change its state, stays \textit{Susceptible} and does not schedule any events.
+	\item \textit{Contact \_ Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it won't change its state, stays \textit{Susceptible} and does not schedule any events.
 	
-	\item \textit{Contact * *} or \textit{Recover}  - If the agent receives any of these (other) events it won't change its state, stays \textit{Susceptible} and does not schedule any events.
+	\item \textit{Contact \_ \_} or \textit{Recover} - If the agent receives any of these (other) events it won't change its state, stays \textit{Susceptible} and does not schedule any events.
 \end{enumerate}
 
-This specification implicitly covers that a \textit{susceptible} agent can never transition from a \textit{Susceptible} to a \textit{Recovered} state within a single event - it can only make the transition to \textit{Infected} or stays \textit{Susceptible}. The \textit{infected} agents are specified as follows:
+This specification implicitly covers that a susceptible agent can never transition from a \textit{Susceptible} to a \textit{Recovered} state within a single event - it can only make the transition to \textit{Infected} or stays \textit{Susceptible}. The infected agents are specified as follows:
 
 \begin{enumerate}
 	\item \textit{Recover} - If the agent receives this, it will not schedule any events and make the transition to the \textit{Recovered} state.
 	
-	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to the sender, where \textit{ai} is the infected agents id and the scheduling time-stamp is the current time. It will not schedule any events and stays \textit{Infected}.
+	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to \textit{sender}, where \textit{ai} is the infected agents id and the scheduling time-stamp is the current time. It will not schedule any events and stays \textit{Infected}.
 	
 	\item In case of any other event, the agent will not schedule any events and stays \textit{Infected}.
 \end{enumerate}
 
-This specification implicitly covers that an \textit{infected} agent never goes back to the \textit{Susceptible} state - it can only make the transition to \textit{Recovered} or stay \textit{Infected}. From the specification of the \textit{susceptible} agent it becomes clear that a susceptible agent who became infected, will always recover as the transition to \textit{Infected} includes the scheduling of \textit{Recovered} to itself. 
+This specification implicitly covers that an infected agent never goes back to the \textit{Susceptible} state - it can only make the transition to \textit{Recovered} or stay \textit{Infected}. From the specification of the susceptible agent it becomes clear that a susceptible agent who became infected, will always recover as the transition to \textit{Infected} includes the scheduling of \textit{Recovered} to itself. 
+
+\medskip
 
 The \textit{recovered} agents specification is very simple. It stays \textit{Recovered} forever and does not schedule any events.
 
-The question is now how to put these into a property-test with QuickCheck. We focus on the \textit{susceptible} agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property-tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property-tests.
+\medskip
+
+The question is now how to put these into a property-test with QuickCheck. We focus on the susceptible agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. % In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property-tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property-tests.
 
 \subsection{Encoding invariants}
 TODO: change to random model params: beta, gamma, delta, positive time, non-empty agent ids list all in function type

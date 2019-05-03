@@ -80,6 +80,32 @@ genRunSusceptibleAgent cor inf ild t ais evt = do
   let (_g', _a', ao, es) = runAgent g a evt t ais
   return (ai, ao, es)
 
+genRunInfectedAgent :: Double
+                    -> [AgentId]
+                    -> SIREvent
+                    -> Gen (AgentId, SIRState, [QueueItem SIREvent])
+genRunInfectedAgent t ais evt = do
+  g <- genStdGen
+  -- the susceptible agents id is picked randomly from all empty agent ids
+  ai <- elements ais 
+  -- create susceptible agent with agent id
+  let a = infectedAgent ai
+  -- run agent with given event and configuration
+  let (_g', _a', ao, es) = runAgent g a evt t ais
+  return (ai, ao, es)
+
+genRunRecoveredAgent :: Double
+                     -> [AgentId]
+                     -> SIREvent
+                     -> Gen (SIRState, [QueueItem SIREvent])
+genRunRecoveredAgent t ais evt = do
+  g <- genStdGen
+  -- create susceptible agent with agent id
+  let a = recoveredAgent
+  -- run agent with given event and configuration
+  let (_g', _a', ao, es) = runAgent g a evt t ais
+  return (ao, es)
+
 genEventSIR :: [SIRState]
             -> Int
             -> Double

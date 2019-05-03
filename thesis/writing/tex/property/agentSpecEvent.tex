@@ -39,208 +39,209 @@ The \textit{recovered} agents specification is very simple. It stays \textit{Rec
 The question is now how to put these into a property-test with QuickCheck. We focus on the susceptible agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. % In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property-tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property-tests.
 
 \subsection{Encoding invariants}
-We start by giving our property a name and use \textit{checkCoverage} to ask QuickCheck to enforce statistical testing to ensure soundness of our coverage which we will encode within this property. Also we define default values for the model parameters $\beta$, $\gamma$ and $\delta$.
+We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \textit{Bool} indicating whether the invariants hold or not. The encoding is straightforward when using pattern matching and it nearly reads like a formal specification due to the declarative nature of functional programming.
 
 \begin{HaskellCode}
-prop_susceptible_invariants :: Property
-prop_susceptible_invariants = checkCoverage (do
-  let contactRate     = 5     -- beta
-      infectivity     = 0.05  -- gamma
-      illnessDuration = 15.0  -- delta
+susceptibleProps :: SIREvent              -- ^ Random event sent to agent
+                 -> SIRState              -- ^ Output state of the agent
+                 -> [QueueItem SIREvent]  -- ^ Events the agent scheduled
+                 -> AgentId               -- ^ Agent id of the agent
+                 -> Bool
+-- received Recover => stay Susceptible, no event scheduled
+susceptibleProps Recover Susceptible es _ = null es
+-- received MakeContact => stay Susceptible, check events
+susceptibleProps MakeContact Susceptible es ai
+  = checkMakeContactInvariants ai es cor 
+-- received Contact _ Recovered => stay Susceptible, no event scheduled
+susceptibleProps (Contact _ Recovered) Susceptible es _ = null es
+-- received Contact _ Susceptible => stay Susceptible, no event scheduled
+susceptibleProps (Contact _ Susceptible) Susceptible es _  = null es
+-- received Contact _ Infected, didn't get Infected, no event scheduled
+susceptibleProps (Contact _ Infected) Susceptible es _ = null es
+-- received Contact _ Infected AND got infected, check events
+susceptibleProps (Contact _ Infected) Infected es ai
+  = checkInfectedInvariants ai es
+-- all other cases are invalid and result in a failed test-case
+susceptibleProps _ _ _ _ = False
 \end{HaskellCode}
 
-Next we generate random attributes for the agent we want to create
+Next we give the implementation for the \textit{checkMakeContactInvariants} and \textit{checkInfectedInvariants} functions. The function \textit{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \textit{MakeContact} event. The \textit{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent got \textit{Infected}. Both implementations reads like a formal specification, again thanks to the declarative nature of functional programming and pattern matching:
 
 \begin{HaskellCode}
--- need a random number generator
-g <- genStdGen
--- generate non-empty list of agent ids, we have at least one agent
--- the susceptible agent itself
-ais <- genNonEmptyAgentIds
--- generate positive time
-(Positive t) <- arbitrary
--- the susceptible agents id is picked randomly from all empty agent ids
-ai <- elements ais 
+checkInfectedInvariants :: AgentId              -- ^ Agent id of the agent 
+                        -> [QueueItem SIREvent] -- ^ Events the agent scheduled
+                        -> Bool
+checkInfectedInvariants sender 
+  -- expect exactly one Recovery event
+  [QueueItem receiver (Event Recover) t'] 
+  -- receiver is sender (self) and scheduled into the future
+  = sender == receiver && t' >= t 
+-- all other cases are invalid
+checkInfectedInvariants _ _ = False
 \end{HaskellCode}
 
-Next we need to generate a random event out of \textit{MakeContact}, \textit{Recover} and \textit{Contact Int SIRState}. For this we have written a custom \textit{Generator}, which allows to specify frequencies and the agent ids to draw the contact ids from:
+The \textit{checkMakeContactInvariants} is a bit more complex but reads as a formal specification as well:
 
 \begin{HaskellCode}
-genEventFreq :: Int -> Int -> Int -> (Int, Int, Int) -> [AgentId] -> Gen SIREvent
-genEventFreq mcf _ rcf _ []  
-  -- no agent ids, will not generate Contact event
-  = frequency [ (mcf, return MakeContact), (rcf, return Recover)]
-genEventFreq mcf cof rcf (s,i,r) ais
-  = frequency [ (mcf, return MakeContact)
-              , (cof, do
-                  -- draw SIRState with frequency 
-                  ss <- frequency [ (s, return Susceptible)
-                                  , (i, return Infected)
-                                  , (r, return Recovered)]
-                  -- draw random element from agent ids
-                  ai <- elements ais
-                  return (Contact ai ss))
-              , (rcf, return Recover)]
-\end{HaskellCode}
-
-It is important to understand that together with the $\gamma$ (infectivity) parameter, the frequency of the \textit{Contact * Infected} event determines the probability of a susceptible agent to become infected. Thus we explicitly state the frequencies so we can compute the probabilities for the coverage feature.
-
-\begin{HaskellCode}
-let mkEvtFreq = 1
-    -- will never happen as Recover will never be sent to a Susceptible
-    recEvtFreq = 0
-    contEvtFreq = 5
-    contSusEvtFreq = 1
-    contInfEvtFreq = 3
-    -- will never happen, as a Recovered agent does not send any event,
-    contRecEvtFreq = 0
-    sirFreq    = (contSusEvtFreq, contInfEvtFreq, contRecEvtFreq)
-    sirFreqSum = contSusEvtFreq + contInfEvtFreq + contRecEvtFreq
-    evtFreqSum = mkEvtFreq + recEvtFreq + contEvtFreq
-    
--- generate a random event with given frequencies
-evt <- genEventFreq mkEvtFreq contEvtFreq recEvtFreq sirFreq ais
-\end{HaskellCode}
-
-Then we simply create and run the random susceptible agent and collect its output.
-
-\begin{HaskellCode}
--- create susceptible agent with agen id
-let a = susceptibleAgent ai contactRate infectivity illnessDuration
--- run agent with given event and configuration and collect its output state ao
--- the events es it has scheduled
-let (_, _, ao, es) = runAgent g a evt t ais
-\end{HaskellCode}
-
-Having generated the output of the random susceptible agent, we can now start encoding the invariants. In case the random generated event was \textit{Recover} we encode that the agent stays Susceptible and does not schedule any events. Further we compute its coverage given the frequencies of the events.
-
-\begin{HaskellCode}
-case evt of
-  Recover -> do
-    -- compute coverage
-    let cp = 100 * (recEvtFreq / evtFreqSum)
-    return (cover cp True "Susceptible receives Recover"
-           -- must stay Susceptible and not schedule any events
-           (null es && ao == Susceptible))
-\end{HaskellCode}
-
-Next is the invariant of the \textit{MakeContact} event. This is quite complex as it has a lot of small invariants encoded. We use a helper function to iterate over all events generated by the agent in which most of the invariants are encoded.
-
-TODO: count number of ContactRate messages, should be equal contact rate parameter
-
-\begin{HaskellCode}
-MakeContact -> do
-  -- compute coverage
-  let cp  = 100 * (mkEvtFreq / evtFreqSum)
-  -- check invariants
-  let ret = checkMakeContactInvariants ai ais t es
-  return (cover cp True "Susceptible receives MakeContact" 
-         -- must stay Susceptible 
-         (ret && ao == Susceptible))
-
-checkMakeContactInvariants :: AgentId -> [AgentId] -> Time -> [QueueItem SIREvent] -> Bool
-checkMakeContactInvariants sender ais t es 
-    -- make sure there was exactly one MakeContact event
-    = uncurry (&&) ret
+checkMakeContactInvariants :: AgentId              -- ^ Agent id of the agent 
+                           -> [QueueItem SIREvent] -- ^ Events the agent scheduled
+                           -> Int                  -- ^ Contact Rate
+                           -> Bool
+checkMakeContactInvariants sender es contactRate
+    -- make sure there has to be exactly one MakeContact event and
+    -- exactly contactRate Contact events
+    = invOK && hasMakeCont && numCont == contactRate
   where
-    -- start out with all OK and no MakeContact event found
-    ret = foldr checkMakeContactInvariantsAux (True, False) es
+    (invOK, hasMakeCont, numCont) 
+      = foldr checkMakeContactInvariantsAux (True, False, 0) es
 
-    checkMakeContactInvariantsAux :: QueueItem SIREvent -> (Bool, Bool) -> (Bool, Bool)
+    checkMakeContactInvariantsAux :: QueueItem SIREvent 
+                                  -> (Bool, Bool, Int)
+                                  -> (Bool, Bool, Int)
     checkMakeContactInvariantsAux 
-        (QueueItem receiver (Event (Contact sender' Susceptible)) t') (b, mkb)
+        (QueueItem receiver (Event (Contact sender' Susceptible)) t') (b, mkb, n)
       = (b && sender == sender'    -- the sender in Contact must be the Susceptible agent
            && receiver `elem` ais  -- the receiver of Contact must be in the agent ids
-           && t == t', mkb)        -- the Contact event is scheduled immediately
+           && t == t', mkb, n+1)   -- the Contact event is scheduled immediately
     checkMakeContactInvariantsAux 
-        (QueueItem receiver (Event MakeContact) t') (b, mkb) 
-      = (b && receiver == sender  -- the receiver of MakeContact is the Susceptible agent itself
-           && t' == t + 1.0       -- the MakeContact event is scheduled 1 time-unit into the future
-           && not mkb, True)      -- there can only be one MakeContact event
-    checkMakeContactInvariantsAux evt (_, mkb) = error ("failure " ++ show evt) (False, mkb)
+        (QueueItem receiver (Event MakeContact) t') (b, mkb, n) 
+      = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
+           && t' == t + 1.0        -- the MakeContact event is scheduled 1 time-unit into the future
+           &&  not mkb, True, n)   -- there can only be one MakeContact event
+    checkMakeContactInvariantsAux _ (_, _, _) 
+      = (False, False, 0) -- other patterns are invalid
 \end{HaskellCode}
 
-What is left is the \textit{Contact} event. We have to differentiate between the \textit{SIRState} it carries. We start by looking into \textit{Recovered}. In this case the agent stays \textit{Susceptible} and schedules no events. 
+What is left is to actually write a property-test using QuickCheck. We are making heavy use of random parameters to express that the properties have to hold invariant of the model parameters. We make use of additional data-generator modifiers: \textit{Positive} ensures that the value generated is positive; \textit{NonEmptyList} ensures that the randomly generated list is non-empty.
 
 \begin{HaskellCode}
-Contact _ s -> 
-  case s of
-    Recovered -> do
-      -- compute coverage
-      let cp = contEvtSplitProb * (contRecEvtFreq / sirFreqSum)
-      return (cover cp True "Susceptible receives Contact * Recovered"
-              -- stays Susceptible and schedules no events
-              (null es && ao == Susceptible))
+prop_susceptible_invariants :: Positive Int         -- ^ Contact rate
+                            -> Probability          -- ^ Infectivity
+                            -> Positive Double      -- ^ Illness duration
+                            -> Positive Double      -- ^ Current simulation time
+                            -> NonEmptyList AgentId -- ^ Agent ids of the population
+                            -> Gen Property
+prop_susceptible_invariants 
+  (Positive cor) (P inf) (Positive ild) (Positive t) (NonEmpty ais) = do
+  -- generate random event, requires the population agent ids
+  evt <- genEvent ais
+  -- run susceptible random agent with given parameters
+  (ai, ao, es) <- genRunSusceptibleAgent cor inf ild t ais evt
+  -- check properties
+  return $ property $ susceptibleProps evt ao es ai
 \end{HaskellCode}
 
-The behaviour in case of \textit{Susceptible} within the \textit{Contact} event is the same and thus not repeated here. What is left is the handling of a \textit{Contact} event with \textit{Infected}. In case the \textit{susceptible} agent didn't get infected nothing happens and the agent stays \textit{Susceptible}. On the other hand, in case of infection, the invariants of scheduled events must be checked.
+When running this property-test all 100 test-cases pass. Due to the large random sampling space with 5 parameters, we increase the number of test-cases to generate to 100,000 - still all test-cases pass.
+
+\subsection{Encoding transition probabilities}
+In the specifications above there are probabilistic state-transitions, for example an infected agent \textit{will} recover after a given time, which is randomly distributed with the exponential distribution. The susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \textit{cover} and \textit{checkCoverage} feature of QuickCheck.
+
+\subsubsection{Susceptible agent}
+We follow the same approach as in encoding the invariants of the susceptible agent but instead of checking the invariants, we compute the probability for each case. Note that in this propert-test we cannot randomise the model parameters because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here - still, the model parameters can be adjusted arbitrarily and the property (must) still hold. Note that we do not provide the details of computing the probabilities of each input-to-output case as it is quite technical and of not much importance - it is only a matter of multiplication and divisions amongst the event-frequencies and model parameters.
 
 \begin{HaskellCode}
-Infected -> do
-  -- compute coverage
-  let contInfProb = contEvtSplitProb * (contInfEvtFreq / sirFreqSum)
-  -- compute infection coverage
-  let infProb = contInfProb * infectivity
+prop_susceptible_proabilities :: Positive Double      -- ^ Current simulation time
+                              -> NonEmptyList AgentId -- ^ Agent ids of the population
+                              -> Property
+prop_susceptible_proabilities (Positive t) (NonEmpty ais) = checkCoverage (do
+  -- fixed model parameters, otherwise random coverage
+  let cor = 5
+      inf = 0.05
+      ild = 15.0
 
-  if ao /= Infected
-    -- not infected, nothing happens
-    then return
-          cover (contInfProb - infProb) True "Susceptible receives Contact * Infected, stays Susceptible"
-            -- stays Susceptible and does not schedule any events 
-            (null es && ao == Susceptible) 
-    -- infected, check invariants
-    else return 
-          cover infProb True ("Susceptible receives Contact * Infected, becomes Infected with prob " ++ show infProb)
-            (checkInfectedInvariants ai t es)
-            
-checkInfectedInvariants :: AgentId -> Time -> [QueueItem SIREvent] -> Bool
-checkInfectedInvariants sender t 
-    -- pattern match on exactly one Recovery event
-    [QueueItem receiver (Event Recover) t'] 
-  = sender == receiver && t' >= t           -- receiver is sender (self) and scheduled into the future
-checkInfectedInvariants _ _ _ = False       -- no other event allowed
+   -- compute distributions for all cases
+  let recoverPerc       = ...
+      makeContPerc      = ...
+      contactRecPerc    = ...
+      contactSusPerc    = ...
+      contactInfSusPerc = ...
+      contactInfInfPerc = ...
+
+  -- generate a random event
+  evt <- genEvent ais
+  -- run susceptible random agent with given parameters
+  (_, ao, _) <- genRunSusceptibleAgent cor inf ild t ais evt
+
+  -- encode expected distributions
+  return $ property $
+    case evt of 
+      Recover -> 
+        cover recoverPerc True 
+          ("Susceptible receives Recover, expected " ++ 
+           show recoverPerc) True
+      MakeContact -> 
+        cover makeContPerc True 
+          ("Susceptible receives MakeContact, expected " ++ 
+           show makeContPerc) True
+      (Contact _ Recovered) -> 
+        cover contactRecPerc True 
+          ("Susceptible receives Contact * Recovered, expected " ++ 
+           show contactRecPerc) True
+      (Contact _ Susceptible) -> 
+        cover contactSusPerc True 
+          ("Susceptible receives Contact * Susceptible, expected " ++ 
+           show contactSusPerc) True
+      (Contact _ Infected) -> 
+        case ao of
+          Susceptible ->
+            cover contactInfSusPerc True 
+              ("Susceptible receives Contact * Infected, stays Susceptible " ++
+               ", expected " ++ show contactInfSusPerc) True
+          Infected ->
+            cover contactInfInfPerc True 
+              ("Susceptible receives Contact * Infected, becomes Infected, " ++
+               ", expected " ++ show contactInfInfPerc) True
+          _ ->
+            cover 0 True "Impossible Case, expected 0" True
+
 \end{HaskellCode}
 
-The specifications and encodings of the infected and recovered agent follow same patterns and are not repeated here.
+When running the property-test we get the following output:
 
-\subsection{Encoding probabilities}
-TODO: move infectivity and illness duration to here
-
-%In the invariant we only checked the probability that a susceptible agent can become infected. What is missing is the property that the illness duration $\delta$ follows an exponential distribution. To test this we again make use of the coverage features of QuickCheck and encoding the property that the time of recovery, as reflected in the \textit{Recover} event follows the exponential distribution. Technically this can be checked by using the cumulative density function (CDF), which gives the probability that a random variable $X$ has a value less or equal than a given $x$. Using this, we can state that percentage of the test-cases where the infected agent generates an \textit{Recovered} event with recovery time less or equal $\delta$ has to be probability of the given CDF parametrised by $\delta$.
-%
-%\begin{HaskellCode}
-%prop_susceptible_meancontactrate :: Property
-%prop_susceptible_meancontactrate = checkCoverage (do
-%  let contactRate = 5 -- beta
-%  
-%  -- run a random susceptible agent making contactRate contacts
-%  -- on average and get number c of Contact events
-%  c <- genSusceptibleAgentMakeContact contactRate
-%
-%  -- compute probability that c is less than or equal contactRate
-%  -- which follows the CDF of the exponential distribution
-%  let prob = 100 * expCDF (1 / contactRate) contactRate
-%
-%  return
-%    -- the test-case belongs to the class if the number of Contact events
-%    -- scheduled is less or equal the contactRate
-%    cover prob (c <= contactRate) 
-%      ("susceptibles have mean contact rate of up " ++ show contactRate ++ 
-%        ", expected " ++ printf "\%.2f" prob)  True
-%\end{HaskellCode}
-%
-%The encoding of the illness duration probability follows the exactly same pattern and is not repeated here.
-
-\subsection{Running the tests}
-When running the tests we see QuickChecks coverage features at work. It will generate as many test-cases as necessary to ensure the soundness and robustness of the coverage properties and indeed all go through.
-
+\begin{footnotesize}
 \begin{verbatim}
-  Susceptible invariants:               OK (29.00s)
-    +++ OK, passed 204800 tests:
-    59.4336% Susceptible receives Contact * Infected, stays Susceptible
-    20.8301% Susceptible receives Contact * Susceptible
-    16.6772% Susceptible receives MakeContact
-     3.0591% Susceptible receives Contact * Infected, becomes Infected with prob 3.13
++++ OK, passed 819200 tests:
+33.3582% Susceptible receives MakeContact, expected 33.33%
+33.2578% Susceptible receives Recover, expected 33.33%
+11.1643% Susceptible receives Contact * Recovered, expected 11.11%
+11.1096% Susceptible receives Contact * Susceptible, expected 11.11%
+10.5616% Susceptible receives Contact * Infected, stays Susceptible, expected 10.56%
+ 0.5485% Susceptible receives Contact * Infected, becomes Infected, expected 0.56%
 \end{verbatim}
+\end{footnotesize}
 
-We see that the mean contact rate lies 3\% above the expected value, which is normal due to ABS stochastic nature, which makes the actual values vary. In repeated runs of the tests we get slightly different percentages due to different random number streams and random behaviour - still our properties hold, guaranteed by QuickChecks sequential statistical hypothesis testing.
+After 819,200 (!) test-cases QuickCheck comes to the conclusion that the distributions generated by the test-cases reflect the expected distributions and passes the property-test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing QuickCheck is able to conclude that the coverage are statistically equal.
+
+\subsubsection{Infected agent}
+We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute an expected probability agents have an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. Encoding this into a property-test is straight-forward:
+
+\begin{HaskellCode}
+prop_infected_duration :: Property
+prop_infected_duration = checkCoverage (do
+  -- fixed model parameter, otherwise random coverage
+  let ild  = 15
+  -- compute probability drawing a random value less or equal
+  -- ild from the exponential distribution (follows the CDF)
+  let prob = 100 * expCDF (1 / ild) ild
+
+  -- run random susceptible agent to become infected and
+  -- return agents state and recovery time
+  (ao, dur) <- getInfectedAgentDuration ild
+
+  return (cover prob (dur <= ild) 
+            ("Infected agent recovery time is less or equals " ++ show ild ++ 
+             ", expected at least " ++ show prob) 
+            (ao == Infected)) -- final state has to Infected
+\end{HaskellCode}
+
+When running the property-test we get the following output.
+
+\begin{footnotesize}
+\begin{verbatim}
++++ OK, passed 3200 tests 
+    (63.62% Infected agent recovery time is less or equals 15.0, 
+     expected at least 63.21%).
+\end{verbatim}
+\end{footnotesize}
+
+QuickCheck is able to determine after only 3,200 test-cases that the expected coverage is met and passes the property-test.

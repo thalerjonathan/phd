@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 module Main where
 
--- import Text.Printf
+import Text.Printf
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
@@ -10,6 +10,7 @@ import SIR.Model
 import SIR.Event
 import Utils.GenEventSIR
 import Utils.GenSIR
+import Utils.Stats
 
 -- --quickcheck-replay=557780
 -- --quickcheck-tests=1000
@@ -24,6 +25,7 @@ main = do
             QC.testProperty "Susceptible invariants" prop_susceptible_invariants
           , QC.testProperty "Susceptible probabilities" prop_susceptible_proabilities
           , QC.testProperty "Infected invariants" prop_infected_invariants
+          , QC.testProperty "Infected duration" prop_infected_duration
           , QC.testProperty "Recovered agent invariants" prop_recovered_invariant
           ]
 
@@ -36,11 +38,11 @@ main = do
 -- goes to recovered with 1 event - it either stays Susceptible or becomes
 -- infected. This becomes clear from observing the output and making sure
 -- that we have covered all cases
-prop_susceptible_invariants :: Positive Int
-                            -> Probability
-                            -> Positive Double
-                            -> Positive Double
-                            -> NonEmptyList AgentId
+prop_susceptible_invariants :: Positive Int         -- ^ Contact rate
+                            -> Probability          -- ^ Infectivity
+                            -> Positive Double      -- ^ Illness duration
+                            -> Positive Double      -- ^ Current simulation time
+                            -> NonEmptyList AgentId -- ^ Agent ids of the population
                             -> Gen Property
 prop_susceptible_invariants 
     (Positive cor) (P inf) (Positive ild) (Positive t) (NonEmpty ais) = do
@@ -51,10 +53,10 @@ prop_susceptible_invariants
     -- check properties
     return $ property $ susceptibleProps evt ao es ai
   where
-    susceptibleProps :: SIREvent
-                     -> SIRState
-                     -> [QueueItem SIREvent]
-                     -> AgentId
+    susceptibleProps :: SIREvent              -- ^ Random event sent to agent
+                     -> SIRState              -- ^ Output state of the agent
+                     -> [QueueItem SIREvent]  -- ^ Events the agent scheduled
+                     -> AgentId               -- ^ Agent id of the agent
                      -> Bool
     -- received Recover => stay Susceptible, no event scheduled
     susceptibleProps Recover Susceptible es _ = null es
@@ -73,20 +75,24 @@ prop_susceptible_invariants
     -- all other cases are invalid and result in a failed test-case
     susceptibleProps _ _ _ _ = False
 
-    checkInfectedInvariants :: AgentId
-                            -> [QueueItem SIREvent]
+    checkInfectedInvariants :: AgentId              -- ^ Agent id of the agent 
+                            -> [QueueItem SIREvent] -- ^ Events the agent scheduled
                             -> Bool
     checkInfectedInvariants sender 
-        [QueueItem receiver (Event Recover) t'] -- expect exactly one Recovery event
-      = sender == receiver && t' >= t -- receiver is sender (self) and scheduled into the future
+        -- expect exactly one Recovery event
+        [QueueItem receiver (Event Recover) t'] 
+      -- receiver is sender (self) and scheduled into the future
+      = sender == receiver && t' >= t 
+    -- all other cases are invalid
     checkInfectedInvariants _ _ = False
 
-    checkMakeContactInvariants :: AgentId
-                               -> [QueueItem SIREvent]
-                               -> Int
+    checkMakeContactInvariants :: AgentId              -- ^ Agent id of the agent 
+                               -> [QueueItem SIREvent] -- ^ Events the agent scheduled
+                               -> Int                  -- ^ Contact Rate
                                -> Bool
     checkMakeContactInvariants sender es contactRate
-        -- make sure there has to be exactly one MakeContact event
+        -- make sure there has to be exactly one MakeContact event and
+        -- exactly contactRate Contact events
         = invOK && hasMakeCont && numCont == contactRate
       where
         (invOK, hasMakeCont, numCont) 
@@ -105,7 +111,8 @@ prop_susceptible_invariants
           = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
                && t' == t + 1.0        -- the MakeContact event is scheduled 1 time-unit into the future
                &&  not mkb, True, n)   -- there can only be one MakeContact event
-        checkMakeContactInvariantsAux evt (_, mkb, _) = error ("failure " ++ show evt) (False, mkb)
+        checkMakeContactInvariantsAux _ (_, _, _) 
+          = (False, False, 0) -- other patterns are invalid
 
 prop_susceptible_proabilities :: Positive Double
                               -> NonEmptyList AgentId 
@@ -119,14 +126,14 @@ prop_susceptible_proabilities (Positive t) (NonEmpty ais) = checkCoverage $ do
       -- will never happen as Recover will never be sent to a Susceptible
       -- agent, thus it can be set to 0, but setting it to > 1 ensures that 
       -- also the edge case is handled
-      recEvtFreq = 0
-      contEvtFreq = 5
+      recEvtFreq = 1
+      contEvtFreq = 1
       contSusEvtFreq = 1
-      contInfEvtFreq = 3
+      contInfEvtFreq = 1
       -- will never happen, as a Recovered agent does not send any event,
       -- thus it can be set to 0, but setting it to > 1 ensures that also
       -- the edge case is handled
-      contRecEvtFreq = 0
+      contRecEvtFreq = 1
       sirFreq    = (contSusEvtFreq, contInfEvtFreq, contRecEvtFreq)
       sirFreqSum = fromIntegral $ contSusEvtFreq + contInfEvtFreq + contRecEvtFreq
       evtFreqSum = fromIntegral $ mkEvtFreq + recEvtFreq + contEvtFreq
@@ -142,89 +149,112 @@ prop_susceptible_proabilities (Positive t) (NonEmpty ais) = checkCoverage $ do
   (_ai, ao, _es) <- genRunSusceptibleAgent cor inf ild t ais evt
   
   -- compute all probabilities
-  let recoverPerc    = 100 * (fromIntegral recEvtFreq / evtFreqSum)
-      makeContPerc   = 100 * (fromIntegral mkEvtFreq / evtFreqSum)
-      contactRecPerc = contEvtSplitProb * (fromIntegral contRecEvtFreq / sirFreqSum)
-      contactSusPerc = contEvtSplitProb * (fromIntegral contSusEvtFreq / sirFreqSum)
+  let recoverPerc      = 100 * (fromIntegral recEvtFreq / evtFreqSum)
+      makeContPerc     = 100 * (fromIntegral mkEvtFreq / evtFreqSum)
+      contactRecPerc   = contEvtSplitProb * (fromIntegral contRecEvtFreq / sirFreqSum)
+      contactSusPerc   = contEvtSplitProb * (fromIntegral contSusEvtFreq / sirFreqSum)
       contactInfSusPerc = contInfProb - infProb
       contactInfInfPerc = infProb
-      
+
   return $ property $
     case evt of 
       Recover -> 
-        cover recoverPerc True "Susceptible receives Recover" True
+        cover recoverPerc True 
+          ("Susceptible receives Recover, expected " ++ printf "%.2f%%" recoverPerc) True
       MakeContact -> 
-        cover makeContPerc True "Susceptible receives MakeContact" True
+        cover makeContPerc True 
+          ("Susceptible receives MakeContact, expected " ++ printf "%.2f%%" makeContPerc) True
       (Contact _ Recovered) -> 
-        cover contactRecPerc True "Susceptible receives Contact * Recovered" True
+        cover contactRecPerc True 
+          ("Susceptible receives Contact * Recovered, expected " ++ printf "%.2f%%" contactRecPerc) True
       (Contact _ Susceptible) -> 
-        cover contactSusPerc True "Susceptible receives Contact * Susceptible" True
+        cover contactSusPerc True 
+          ("Susceptible receives Contact * Susceptible, expected " ++ printf "%.2f%%" contactSusPerc) True
       (Contact _ Infected) -> 
         case ao of
           Susceptible ->
-            cover contactInfSusPerc True "Susceptible receives Contact * Infected, stays Susceptible" True
+            cover contactInfSusPerc True 
+              ("Susceptible receives Contact * Infected, stays Susceptible, expected " ++
+               printf "%.2f%%" contactInfSusPerc) True
           Infected ->
-            cover contactInfInfPerc True "Susceptible receives Contact * Infected, becomes Infected" True
+            cover contactInfInfPerc True 
+              ("Susceptible receives Contact * Infected, becomes Infected, expected " ++
+               printf "%.2f%%" contactInfInfPerc) True
           _ ->
-            cover 0 True "Susceptible recceives Contact * Infected, becomes Recovered, Impossible" False
+            cover 0 True "Impossible Case, expected 0" True
+
+prop_infected_duration :: Property
+prop_infected_duration = checkCoverage $ do
+    -- fixed model parameter, otherwise random coverage
+    let ild  = 15
+    -- compute probability drawing a random value less or equal
+    -- ild from the exponential distribution (follows the CDF)
+    let prob = 100 * expCDF (1 / ild) ild
+
+    (ao, dur) <- getInfectedAgentDuration ild
+
+    return $ cover prob (dur <= ild) 
+              ("Infected agent recovery time is less or equals " ++ show ild ++ 
+               ", expected at least " ++ printf "%.2f%%" prob) 
+              (ao == Infected) -- final state has to Infected
+  where
+    getInfectedAgentDuration :: Double -> Gen (SIRState, Double)
+    getInfectedAgentDuration ild = do
+      -- with these parameters the susceptible agent WILL become infected
+      (_, ao, es) <- genRunSusceptibleAgent 1 1 ild 0 [0] (Contact 0 Infected)
+      return (ao, recoveryTime es)
+      where
+        recoveryTime :: [QueueItem SIREvent] -> Double
+        recoveryTime [QueueItem _ (Event Recover) t]  = t
+        recoveryTime _ = 0
 
 -- NOTE: this specification implicitly covers that an infected agent never 
 -- goes back to susceptible 
-prop_infected_invariants :: Property
-prop_infected_invariants = property $ do
-    -- need a random number generator
-    g  <- genStdGen
-    -- generate non-empty list of agent ids, we have at least one agent
-    -- the susceptible agent itself
-    ais <- genNonEmptyAgentIds
-    -- generate positive time
-    (Positive t) <- arbitrary
-    -- the infected agents id is picked randomly from all empty agent ids
-    ai <- elements ais 
+prop_infected_invariants :: Positive Double
+                         -> NonEmptyList AgentId
+                         -> Property
+prop_infected_invariants (Positive t) (NonEmpty ais) = property $ do
     -- generate a random event
-    evt <- genEvent ais
-
-    -- create susceptible agent with agent id
-    let a = infectedAgent ai
-    -- run agent with given event and configuration
-    let (_g', _a', ao, es) = runAgent g a evt t ais
-
-    case evt of
-      Recover -> return (null es && ao == Recovered)
-      
-      (Contact sender Susceptible) ->
-        return $ checkContactInvariants ai sender t es
-      
-      _ -> return (null es && ao == Infected)
-
+    evt          <- genEvent ais
+    (ai, ao, es) <- genRunInfectedAgent t ais evt
+   
+    return $ infectedProps evt ao es ai
   where
+    infectedProps :: SIREvent
+                  -> SIRState
+                  -> [QueueItem SIREvent]
+                  -> AgentId
+                  -> Bool
+    -- received Recover and has to become Recovered, no events scheduled
+    infectedProps Recover Recovered es _ = null es
+    -- received Contact from Susceptible, check scheduled events
+    infectedProps (Contact sender Susceptible) Infected es ai
+      = checkContactInvariants ai sender es
+    -- received any other event has to stay Infected, no events scheduled
+    infectedProps _ Infected es _ = null es
+    -- all other patterns are invalid
+    infectedProps _ _ _ _ = False
+
     checkContactInvariants :: AgentId
                            -> AgentId
-                           -> Time
                            -> [QueueItem SIREvent]
                            -> Bool
-    checkContactInvariants ai sender t 
-        [QueueItem receiver (Event (Contact ai' Infected)) t'] -- expect exactly one Contact * Infected event
+    checkContactInvariants ai sender 
+        -- expect exactly one Contact * Infected event
+        [QueueItem receiver (Event (Contact ai' Infected)) t'] 
       = sender == receiver && -- receiver is the sender of the initial Contact event
         ai     == ai'      && -- agent id in Contact is the Infected agent
         t'     == t           -- scheduled immediately
-    checkContactInvariants _ _ _ _  = False -- no other events expected
-
+    checkContactInvariants _ _ _  = False -- no other events expected
 
 -- NOTE: this specification implicitly covers that the recovered agent will
 -- stay recovered forever.
-prop_recovered_invariant :: Property
-prop_recovered_invariant = property $ do
-  g            <- genStdGen
-  -- must be non-empty because we have at least one agent in the simulation:
-  -- the recovered itself
-  ais          <- genNonEmptyAgentIds 
-  (Positive t) <- arbitrary
-  evt          <- genEvent ais
-
-  let a = recoveredAgent
-      (_g', _a', ao, es) = runAgent g a evt t ais
-
+prop_recovered_invariant :: Positive Double
+                         -> NonEmptyList AgentId
+                         -> Property
+prop_recovered_invariant (Positive t) (NonEmpty ais) = property $ do
+  evt      <- genEvent ais
+  (ao, es) <- genRunRecoveredAgent t ais evt
   return (null es && ao == Recovered)
 
 --------------------------------------------------------------------------------

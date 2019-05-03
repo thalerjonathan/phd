@@ -60,24 +60,34 @@
 This thesis shows how to implement Agent-Based Simulations (ABS) using the \textit{pure} functional programming paradigm and what the benefits and drawbacks are when doing so. As language of choice, Haskell is used due to its modern nature, increasing use in real-world applications and \textit{pure} nature. The thesis presents various implementation techniques to ABS and then discusses concurrency and parallelism and verification and validation in ABS in a pure functional setting. Additionally the thesis briefly discusses the use of dependent types in ABS, to close the gap between specification and implementation - something the presented implementation techniques don't focus on.
 Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS. \\
 
-TODO "finalise research" milestone until end of June 2019
+TODO "first draft" milestone until end of May 2019
 \begin{enumerate}
-	\item finish property-base testing work in Haskell: make sense of the SIR model verification which does not work: either give an in-depth explanation why not and why our implementation is still valid or find a way of solving it.
+	\item finish property-base testing 
+
+	\item Go through all chapters and make them first draft ready:
+	\begin{itemize}
+		\item Abstract (rephrase it)
+		\item Introduction (rephrase it, more punch)
+		\item Literature (more or less finished)
+		\item Methodology: (needs overhaul and focussing, put SIR and Sugarscape in there, short monad transformer section in methodology)
+		\item Implementing ABS: (more or less finished)
+		\item Time-Driven ABS (not much work, nearly finished)
+		\item Event-Driven ABS (probably more work)
+		\item Generalising ABS (a lot of work, very drafty so far)
+		\item SKIPPING PARALLEL ABS because it is first draft already
+		\item SKIPPING PROPERTY-BASED because it is first draft already
+		\item Discussion (a lot of work, only bits and pieces)
+		\item Conclusion (a lot of work, only bits and pieces)
+	\end{itemize}
+\end{enumerate}
+
+TODO "finalise research" milestone until end of July 2019
+\begin{enumerate}
+	\item Generalising ABS: extract the foundational properties: agents as monad / comonad / arrow and discuss their implications from an abstract point of view
 
 	\item implement SIR equilibrium-totality correspondence in Idris, closely related to the property-based testing
 
 	\item implement Gintis Case-Study and focus on property-tests and reasoning and potential directions for a dependently-typed implementation. this will be highly important for my internal assessor 
-\end{enumerate}
-
-TODO "first draft" milestone until end of July 2019
-\begin{enumerate}
-	\item Revise and finalise methodology.
-
-	\item Write short monad transformer section in methodology
-
-	\item Draft all chapters of discussion part.
-	
-	\item Write a first draft of conclusions and future research
 \end{enumerate}
 
 TODO "reflecting and filling in holes" milestone until end of August 2019
@@ -86,8 +96,6 @@ TODO "reflecting and filling in holes" milestone until end of August 2019
 	
 	\item Understand Ionescu: check what ionescou wants from his students and what literaure he cites, watch YouTube video
 
-	\item Generalising ABS: extract the foundational properties: agents as monad / comonad / arrow and discuss their implications from an abstract point of view
-	
 	\item Refine Presentation: Has to come across as a thesis, not a technical report! Need to discuss concepts more generally and derive more concepts from the explanations, otherwise it looks like an advanced technical report.
 \end{enumerate}
 

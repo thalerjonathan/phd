@@ -1,54 +1,59 @@
 \chapter{Testing SIR Invariants}
 \label{ch:sir_invariants}
 
-So far, our tests were stateless: only one computational step of an agent was considered by feeding a single event and ignoring the agent continuation. Also the events didn't contain any notion of time as they would carry within the queue. Feeding follow-up events into the continuation would make testing inherently stateful as we introduce history into the system. Such tests would allow to test the full life-cycle of one  agent or a full population.
+The tests in the previous chapter were stateless: only one computational step of an agent was considered by feeding a single event and ignoring the agent continuation. Also the events didn't contain any notion of time as they would carry within the queue. Feeding follow-up events into the continuation would make testing inherently stateful as we introduce history into the system. Such tests would allow to test the full life-cycle of one  agent or a full population.
 
-In this chapter we will discuss how we can encode properties and specifications which require stateful testing. We define stateful testing here as: evolving a simulation state consisting of one or more agents over multiple events. Note that this also includes running the whole simulation.
+In this chapter we will discuss how we can encode properties and specifications which require stateful testing. We define stateful testing here as: evolving a simulation state consisting of one or more agents over multiple events. Note that this also includes running the whole simulation. Note that we primarily focus on the event-driven implementation here unless noted otherwise.
+
+We first show how we can encode actual laws of the underlying SIR model into properties and write property-tests in QuickCheck for them. We then employ random event-sampling to check whether these invariants also hold when ignoring the event-interdependencies between agents. Finally we compare both the event- and time-driven implementations with each other, giving an excellent use-case for property-based testing in ABS. 
 
 \section{Deriving the invariants}
-By informally reasoning about the agent-specification and by realising that they are in fact a state-machine with a on-directional flow from Susceptible to Infected to Recovered, we can come up with a few invariants which have to hold for any SIR simulation run independent of the random-number stream and the population:
+By informally reasoning about the agent specification and by realising that they are in fact a state-machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered}, we can come up with a few invariants which have to hold for any SIR simulation run independent of the random-number stream and the population:
 
 \begin{enumerate}
-	\item Simulation time is monotonic increasing. For each event an output of the current number of S,I and R agents is generated together with the time when the events occurred. This event time can stay the same between steps, will eventually increase but must never decrease. Obviously this invariant is a fundamental assumption in most simulations: time advances into the future and does not flow backwards.
+	\item Simulation time is monotonic increasing. %For each event an output of the current number of S,I and R agents is generated together with the time when the events occurred. 
+	Each event carries a time-stamp when it is scheduled. This time-stamp may stay constant between multiple events but will eventually increase and must never decrease. Obviously this invariant is a fundamental assumption in most simulations: time advances into the future and does not flow backwards.
 	
-	\item The number of total agents $N$ stays constant in SIR. The SIR model does not specify the dynamic creation or removal of agents during simulation. This is in contrast to the Sugarscape where, depending on the model parameters, this can be very well the case.
+	\item The number of total agents $N$ stays constant. The SIR model does not specify the dynamic creation or removal of agents during simulation. This is in contrast to the Sugarscape where, depending on the model parameters, this can be very well the case.
 	
-	\item The number of \textit{Susceptible} agents $S$ is monotonic decreasing. Susceptile agents \textit{might} become infected, reducing the total number of susceptible agents but they can never increase because neither an infected nor recovered agent can go back to susceptible.
+	\item The number of \textit{Susceptible} agents $S$ is monotonic decreasing. Susceptile agents \textit{might} become infected, reducing the total number of susceptible agents but they can never increase because neither an infected nor recovered agent can go back to \textit{Susceptible}.
 	
-	\item The number of \textit{Recovered} agents $R$ is monotonic increasing. This is due to infected agents \textit{will} recover, leading to an increase of recovered agents but once the recovered state is reached, there is no escape from it.
+	\item The number of \textit{Recovered} agents $R$ is monotonic increasing. This is because infected agents \textit{will} recover, leading to an increase of recovered agents but once the recovered state is reached, there is no escape from it.
 	
 	\item The number of \textit{Infected} agents respects the invariant of the equation $I = N - (S + R)$ for every step. This follows directly from the first property which says $N = S + I + R$.
 \end{enumerate}
 
 \section{Encoding the invariants}
-All of those properties are easily expressed directly in code (TODO: add a note in the benefits how extremely well this is encoded in functional programming).
+All of those properties are easily expressed directly in code and read like a formal specification due to the declarative nature of functional programming:
 
 \begin{HaskellCode}
-sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
+sirInvariants :: Int                       -- ^ N total number of agents
+              -> [(Time,(Int,Int,Int))] -- ^ simulation output for each step/event: (Time, (S,I,R))
+              -> Bool
 sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
   where
     (ts, sirs)  = unzip aos
     (ss, _, rs) = unzip3 sirs
 
     -- 1. time is monotonic increasing
-    timeInc = mono (<=)  ts
+    timeInc = allPairs (<=) ts
     -- 2. number of agents N stays constant in each step
     aConst = all agentCountInv sirs
     -- 3. number of susceptible S is monotonic decreasing
-    susDec = mono (>=) ss
+    susDec = allPairs (>=) ss
     -- 4. number of recovered R is monotonic increasing
-    recInc = mono (<=)  rs
+    recInc = allPairs (<=) rs
     -- 5. number of infected I = N - (S + R)
     infInv = all infectedInv sirs
 
-    agentCountInv :: (Int, Int, Int) -> Bool
+    agentCountInv :: (Int,Int,Int) -> Bool
     agentCountInv (s,i,r) = s + i + r == n
 
-    infectedInv :: (Int, Int, Int) -> Bool
+    infectedInv :: (Int,Int,Int) -> Bool
     infectedInv (s,i,r) = i == n - (s + r)
 
-    mono :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
-    mono f xs = all (uncurry f) (pairs xs)
+    allPairs :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
+    allPairs f xs = all (uncurry f) (pairs xs)
 
     pairs :: [a] -> [(a,a)]
     pairs xs = zip xs (tail xs)
@@ -58,47 +63,46 @@ Putting this property into a QuickCheck test is straightforward. Note that we us
 
 \begin{HaskellCode}
 prop_sir_invariants :: Positive Int    -- ^ beta, contact rate
-                    -> UnitRange       -- ^ gamma, infectivity in range (0,1)
+                    -> Probability     -- ^ gamma, infectivity in range (0,1)
                     -> Positive Double -- ^ delta, illness duration
                     -> TimeRange       -- ^ random duration in range (0, 50)
                     -> [SIRState]      -- ^ population
                     -> Property
 prop_sir_invariants 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as  = property (do
+    (Positive cor) (P inf) (Positive ild) (T t) as  = property (do
   -- total agent count
   let n = length ss
-
   -- run the SIR simulation with a new RNG 
   ret <- genSimulationSIR ss cor inf ild t
   -- check invariants and return result
   return (sirInvariants n ret)
 \end{HaskellCode}
 
-Unsurprisingly all 100 tests pass. Note that we put a time-limit of 150 on the simulations to run, meaning that if a simulation does not terminate before that limit, it will be terminated at $t=150$. This is actually not necessary because we can reason that the SIR simulation \textit{will always} reach an equilibrium in finite steps thus not requiring an actual time-limit - we discuss this more in-depth in Chapter \ref{ch:equilibrium_totality}.
+Due to the large sampling space, we increase the number of test-cases to run to 10,000 and unsurprisingly all tests pass. Note that we put a random time-limit of (0,50) on the simulations to run, meaning that if a simulation does not terminate before that limit, it will be terminated at that random $t$. This is actually not necessary because we can reason that the SIR simulation \textit{will always} reach an equilibrium in finite steps thus not requiring an actual time-limit - we discuss this more in-depth in Chapter \ref{ch:equilibrium_totality}.
 
 \subsection{Random Event Sampling}
 An interesting question is whether or not these properties depend on correct interdependencies of events the agents send to each other in reaction to events they receive. Put in other words: do these invariants also hold under \textit{random event sampling}? To test this, instead of using the actual SIR implementation, which inserts the events generated by the agents into the event-queue, we wrote a new SIR kernel. It completely ignores the events generated by the agents and instead makes use of an infinite stream of random queue-elements from which it executes a given number, 100,000 in our case. Note that queue-elements contain a time-stamp, the receiver agent id and the actual event: the time-stamp is ensured to be increasing, to hold up the monotonic time property, the receiver agent id is drawn randomly from the constant list of all agents in the simulation and the actual event is generated completely randomly. As it turns out, the implementation of the agents ensure that the SIR properties are also invariant under \textit{random event sampling} - all tests pass.
 
 \section{Time-driven}
-TODO: there is no need for this extrem technical detail. describe conceptually what happened and make clear that we fixed it.
-
 We can expect that the invariants above also hold for the time-driven implementation. The property-test is exactly the same, with the time-driven implementation running instead of the even-driven one. A big difference is that is not necessary to check the property of monotonic increasing time, as it is an invariant statically guaranteed by arrowized FRP through the Yampa implementation. Due to the fact that the flow of time is always implicitly forward and no time-variable is explicitly made accessible within the code, it is not possible to violate the forward flow of time. Because of this, there is no need to check this property explicitly.
 
-When we run the property-test we get a big surprise though: after a few test-cases the property-test fails due to a violation of the invariants! After a little bit of investigation it becomes clear that the invariant \textit{(3) number of susceptible agents is monotonic decreasing} is violated: in the failing test-case the number of susceptible agents is monotonic decreasing with the exception of one step where it \textit{increases} by 1 just to decrease by 1 in the next step. A coverage test reveals that this happens in about 66\% of 1,000 test-cases. How can this happen?
+When we run the property-test we get a big surprise though: after a few test-cases the property-test fails due to a violation of the invariants! After a little bit of investigation it becomes clear that the invariant \textit{(3) number of susceptible agents is monotonic decreasing} is violated: in the failing test-case the number of susceptible agents is monotonic decreasing with the exception of one step where it \textit{increases} by 1 just to decrease by 1 in the next step. A coverage test reveals that this happens in about 66\% of 1,000 test-cases.
 
-\medskip
+The technicalities of the problem are highly involved and not provided in depth here. The source of the problem are the semantics of \textit{switch} and \textit{dpSwitch} which could lead to a delayed output of the agent-state, leading to inconsistencies when feeding it back as environment in the next step. The solution is to delay the output of the susceptible agent by one step using \textit{iPre} as already shown in the original time-driven implementation of \ref{sec:timedriven_firststep}. This solves the problem and the property-test passes. 
 
-The source of the problem is the use of \textit{dpSwitch} in the implementation of the \textit{stepSimulation} function as shown in Chapter \ref{sec:timedriven_firststep}. The d in \textit{dpSwitch} stands for delayed observation, which means that the output of the switch at time of switching is the output of the \textit{old} signal functions \cite{courtney_yampa_2003}. Speaking more technically: \textit{dpSwitch} is non-strict in its switching event, which ultimately results in old signal functions being run on new output which were but produced by those old signal functions: the output of time-step t is only visible in the time-step t=t+dt but the signal functions at time-step t are actually one step ahead. This is particularly visible at $t = 0$ and $t = \Delta t$, where the outputs are the same but the signal functions are not: the one at $t = \Delta t$ has changed already.
-
-This has the desired effect that in the case of our SIR implementation, the population the agents see at time $t = t + \Delta t$ is the one from the previous step t, generated with the signal functions at time $t$. Due to the semantics of \textit{dpSwitch}, in the next switching event those signal functions from time $t$ are run again with the new input to produce the next output \textit{and} the new signal functions - in each step output is produced but due to the delay of \textit{dpSwitch} and the use of \textit{notYet}, we get this alternating behaviour.
-
-This leads to trouble if the very rare case happens when a susceptible agent makes the transition from susceptible to recovered within one time-step. This is indeed possible due to the semantics of \textit{switch}, which is employed to make the state-transitions. In case a switching event occurs, \textit{switch} runs the signal function into which was switched immediately, which makes it highly unlikely but possible, that the susceptible agent, which has just switched into infected  recovers immediately by making the \textit{switch} to recovered. Why does this violate the property then?
-
-\medskip
-
-Lets assume that at $t = t + \Delta t$ the agents receive as input the population from time $t$ which contains, say 42, susceptible agents. A susceptible agent then makes the highly unlikely transition to recovered, reducing the number of susceptible agents by 1 to 41. In the next step the old signal function is run again but with the new input, which is slightly different, thus leading to slightly different probabilities. A susceptible agent has become recovered, which reduces probabilities of a susceptible agent becoming infected. When now the old signal function is run, it leads to a different output due to different probabilities: the susceptible agent stays susceptible instead of becoming infected (and then recovering). 
-
-One way to solve this problem would be to use \textit{pSwitch}. It is the non-delayed, stricht version of \textit{dpSwitch}, which output at time of switching is the output of the \textit{new} signal functions. Using \textit{pSwitch} instead of \textit{dpSwitch} solves the problem because it will use the new signal functions in the second run because it is strict. Indeed, when using this, the property-test passes. This comes though at a high cost: due to \textit{pSwitch} strict semantics, which runs all the signal functions before and at time of switching, all agents are run twice in each step! This is clearly an unacceptable solution, especially because the time-driven approach already suffers severe performance problems. A more performant solution is to delay the susceptible agents output, as we have done already in \ref{sec:timedriven_firststep}. This solves the problem as well and the property-test passes. 
+%\medskip
+%
+%The source of the problem is the use of \textit{dpSwitch} in the implementation of the \textit{stepSimulation} function as shown in Chapter \ref{sec:timedriven_firststep}. The d in \textit{dpSwitch} stands for delayed observation, which means that the output of the switch at time of switching is the output of the \textit{old} signal functions \cite{courtney_yampa_2003}. Speaking more technically: \textit{dpSwitch} is non-strict in its switching event, which ultimately results in old signal functions being run on new output which were but produced by those old signal functions: the output of time-step t is only visible in the time-step t=t+dt but the signal functions at time-step t are actually one step ahead. This is particularly visible at $t = 0$ and $t = \Delta t$, where the outputs are the same but the signal functions are not: the one at $t = \Delta t$ has changed already.
+%
+%This has the desired effect that in the case of our SIR implementation, the population the agents see at time $t = t + \Delta t$ is the one from the previous step t, generated with the signal functions at time $t$. Due to the semantics of \textit{dpSwitch}, in the next switching event those signal functions from time $t$ are run again with the new input to produce the next output \textit{and} the new signal functions - in each step output is produced but due to the delay of \textit{dpSwitch} and the use of \textit{notYet}, we get this alternating behaviour.
+%
+%This leads to trouble if the very rare case happens when a susceptible agent makes the transition from susceptible to recovered within one time-step. This is indeed possible due to the semantics of \textit{switch}, which is employed to make the state-transitions. In case a switching event occurs, \textit{switch} runs the signal function into which was switched immediately, which makes it highly unlikely but possible, that the susceptible agent, which has just switched into infected  recovers immediately by making the \textit{switch} to recovered. Why does this violate the property then?
+%
+%\medskip
+%
+%Lets assume that at $t = t + \Delta t$ the agents receive as input the population from time $t$ which contains, say 42, susceptible agents. A susceptible agent then makes the highly unlikely transition to recovered, reducing the number of susceptible agents by 1 to 41. In the next step the old signal function is run again but with the new input, which is slightly different, thus leading to slightly different probabilities. A susceptible agent has become recovered, which reduces probabilities of a susceptible agent becoming infected. When now the old signal function is run, it leads to a different output due to different probabilities: the susceptible agent stays susceptible instead of becoming infected (and then recovering). 
+%
+%One way to solve this problem would be to use \textit{pSwitch}. It is the non-delayed, stricht version of \textit{dpSwitch}, which output at time of switching is the output of the \textit{new} signal functions. Using \textit{pSwitch} instead of \textit{dpSwitch} solves the problem because it will use the new signal functions in the second run because it is strict. Indeed, when using this, the property-test passes. This comes though at a high cost: due to \textit{pSwitch} strict semantics, which runs all the signal functions before and at time of switching, all agents are run twice in each step! This is clearly an unacceptable solution, especially because the time-driven approach already suffers severe performance problems. A more performant solution is to delay the susceptible agents output, as we have done already in \ref{sec:timedriven_firststep}. This solves the problem as well and the property-test passes. 
 
 \section{Comparing time- and event-driven}
 %% THESE ARE NOTES TAKEN DURING TESTING, DON'T REMOVE, THEY EXPLAIN HOW WE ARRIVE AT THESE RESULTS
@@ -115,25 +119,25 @@ One way to solve this problem would be to use \textit{pSwitch}. It is the non-de
 %with t between 0 and 50 reaching up to 87\% !!
 %---------------------------------------------------------------------------------------------------------------------------
 
-Having two conceptually different implementations of the same model, an obvious questions we want to answer is whether they are producing the same dynamics or not: do both simulations produce the same distributions under random model parameters and simulation time? This is a perfect use-case for QuickCheck as well and easily encoded into a property-test.
+Having two conceptually different implementations of the same model, an obvious questions we want to answer is whether they are producing the same dynamics or not. To be more precise, we need to answer the question whether both simulations produce the same distributions under random model parameters and simulation time. This is a perfect use-case for QuickCheck as well and easily encoded into a property-test.
 
 We generate random values for $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) as well as a random population and a random duration to run the simulations for. Note that we restrict $\gamma$ to be drawn from the (0,1) range as it represents a probability; the random duration is drawn from the (0, 50) range to reduce the run-time duration to a reasonable amount without taking away the randomness.
 
-Both simulation types are run with the same random parameters for 100 replications, collecting the output of the final step. The samples of these replications are then compared using a Mann-Whitney test with a 95\% confidence (p-value of 0.05). The reason for choosing this statistical test over e.g. a two sample t-test is that the Mann-Whitney test does not require the samples to be normally distributed. We know both from experimental observations and discussions in \cite{macal_agent-based_2010} that both implementations produce a bi-modal distribution, thus we have to use a non-parametric test like Mann-Whitney to compare them. We discuss the issue of bi-modality more in Chapter \ref{ch:prop_sirspec}.
+Both simulation types are run with the same random parameters for 100 replications, collecting the output of the final step. The samples of these replications are then compared using a Mann-Whitney test with a 95\% confidence (p-value of 0.05). The reason for choosing this statistical test over a two sample T-Test is that the Mann-Whitney test does not require the samples to be normally distributed. We know both from experimental observations and discussions in \cite{macal_agent-based_2010} that both implementations produce a bimodal distribution, thus we have to use a non-parametric test like Mann-Whitney to compare them. We further discuss the issue of bimodality in Chapter \ref{ch:prop_sirspec}.
 
 %TODO: more discussion about this! this is the place where we can really introduce that. also macal only discusses event-driven and not time-driven, why can we then assume that time-driven also produces a bi-modal distribution? show some histograms of failing test-cases with t-tests
 
-The property-test requires a coverage of at least 90\% which makes our assumption explicit, that we expect both simulations to produce highly similar distributions despite their different underlying implementations.
+We expect a high coverage of at least 90\%, which makes our assumption explicit that we expect both simulations to produce highly similar distributions despite their different underlying implementations.
 
 \begin{HaskellCode}
-prop_event_time_equal :: Positive Int    -- ^ Random beta, contact rate
-                      -> UnitRange       -- ^ Random gamma, infectivity, within (0,1) range
-                      -> Positive Double -- ^ Random delta, illness duration
-                      -> TimeRange       -- ^ Random time to run within (0, 50) range
-                      -> [SIRState]      -- ^ Random population 
+prop_event_time_equal :: Positive Int    -- ^ beta, contact rate
+                      -> Probability     -- ^ gamma, infectivity, within (0,1) range
+                      -> Positive Double -- ^ delta, illness duration
+                      -> TimeRange       -- ^ time to run within (0, 50) range
+                      -> [SIRState]      -- ^ population 
                       -> Property
 prop_event_time_equal
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage (do
+    (Positive cor) (P inf) (Positive ild) (T t) as = checkCoverage (do
   -- run 100 replications for time- and event-driven simulation
   (ssTime, isTime, rsTime)    <- unzip3 <$> genTimeSIRRepls 100 as cor inf ild t
   (ssEvent, isEvent, rsEvent) <- unzip3 <$> genEventSIRRepls 100 as cor inf ild t
@@ -148,9 +152,8 @@ prop_event_time_equal
   let allPass = ssTest && isTest && rsTest 
 
   -- add the test to the coverage tests only if it passes.
-  -- We assume a 90% similarity
   return 
-    (cover 90 allPass "SIR event- and time-driven produce equal distributions" True)
+    (cover 90 allPass "SIR implementations produce equal distributions" True)
 \end{HaskellCode}
 
 Indeed when running this test, enforcing QuickCheck to perform sequential statistical hypothesis testing with \textit{checkCoverage}, after 800 tests QuickCheck passes the test.
@@ -163,6 +166,8 @@ Indeed when running this test, enforcing QuickCheck to perform sequential statis
 This result shows that both implementations produce highly similar distributions although they are not exactly the same as the 10\% of failure shows. We will discuss this issue in a broader context in Chapter Chapter \ref{ch:prop_sirspec}.
 
 \section{Discussion}
-TODO write a full reflection on this chapter
+In this chapter we have shown how to encode properties about simulation dynamics, generated by executing agents over time. This allowed to encode actual laws of the underlying SIR model in code and check them under random model parameters.
 
 In the case of the time-driven implementation we saw that our initial assumption, that the invariants will hold for this implementation as well was wrong: QuickCheck revealed a \textit{very} subtle bug in our implementation. Although the probability of this bug is very low, QuickCheck found it due to its random testing nature. This is another \textit{strong} evidence, that random property-based testing is an \textit{excellent} approach for testing Agent-Based Simulations. On the other hand, this bug revealed the difficulties in getting the subtle semantics of FRP right to implement pure functional ABS. This is a strong case that in general an event-driven approach should be preferred, which is also much faster and also not subject to the sampling issues discussed in Chapter \ref{sec:timedriven_firststep}.
+
+Finally we showed that property-based testing also allows to compare two conceptually different implementations of the same underlying model with each other. This is indeed a perfect use-case for property-based testing as it compares whole distributions and not only single runs using unit tests, making this another strong case for the use of property-based testing in ABS.

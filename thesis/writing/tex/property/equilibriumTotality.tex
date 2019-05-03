@@ -15,12 +15,12 @@ Using this informal reasoning, we change the property-test from Chapter \ref{ch:
 
 \begin{HaskellCode}
 prop_sir_invariants :: Positive Int    -- ^ beta, contact rate
-                    -> UnitRange       -- ^ gamma, infectivity in range (0,1)
+                    -> Property        -- ^ gamma, infectivity in range (0,1)
                     -> Positive Double -- ^ delta, illness duration
                     -> [SIRState]      -- ^ population
                     -> Property
 prop_sir_invariants 
-    (Positive cor) (UnitRange inf) (Positive ild) as  = property (do
+    (Positive cor) (P inf) (Positive ild) as  = property (do
   -- CHANGED: run the SIR simulation with UNRESTRICTED time
   ret <- genSimulationSIR ss cor inf ild 0
   -- CHANGED: take data as long as not in equilibrium

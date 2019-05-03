@@ -114,20 +114,22 @@ prop_sir_random_invariants (Positive cor) (P inf) (Positive ild) (NonEmpty as) =
 
   return (sirInvariants n ret)
 
-sirInvariants :: Int -> [(Time, (Int, Int, Int))] -> Bool
+sirInvariants :: Int                       -- ^ N total number of agents
+              -> [(Time, (Int, Int, Int))] -- ^ simulation output for each step/event: (Time, (S,I,R))
+              -> Bool
 sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
   where
     (ts, sirs)  = unzip aos
     (ss, _, rs) = unzip3 sirs
 
     -- 1. time is monotonic increasing
-    timeInc = mono (<=)  ts
+    timeInc = mono (<=) ts
     -- 2. number of agents N stays constant in each step
     aConst = all agentCountInv sirs
     -- 3. number of susceptible S is monotonic decreasing
-    susDec = mono (>=) ss
+    susDec = allPairs (>=) ss
     -- 4. number of recovered R is monotonic increasing
-    recInc = mono (<=)  rs
+    recInc = allPairs (<=) rs
     -- 5. number of infected I = N - (S + R)
     infInv = all infectedInv sirs
 
@@ -137,8 +139,8 @@ sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
     infectedInv :: (Int, Int, Int) -> Bool
     infectedInv (s,i,r) = i == n - (s + r)
 
-    mono :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
-    mono f xs = all (uncurry f) (pairs xs)
+    allPairs :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
+    allPairs f xs = all (uncurry f) (pairs xs)
 
     pairs :: [a] -> [(a,a)]
     pairs xs = zip xs (tail xs)

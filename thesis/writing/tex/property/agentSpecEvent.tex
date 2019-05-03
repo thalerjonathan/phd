@@ -137,64 +137,75 @@ When running this property-test all 100 test-cases pass. Due to the large random
 In the specifications above there are probabilistic state-transitions, for example an infected agent \textit{will} recover after a given time, which is randomly distributed with the exponential distribution. The susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \textit{cover} and \textit{checkCoverage} feature of QuickCheck.
 
 \subsubsection{Susceptible agent}
-We follow the same approach as in encoding the invariants of the susceptible agent but instead of checking the invariants, we compute the probability for each case. Note that in this propert-test we cannot randomise the model parameters because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here - still, the model parameters can be adjusted arbitrarily and the property (must) still hold. Note that we do not provide the details of computing the probabilities of each input-to-output case as it is quite technical and of not much importance - it is only a matter of multiplication and divisions amongst the event-frequencies and model parameters.
+We follow the same approach as in encoding the invariants of the susceptible agent but instead of checking the invariants, we compute the probability for each case. Note that in this property-test we cannot randomise the model parameters because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here - still, the model parameters can be adjusted arbitrarily and the property (must) still hold. %Note that we do not provide the details of computing the probabilities of each input-to-output case as it is quite technical and of not much importance - it is only a matter of multiplication and divisions amongst the event-frequencies and model parameters.
+We make use of the \textit{cover} function together with \textit{checkCoverage}, which ensures that we get a statistical robust estimate whether the expected percentages can be reached or not. Implementing this property-test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output.
 
 \begin{HaskellCode}
-prop_susceptible_proabilities :: Positive Double      -- ^ Current simulation time
-                              -> NonEmptyList AgentId -- ^ Agent ids of the population
-                              -> Property
-prop_susceptible_proabilities (Positive t) (NonEmpty ais) = checkCoverage (do
-  -- fixed model parameters, otherwise random coverage
-  let cor = 5
-      inf = 0.05
-      ild = 15.0
-
-   -- compute distributions for all cases
-  let recoverPerc       = ...
-      makeContPerc      = ...
-      contactRecPerc    = ...
-      contactSusPerc    = ...
-      contactInfSusPerc = ...
-      contactInfInfPerc = ...
-
-  -- generate a random event
-  evt <- genEvent ais
-  -- run susceptible random agent with given parameters
-  (_, ao, _) <- genRunSusceptibleAgent cor inf ild t ais evt
-
-  -- encode expected distributions
-  return $ property $
-    case evt of 
-      Recover -> 
-        cover recoverPerc True 
-          ("Susceptible receives Recover, expected " ++ 
-           show recoverPerc) True
-      MakeContact -> 
-        cover makeContPerc True 
-          ("Susceptible receives MakeContact, expected " ++ 
-           show makeContPerc) True
-      (Contact _ Recovered) -> 
-        cover contactRecPerc True 
-          ("Susceptible receives Contact * Recovered, expected " ++ 
-           show contactRecPerc) True
-      (Contact _ Susceptible) -> 
-        cover contactSusPerc True 
-          ("Susceptible receives Contact * Susceptible, expected " ++ 
-           show contactSusPerc) True
-      (Contact _ Infected) -> 
-        case ao of
-          Susceptible ->
-            cover contactInfSusPerc True 
-              ("Susceptible receives Contact * Infected, stays Susceptible " ++
-               ", expected " ++ show contactInfSusPerc) True
-          Infected ->
-            cover contactInfInfPerc True 
-              ("Susceptible receives Contact * Infected, becomes Infected, " ++
-               ", expected " ++ show contactInfInfPerc) True
-          _ ->
-            cover 0 True "Impossible Case, expected 0" True
-
+...
+case evt of 
+  Recover -> 
+    cover recoverPerc True 
+     ("Susceptible receives Recover, expected " ++ show recoverPerc) True
+...
 \end{HaskellCode}
+
+Note the usage pattern of \textit{cover}: we always include the test-case into the coverage class and all test-cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have use randomised model parameters. For this reason, and to keeps the concerns separated we opted for two different tests, which makes them also much more readable.
+
+%\begin{HaskellCode}
+%prop_susceptible_proabilities :: Positive Double      -- ^ Current simulation time
+%                              -> NonEmptyList AgentId -- ^ Agent ids of the population
+%                              -> Property
+%prop_susceptible_proabilities (Positive t) (NonEmpty ais) = checkCoverage (do
+%  -- fixed model parameters, otherwise random coverage
+%  let cor = 5
+%      inf = 0.05
+%      ild = 15.0
+%
+%   -- compute distributions for all cases
+%  let recoverPerc       = ...
+%      makeContPerc      = ...
+%      contactRecPerc    = ...
+%      contactSusPerc    = ...
+%      contactInfSusPerc = ...
+%      contactInfInfPerc = ...
+%
+%  -- generate a random event
+%  evt <- genEvent ais
+%  -- run susceptible random agent with given parameters
+%  (_, ao, _) <- genRunSusceptibleAgent cor inf ild t ais evt
+%
+%  -- encode expected distributions
+%  return $ property $
+%    case evt of 
+%      Recover -> 
+%        cover recoverPerc True 
+%          ("Susceptible receives Recover, expected " ++ 
+%           show recoverPerc) True
+%      MakeContact -> 
+%        cover makeContPerc True 
+%          ("Susceptible receives MakeContact, expected " ++ 
+%           show makeContPerc) True
+%      (Contact _ Recovered) -> 
+%        cover contactRecPerc True 
+%          ("Susceptible receives Contact * Recovered, expected " ++ 
+%           show contactRecPerc) True
+%      (Contact _ Susceptible) -> 
+%        cover contactSusPerc True 
+%          ("Susceptible receives Contact * Susceptible, expected " ++ 
+%           show contactSusPerc) True
+%      (Contact _ Infected) -> 
+%        case ao of
+%          Susceptible ->
+%            cover contactInfSusPerc True 
+%              ("Susceptible receives Contact * Infected, stays Susceptible " ++
+%               ", expected " ++ show contactInfSusPerc) True
+%          Infected ->
+%            cover contactInfInfPerc True 
+%              ("Susceptible receives Contact * Infected, becomes Infected, " ++
+%               ", expected " ++ show contactInfInfPerc) True
+%          _ ->
+%            cover 0 True "Impossible Case, expected 0" True
+%\end{HaskellCode}
 
 When running the property-test we get the following output:
 
@@ -213,7 +224,22 @@ When running the property-test we get the following output:
 After 819,200 (!) test-cases QuickCheck comes to the conclusion that the distributions generated by the test-cases reflect the expected distributions and passes the property-test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing QuickCheck is able to conclude that the coverage are statistically equal.
 
 \subsubsection{Infected agent}
-We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute an expected probability agents have an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. Encoding this into a property-test is straight-forward:
+We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute an expected probability agents have an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. The question is how to get the infected illness duration. This is simply achieved by infecting a susceptible agent and taking the scheduling time of the \textit{Recover} event. We have written a custom data-generator for this:
+
+\begin{HaskellCode}
+getInfectedAgentDuration :: Double -> Gen (SIRState, Double)
+getInfectedAgentDuration ild = do
+  -- with these parameters the susceptible agent WILL become infected
+  (_, ao, es) <- genRunSusceptibleAgent 1 1 ild 0 [0] (Contact 0 Infected)
+  return (ao, recoveryTime es)
+  where
+    -- expect exactly one event: Recover
+    recoveryTime :: [QueueItem SIREvent] -> Double
+    recoveryTime [QueueItem _ (Event Recover) t]  = t
+    recoveryTime _ = 0
+\end{HaskellCode}
+
+Encoding the probability check into a property-test is straight-forward:
 
 \begin{HaskellCode}
 prop_infected_duration :: Property

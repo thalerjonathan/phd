@@ -5,7 +5,7 @@ TODO: replace maxFailPercent with cover and checkCoverage and configure quickche
 
 In this chapter we look at how property-based testing can be made of use to verify the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996} as already introduced in Chapter \ref{sec:sugarscape}. Whereas in the previous chapter on testing the explanatory SIR case-study we had an analytical solution, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a mode.
 
-The answer lies in the very nature of exploratory models: they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and then (hopefully) come up with a few questions and  \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree are abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
+The answer lies in the very nature of exploratory models: they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and then (hopefully) come up with a few questions and  \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
 
 We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}}. A longer report on the details of this validation process is attached as Appendix \ref{app:validating_sugarscape}, in this section we focus on QuickChecks role in this process.
 
@@ -28,15 +28,13 @@ The property we test for is whether \textit{the emergent property / hypothesis u
 \end{enumerate}
 
 \section{Implementation}
-To implement this, we make use of QuickChecks \textit{Generator} concept. A \textit{Generator} defines how specific (random) data can be generated and is implemented using the \textit{Gen} monad where all of QuickChecks random distribution functionality is available. Thus it is only natural that we implement a \textit{Generator} to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
+To implement this, we implement a custom data-generator to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
 
 \begin{HaskellCode}
 sugarscapeUntil :: Int -> SugarScapeScenario -> Gen [SimStepOut]
 sugarscapeUntil ticks params = do
-  -- draw a seed for the random-number generator from the full range of Int
-  seed <- choose (minBound, maxBound)
   -- create a random-number generators
-  let g = mkStdGen seed
+  g <- genStdGen
   -- initialise the simulation state with the given random-number generator
   -- and the parameters
   let (simState, _, _) = initSimulationRng g params
@@ -44,7 +42,7 @@ sugarscapeUntil ticks params = do
   return (simulateUntil ticks simState)
 \end{HaskellCode}
 
-Using this generator, we can very conveniently produce sugarscape data within a property. Depending on the problem, we can generate only a single run or multiple replications, in case the hypothesis is assuming \textit{averages}. To see its use, we show the encoding of the \textit{Disease Dynamics (1)} hypothesis. Its type is \textit{Property}, which is required by QuickChecks top-level testing function. To generate a property, the \textit{property} function is used which takes a \textit{Gen Bool} computation or a simple \textit{Bool} function as predicate to indicate success (True) or failure (False). In this case we use a \textit{Gen Bool} to be able to run the sugarscape data generator.
+Using this generator, we can very conveniently produce sugarscape data within a property. Depending on the problem, we can generate only a single run or multiple replications, in case the hypothesis is assuming \textit{averages}. To see its use, we show the encoding of the \textit{Disease Dynamics (1)} hypothesis. Its type is \textit{Property}, which is required by QuickChecks top-level testing function. To generate a property, the \textit{property} function is used which takes a \textit{Gen Bool} computation or a simple \textit{Bool} function as predicate to indicate success (True) or failure (False).
 
 \begin{HaskellCode}
 prop_disease_allrecover :: Property
@@ -53,7 +51,6 @@ prop_disease_allrecover = property (do
   let ticks  = 100
   -- ... given Animation V-1 parameter configuration ...
   let params = mkParamsAnimationV_1
-
   -- ... from 1 sugarscape simulation ...
   aos <- sugarscapeLast ticks params
   -- ... counting all infected agents ...
@@ -62,10 +59,12 @@ prop_disease_allrecover = property (do
   return (infected == 0))
 \end{HaskellCode}
 
-QuickCheck runs multiple replications of a property when testing it, where the number is 100 by default. From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.7. We cannot average over replicated runs of the same property thus we generate multiple replications of the sugarscape data within the property and employ a two-sided t-test with a 95\% confidence to test the hypothesis. Here is how we encode this into a property-test:
+From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.7. We cannot average over replicated runs of the same property thus we generate multiple replications of the sugarscape data within the property and employ a two-sided T-Test with a 95\% confidence to test the hypothesis:
 
 \begin{HaskellCode}
-prop_gini :: Int -> Double -> Property
+prop_gini :: Int      -- ^ Number of replications
+          -> Double   -- ^ Confidence of the t-test
+          -> Property
 prop_gini repls confidence = property (do
   -- after 1000 ticks...
   let ticks = 1000
@@ -73,14 +72,11 @@ prop_gini repls confidence = property (do
   let expGini = 0.7
   -- ... given the Figure III-7 parameter configuration ...
   let params = mkParamsFigureIII_7
-  
   -- ... from repls replciations ... 
   gini <- vectorOf repls (genGiniCoeff ticks params)
-
   -- on a two-tailed t-test with given confidence
   let giniTTest = tTestSamples TwoTail expGini (1 - confidence) gini
-
-  return giniTTest)
+  return giniTTest
   
 genGiniCoeff :: Int -> SugarScapeScenario -> Gen Double
 genGiniCoeff ticks params = do

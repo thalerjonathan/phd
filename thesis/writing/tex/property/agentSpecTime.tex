@@ -106,31 +106,31 @@ infectedInvariant aos dt  = do
     else Nothing
 \end{HaskellCode}
 
-To put this into a property-test, we follow a similar approach as in the event-driven case of the infected agents invariants. We employ the CDF of the exponential distribution to get the probability of an agent recovering within $\delta$ (illness duration) time steps. We then run a random infected agent for an \textit{unlimited} time with a sampling rate o f $\Delta t = 0.01$ and search in its potentially infinite output stream for the first occurrence of an \textit{Infected} element to compute the recovery time, as shown in the invariant above.
+To put this into a property-test, we follow a similar approach as in the event-driven case of the infected agents invariants. We employ the CDF of the exponential distribution to get the probability of an agent recovering within $\delta$ (illness duration) time steps. We then run a random infected agent for an \textit{unlimited} time with a sampling rate o f $\Delta t = 0.01$ and search in its potentially infinite output stream for the first occurrence of an \textit{Infected} element to compute the recovery time, as shown in the invariant above. The code is conceptually exactly the same as in the event-driven case, so we do not repeat the property-test here.
 
-\begin{HaskellCode}
-prop_infected_invariants :: [SIRState] -> Property
-prop_infected_invariants as = checkCoverage (do
-  -- delta, illnes duration
-  let illnessDuration = 15.0
-  -- compute perc of agents which recover in less or equal 
-  -- illnessDuration time-units. Follows the exponential distribution
-  -- thus we use the CDF to compute the probability.
-  let prob = 100 * expCDF (1 / illnessDuration) illnessDuration
-  -- fixed sampling rate
-  let dt = 0.01
-
-  -- run a random infected agent without time-limit (0) and sampling rate
-  -- of 0.01 and return its infinite output stream 
-  aos <- genInfected illnessDuration as 0 dt
-
-  -- compute the recovery time
-  let dur = infectedInvariant aos dt
-
-  return (cover prob (fromJust dur <= illnessDuration)
-            ("infected agents have an illness duration of " ++ show illnessDuration ++
-             " or less, expected " ++ show prob) (isJust dur)
-\end{HaskellCode}
+%\begin{HaskellCode}
+%prop_infected_invariants :: [SIRState] -> Property
+%prop_infected_invariants as = checkCoverage (do
+%  -- delta, illnes duration
+%  let illnessDuration = 15.0
+%  -- compute perc of agents which recover in less or equal 
+%  -- illnessDuration time-units. Follows the exponential distribution
+%  -- thus we use the CDF to compute the probability.
+%  let prob = 100 * expCDF (1 / illnessDuration) illnessDuration
+%  -- fixed sampling rate
+%  let dt = 0.01
+%
+%  -- run a random infected agent without time-limit (0) and sampling rate
+%  -- of 0.01 and return its infinite output stream 
+%  aos <- genInfected illnessDuration as 0 dt
+%
+%  -- compute the recovery time
+%  let dur = infectedInvariant aos dt
+%
+%  return (cover prob (fromJust dur <= illnessDuration)
+%            ("infected agents have an illness duration of " ++ show illnessDuration ++
+%             " or less, expected " ++ show prob) (isJust dur)
+%\end{HaskellCode}
 
 When running the test we get the following output, indicating that QuickCheck finds the coverage satisfied after 3,200 test-cases:
 

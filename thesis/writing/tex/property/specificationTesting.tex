@@ -27,15 +27,15 @@ R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
 \section{Deriving a property}
-The goal is now to derive a property which connects those equations with our implementation. We have to be careful and realise a fundamental difference between the SD and ABS implementations: SD is deterministic and continuous, ABS is stochastic and discrete. Thus we cannot compare single runs but we can only compare averages: stated informally, the property we want to implement is that the ABS dynamics matches the SD ones \textit{on average}, independent of the finite population size, model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) and duration of the simulation. To be able to compare averages, we run 100 replications of the ABS simulation with same parameters except a different random-number generator in each replication and collect the output of the final steps. We then run a two-sided t-test on the replication values with the expected values from an SD simulation.
+The goal is now to derive a property which connects those equations with our implementation. We have to be careful and realise a fundamental difference between the SD and ABS implementations: SD is deterministic and continuous, ABS is stochastic and discrete. Thus we cannot compare single runs but we can only compare averages: stated informally, the property we want to implement is that the ABS dynamics matches the SD ones \textit{on average}, independent of the finite population size, model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) and duration of the simulation. To be able to compare averages, we run 100 replications of the ABS simulation with same parameters except a different random-number generator in each replication and collect the output of the final steps. We then run a two-sided T-Test on the replication values with the expected values from an SD simulation.
 
 \begin{HaskellCode}
 compareSDToABS :: Int     -- ^ Initial number of susceptibles
                -> Int     -- ^ Initial number of infected
                -> Int     -- ^ Initial number of recovered
-               -> [Int]   -- ^ Final Number of susceptibles in replications
-               -> [Int]   -- ^ Final Number of infected in replications
-               -> [Int]   -- ^ Final Number of recovered in replications
+               -> [Int]   -- ^ Final number of susceptibles in replications
+               -> [Int]   -- ^ Final number of infected in replications
+               -> [Int]   -- ^ Final number of recovered in replications
                -> Int     -- ^ beta (contact rate)
                -> Double  -- ^ gamma (infectivity)
                -> Double  -- ^ delta (illness duration)
@@ -54,23 +54,25 @@ compareSDToABS s0 r0 i0
     rTest = tTestSamples TwoTail r (1 - confidence) rs
 \end{HaskellCode}
 
-The implementation of \textit{simulateSD} is discussed in-depth in the Appendix \ref{app:sdSimulation}. We are very well aware that comparing the output against an SD simulation is dangerous: after all, why should be trust the SD implementation? As outlined in the Appendix \ref{app:sdSimulation}, great care has been taken to ensure the correctness: the formulas from the SIR specification are directly encoded in code, allowed by Yampas arrowized FRP which guarantees that at least that translation step is correct - we then only rely on a small enough sampling rate and the correctness of the Yampa library. The former one is very well in our reach and we pick a sufficiently small samply rate; the latter one is beyond our reach but we expect the library to me mature enough to be correct for our purposes.
+The implementation of \textit{simulateSD} is discussed in-depth in Appendix \ref{app:sdSimulation}. We are very well aware that comparing the output against an SD simulation is dangerous: after all, why should be trust the SD implementation? As outlined in the Appendix \ref{app:sdSimulation}, great care has been taken to ensure the correctness: the formulas from the SIR specification are directly encoded in code, allowed by Yampas arrowized FRP which guarantees that at least that translation step is correct - we then only rely on a small enough sampling rate and the correctness of the Yampa library. The former one is very well in our reach and we pick a sufficiently small samply rate; the latter one is beyond our reach but we expect the library to me mature enough to be correct for our purposes.
 
 \section{Implementing the test}
 Implementing a property-test is straight-forward. Here we give the implementation for the time-driven SIR implementation, the implementation for the event-driven SIR implementation is exactly the same with the exception of \textit{genTimeSIRRepls}. We again make use of the \textit{checkCoverage} feature of QuickCheck to get statistical robust results and expect that in 75\% of all test-cases the SD and ABS dynamics match \textit{on average} - we discuss below why we chose to use a 75\% coverage. QuickCheck will run as many tests as necessary to reach a statistically robust result which either allows to reject or accept this hypothesis.
 
 \begin{HaskellCode}
 prop_sir_time_spec :: Positive Int    -- ^ beta, contact rate
-                   -> UnitRange       -- ^ gamma, infectivity, within (0,1) range
+                   -> Propability     -- ^ gamma, infectivity, within (0,1) range
                    -> Positive Double -- ^ delta, illness duration
                    -> TimeRange       -- ^ time to run within (0, 50) range
                    -> [SIRState]      -- ^ population
                    -> Property
 prop_sir_time_spec 
-    (Positive cor) (UnitRange inf) (Positive ild) (TimeRange t) as = checkCoverage (do
+    (Positive cor) (P inf) (Positive ild) (T t) as = checkCoverage (do
+  -- get initial agent numbers
+  let (s0,i0,r0) = aggregateSIRStates as
   -- run 100 replications of time-driven SIR implementation
   (ss, is, rs) <- unzip3 <$> genTimeSIRRepls 100 as cor inf ild t
-  let prop = compareSDToABS as ss is rs cor inf ild t
+  let prop = compareSDToABS s0 i0 r0 ss is rs cor inf ild t
   return $ cover 75 prop "SIR time-driven passes t-test with simulated SD" True
 \end{HaskellCode}
 
@@ -101,11 +103,11 @@ An explanation why the time-driven approach seems to be closer to the SD dynamic
 
 The reason that we are not reaching a coverage level up to and beyond 90\% is rooted in the fundamental difference between SD and ABS: due to ABS' stochastic nature, its dynamics cannot match an SD exactly because it generates a \textit{distribution} whereas the SD is deterministic. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case: in case there is 1 infected agent, the whole epidemic will unfold.
 
-The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the authors showed that it generates a bimodal distribution. Further, the authors report that a 70\% envelopes contains both the results of the SD and ABS implementation which is the reason why we chose a a 75\% coverage as our initial guess, which has turned out to work well and is in accordance with the results of \cite{macal_agent-based_2010}. %Indeed, that is also supported by our observations. When looking at the samples of failed t-tests by plotting them in a histogram, it shows clearly that the values exhibit strong outliers, arriving at a skewed / fat tailed / bimodal histogram. 
+The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the authors showed that it generates a bimodal distribution. Further, the authors report that a 70\% envelope contains both the results of the SD and ABS implementation which is the reason why we chose a a 75\% coverage as our initial guess, which has turned out to work well and is in accordance with the results of \cite{macal_agent-based_2010}. %Indeed, that is also supported by our observations. When looking at the samples of failed t-tests by plotting them in a histogram, it shows clearly that the values exhibit strong outliers, arriving at a skewed / fat tailed / bimodal histogram. 
 
 \medskip
 
-The actual question in the end is whether it actually even makes sense to compare the approaches to the SD one or even amongst each other - after all they can be seen as fundamentally different approaches. We can argue that they are qualitatively equal as \cite{figueredo_comparing_2014} has already emphasised in a different study on comparing ABS and SD: although dynamics of ABS models are statistically different from SD ones, they look similar. The main difference is that ABS can contribute additional insight through revealing extra patterns due to its stochasticity, something not possible with SD. Thus in the end we simply have to accept that the respective coverage ratios are the closest we can get and that this is also the closest we can get in terms of validating our implementations against the original SD specification.
+The question which remains is whether it actually even makes sense to compare the approaches to SD or even amongst each other - after all they can be seen as fundamentally different approaches. We can argue that they are qualitatively equal as \cite{figueredo_comparing_2014} has already emphasised in a different study on comparing ABS and SD: although dynamics of ABS models are statistically different from SD ones, they look similar. The main difference is that ABS can contribute additional insight through revealing extra patterns due to its stochasticity, something not possible with SD. Thus in the end we simply have to accept that the respective coverage ratios are the closest we can get and that this is also the closest we can get in terms of validating our implementations against the original SD specification.
 
 %% THESE ARE NOTES TAKEN DURING TESTING, DON'T REMOVE, THEY EXPLAIN HOW WE ARRIVE AT THESE RESULTS
 %---------------------------------------------------------------------------------------------------------------------------

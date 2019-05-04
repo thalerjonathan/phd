@@ -6,19 +6,21 @@ newAgent(SIRState, Beta, Gamma, Delta, Sim) ->
   spawn(?MODULE, initPending, [SIRState, Beta, Gamma, Delta, Sim]).
 
 initPending(SIRState, Beta, Gamma, Delta, Sim) ->
-  io:fwrite("agent created, awaiting initialisation... ~n"),
+  %io:fwrite("agent created, awaiting initialisation... ~n"),
   receive
     {agents, Agents} ->
       case SIRState of
         susceptible ->
-          io:fwrite("initialising susceptible agent ~n"),
+          %io:fwrite("initialising susceptible agent ~n"),
           susceptible(Agents, Beta, Gamma, Delta, Sim);
         infected ->
-          % TODO: draw recovery time random 
-          io:fwrite("initialising infected agent ~n"),
-          infected(Delta, Sim);
+          % draw recovery time random 
+          IllnessDuration = randomExp(1 / Delta),
+          %io:fwrite("initialising infected agent with illnessduration of ~w ~n", [IllnessDuration]),
+          % IllnessDuration is RecoveryTime because t = 0 here
+          infected(IllnessDuration, Sim);
         recovered ->
-          io:fwrite("initialising recovered agent ~n"),
+          %io:fwrite("initialising recovered agent ~n"),
           recovered(Sim)
       end
   end.
@@ -26,38 +28,41 @@ initPending(SIRState, Beta, Gamma, Delta, Sim) ->
 susceptible(Agents, Beta, Gamma, Delta, Sim) ->
   receive 
     {tick, T} ->
-      io:fwrite("received tick ~w in susceptible agent ~n", [T]),
-      makeContact(Agents, Beta, Gamma, Delta, Sim);
+      %io:fwrite("received tick ~w in susceptible agent ~n", [T]),
+      makeContact(Agents, Beta, Gamma, Delta, Sim, T);
 
     {makecontact, Sender} ->
-      io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
+      %io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
       Sender ! {replycontact, susceptible},
       susceptible(Agents, Beta, Gamma, Delta, Sim)
   end.
 
-makeContact(Agents, Beta, Gamma, Delta, Sim) ->
+makeContact(Agents, Beta, Gamma, Delta, Sim, T) ->
   AgentCount = length(Agents),
-
+  % draw random agents
   RandIdx = lists:map(fun(_) -> rand:uniform(AgentCount) end, lists:seq(1, Beta)),
   RandAgents = lists:map(fun(Idx) -> lists:nth(Idx, Agents) end, RandIdx),
 
   % send makecontact
   lists:map(fun(Agent) -> Agent ! {makecontact, self()} end, RandAgents),
+  % switch into awaiting reply behaviour
+  awaitReply(Agents, Beta, Gamma, Delta, Sim, T, 0).
 
-  awaitReply(Agents, Beta, Gamma, Delta, Sim, 0).
-
-awaitReply(Agents, Beta, Gamma, Delta, Sim, N) ->
+awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N) ->
   receive
     {replycontact, infected} ->
-      io:fwrite("received replycontact infected in susceptible, counting ~w ~n", [N]),
+      %io:fwrite("received replycontact infected in susceptible, counting ~w ~n", [N]),
       Infected = rand:uniform() =< Gamma,
       if 
         Infected ->
-          io:fwrite("susceptible got infected! ~n"),
+          %io:fwrite("susceptible got infected! ~n"),
+          % inform kernel about infection
+          Sim ! {gotinfected},
           % don't forget to report back to simulation kernel
           Sim ! {tickAck},
-          % TODO: draw random illness duration
-          infected(Delta, Sim);
+          % draw random illness duration
+          IllnessDuration = randomExp(1 / Delta),
+          infected(T + IllnessDuration, Sim);
         true ->
           if 
             % received all replies but no infections happened, back to susceptible
@@ -67,11 +72,11 @@ awaitReply(Agents, Beta, Gamma, Delta, Sim, N) ->
               susceptible(Agents, Beta, Gamma, Delta, Sim);
             % not received all replies yet and no infections happened so far, keep waiting
             true ->
-              awaitReply(Agents, Beta, Gamma, Delta, Sim, N+1)
+              awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N+1)
           end
       end;
     {replycontact, _} ->
-      io:fwrite("received replycontact _ in susceptible, counting ~w ~n", [N]),
+      %io:fwrite("received replycontact _ in susceptible, counting ~w ~n", [N]),
       if 
         % received all replies but no infections happened, back to susceptible
         N+1 == Beta ->
@@ -80,38 +85,56 @@ awaitReply(Agents, Beta, Gamma, Delta, Sim, N) ->
           susceptible(Agents, Beta, Gamma, Delta, Sim);
         % not received all replies yet and no infections happened so far, keep waiting
         true ->
-          awaitReply(Agents, Beta, Gamma, Delta, Sim, N+1)
+          awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N+1)
       end;
       
     {makecontact, Sender} ->
-      io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
+      %io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
       Sender ! {replycontact, susceptible},
-      awaitReply(Agents, Beta, Gamma, Delta, Sim, N)
+      awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N)
   end.
 
 infected(RecoveryTime, Sim) ->
   receive 
     {tick, T} ->
-      io:fwrite("received tick ~w in infected agent ~n", [T]),
-      % TODO: check if have recovered
-      Sim ! {tickAck},
-      infected(RecoveryTime, Sim);
+      %io:fwrite("received tick ~w in infected agent ~n", [T]),
+      if 
+        % recovered
+        T >= RecoveryTime ->
+          % report recovery and the time to kernel
+          Sim ! {hasrecovered, RecoveryTime},
+          % don't forget to report back to simulation kernel
+          Sim ! {tickAck},
+          % switch to recovered behaviour
+          recovered(Sim);
+        % not recovered yet
+        true ->
+          Sim ! {tickAck},
+          infected(RecoveryTime, Sim)
+      end;
 
+    % reply to makecontact from susceptible agent
     {makecontact, Sender} ->
-      io:fwrite("received makecontact in infected from ~w ~n", [Sender]),
+      %io:fwrite("received makecontact in infected from ~w ~n", [Sender]),
       Sender ! {replycontact, infected},
       infected(RecoveryTime, Sim)
   end.
 
 recovered(Sim) ->
-  receive 
+  receive
+     % ack the tick to simulation kernel
     {tick, T} ->
-      io:fwrite("received tick ~w in recovered agent ~n", [T]),
+      %io:fwrite("received tick ~w in recovered agent ~n", [T]),
       Sim ! {tickAck},
       recovered(Sim);
 
+    % reply to makecontact from susceptible agent
     {makecontact, Sender} ->
-      io:fwrite("received makecontact in recovered from ~w ~n", [Sender]),
+      %io:fwrite("received makecontact in recovered from ~w ~n", [Sender]),
       Sender ! {replycontact, recovered},
       recovered(Sim)
   end.
+
+randomExp(Lambda) ->
+  R = rand:uniform_real(),
+  -(math:log(R)) / Lambda.

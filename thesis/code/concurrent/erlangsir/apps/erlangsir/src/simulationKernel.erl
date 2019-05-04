@@ -30,35 +30,46 @@ initPending(Sid, S, I, R, TMax) ->
     {go, Agents} ->
       io:fwrite("Received Go, starting simulation! ~n"),
       self() ! {sendTick},
-      simKernel(Sid, Agents, S, I, R, 1, TMax, 0)
+      simKernel(Sid, Agents, S, I, R, 1, TMax, 0, [{0, S, I, R}])
   end.
 
-simKernel(Sid, Agents, S, I, R, T, TMax, Ack) ->
+simKernel(Sid, _, _, 0, _, _, _, _, Dyns) ->
+  %io:fwrite("No more infected agents, finished! ~n"),
+  % in case of 0 infected agents we reach equilibrium an can terminate 
+  % the simulation
+  Sid ! {dynamics, Dyns};
+simKernel(Sid, Agents, S, I, R, T, TMax, Ack, Dyns) ->
   receive
     {sendTick} ->
       TNew = T + 1,
-      if 
-        TNew > TMax + 1 ->
-          io:fwrite("Finished! ~n"),
-          Sid ! {dynamics, ["Dynamics"]};
+      if
+        (TNew > TMax + 1) and (TMax > 0) ->
+          %io:fwrite("Finished! ~n"),
+          Sid ! {dynamics, Dyns};
         true ->
           lists:map(fun(Agent) -> Agent ! {tick, T} end, Agents),
-          simKernel(Sid, Agents, S, I, R, T+1, TMax, 0)
+          simKernel(Sid, Agents, S, I, R, T+1, TMax, 0, Dyns)
       end;
     {tickAck} ->
       AckUp = Ack + 1,
       if 
         AckUp == S+I+R ->
-          io:fwrite("All agents tickAck, next tick! ~n"),
+          %io:fwrite("All agents tickAck, next tick! ~n"),
           self() ! {sendTick},
-          simKernel(Sid, Agents, S, I, R, T, TMax, AckUp);
+          simKernel(Sid, Agents, S, I, R, T, TMax, AckUp, Dyns);
         true ->
-          simKernel(Sid, Agents, S, I, R, T, TMax, AckUp)
+          simKernel(Sid, Agents, S, I, R, T, TMax, AckUp, Dyns)
       end;
-    {gotinfected, Ts} ->
-      simKernel(Sid, Agents, S-1, I+1, R, T, TMax, Ack);
+    {gotinfected} ->
+      NewS = S - 1,
+      NewI = I + 1,
+      NewDyns = Dyns ++ [{T, NewS, NewI, R}],
+      simKernel(Sid, Agents, NewS, NewI, R, T, TMax, Ack, NewDyns);
     {hasrecovered, Ts} ->
-      simKernel(Sid, Agents, S, I-1, R+1, T, TMax, Ack)
+      NewI = I - 1,
+      NewR = R + 1,
+      NewDyns = Dyns ++ [{Ts, S, NewI, NewR}],
+      simKernel(Sid, Agents, S, NewI, NewR, T, TMax, Ack, NewDyns)
   end.
 
 replicate(N,E) ->

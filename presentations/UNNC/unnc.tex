@@ -1,4 +1,4 @@
-\documentclass{beamer}
+\documentclass{beamer} %[aspectratio=1610]
 
 \usetheme{Darmstadt}
 \usefonttheme[onlylarge]{structurebold}
@@ -432,6 +432,51 @@ reverse_distributive xs ys
 \end{block}
 \end{frame}
 
+\begin{frame}[fragile]{QuickCheck cont'd}
+\begin{block}{Labeling}
+\begin{minted}[fontsize=\footnotesize]{haskell}
+reverse_reverse_label :: [Int] -> Property
+reverse_reverse_label xs  
+  = label ("length of list is " ++ show (length xs)) 
+          (reverse (reverse xs) == xs)
+\end{minted}
+\end{block}
+
+\begin{block}{Running the tests...}
+\begin{footnotesize}
+\begin{verbatim}
++++ OK, passed 100 tests:
+ 5% length of random-list is 27
+ 5% length of random-list is 15
+ 5% length of random-list is 0
+ 4% length of random-list is 4
+ 4% length of random-list is 19
+ ...
+\end{verbatim}
+\end{footnotesize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{QuickCheck cont'd}
+\begin{block}{Coverage}
+\begin{minted}[fontsize=\footnotesize]{haskell}
+reverse_reverse_cover :: [Int] -> Property
+reverse_reverse_cover xs  = checkCoverage 
+  cover 15 (length xs >= 50) "length of list at least 50"
+  (reverse (reverse xs) == xs)
+\end{minted}
+\end{block}
+
+\begin{block}{Running the tests...}
+\begin{footnotesize}
+\begin{verbatim}
++++ OK, passed 12800 tests 
+    (15.445% length of list at least 50).
+\end{verbatim}
+\end{footnotesize}
+\end{block}
+\end{frame}
+
 \begin{frame}{Property-Based Testing Conclusion}
   \begin{itemize}
     \item Test agent specification.
@@ -445,9 +490,11 @@ reverse_distributive xs ys
 \section{Conclusion}
 \begin{frame}{Conclusion}
   \begin{itemize}
-    \item The direction is towards an simulation which is more likely to be correct with the ultimate goal being a correct-by-construction implementation (up to some specification).
-    \item A correct-by-construction implementation does NOT relief us from actually running the simulation!
-    \item 
+  	\item First steps
+  	\item Develop library
+  	\item Performance
+    \item Goal is correct-by-construction implementation %The direction is towards an simulation which is more likely to be correct with the ultimate goal being a correct-by-construction implementation (up to some specification).
+    %\item A correct-by-construction implementation does NOT relief us from actually running the simulation!
   \end{itemize}
 \end{frame}
 

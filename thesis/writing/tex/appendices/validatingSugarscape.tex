@@ -1,15 +1,136 @@
 \chapter{Validating Sugarscape in Haskell}
 \label{app:validating_sugarscape}
 
+In this chapter we look at how property-based testing can be made of use to verify the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996} as already introduced in Chapter \ref{sec:sugarscape}. Whereas in the previous chapter on testing the explanatory SIR case-study we had an analytical solution, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a mode.
+
+The answer lies in the very nature of exploratory models: they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and then (hopefully) come up with a few questions and  \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
+
+We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}}. 
+
+
 Obviously we wanted our implementation to be correct, which means we validated it against the informal reports in the book. Also we use the work of \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}} which replicated Sugarscape in NetLogo and reported on it \footnote{Note that lending didn't properly work in their NetLogo code and that they didn't implement Combat}.
 
-In addition to the informal descriptions of the dynamics, we implemented tests which conceptually check the model for emergent properties with hypotheses shown and expressed in the book. Technically speaking we have implemented that with unit-tests where in general we run the whole simulation with a fixed scenario and test the output for statistical properties which, in some cases is straight forward e.g. in case of Trading the authors of the Sugarscape model explicitly state that the standard deviation is below 0.05 after 1000 ticks.
-Obviously one needs to run multiple replications of the same simulation, each with a different random-number generator and perform a statistical test depending on what one is checking: in case of an expected mean one utilises a t-test and in case of standard-deviations a chi-squared test. 
+\section{Property-Based Hypothesis Testing}
+The property we test for is whether \textit{the emergent property / hypothesis under test is stable under replicated runs} or not. To put it more technical, we use QuickCheck to run multiple replications with the same configuration but with different random-number streams and require that the tests all pass. During the verification process described in Appendix \ref{app:validating_sugarscape} we have derived and implemented property-tests for the following hypotheses:
 
-\section{Terracing}
+\begin{enumerate}
+	\item Disease Dynamics all recover - When disease are turned on, if the number of initial diseases is 10, then the population is  able to rid itself completely from all disease within 100 ticks. 
+	
+	\item Disease Dynamics minority recover - When disease are turned on, if the number of initial diseases is 25, the population is not able to rid itself completely from all diseases within 1,000 ticks.
+	
+	\item Trading Dynamics - When trading is enabled, the trading prices stabilise after 1,000 ticks with the standard deviation of the prices having dropped below 0.05.
+	
+	\item Cultural Dynamics - When having two cultures, red and green, after 2,700 ticks, either the red or the blue culture dominates or both are equally strong. If they dominate they make up 95\% of all agents, if they are equally strong they are both within 45\% - 55\%.
+	
+	\item Inheritance Gini Coefficient - According to the book, when agents reproduce and can die of age then inheritance of their wealth leads to an unequal wealth distribution measured using the Gini Coefficient \textit{averaging} at 0.7.
+	
+	\item Carrying Capacity - When agents don't mate nor can die from age (chapter II), due to the environment, there is an \textit{average} maximum carrying capacity of agents the environment can sustain. The capacity should be reached after 100 ticks and should be stable from then on.
+		
+	\item Terracing - When resources regrow immediately, after a few steps the simulation becomes static. Agents will stay on their terraces and will not move any more because they have found the best spot due to their behaviour. About 45\% will be on terraces and 95\% - 100\% are static and not moving any more.
+\end{enumerate}
+
+\section{Implementation}
+To implement this, we implement a custom data-generator to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
+
+\begin{HaskellCode}
+sugarscapeUntil :: Int                -- ^ Number of ticks to run
+                -> SugarScapeScenario -- ^ Scenario to run
+                -> Gen [SimStepOut]   -- ^ Output of each step
+sugarscapeUntil ticks params = do
+  -- create a random-number generators
+  g <- genStdGen
+  -- initialise the simulation state with the given random-number generator
+  -- and the parameters
+  let (simState, _, _) = initSimulationRng g params
+  -- run the simulation with the given state for number of ticks
+  return (simulateUntil ticks simState)
+\end{HaskellCode}
+
+Using this generator, we can very conveniently produce sugarscape data within a property. Depending on the problem, we can generate only a single run or multiple replications, in case the hypothesis is assuming \textit{averages}. To see its use, we show the encoding of the \textit{Disease Dynamics (1)} hypothesis. Its type is \textit{Property}, which is required by QuickChecks top-level testing function. To generate a property, the \textit{property} function is used which takes a \textit{Gen Bool} computation or a simple \textit{Bool} function as predicate to indicate success (True) or failure (False).
+
+\begin{HaskellCode}
+prop_disease_allrecover :: Property
+prop_disease_allrecover = property (do
+  -- after 100 ticks...
+  let ticks  = 100
+  -- ... given Animation V-1 parameter configuration ...
+  let params = mkParamsAnimationV_1
+  -- ... from 1 sugarscape simulation ...
+  aos <- sugarscapeLast ticks params
+  -- ... counting all infected agents ...
+  let infected = length (filter (==False)) map (null . sugObsDiseases . snd) aos
+  -- ... should result in all agents to be recovered
+  return (cover 100 (infected == 0) "Diseases all recover" True)
+\end{HaskellCode}
+
+From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.7. We cannot average over replicated runs of the same property thus we generate multiple replications of the sugarscape data within the property and employ a two-sided T-Test with a 95\% confidence to test the hypothesis:
+
+\begin{HaskellCode}
+prop_gini :: Int      -- ^ Number of replications
+          -> Double   -- ^ Confidence of the t-test
+          -> Property
+prop_gini repls confidence = property (do
+  -- after 1000 ticks...
+  let ticks = 1000
+  -- ... the gini coefficient should average at 0.7 ...
+  let expGini = 0.7
+  -- ... given the Figure III-7 parameter configuration ...
+  let params = mkParamsFigureIII_7
+  -- ... from 100 replications ... 
+  gini <- vectorOf repls (genGiniCoeff ticks params)
+  -- on a two-tailed t-test with given confidence
+  let giniTTest = tTestSamples TwoTail expGini (1 - confidence) gini
+  return giniTTest
+\end{HaskellCode}
+
+%genGiniCoeff :: Int -> SugarScapeScenario -> Gen Double
+%genGiniCoeff ticks params = do
+%  -- generate sugarscape data
+%  aos <- sugarscapeUntil ticks params
+%  -- extract wealth of the agents in the last step
+%  let agentWealths = map (sugObsSugLvl . snd) (last aos)
+%  -- compute gini coefficient and return it
+%  return (giniCoeff agentWealths)
+
+\section{Running the tests}
+As already pointed out, QuickCheck tries to run by default up to 100 replications  of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first predicate which evalutes to \textit{False} and marks the whole property-test as failed, no matter how many replications got through already. 
+
+Due to the duration even 1,000 ticks can take to compute, to get a first estimate of our hypotheses tests within reasonable time, we reduce the number of maximum successful replications required to 10 and when doing t-tests 10 replications are run there as well. Unfortunately, when running the tests only the Disease Dynamics (1) and (2) go through, all the other tests fail. It is important to understand that QuickCheck is always initialised with a new random-number seed when run, thus we might have just been unlucky. Unfortunately, when we run it again, this happens again, thus there seems to be something wrong with our approach.
+
+\subsection{Allowing failure}
+It is arguably the case that the binary approach of QuickCheck, where the whole property-test fails when a single replication fails, is too strict for testing ABS in general and our hypotheses in particular. The reason for that is, that due to ABS stochastic nature, the hypotheses might hold for a large number of replications but not strictly for all.
+
+As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck, which allows the failure of a given percentage of replications. The argument behaves in a way that it tries to run up to the 100 default (or whatever the configuration is) successful replications but fails the overall property-test if the percentage of failed replications is reached. By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a more appropriate tool for testing the suitability of our hypotheses. 
+
+We run the tests again with 10 replications each but now allowing 100\% of failure in each case to see how reliable each hypothesis is. In one specific run we get the following result:
+
+\begin{enumerate}
+	\item Disease Dynamics all recover: \textit{+++ OK, passed 10 tests.}
+
+	\item Disease Dynamics minority recover: \textit{+++ OK, passed 10 tests.}
+		
+	\item Trading Dynamics: \textit{+++ OK, passed 10 tests; 2 failed (16\%).} (In total 12 tests (replications) were run, out of which 2 failed, which is a 16\% failure rate.)
+	
+	\item Cultural Dynamics: \textit{+++ OK, passed 10 tests; 3 failed (23\%).}
+
+	\item Inheritance Gini Coefficient: \textit{*** Failed! Passed only 0 tests; 10 failed (100\%) tests.}
+
+	\item Carrying Capacity: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
+
+	\item Terracing: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
+\end{enumerate}
+
+How to deal with the failure of the hypotheses is obviously highly model specific. A first approach is to increase the number of replications to run to 100 to get a more robust estimate of the failure rate. If the failure rate stays within reasonable ranges then one can arguably assume that the hypothesis is valid for sufficiently enough cases. On the other hand, if the failure rate escalates, then it is reasonable to deem the hypothesis invalid and refine it or even abandon it altogether.
+
+With the exception of the Gini Coefficient, we accept the failure rate of the hypotheses we presented here and deem them sufficiently valid for the task at hand. In case of the Gini Coefficient, none of the replication was successful, which makes it obvious that it does \textit{not} average at 0.7. Thus the hypothesis as stated in the book does not hold and is invalid. One way to deal with it would be to simply delete it. Another, more constructive approach, is to keep it but require all replications to fail by marking it with \textit{expectFailure} instead of \textit{property}. In this way an invalid hypothesis is marked explicitly and acts as documentation and also as test.
+
+Note that we disabled shrinking for hypothesis testing as it has no meaning here. The only thing which would be shrunk would be the seed of the random-number generator, which has no intrinsic meaning.
+
+\section{Hypotheses and test-cases}
+\subsection{Terracing}
 Our implementation reproduces the terracing phenomenon as described on page TODO in Animation and as can be seen in the NetLogo implementation as well. We implemented a property-test in which we measure the closeness of agents to the ridge: counting the number of same-level sugars cells around them and if there is at least one lower then they are at the edge. If a certain percentage is at the edge then we accept terracing. The question is just how much, which we estimated from tests and resulted in 45\%. Also, in the terracing animation the agents actually never move which is because sugar immediately grows back thus there is no incentive for an agent to actually move after it has moved to the nearest largest cite in can see. Therefore we test that the coordinates of the agents after 50 steps are the same for the remaining steps.
 
-\section{Carrying Capacity}
+\subsection{Carrying Capacity}
 Our simulation reached a steady state (variance < 4 after 100 steps) with a mean around ~182. Epstein reported a carrying capacity of 224 (page 30) and the NetLogo implementations' \cite{weaver_replicating_2009} carrying capacity fluctuates around 205 which both are significantly higher than ours. Something was definitely wrong - the carrying capacity has to be around 200 (we trust in this case the NetLogo implementation and deem 224 an outlier).
 
 After inspection of the NetLogo model we realised that we implicitly assumed that the metabolism range is \textit{continuously} uniformly randomized between 1 and 4 but this seemed not what the original authors intended: in the NetLogo model there were a few agents surviving on sugarlevel 1 which was never the case in ours as the probability of drawing a metabolism of exactly 1 is practically zero when drawing from a continuous range. We thus changed our implementation to draw a discrete value as the metabolism. %Note that this actually makes sense as massive floating-point number calculations were quite expensive in the mid 90s (e.g. computer games ran still on CPU only and exploited various  clever tricks to avoid the need of floating point calculations whenever possible) when SugarScape was implemented which might have been a reason for the authors to assume it implicitly.
@@ -20,14 +141,14 @@ For regression-tests we implemented a property-test which tests that the carryin
 
 One lesson learned is that even such seemingly minor things like continuous vs. discrete or order of actions an agent makes, can have substantial impact on the dynamics of a simulation.
 
-\section{Wealth Distribution}
+\subsection{Wealth Distribution}
 By visual comparison we validated that the wealth distribution (page 32-37) becomes strongly skewed with a histogram showing a fat tail, power-law distribution where very few agents are very rich and most of the agents are quite poor. We compute the skewness and kurtosis of the distribution which is around a skewness of 1.5, clearly indicating a right skewed distribution and a kurtosis which is around 2.0 which clearly indicates the 1st histogram of Animation II-3 on page 34. Also we compute the Gini coefficient and it varies between 0.47 and 0.5 - this is accordance with Animation II-4 on page 38 which shows a gini-coefficient which stabilises around 0.5 after. 
 We implemented a regression-test testing skewness, kurtosis and gini-coefficients of 100 runs to be within a 95\% confidence interval of a two-sided t-test using an expected skewness of 1.5, kurtosis of 2.0 and gini-coefficient of 0.48.
 
-\section{Migration}
+\subsection{Migration}
 With the information provided by \cite{weaver_replicating_2009} we could replicate the waves as visible in the NetLogo implementation as well. Also we propose that a vision of 10 is not enough yet and shall be increased to 15 which makes the waves very prominent and keeps them up for much longer - agent waves are travelling back and forth between both Sugarscape peaks. We haven't implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
 
-\section{Pollution and Diffusion}
+\subsection{Pollution and Diffusion}
 With the information provided by \cite{weaver_replicating_2009} we could replicate the pollution behaviour as visible in the NetLogo implementation as well. We haven't implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
 
 %Note that we spent quite a lot of time of getting this and the terracing properties right because they form the very basics of the other ones which follow so we had to be sure that those were correct otherwise validating would have been much more difficult.
@@ -35,33 +156,33 @@ With the information provided by \cite{weaver_replicating_2009} we could replica
 %\section{Order of Rules}
 %order in which rules are applied is not specified and might have an impact on dynamics e.g. when does the agent mate with others: is it after it has harvested but before metabolism kicks in?
 
-\section{Mating}
+\subsection{Mating}
 We could not replicate Figure III-1 (TODO: page) - our dynamics first raised and then plunged to about 100 agents and go then on to recover and fluctuate around 300. This findings are in accordance with \cite{weaver_replicating_2009}, where they report similar findings - also when running their NetLogo code we find the dynamics to be qualitatively the same.
 
 Also at first we weren't able to reproduce the cycles of population sizes. Then we realised that our agent-behaviour was not correct: agents which died from age or metabolism could still engage in mating before actually dying - fixing this to the behaviour, that agents which died from age or metabolism won't engage in mating solved that and produces the same swings as in \cite{weaver_replicating_2009}. Although our bug might be obvious, the lack of specification of the order of the application of the rules is an issue in the SugarScape book.
 
-\section{Inheritance}
+\subsection{Inheritance}
 We couldn't replicate the findings of the Sugarscape book regarding the Gini coefficient with inheritance. The authors report that they reach a gini coefficient of 0.7 and above in Animation III-4. Our Gini coefficient fluctuated around 0.35. Compared to the same configuration but without inheritance (Animation III-1) which reached a Gini coefficient of about 0.21, this is indeed a substantial increase - also with inheritance we reach a larger number of agents of around 1,000 as compared to around 300 without inheritance.
 The Sugarscape book compares this to chapter II, Animation II-4 for which they report a Gini coefficient of around 0.5 which we could reproduce as well. The question remains, why it is lower (lower inequality) with inheritance?
 
 The baseline is that this shows that inheritance indeed has an influence on the inequality in a population. Thus we deemed that our results are qualitatively the same as the make the same point. Still there must be some mechanisms going on behind the scenes which are unspecified in the original Sugarscape.
 
-\section{Cultural Dynamics}
+\subsection{Cultural Dynamics}
 We could replicate the cultural dynamics of AnimationIII-6 / Figure III-8: after 2700 steps either one culture (red / blue) dominates both hills or each hill is dominated by a different ulture. We wrote a test for it in which we run the simulation for 2.700 steps and then check if either culture dominates with a ratio of 95\% or if they are equal dominant with 45\%. Because always a few agents stay stationary on sugarlevel 1 (they have a metabolism of 1 and cant see far enough to move towards the hills, thus stay always on same spot because no improvement and grow back to 1 after 1 step), there are a few agents which never participate in the cultural process and thus no complete convergence can happen. This is accordance with \cite{weaver_replicating_2009}.
 
-\section{Combat}
+\subsection{Combat}
 Unfortunately \cite{weaver_replicating_2009} didn't implement combat, so we couldn't compare it to their dynamics. Also, we weren't able to replicate the dynamics found in the Sugarscape book: the two tribes always formed a clear battlefront where some agents engage in combat e.g. when one single agent strays too far from its tribe and comes into vision of the other tribe it will be killed almost always immediately. This is because crossing the sugar valley is costly: this agent wont harvest as much as the agents staying on their hill thus will be less wealthy and thus easier killed off. Also retaliation is not possible without any of its own tribe anywhere near.
 
 We didn't see a single run where an agent of an opposite tribe "invaded" the other tribes hill and ran havoc killing off the entire tribe. We don't see how this can happen: the two tribes start in opposite corners and quickly occupy the respective sugar hills. So both tribes are acting on average the same and also because of the number of agents no single agent can gather extreme amounts of wealth - the wealth should rise in both tribes equally on average. Thus it is very unlikely that a super-wealthy agent emerges, which makes the transition to the other side and starts killing off agents at large. First: a super-wealthy agent is unlikely to emerge, second making the transition to the other side is costly and also low probability, third the other tribe is quite wealthy as well having harvested for the same time the sugar hill, thus it might be that the agent might kill a few but the closer it gets to the center of the tribe the less like is a kill due to retaliation avoidance - the agent will simply get killed by others.
 
 Also it is unclear in case of AnimationIII-11 if the R rule also applies to agents which get killed in combat. Nothing in the book makes this clear and we left it untouched so that agents who only die from age (original R rule) are replaced. This will lead to a near-extinction of the whole population quite quickly as agents kill each other off until 1 single agent is left which will never get killed in combat because there are no other agents who could kill it - instead it will enter an infinite die and  reborn cycle thanks to the R rule.
 
-\section{Spice}
+\subsection{Spice}
 The book specifies for AnimationIV-1 a vision between 1-10 and a metabolism between 1-5. The last one seems to be quite strange because the maximum sugar / spice an agent can find is 4 which means that agents with metabolism of either 5 will die no matter what they do because the can never harvest enough to satisfy their metabolism. When running our implementation with this configuration the number of agents quickly drops from 400 to 105 and continues to slowly degrade below 90 after around 1000 steps.
 The implementation of \cite{weaver_replicating_2009} used a slightly different configuration for AnimationIV-1, where they set vision to 1-6 and metabolism to 1-4. Their dynamics stabilise to 97 agents after around 500+ steps. When we use the same configuration as theirs, we produce the same dynamics.
 Also it is worth nothing that our visual output is strikingly similar to both the book AnimationIV-1 and \cite{weaver_replicating_2009}.
 
-\section{Trading}
+\subsection{Trading}
 For trading we had a look at the NetLogo implementation of \cite{weaver_replicating_2009}: there an agent engages in trading with its neighbours \textit{over multiple rounds} until either MRSs cross over or no trade has happened anymore. Because \cite{weaver_replicating_2009} were able to exactly replicate the dynamics of the trading time-series we assume that their implementation is correct. We think that the fact that an agent interact with its neighbours over multiple rounds is made not very clear in the book. The only hint is found on page 102: \textit{"This process is repeated until no further gains from trades are possible."} which is not very clear and does not specify exactly what is going on: does the agent engage with all neighbours again? is the ordering random? Another hint is found on page 105 where trading is to be stopped after MRS cross-over to prevent an infinite loop. Unfortunately this is missing in the Agent trade rule T on page 105. Additional information on this is found in footnote 23 on page 107. Further on page 107: \textit{"If exchange of the commodities will not cause the agents' MRSs to cross over then the transaction occurs, the agents recompute their MRSs, and bargaining begins anew."}. This is probably the clearest hint that trading could occur over multiple rounds.
 
 We still managed to exactly replicate the trading-dynamics as shown in the book in Figure IV-3, Figure IV-4 and Figure IV-5. The book is also pretty specific on the dynamics of the trading-prices standard-deviation: on page 109 the authors specify that at t=1000 the standard deviation will have always fallen below 0.05 (Figure IV-5), thus we implemented a property-test which tests for exactly that property. Unfortunately we didn't reach the same magnitude of the trading volume where ours is much lower around 50 but it is equally erratic, so we attribute these differences to other missing specifications or different measurements because the price-dynamics match that well already so we can safely assume that our trading implementation is correct.
@@ -82,7 +203,10 @@ From this part, we didn't implement: Effect of Culturally Varying Preferences, p
 %Not really much information to validate was available and the \cite{weaver_replicating_2009} implementation ran into an exception so there was not much to validate against. What was unexpected was that this was the most complex behaviour to implement, with lots of subtle details to take care of (spice on/off, inheritance,...).
 %Note that we implemented lending of sugar and spice, although it looks from the book (Animation IV-5) that they only implemented it for sugar.
 
-\section{Diseases}
+\subsection{Diseases}
 We were able to exactly replicate the behaviour of Animation V-1 and Animation V-2: in the first case the population rids itself of all diseases (maximum 10) which happens pretty quickly, in less than 100 ticks. In the second case the population fails to do so because of the much larger number of diseases (25) in circulation. We used the same parameters as in the book. 
 The authors of \cite{weaver_replicating_2009} could only replicate the first animation exactly and the second was only deemed "good". Their implementation differs slightly from ours: In their case a disease can be passed to an agent who is immune to it - this is not possible in ours. In their case if an agent has already the disease, the transmitting agent selects a new disease, the other agent has not yet - this is not the case in our implementation and we think this is unreasonable to follow: it would require too much information and is also unrealistic.
 We wrote regression tests which check for animation V-1 that after 100 ticks there are no more infected agents and for animation V-2 that after 1000 ticks there are still infected agents left and they dominate: there are more infected than recovered agents.
+
+\section{Discussion}
+In this chapter we showed how to use QuickCheck to formalise and check hypotheses about an \textit{exploratory} agent-based model, in which no ground truth exists. Due to ABS stochastic nature in general it became obvious that to get a good measure of a hypotheses validity we need to allow failure using the \textit{maxFailPercent} argument of QuickCheck. This allowed us to show that the hypotheses we have presented are sufficiently valid for the task at hand and can indeed be used for expressing and formalising emergent properties of the model and also as regression tests within a TDD cycle.

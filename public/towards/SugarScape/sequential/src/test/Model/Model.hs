@@ -38,8 +38,8 @@ main = do
             -- , QC.testProperty "Trading Dynamics" prop_trading
             -- , QC.testProperty "Cultural Dynamics" prop_culture
             --  QC.testProperty "Carrying Capacity" (prop_carrying repls confidence)
-              QC.testProperty "Terracing" (prop_terracing repls confidence)
-            , QC.testProperty "Inheritance Gini" (prop_gini repls confidence)
+            --  QC.testProperty "Terracing" (prop_terracing repls confidence)
+              QC.testProperty "Inheritance Gini" (prop_gini repls confidence)
             , QC.testProperty "Wealth Distribution" (prop_wealth repls confidence)
             ]
 

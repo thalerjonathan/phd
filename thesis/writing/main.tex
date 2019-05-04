@@ -62,23 +62,8 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 TODO "first draft" milestone until end of May 2019
 \begin{enumerate}
-	\item finalise validating sugarscape appendix: wait for result runs
-
-	\item Go through all chapters and make them first draft ready:
-	\begin{itemize}
-		\item Abstract (rephrase it)
-		\item Introduction (rephrase it, more punch)
-		\item Literature (more or less finished)
-		\item Methodology: (needs overhaul and focussing, put SIR and Sugarscape in there, short monad transformer section in methodology)
-		\item Implementing ABS: (more or less finished)
-		\item Time-Driven ABS (not much work, nearly finished)
-		\item Event-Driven ABS (probably more work)
-		\item Generalising ABS (a lot of work, very drafty so far)
-		\item SKIPPING PARALLEL ABS because it is first draft already
-		\item SKIPPING PROPERTY-BASED because it is first draft already
-		\item Discussion (a lot of work, only bits and pieces)
-		\item Conclusion (a lot of work, only bits and pieces)
-	\end{itemize}
+	\item first draft of Methodology: needs overhaul and focussing, put SIR and Sugarscape in there, short monad transformer section in methodology)
+	item first draft of Discussion: a lot of work, only bits and pieces
 \end{enumerate}
 
 TODO "finalise research" milestone until end of July 2019
@@ -90,8 +75,15 @@ TODO "finalise research" milestone until end of July 2019
 	\item implement Gintis Case-Study and focus on property-tests and reasoning and potential directions for a dependently-typed implementation. this will be highly important for my internal assessor 
 \end{enumerate}
 
-TODO "reflecting and filling in holes" milestone until end of August 2019
+TODO "finalising, reflecting and filling in holes" milestone until end of August 2019
 \begin{enumerate}
+	\item finalising all chapters
+	
+	\item Write final introduction
+	\item Write final discussion
+	\item Write final conclusion
+	\item Write final abstract
+	
 	\item Reading: Ionescu thesis
 	
 	\item Understand Ionescu: check what ionescou wants from his students and what literaure he cites, watch YouTube video
@@ -114,16 +106,10 @@ TODO "cleaning up / polishing" milestone until end of September 2019
 			\item be consistent about italics: use it for types, functions and emphasising certain word
 		\end{itemize}
 	\item proof reading
-
-	\item refining expressions
 	
 	\item reconcile all code into thesis code folder?
 	
 	\item extract all references of the thesis in separate file and manually fine-tune them so that they are perfect: including DOI, include link to webpage in case of a blog,...
-	
-	\item PERFECT introduction chapter
-	
-	\item PERFECT conclusion chapter
 \end{enumerate}
 
 TODO prepare for viva:
@@ -147,9 +133,9 @@ TODO prepare for viva:
 
 \input{./tex/acknowledgements.tex}
 
-% PART I: Beginnings
+% PART I: Preliminaries
 \epigraphhead[450]{}
-\part{Preliminiaries}
+\part{Preliminaries}
 
 \input{./tex/introduction.tex}
 
@@ -159,34 +145,31 @@ TODO prepare for viva:
 
 \input{./tex/implAbs.tex}
 
-% PART II: How
+% PART II: Towards
 \epigraphhead[450]{}
 \part{Towards pure functional ABS}
 \input{./tex/timedriven.tex}
 
 \input{./tex/eventdriven.tex}
 
-% PART III: Intermission
-\epigraphhead[450]{}
-%\part{Intermission}
 \input{./tex/generalising.tex}
 
-% PART IV: Why  1
+% PART III: Why 1: Parallel Computation
 \epigraphhead[450]{}
 \part{Parallel computation}
 \input{./tex/parallelabs.tex}
 
-% PART V: Why 2
+% PART IV: Why 2: Property-Based Testing
 \epigraphhead[450]{}
 \part{Property-Based testing}
 \input{./tex/property.tex}
 
-% PART VI: Discussion
+% PART V: Discussion
 \epigraphhead[450]{}
 \part{Discussion}
 \input{./tex/discussion.tex}
 
-% PART VII: Conclusions
+% PART VI: Conclusions
 \epigraphhead[450]{}
 \part{Conclusion}
 \input{./tex/conclusions.tex}
@@ -196,6 +179,9 @@ TODO prepare for viva:
 \bibliographystyle{acm}
 \bibliography{../../writing/references/phdReferences}
 
+% PART VII: Appendix
+\epigraphhead[450]{}
+\part{Appendix}
 \input{./tex/appendix.tex}
 
 \end{document}

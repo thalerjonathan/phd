@@ -23,18 +23,23 @@ import Debug.Trace
 
 -- clear & stack test SugarScape:sugarscape-model-test --test-arguments="--quickcheck-tests=10"
 
+
+
 main :: IO ()
 main = do
+  let repls      = 10
+      confidence = 0.95
+
   let sugarScapeTests 
         = testGroup "SugarScape Tests" 
             [ QC.testProperty "Disease Dynamics All Recover" prop_disease_allrecover
             , QC.testProperty "Disease Dynamics Minority Recover" prop_disease_norecover
             , QC.testProperty "Trading Dynamics" prop_trading
             , QC.testProperty "Cultural Dynamics" prop_culture
-            , QC.testProperty "Inheritance Gini" prop_gini repls confidence
-            , QC.testProperty "Carrying Capacity" prop_carrying repls confidence
-            , QC.testProperty "Terracing" prop_terracing repls confidence
-            , QC.testProperty "Wealth Distribution" prop_wealth repls confidence
+            , QC.testProperty "Inheritance Gini" (prop_gini repls confidence)
+            , QC.testProperty "Carrying Capacity" (prop_carrying repls confidence)
+            , QC.testProperty "Terracing" (prop_terracing repls confidence)
+            , QC.testProperty "Wealth Distribution" (prop_wealth repls confidence)
             ]
 
   defaultMain sugarScapeTests

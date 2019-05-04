@@ -2,7 +2,7 @@ module Main where
 
 import Data.List
 import Data.Maybe
-import Text.Printf
+--import Text.Printf
 
 import Control.Monad.Random
 import Test.Tasty
@@ -14,7 +14,7 @@ import SugarScape.Core.Scenario
 import SugarScape.Core.Simulation
 import Utils.StatsUtils
 
-import Debug.Trace
+--import Debug.Trace
 
 -- --quickcheck-tests=1000
 -- --quickcheck-verbose
@@ -32,13 +32,14 @@ main = do
 
   let sugarScapeTests 
         = testGroup "SugarScape Tests" 
-            [ QC.testProperty "Disease Dynamics All Recover" prop_disease_allrecover
-            , QC.testProperty "Disease Dynamics Minority Recover" prop_disease_norecover
-            , QC.testProperty "Trading Dynamics" prop_trading
-            , QC.testProperty "Cultural Dynamics" prop_culture
+            [ 
+            --   QC.testProperty "Disease Dynamics All Recover" prop_disease_allrecover
+            -- , QC.testProperty "Disease Dynamics Minority Recover" prop_disease_norecover
+            -- , QC.testProperty "Trading Dynamics" prop_trading
+            -- , QC.testProperty "Cultural Dynamics" prop_culture
+            --  QC.testProperty "Carrying Capacity" (prop_carrying repls confidence)
+              QC.testProperty "Terracing" (prop_terracing repls confidence)
             , QC.testProperty "Inheritance Gini" (prop_gini repls confidence)
-            , QC.testProperty "Carrying Capacity" (prop_carrying repls confidence)
-            , QC.testProperty "Terracing" (prop_terracing repls confidence)
             , QC.testProperty "Wealth Distribution" (prop_wealth repls confidence)
             ]
 
@@ -196,10 +197,11 @@ prop_carrying repls confidence = property $ do
           popSizeMean     = mean popSizes
           popSizeMedian   = median popSizes
 
-      return $ trace ("popSizeVariance = " ++ printf "%.2f" popSizeVariance ++ 
-                      " popSizeMean = "    ++ printf "%.2f" popSizeMean ++ 
-                      " popSizeMedian = "  ++ printf "%.2f" popSizeMedian) 
-          (popSizeVariance, popSizeMean, popSizeMedian)
+      -- return $ trace ("popSizeVariance = " ++ printf "%.2f" popSizeVariance ++ 
+      --                 " popSizeMean = "    ++ printf "%.2f" popSizeMean ++ 
+      --                 " popSizeMedian = "  ++ printf "%.2f" popSizeMedian) 
+      --     (popSizeVariance, popSizeMean, popSizeMedian)
+      return (popSizeVariance, popSizeMean, popSizeMedian)
 
 -- Testing the hypothesis, that when using the parameter-configuration of
 -- AnimationII-1, after 100 ticks, the terracing is table for 50 ticks
@@ -236,11 +238,11 @@ prop_terracing repls confidence = property $ do
             tr = fromIntegral terraceNumbers / fromIntegral (length aosFinal)
             sr  = staticNumbers / fromIntegral (length sos')
 
-        --return (tr, sr)
-        return $ trace ("terraceRatio = "    ++ printf "%.2f" tr ++  
-                        " terraceNumbers = " ++ show terraceNumbers ++ 
-                        " staticRatio = "    ++ printf "%.2f" sr ++ 
-                        " staticNumbers = "  ++ show staticNumbers) (tr, sr)
+        return (tr, sr)
+        -- return $ trace ("terraceRatio = "    ++ printf "%.2f" tr ++  
+        --                 " terraceNumbers = " ++ show terraceNumbers ++ 
+        --                 " staticRatio = "    ++ printf "%.2f" sr ++ 
+        --                 " staticNumbers = "  ++ show staticNumbers) (tr, sr)
       where
         -- note ao is always in aos
         sameCoord :: [AgentObservable SugAgentObservable]
@@ -317,10 +319,11 @@ genPopulationWealthStats ticks params = do
         kurt         = kurtosis agentWealths
         gini         = giniCoeff agentWealths
 
-    return $ trace ("skewness = "   ++ printf "%.2f" skew ++ 
-                    ", kurtosis = " ++ printf "%.2f" kurt ++ 
-                    ", gini = "     ++ printf "%.2f" gini) 
-            (skew, kurt, gini)
+    -- return $ trace ("skewness = "   ++ printf "%.2f" skew ++ 
+    --                 ", kurtosis = " ++ printf "%.2f" kurt ++ 
+    --                 ", gini = "     ++ printf "%.2f" gini) 
+    --         (skew, kurt, gini)
+    return (skew, kurt, gini)
 
 -- formula taken from https://en.wikipedia.org/wiki/Gini_coefficient#Definition
 giniCoeff :: [Double] -> Double

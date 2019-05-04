@@ -1,17 +1,14 @@
 \chapter{Validating Sugarscape in Haskell}
 \label{app:validating_sugarscape}
 
-In this chapter we look at how property-based testing can be made of use to verify the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996} as already introduced in Chapter \ref{sec:sugarscape}. Whereas in the previous chapter on testing the explanatory SIR case-study we had an analytical solution, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a mode.
+In this chapter we look at how property-based testing can be made of use to verify the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996} as already introduced in Chapter \ref{sec:sugarscape}. Whereas in the chapters on testing the explanatory SIR model we had an analytical solution, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a mode.
 
 The answer lies in the very nature of exploratory models: they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and then (hopefully) come up with a few questions and  \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
 
-We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}}. 
-
-
-Obviously we wanted our implementation to be correct, which means we validated it against the informal reports in the book. Also we use the work of \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}} which replicated Sugarscape in NetLogo and reported on it \footnote{Note that lending didn't properly work in their NetLogo code and that they didn't implement Combat}.
+We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}, Note that lending didn't properly work in their NetLogo code and that they didn't implement Combat}. 
 
 \section{Property-Based Hypothesis Testing}
-The property we test for is whether \textit{the emergent property / hypothesis under test is stable under replicated runs} or not. To put it more technical, we use QuickCheck to run multiple replications with the same configuration but with different random-number streams and require that the tests all pass. During the verification process described in Appendix \ref{app:validating_sugarscape} we have derived and implemented property-tests for the following hypotheses:
+The property we test for is whether \textit{the emergent property / hypothesis under test is stable under replicated runs} or not. To put it more technical, we use QuickCheck to run multiple replications with the same configuration but with different random-number streams and require that the tests all pass. During the verification process we have derived and implemented property-tests for the following hypotheses:
 
 \begin{enumerate}
 	\item Disease Dynamics all recover - When disease are turned on, if the number of initial diseases is 10, then the population is  able to rid itself completely from all disease within 100 ticks. 
@@ -29,8 +26,10 @@ The property we test for is whether \textit{the emergent property / hypothesis u
 	\item Terracing - When resources regrow immediately, after a few steps the simulation becomes static. Agents will stay on their terraces and will not move any more because they have found the best spot due to their behaviour. About 45\% will be on terraces and 95\% - 100\% are static and not moving any more.
 \end{enumerate}
 
-\section{Implementation}
-To implement this, we implement a custom data-generator to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
+The hypotheses and their validation is described more in-depth in the section \ref{sec:hypotheses_testcases} below.
+
+\subsection{Implementation}
+To start with, we implement a custom data-generator to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
 
 \begin{HaskellCode}
 sugarscapeUntil :: Int                -- ^ Number of ticks to run
@@ -92,41 +91,60 @@ prop_gini repls confidence = property (do
 %  -- compute gini coefficient and return it
 %  return (giniCoeff agentWealths)
 
-\section{Running the tests}
-As already pointed out, QuickCheck tries to run by default up to 100 replications  of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first predicate which evalutes to \textit{False} and marks the whole property-test as failed, no matter how many replications got through already. 
+\subsection{Running the tests}
+As already pointed out, QuickCheck tries to run by default up to 100 replications  of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first predicate which evalutes to \textit{False} and marks the whole property-test as failed, no matter how many replications got through already. For this reason we have used \textit{cover} with an expected percentage of 100, meaning that we expect all tests to fall into the coverage class. 
 
-Due to the duration even 1,000 ticks can take to compute, to get a first estimate of our hypotheses tests within reasonable time, we reduce the number of maximum successful replications required to 10 and when doing t-tests 10 replications are run there as well. Unfortunately, when running the tests only the Disease Dynamics (1) and (2) go through, all the other tests fail. It is important to understand that QuickCheck is always initialised with a new random-number seed when run, thus we might have just been unlucky. Unfortunately, when we run it again, this happens again, thus there seems to be something wrong with our approach.
+Due to the duration even 1,000 ticks can take to compute, to get a first estimate of our hypotheses tests within reasonable time, we reduce the number of maximum successful replications required to 10 and when doing T-tests 10 replications are run there as well. 
 
-\subsection{Allowing failure}
-It is arguably the case that the binary approach of QuickCheck, where the whole property-test fails when a single replication fails, is too strict for testing ABS in general and our hypotheses in particular. The reason for that is, that due to ABS stochastic nature, the hypotheses might hold for a large number of replications but not strictly for all.
+\begin{verbatim}
+SugarScape Tests
+  Disease Dynamics All Recover:      OK (29.25s)
+    +++ OK, passed 10 tests (100% Diseases all recover).
+    
+  Disease Dynamics Minority Recover: OK (536.00s)
+    +++ OK, passed 10 tests (100% Diseases no recover).
+    
+  Trading Dynamics:                  OK (149.33s)
+    +++ OK, passed 10 tests (70% Prices std less than 5.0e-2).
+    Only 70% Prices std less than 5.0e-2, but expected 100%
+    
+  Cultural Dynamics:                 OK (996.84s)
+    +++ OK, passed 10 tests (50% Cultures dominate or equal).
+    Only 50% Cultures dominate or equal, but expected 100%
+    
+  Carrying Capacity:   OK (988.20s)
+    +++ OK, passed 10 tests (90% Carrying capacity averages at 204.0).
+    
+    Only 90% Carrying capacity averages at 204.0, but expected 100%
+    
+  TODO: Terracing
+  
+    TODO: Inheritance Gini Coefficient
+\end{verbatim}
 
-As a remedy, we can use \textit{maxFailPercent} \footnote{As of the time of writing this thesis (2nd April 2019), this only exists as a pull request \url{https://github.com/nick8325/quickcheck/pull/239} and has not been merged into the main branch of QuickCheck. Thus we use the QuickCheck from \url{https://github.com/stevana/quickcheck/tree/feat/max-failed-percent} who has provided the implementation of \textit{maxFailPercent}.} as a configuration argument to QuickCheck, which allows the failure of a given percentage of replications. The argument behaves in a way that it tries to run up to the 100 default (or whatever the configuration is) successful replications but fails the overall property-test if the percentage of failed replications is reached. By switching from a binary PASS/FAIL to a more probabilistic measure, reflecting reliability, we have now a more appropriate tool for testing the suitability of our hypotheses. 
-
-We run the tests again with 10 replications each but now allowing 100\% of failure in each case to see how reliable each hypothesis is. In one specific run we get the following result:
-
-\begin{enumerate}
-	\item Disease Dynamics all recover: \textit{+++ OK, passed 10 tests.}
-
-	\item Disease Dynamics minority recover: \textit{+++ OK, passed 10 tests.}
-		
-	\item Trading Dynamics: \textit{+++ OK, passed 10 tests; 2 failed (16\%).} (In total 12 tests (replications) were run, out of which 2 failed, which is a 16\% failure rate.)
-	
-	\item Cultural Dynamics: \textit{+++ OK, passed 10 tests; 3 failed (23\%).}
-
-	\item Inheritance Gini Coefficient: \textit{*** Failed! Passed only 0 tests; 10 failed (100\%) tests.}
-
-	\item Carrying Capacity: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
-
-	\item Terracing: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
-\end{enumerate}
+%\begin{enumerate}
+%	\item Disease Dynamics all recover: \textit{+++ OK, passed 10 tests.}
+%
+%	\item Disease Dynamics minority recover: \textit{+++ OK, passed 10 tests.}
+%		
+%	\item Trading Dynamics: \textit{+++ OK, passed 10 tests; 2 failed (16\%).} (In total 12 tests (replications) were run, out of which 2 failed, which is a 16\% failure rate.)
+%	
+%	\item Cultural Dynamics: \textit{+++ OK, passed 10 tests; 3 failed (23\%).}
+%
+%	\item Inheritance Gini Coefficient: \textit{*** Failed! Passed only 0 tests; 10 failed (100\%) tests.}
+%
+%	\item Carrying Capacity: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
+%
+%	\item Terracing: \textit{+++ OK, passed 10 tests; 2 failed (16\%).}
+%\end{enumerate}
 
 How to deal with the failure of the hypotheses is obviously highly model specific. A first approach is to increase the number of replications to run to 100 to get a more robust estimate of the failure rate. If the failure rate stays within reasonable ranges then one can arguably assume that the hypothesis is valid for sufficiently enough cases. On the other hand, if the failure rate escalates, then it is reasonable to deem the hypothesis invalid and refine it or even abandon it altogether.
 
 With the exception of the Gini Coefficient, we accept the failure rate of the hypotheses we presented here and deem them sufficiently valid for the task at hand. In case of the Gini Coefficient, none of the replication was successful, which makes it obvious that it does \textit{not} average at 0.7. Thus the hypothesis as stated in the book does not hold and is invalid. One way to deal with it would be to simply delete it. Another, more constructive approach, is to keep it but require all replications to fail by marking it with \textit{expectFailure} instead of \textit{property}. In this way an invalid hypothesis is marked explicitly and acts as documentation and also as test.
 
-Note that we disabled shrinking for hypothesis testing as it has no meaning here. The only thing which would be shrunk would be the seed of the random-number generator, which has no intrinsic meaning.
-
 \section{Hypotheses and test-cases}
+\label{sec:hypotheses_testcases}
+
 \subsection{Terracing}
 Our implementation reproduces the terracing phenomenon as described on page TODO in Animation and as can be seen in the NetLogo implementation as well. We implemented a property-test in which we measure the closeness of agents to the ridge: counting the number of same-level sugars cells around them and if there is at least one lower then they are at the edge. If a certain percentage is at the edge then we accept terracing. The question is just how much, which we estimated from tests and resulted in 45\%. Also, in the terracing animation the agents actually never move which is because sugar immediately grows back thus there is no incentive for an agent to actually move after it has moved to the nearest largest cite in can see. Therefore we test that the coordinates of the agents after 50 steps are the same for the remaining steps.
 

@@ -1,20 +1,12 @@
-module Model.Model 
-  ( prop_disease_allrecover
-  , prop_disease_norecover
-  , prop_trading
-  , prop_culture
-  , prop_gini
-  , prop_terracing
-  , prop_carrying
-  , prop_wealth
-  ) where
+module Main where
 
 import Data.List
 import Data.Maybe
 import Text.Printf
 
 import Control.Monad.Random
-import Test.QuickCheck
+import Test.Tasty
+import Test.Tasty.QuickCheck as QC
 
 import SugarScape.Core.Discrete
 import SugarScape.Core.Model
@@ -23,6 +15,29 @@ import SugarScape.Core.Simulation
 import Utils.StatsUtils
 
 import Debug.Trace
+
+-- --quickcheck-tests=1000
+-- --quickcheck-verbose
+-- --test-arguments=""
+-- clear & stack test sir:sir-model-tests
+
+-- clear & stack test SugarScape:sugarscape-model-test --test-arguments="--quickcheck-tests=10"
+
+main :: IO ()
+main = do
+  let sugarScapeTests 
+        = testGroup "SugarScape Tests" 
+            [ QC.testProperty "Disease Dynamics All Recover" prop_disease_allrecover
+            , QC.testProperty "Disease Dynamics Minority Recover" prop_disease_norecover
+            , QC.testProperty "Trading Dynamics" prop_trading
+            , QC.testProperty "Cultural Dynamics" prop_culture
+            , QC.testProperty "Inheritance Gini" prop_gini repls confidence
+            , QC.testProperty "Carrying Capacity" prop_carrying repls confidence
+            , QC.testProperty "Terracing" prop_terracing repls confidence
+            , QC.testProperty "Wealth Distribution" prop_wealth repls confidence
+            ]
+
+  defaultMain sugarScapeTests
 
 --------------------------------------------------------------------------------
 -- PROPERTIES
@@ -36,21 +51,22 @@ prop_disease_allrecover = property $ do
 
   (_, _, _, aos) <- sugarscapeLast ticks params
   let infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+
   return $ infected == 0
   
 -- Tests the hypothesis, that for the parameter-configuration of AnimationV-2
 -- less than half (a minority) will recover until 1000.
 prop_disease_norecover :: Property
 prop_disease_norecover = property $ do
-    let ticks  = 1000
-        params = mkParamsAnimationV_2
-    (_, _, _, aos) <- sugarscapeLast ticks params
+  let ticks  = 1000
+      params = mkParamsAnimationV_2
+  (_, _, _, aos) <- sugarscapeLast ticks params
 
-    let infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
-        n        = fromIntegral $ length aos :: Double
-        infMaj   = ceiling $ n / 2 -- majority is more than 50%
+  let infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
+      n        = fromIntegral $ length aos :: Double
+      infMaj   = ceiling $ n / 2 -- majority is more than 50%
 
-    return $ infected > infMaj
+  return $ infected > infMaj
 
 -- Testing the hypothesis, that when using the parameter-configuration of
 -- FigureIV-3, after 1000 ticks, the standard deviation of the trading prices

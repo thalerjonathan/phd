@@ -9,7 +9,12 @@ repls = 10
 confidence :: Double
 confidence = 0.95
 
--- clear & stack test SugarScape:sugarscape-model-test
+-- --quickcheck-tests=1000
+-- --quickcheck-verbose
+-- --test-arguments=""
+-- clear & stack test sir:sir-model-tests
+
+-- clear & stack test SugarScape:sugarscape-model-test  --test-arguments="--quickcheck-tests=1000"
 
 main :: IO ()
 main = do

@@ -31,7 +31,9 @@ The property we test for is whether \textit{the emergent property / hypothesis u
 To implement this, we implement a custom data-generator to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
 
 \begin{HaskellCode}
-sugarscapeUntil :: Int -> SugarScapeScenario -> Gen [SimStepOut]
+sugarscapeUntil :: Int                -- ^ Number of ticks to run
+                -> SugarScapeScenario -- ^ Scenario to run
+                -> Gen [SimStepOut]   -- ^ Output of each step
 sugarscapeUntil ticks params = do
   -- create a random-number generators
   g <- genStdGen
@@ -72,21 +74,21 @@ prop_gini repls confidence = property (do
   let expGini = 0.7
   -- ... given the Figure III-7 parameter configuration ...
   let params = mkParamsFigureIII_7
-  -- ... from repls replciations ... 
+  -- ... from 100 replications ... 
   gini <- vectorOf repls (genGiniCoeff ticks params)
   -- on a two-tailed t-test with given confidence
   let giniTTest = tTestSamples TwoTail expGini (1 - confidence) gini
   return giniTTest
-  
-genGiniCoeff :: Int -> SugarScapeScenario -> Gen Double
-genGiniCoeff ticks params = do
-  -- generate sugarscape data
-  aos <- sugarscapeUntil ticks params
-  -- extract wealth of the agents in the last step
-  let agentWealths = map (sugObsSugLvl . snd) (last aos)
-  -- compute gini coefficient and return it
-  return (giniCoeff agentWealths)
 \end{HaskellCode}
+
+%genGiniCoeff :: Int -> SugarScapeScenario -> Gen Double
+%genGiniCoeff ticks params = do
+%  -- generate sugarscape data
+%  aos <- sugarscapeUntil ticks params
+%  -- extract wealth of the agents in the last step
+%  let agentWealths = map (sugObsSugLvl . snd) (last aos)
+%  -- compute gini coefficient and return it
+%  return (giniCoeff agentWealths)
 
 \section{Running the tests}
 As already pointed out, QuickCheck tries to run by default up to 100 replications  of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first predicate which evalutes to \textit{False} and marks the whole property-test as failed, no matter how many replications got through already. 

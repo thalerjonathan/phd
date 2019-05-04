@@ -226,10 +226,11 @@ Test-Suite sugarscape-model-test
                       , dunai
                       , mtl
                       , MonadRandom
-                      , QuickCheck
                       , random
                       , split
                       , statistics
+                      , tasty
+                      , tasty-quickcheck
                       , transformers
                       , vector
 

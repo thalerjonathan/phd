@@ -187,8 +187,7 @@ Test-Suite sugarscape-model-test
 
   type:                 exitcode-stdio-1.0
 
-  other-modules:        Model.Model
-                      , Utils.StatsUtils
+  other-modules:        Utils.StatsUtils
                       
                       , SugarScape.Agent.Agent
                       , SugarScape.Agent.Ageing
@@ -218,7 +217,7 @@ Test-Suite sugarscape-model-test
                       , src/test/
                       , src/test/Model/
 
-  main-is:              Tests.hs
+  main-is:              Model.hs
 
   build-depends:        base
                       , array

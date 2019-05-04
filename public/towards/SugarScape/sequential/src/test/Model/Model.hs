@@ -57,7 +57,7 @@ prop_disease_allrecover = property $ do
   (_, _, _, aos) <- sugarscapeLast ticks params
   let infected = length $ filter (==False) $ map (null . sugObsDiseases . snd) aos
 
-  return $ infected == 0
+  return $ cover 100 (infected == 0) "Diseases all recover" True
   
 -- Tests the hypothesis, that for the parameter-configuration of AnimationV-2
 -- less than half (a minority) will recover until 1000.
@@ -71,7 +71,7 @@ prop_disease_norecover = property $ do
       n        = fromIntegral $ length aos :: Double
       infMaj   = ceiling $ n / 2 -- majority is more than 50%
 
-  return $ infected > infMaj
+  return $ cover 100 (infected > infMaj) "Diseases no recover" True
 
 -- Testing the hypothesis, that when using the parameter-configuration of
 -- FigureIV-3, after 1000 ticks, the standard deviation of the trading prices
@@ -89,7 +89,9 @@ prop_trading = property $ do
         prices    = tradingPrices out
         pricesStd = std prices
 
-    return $ pricesStd <= maxTradingPricesStdAvg
+    return $ 
+      cover 100 (pricesStd <= maxTradingPricesStdAvg) 
+        ("Prices std less than " ++ show maxTradingPricesStdAvg) True
   where
     tradingPrices :: SimStepOut -> [Double]
     tradingPrices (_, _, _, aos) = map tradingPrice trades 
@@ -118,11 +120,14 @@ prop_culture = property $ do
     let agentCultTags = map (sugObsCultureTag . snd) aos
         zeroRatio     = zeroCultureRatio tagLength agentCultTags
 
-    if zeroRatio >= ratioDominate || zeroRatio <= (1 - ratioDominate)
-      then return True -- zeros OR ones dominate
-      else if zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual 
-        then return True -- both dominate equally, each on one hill
-        else return False -- none dominates, none is equally dominant
+    let prop = if zeroRatio >= ratioDominate || zeroRatio <= (1 - ratioDominate)
+                then True -- zeros OR ones dominate
+                else if zeroRatio >= ratioEqual || (1 - zeroRatio) <= ratioEqual 
+                  then True -- both dominate equally, each on one hill
+                  else False -- none dominates, none is equally dominant
+
+    return $ cover 100 prop "Cultures dominate or equal" True
+
   where
     zeroCultureRatio :: Int -> [CultureTag] -> Double
     zeroCultureRatio tagLength tags = fromIntegral zeros / fromIntegral n
@@ -150,8 +155,9 @@ prop_gini repls confidence = expectFailure $ do
 
   -- perform a two-tailed test because we expect it to be equal
   let tTestRet = tTestSamples TwoTail expGini (1 - confidence) gini
+      prop     = fromMaybe True tTestRet
 
-  return $ fromMaybe True tTestRet
+  return $ cover 100 prop ("Gini coefficient averages at " ++ show expGini) True
 
 -- When agents don't mate nor can die from age (chapter II), due to the 
 -- environment, there is a maximum carrying capacity of agents the environment
@@ -169,12 +175,13 @@ prop_carrying repls confidence = property $ do
 
     -- we use a two-tailed t-test because we expecet it to be equal
     let tTestRet = tTestSamples TwoTail expMean (1 - confidence) ms
+        prop     = fromMaybe True tTestRet
 
     -- TODO: perform a 1-sided https://en.wikipedia.org/wiki/Chi-squared_test 
     -- on the variances to check if they are less then _maxVariance
     -- this would be an additional ensurance
-
-    return (fromMaybe True tTestRet)
+    
+    return $ cover 100 prop ("Carrying capacity averages at " ++ show expMean) True
   where
     genPopulationSizeStats :: Int
                            -> SugarScapeScenario
@@ -210,8 +217,7 @@ prop_terracing repls confidence = property $ do
         allPass = fromMaybe True trPass &&
                   fromMaybe True srPass 
 
-    return allPass
-
+    return $ cover 100 allPass "Terracing is happening" True
   where
     genPopulationTerracingStats :: Gen (Double, Double)
     genPopulationTerracingStats = do
@@ -273,9 +279,11 @@ prop_wealth repls confidence = once $ do
       tTestKurt = tTestSamples TwoTail expKurt (1 - confidence) ks
       tTestGini = tTestSamples TwoTail expGini (1 - confidence) gs
 
-  return $ fromMaybe True tTestSkew &&
-           fromMaybe True tTestKurt &&
-           fromMaybe True tTestGini
+  let prop = fromMaybe True tTestSkew &&
+             fromMaybe True tTestKurt &&
+             fromMaybe True tTestGini
+
+  return $ cover 100 prop "Wealth distribution as expected" True
 
 --------------------------------------------------------------------------------
 -- GENERATORS & UTILITIES

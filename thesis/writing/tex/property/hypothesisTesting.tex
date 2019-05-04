@@ -58,7 +58,7 @@ prop_disease_allrecover = property (do
   -- ... counting all infected agents ...
   let infected = length (filter (==False)) map (null . sugObsDiseases . snd) aos
   -- ... should result in all agents to be recovered
-  return (infected == 0))
+  return (cover 100 (infected == 0) "Diseases all recover" True)
 \end{HaskellCode}
 
 From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.7. We cannot average over replicated runs of the same property thus we generate multiple replications of the sugarscape data within the property and employ a two-sided T-Test with a 95\% confidence to test the hypothesis:

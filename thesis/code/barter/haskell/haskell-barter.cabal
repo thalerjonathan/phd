@@ -61,7 +61,8 @@ executable haskell-barter
   -- other-extensions:
 
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.11 && <=4.12
+  build-depends:       base
+                     , containers
                      , MonadRandom
                      , random
                      
@@ -74,4 +75,4 @@ executable haskell-barter
   ghc-options:         -O2 
                        -Wall 
                        -Werror 
-                       -fwarn-tabs 
+                       -fno-warn-unused-top-binds

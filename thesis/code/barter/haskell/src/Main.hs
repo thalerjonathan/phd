@@ -1,4 +1,10 @@
 module Main where
 
+import Control.Monad.Random
+
+import BarterEconomy
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+  evalRandIO start
+  putStrLn "Finished"

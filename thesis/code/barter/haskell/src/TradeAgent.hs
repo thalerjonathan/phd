@@ -2,6 +2,10 @@ module TradeAgent
   ( TradeAgentState -- don't export internals of state
 
   , mkTradeAgent
+  , getPrices
+  , getScore
+  , getProduceGood
+
   , step
   ) where
 
@@ -27,12 +31,21 @@ data TradeAgentState = TradeAgentState
   , consume       :: ![Double]
   }
 
-mkTradeAgent :: BarterParams
-             -> Int
+getPrices :: TradeAgentState -> [Double]
+getPrices = price
+
+getScore :: TradeAgentState -> Double
+getScore = score
+
+getProduceGood :: TradeAgentState -> Int
+getProduceGood = produceGood
+
+mkTradeAgent :: Int
              -> Int 
              -> [Double]
+             -> BarterParams
              -> TradeAgentState
-mkTradeAgent params ai pg pr = produce $ TradeAgentState
+mkTradeAgent ai pg pr params = produce $ TradeAgentState
     { agentIndex    = ai
 
     , produceGood   = pg
@@ -279,6 +292,7 @@ acceptOffer :: TradeAgentState
             -> Bool 
 acceptOffer s offerGood offerAmount wantAmount
     = inventory s !! pg > 0
+    -- TODO: encapsulate as strategy: takes a TradeAgentState and returns Bool
     && not (demand s !! offerGood == 0 
            || exchangeFor s !! offerGood == 0
            || price s !! offerGood * offerAmount < price s !! pg * wantAmount)

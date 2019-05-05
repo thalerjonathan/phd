@@ -26,49 +26,63 @@ initPending(SIRState, Beta, Gamma, Delta, Sim) ->
   end.
 
 susceptible(Agents, Beta, Gamma, Delta, Sim) ->
-  receive 
+  receive
+    % next tick from the simulation kernel
     {tick, T} ->
       %io:fwrite("received tick ~w in susceptible agent ~n", [T]),
       makeContact(Agents, Beta, Gamma, Delta, Sim, T);
 
+    % makecontact from susceptible agent. Need to handle this message also here
+    % because of race conditions: we can't expect all susceptible agents already
+    % in makeContact mode when tick was sent by kernel
     {makecontact, Sender} ->
       %io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
+      % reply back with the agent state susceptible
       Sender ! {replycontact, susceptible},
+      % stay susceptible
       susceptible(Agents, Beta, Gamma, Delta, Sim)
   end.
 
 makeContact(Agents, Beta, Gamma, Delta, Sim, T) ->
-  AgentCount = length(Agents),
   % draw random agents
-  RandIdx = lists:map(fun(_) -> rand:uniform(AgentCount) end, lists:seq(1, Beta)),
+  AgentCount = length(Agents),
+  RandIdx    = lists:map(fun(_) -> rand:uniform(AgentCount) end, lists:seq(1, Beta)),
   RandAgents = lists:map(fun(Idx) -> lists:nth(Idx, Agents) end, RandIdx),
-
-  % send makecontact
+  % send makecontact to all random agents
   lists:map(fun(Agent) -> Agent ! {makecontact, self()} end, RandAgents),
-  % switch into awaiting reply behaviour
+  % switch to awaiting reply behaviour
   awaitReply(Agents, Beta, Gamma, Delta, Sim, T, 0).
 
 awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N) ->
   receive
+    % replycontact from infected agent,
     {replycontact, infected} ->
       %io:fwrite("received replycontact infected in susceptible, counting ~w ~n", [N]),
+      % check if infection has occurred
       Infected = rand:uniform() =< Gamma,
       if 
+        % got infected
         Infected ->
+          % infect the agents
           infectAgent(Delta, Sim, T);
         % not infected
         true ->
           % check if all replies have arrived
           checkAllReplies(Agents, Beta, Gamma, Delta, Sim, T, N)
       end;
-
+    
+    % replycontact from susceptible or recovered agent
     {replycontact, _} ->
       %io:fwrite("received replycontact _ in susceptible, counting ~w ~n", [N]),
+      % check if all replies have arrived
       checkAllReplies(Agents, Beta, Gamma, Delta, Sim, T, N);
       
+    % makecontact from susceptible agent
     {makecontact, Sender} ->
       %io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
+      % reply back with the agent state susceptible
       Sender ! {replycontact, susceptible},
+      % keep waiting
       awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N)
   end.
 
@@ -80,58 +94,67 @@ infectAgent(Delta, Sim, T) ->
   Sim ! {tickAck},
   % draw random illness duration
   IllnessDuration = randomExp(1 / Delta),
+  % switch into infected behaviour
   infected(T + IllnessDuration, Sim).
 
 checkAllReplies(Agents, Beta, Gamma, Delta, Sim, T, N) ->
   if
-    % recseived all replies but no infections happened, back to susceptible
+    % received all replies but no infections happened
     N+1 == Beta ->
       % don't forget to report back to simulation kernel
       Sim ! {tickAck},
+      % switch back into susceptible behaviour
       susceptible(Agents, Beta, Gamma, Delta, Sim);
-    % not received all replies yet and no infections happened so far, keep waiting
+    % not received all replies yet and no infections happened so far
     true ->
+      % keep waiting for all replies
       awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N+1)
   end.
 
 infected(RecoveryTime, Sim) ->
   receive 
+    % next tick from the simulation kernel
     {tick, T} ->
       %io:fwrite("received tick ~w in infected agent ~n", [T]),
       if 
-        % recovered
+        % time of recovery has come
         T >= RecoveryTime ->
-          % report recovery and the time to kernel
-          Sim ! {hasrecovered, RecoveryTime},
-          % don't forget to report back to simulation kernel
-          Sim ! {tickAck},
-          % switch to recovered behaviour
-          recovered(Sim);
+         recoverAgent(Sim, RecoveryTime);
         % not recovered yet
         true ->
+          % report back immediately to finish tick
           Sim ! {tickAck},
+          % stay infected
           infected(RecoveryTime, Sim)
       end;
 
-    % reply to makecontact from susceptible agent
+    % makecontact from susceptible agent
     {makecontact, Sender} ->
       %io:fwrite("received makecontact in infected from ~w ~n", [Sender]),
+      % reply back with the agent state infected
       Sender ! {replycontact, infected},
+      % stay infected
       infected(RecoveryTime, Sim)
   end.
 
+recoverAgent(Sim, RecoveryTime) ->
+  % report recovery and the time to kernel
+  Sim ! {hasrecovered, RecoveryTime},
+  % don't forget to report back to simulation kernel to finish this tick
+  Sim ! {tickAck},
+  % switch to recovered behaviour
+  recovered(Sim).
+
+% NOTE: recovered behaviour does not need to reply to tick because no time-
+% dependent behaviour, recovered stays in that behaviour forever
 recovered(Sim) ->
   receive
-     % ack the tick to simulation kernel
-    {tick, _} ->
-      %io:fwrite("received tick ~w in recovered agent ~n", [T]),
-      Sim ! {tickAck},
-      recovered(Sim);
-
-    % reply to makecontact from susceptible agent
+    % makecontact from susceptible agent
     {makecontact, Sender} ->
       %io:fwrite("received makecontact in recovered from ~w ~n", [Sender]),
+      % reply back with the agent state recovered
       Sender ! {replycontact, recovered},
+      % stay recovered
       recovered(Sim)
   end.
 

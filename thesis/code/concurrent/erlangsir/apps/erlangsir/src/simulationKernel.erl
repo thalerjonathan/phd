@@ -23,22 +23,33 @@ init(S, I, R, Beta, Gamma, Delta, TMax) ->
   % wait for simulation to be finished
   receive
     {dynamics, Dyns} ->
-      io:fwrite("Simulation finished after ~w steps! ~n", [length(Dyns)]),
-      %io:fwrite("Simulation finished with dynamics: ~n ~w ~n ", [Dyns]),
+      %io:fwrite("Simulation finished after ~w steps! ~n", [length(Dyns)]),
       % NOTE: sort dyns by time-stamp because it is very likely that agents
       % which recover within the same Tick dont report in their recovery-time
       % order as it is floating point
-      lists:sort(fun({T1,_,_,_}, {T2,_,_,_}) -> T1 =< T2 end, Dyns)
+      %lists:sort(fun({T1,_,_,_}, {T2,_,_,_}) -> T1 =< T2 end, Dyns)
+      
+      DynsSorted = lists:sort(fun({T1,_}, {T2,_}) -> T1 =< T2 end, Dyns),
+      %io:fwrite("~w ~n ", [DynsSorted]),
+
+      lists:foldl(fun({T, Action}, {Sa, Ia, Ra, Acc}) 
+        -> case Action of
+            infection -> 
+              {Sa - 1, Ia + 1, Ra, Acc ++ [{T, Sa - 1, Ia + 1, Ra}]};
+            recovery ->
+              {Sa, Ia - 1, Ra + 1, Acc ++ [{T, Sa, Ia - 1, Ra + 1}]}
+            end
+           end, {S, I, R, [{0, S, I, R}]}, DynsSorted)
   end.
 
 initPending(Sid, S, I, R, TMax) ->
   receive
     % receive the go with the agents
     {go, Agents} ->
-      io:fwrite("Received Go, starting simulation! ~n"),
+      %io:fwrite("Received Go, starting simulation! ~n"),
       % send initial sentTick message to self
       self() ! {sendTick},
-      simKernel(Sid, Agents, S, I, R, 1, TMax, 0, [{0, S, I, R}])
+      simKernel(Sid, Agents, S, I, R, 1, TMax, 0, [])
   end.
 
 % in case of 0 infected agents we reach equilibrium an can terminate 
@@ -88,7 +99,8 @@ simKernel(Sid, Agents, S, I, R, T, TMax, Ack, Dyns) ->
       % one more infected
       NewI = I + 1,
       % add state-change to dynamics
-      NewDyns = Dyns ++ [{T, NewS, NewI, R}],
+      %NewDyns = Dyns ++ [{T, NewS, NewI, R}],
+      NewDyns = Dyns ++ [{T, infection}],
       % continue
       simKernel(Sid, Agents, NewS, NewI, R, T, TMax, Ack, NewDyns);
 
@@ -99,7 +111,8 @@ simKernel(Sid, Agents, S, I, R, T, TMax, Ack, Dyns) ->
       % one more recovered
       NewR = R + 1,
       % add state-change to dynamics
-      NewDyns = Dyns ++ [{Ts, S, NewI, NewR}],
+      %NewDyns = Dyns ++ [{Ts, S, NewI, NewR}],
+      NewDyns = Dyns ++ [{Ts, recovery}],
       % continue
       simKernel(Sid, Agents, S, NewI, NewR, T, TMax, Ack, NewDyns)
   end.

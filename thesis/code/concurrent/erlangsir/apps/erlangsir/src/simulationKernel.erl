@@ -4,7 +4,7 @@
 
 init(S, I, R, Beta, Gamma, Delta, TMax) ->
   Pid = spawn(?MODULE, initPending, [self(),S,I,R,TMax]),
-  io:fwrite("Sid: ~p ~n", [Pid]),
+  %io:fwrite("Sid: ~p ~n", [Pid]),
 
   SIRStates = simulationKernel:replicate(S,susceptible) ++ 
               simulationKernel:replicate(I,infected) ++ 
@@ -21,7 +21,8 @@ init(S, I, R, Beta, Gamma, Delta, TMax) ->
   % wait for simulation finished
   receive
     {dynamics, Dyns} ->
-      io:fwrite("Simulation finished with dynamics: ~n ~w ~n ", [Dyns]),
+      io:fwrite("Simulation finished after ~w steps! ~n", [length(Dyns)]),
+      %io:fwrite("Simulation finished with dynamics: ~n ~w ~n ", [Dyns]),
       Dyns
   end.
 
@@ -33,6 +34,9 @@ initPending(Sid, S, I, R, TMax) ->
       simKernel(Sid, Agents, S, I, R, 1, TMax, 0, [{0, S, I, R}])
   end.
 
+% TODO: clean up code
+% TODO: do we really need the Acks? in the end we only need to sort Dyns by their
+% time occurrence
 simKernel(Sid, _, _, 0, _, _, _, _, Dyns) ->
   %io:fwrite("No more infected agents, finished! ~n"),
   % in case of 0 infected agents we reach equilibrium an can terminate 

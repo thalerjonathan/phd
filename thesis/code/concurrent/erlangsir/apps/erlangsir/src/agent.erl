@@ -17,7 +17,7 @@ initPending(SIRState, Beta, Gamma, Delta, Sim) ->
           % draw recovery time random 
           IllnessDuration = randomExp(1 / Delta),
           %io:fwrite("initialising infected agent with illnessduration of ~w ~n", [IllnessDuration]),
-          % IllnessDuration is RecoveryTime because t = 0 here
+          % IllnessDuration = RecoveryTime because t = 0 here
           infected(IllnessDuration, Sim);
         recovered ->
           %io:fwrite("initialising recovered agent ~n"),
@@ -55,43 +55,43 @@ awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N) ->
       Infected = rand:uniform() =< Gamma,
       if 
         Infected ->
-          %io:fwrite("susceptible got infected! ~n"),
-          % inform kernel about infection
-          Sim ! {gotinfected},
-          % don't forget to report back to simulation kernel
-          Sim ! {tickAck},
-          % draw random illness duration
-          IllnessDuration = randomExp(1 / Delta),
-          infected(T + IllnessDuration, Sim);
+          infectAgent(Delta, Sim, T);
+        % not infected
         true ->
-          if 
-            % received all replies but no infections happened, back to susceptible
-            N+1 == Beta ->
-              % don't forget to report back to simulation kernel
-              Sim ! {tickAck},
-              susceptible(Agents, Beta, Gamma, Delta, Sim);
-            % not received all replies yet and no infections happened so far, keep waiting
-            true ->
-              awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N+1)
-          end
+          % check if all replies have arrived
+          checkAllReplies(Agents, Beta, Gamma, Delta, Sim, T, N)
       end;
+
     {replycontact, _} ->
       %io:fwrite("received replycontact _ in susceptible, counting ~w ~n", [N]),
-      if 
-        % received all replies but no infections happened, back to susceptible
-        N+1 == Beta ->
-          % don't forget to report back to simulation kernel
-          Sim ! {tickAck},
-          susceptible(Agents, Beta, Gamma, Delta, Sim);
-        % not received all replies yet and no infections happened so far, keep waiting
-        true ->
-          awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N+1)
-      end;
+      checkAllReplies(Agents, Beta, Gamma, Delta, Sim, T, N);
       
     {makecontact, Sender} ->
       %io:fwrite("received makecontact in susceptible from ~w ~n", [Sender]),
       Sender ! {replycontact, susceptible},
       awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N)
+  end.
+
+infectAgent(Delta, Sim, T) ->
+  %io:fwrite("susceptible got infected! ~n"),
+  % inform kernel about infection
+  Sim ! {gotinfected},
+  % don't forget to report back to simulation kernel 
+  Sim ! {tickAck},
+  % draw random illness duration
+  IllnessDuration = randomExp(1 / Delta),
+  infected(T + IllnessDuration, Sim).
+
+checkAllReplies(Agents, Beta, Gamma, Delta, Sim, T, N) ->
+  if
+    % recseived all replies but no infections happened, back to susceptible
+    N+1 == Beta ->
+      % don't forget to report back to simulation kernel
+      Sim ! {tickAck},
+      susceptible(Agents, Beta, Gamma, Delta, Sim);
+    % not received all replies yet and no infections happened so far, keep waiting
+    true ->
+      awaitReply(Agents, Beta, Gamma, Delta, Sim, T, N+1)
   end.
 
 infected(RecoveryTime, Sim) ->
@@ -123,7 +123,7 @@ infected(RecoveryTime, Sim) ->
 recovered(Sim) ->
   receive
      % ack the tick to simulation kernel
-    {tick, T} ->
+    {tick, _} ->
       %io:fwrite("received tick ~w in recovered agent ~n", [T]),
       Sim ! {tickAck},
       recovered(Sim);

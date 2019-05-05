@@ -1,12 +1,16 @@
+{-# LANGUAGE InstanceSigs #-}
 module TradeAgent
   ( TradeAgentState -- don't export internals of state
 
   , mkTradeAgent
   , getPrices
   , getScore
+  , resetScore
   , getProduceGood
 
   , step
+  , produce
+  , improve
   ) where
 
 import Control.Monad.Random
@@ -16,6 +20,7 @@ import Utils
 
 -- TODO: need a generalisation of the barter-strategy
 -- TODO: need a generalisation of the improvement-strategy
+-- TODO: replace RandomGen g and Rand by MonadRandom
 
 data TradeAgentState = TradeAgentState 
   { agentIndex    :: !Int
@@ -31,6 +36,10 @@ data TradeAgentState = TradeAgentState
   , consume       :: ![Double]
   }
 
+instance Eq TradeAgentState where
+  (==) :: TradeAgentState -> TradeAgentState -> Bool
+  (==) as1 as2 = agentIndex as1 == agentIndex as2
+
 getPrices :: TradeAgentState -> [Double]
 getPrices = price
 
@@ -39,6 +48,9 @@ getScore = score
 
 getProduceGood :: TradeAgentState -> Int
 getProduceGood = produceGood
+
+resetScore :: TradeAgentState -> TradeAgentState
+resetScore a = a { score = 0 }
 
 mkTradeAgent :: Int
              -> Int 
@@ -107,13 +119,14 @@ lambda s
 -- start trading
 step :: RandomGen g
      => BarterParams
-     -> TradeAgentState 
-     -> [TradeAgentState]
+     -> [Int]
+     -> TradeAgentState
+     -> [[TradeAgentState]]
      -> Rand g (Maybe (TradeAgentState, TradeAgentState))
-step params s0 ss = iterateGoodPermuation tradeGoodPermutation s0
+step params tradeGoodPermutation s0 ss = iterateGoodPermuation tradeGoodPermutation s0
   where
-    maxRetries           = getMaxRetries params
-    tradeGoodPermutation = getTradeOrder params
+    maxRetries = getMaxTries params
+    -- tradeGoodPermutation = getTradeOrder params -- TODO: this is wrong, not in params
 
     iterateGoodPermuation :: RandomGen g
                           => [Int]
@@ -124,7 +137,7 @@ step params s0 ss = iterateGoodPermuation tradeGoodPermutation s0
       | demand s !! wantGood == 0 = iterateGoodPermuation gs s
       | otherwise = findTrades maxRetries s wantGood producers
         where
-          producers = filter (\s' -> produceGood s' == wantGood) ss 
+          producers = ss !! wantGood --filter (\s' -> produceGood s' == wantGood) ss 
 
     findTrades :: RandomGen g
                => Int
@@ -134,7 +147,7 @@ step params s0 ss = iterateGoodPermuation tradeGoodPermutation s0
                -> Rand g (Maybe (TradeAgentState, TradeAgentState))
     findTrades 0 _ _ _ = return Nothing
     findTrades n s wantGood producers = do
-      responder <- randomElem producers
+      responder <- randomElemM producers
       
       if not $ acceptOffer responder (produceGood s) (demand s !! wantGood) (exchangeFor s !! wantGood)
         then findTrades (n-1) s wantGood producers
@@ -312,3 +325,48 @@ _checkInvariants s
   where
     n = length $ consume s
     pg = produceGood s
+
+-- improves the worse through the better
+improve :: RandomGen g
+        => BarterParams 
+        -> TradeAgentState        -- ^ worse
+        -> TradeAgentState        -- ^ better
+        -> Rand g TradeAgentState
+improve params worse better = do
+  newPrices <- improvementStrategy params better worse 
+  let newWorse = worse { price = newPrices }
+  if _checkInvariants newWorse
+    then error "invariants violated in improve" 
+    else return newWorse
+
+-- An implementation of the improvement strategy that corresponds to the Gintis'
+-- implementation. A fraction  of agents copy the prices of better scoring
+-- agents and each price is mutated with a small probability.
+
+improvementStrategy :: RandomGen g
+                    => BarterParams
+                    -> TradeAgentState  -- ^ better
+                    -> TradeAgentState  -- ^ myself
+                    -> Rand g [Double]         -- ^ new prices
+improvementStrategy params better _ = do
+  priceMutation <- getMutationVector params
+  return $ zipWith (*) (getPrices better) priceMutation
+
+getMutationVector :: RandomGen g
+                  => BarterParams 
+                  -> Rand g [Double]
+getMutationVector params = do
+  let n = getNumGoods params
+  
+  let priceMutation = replicate n 1
+
+  mapM (\p -> do
+    r <- getRandom
+    if r >= getMutationRate params
+      then return p
+      else do
+        b <- getRandom
+        if b
+          then return $ getMutationDelta params
+          else return $ 1 / getMutationDelta params) priceMutation
+

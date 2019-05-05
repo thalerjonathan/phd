@@ -63,6 +63,7 @@ executable haskell-barter
   -- Other library packages from which modules are imported.
   build-depends:       base
                      , containers
+                     , mtl
                      , MonadRandom
                      , random
                      

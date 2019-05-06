@@ -1,44 +1,5 @@
 \chapter{Conclusions}
 \label{ch:conclusions}
-When we go back to the beginning of this thesis and revisit the viewpoints that object-oriented programming (OO) is a particularly natural development environment for ABS \cite{epstein_growing_1996} and \textit{"agents map naturally to objects"} \cite{north_managing_2007} in the light of the full thesis, the obvious question which comes to mind is whether this thesis implies that we have been doing implementing ABS wrong ever since Epstein advocated OO for it in 1996 - shall Haskell be the new way to got? Obviously that is not the case but as we have shown, with (pure) functional programming comes a lot of potential. Lets elaborate on that.
-
-\medskip
-
-It is a fact that simulations are about consuming, processing and producing data. ABS being simulation methodology is no exception to that fact. Unfortunately, due to OO lack of rigour theoretical foundations, OO as it is used today is \textit{not} very good at representing and manipulating pure data and its data-flow because of mutable shared state and its unfortunate coupling with code. 
-%
-%The rise of functional concepts in OO languages in the last years are a strong indication that OO is lacking features which have existed in FP for decades:
-%
-%\begin{itemize}
-%	\item Java 8 added lambda expressions and functional style programming using map, fold, reduce, filter, which together with lambdas allow a data-flow oriented approach to computing.
-%	 
-%	\item Python, which surges in popularity within the OO family of languages, allows very data-flow centric and functional style of programming through lambda functions, list comprehensions and other functional features as it does not require programmers to stick to the OO paradigm.
-%	
-%	\item Popularisation of JavaScript frameworks like React, Elm and Purescript, which emphasise a functional, data-flow driven approach of web-programming.
-%\end{itemize}
-
-This was by no means clear in the early-to-mid 1990s where the OO paradigm was seen as a silver bullet to the problems of programming: a whole software industry had to re-learn best practices, patterns \cite{gamma_design_1994} and how to avoid pitfalls and bad code \cite{fowler_refactoring:_2012}. Thus we cannot blame \cite{epstein_growing_1996} for advertising OO as the ways to implement ABS, at that time it seemed indeed to be the right thing to do. 
-
-The question is then why not use toolkits like Matlab or R - after all they are completely data-centric? This would be the other extreme, just like OO is and we would run into difficulties as well. The point is that ABS is not purely data-centric either and is indeed richer: agents can interact with each other and with an environment. So we have a tension here: ABS is data-centric on the one hand, and interaction-centric on the other - can we combine both worlds?
-
-The combination of both was exactly the sales pitch of OO for the last 20+ years. Unfortunately this combination leads to nasty bugs due to shared mutable state, deeply complex object hierarchies due to inheritance overuse which also fix behaviour at compile time, open recursion which in the end costs the potential for higher degree of correctness, ease of parallelism and concurrency and the use of property-based testing. Thus we need to separate both: what we need is immutable, shared-nothing state allowing for a data-centric approach \textit{and} an interaction mechanism which allows agents to communicate with each other.
-
-\medskip
-
-This thesis is \textit{one} way of showing how to separate both and reap the benefits. A time-driven ABS like SIR or an ACE with simple agents not interaction with each other like ZI traders is heavily data-centric and very low on agent-interaction. Such data-driven ABS models are quite well expressed in a purely functional approach with the advantage that one can reap the benefits of reproducibility at compile time, using STM for concurrency and property-based testing for verification and validation. An event-driven simulation with complex agent state and agent-interactions like social simulations like Sugarscape or Chemical or Biology simulation with cell interactions are also possible in a pure functional setting as we have shown in the case of the Sugarscape model. Although we were able to give a good solution to complex agent state and synchronous, direct Agent-interactions in our event-driven SIR and Sugarscape and they \textit{do} work in Haskell, they are cumbersome to get right without library support (see further research below) and we cannot reap the benefits of STM in their case. 
-
-This has lead to the fundamental conclusion that simulations which implement complex agent state and agent-communication centric models should rather be implemented in an functional language with actor based concurrency messaging. There are basically two options Cloud Haskell and Erlang \footnote{There is also Elixir, an Erlang dialect. Also there is Scala with the Akka / Actor Library but this is not purely functional and violates the shared nothing semantics, making it less data-centric}.
-They are all message orientation will allow you to easily express the complex agent-interactions whilst having the potential to run them in parallel to gain a potentially substantial speed up. Despite its focus on messages, all are (pure) functional languages, which puts you into the data-centric approach: messages are pure data with \textit{shared nothing semantics}. This makes testing easier and also opens the way for property-based testing which is available in Erlang as well where it even allows to detect race conditions \cite{claessen_finding_2009}. Thus we can conclude that agents do \textit{not} map naturally to objects, agents map naturally to actors. 
-
-% TODO: cite armstrongs blog about shared nothing semantics, should be somewhere in my 1st or 2nd year report \\
-
-\medskip
-
-Thus it is not that implementing ABS with OO is wrong - it works reasonably well as a large number of industry strength libraries and frameworks demonstrate. It is more the \textit{missed potential} of a (pure) functional, data-centric approach: strong static type system with explicit controlled side-effects; parallel computation to speed up the simulation with very few changes but retaining static guarantees at compile time; STM to implement concurrent data-flow problems as actual data-flow problems without the need to resort to synchronisation primitives and cluttering the program logic with semantics for synchronisation and concurrency; Property-based testing for verification and validation of a data-centric approach which is central to all simulations; actor model concurrency in the case of Cloud Haskell and Erlang for agent-interaction centric models with a functional, data-centric core. 
-
-Still, there are reasons to stick with OO and avoid FP. There exist a bunch the industry strength toolkits and libraries (Repast, NetLogo, AnyLogic) and the widespread use and knowledge of OO which makes abs implementers readily available. This allows for a quick and cheap implementation of low-impact and straightforward models where the need for correctness, reproducibility, verification and validation is not of primary concern. Also, performance in FP is still a far cry from OO although that argument might get diminished by the potential of using actor based concurrency like in Erlang to implement ABS. Another benefit is that OO as a modelling tool to a problem is still highly useful in the case of UML.
-
-\medskip
-
 Thus, in the end coming back to the initial point that \textit{"agents map naturally to objects"} \cite{north_managing_2007}, we agree by saying \textit{"Yes they do, but we have to be precise what constitutes objects."}. Whether they are newtypes, tuples, (G)ADTs, pure functions, monads, comonads, arrows, SFs, MSFs, Actors or OO objects. They are all valid ways of representing agents with varying degree of abstraction, flexibility and power and they all come with their benefit and drawbacks which have to be clearly understood together with the problem to solve. This thesis simply added a promising new tool to the family of existing ones and only time will tell whether this tool is indeed as valuable as hinted in this thesis.
 
 \section{Further Research}

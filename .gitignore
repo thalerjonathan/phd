@@ -12,6 +12,9 @@
 *.lot
 *.nlo
 *.toc
+*.nav
+*.snm
+*.vrb
 dist/
 out/
 .dist-buildwrapper/

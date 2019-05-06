@@ -211,10 +211,10 @@
   
   \begin{block}{}
   \begin{minted}[fontsize=\normalsize]{haskell}
-  readFromFile :: String -> IO String
+  readFromFile      :: String -> IO String
   randomExponential :: Double -> Rand Double
   statefulAlgorithm :: State Int (Maybe Double)
-  produceData :: Writer [Double] ()
+  produceData       :: Writer [Double] ()
   \end{minted}
   \end{block}
 \end{frame}
@@ -234,7 +234,7 @@
   \end{block}
   
   \begin{block}{Solution}
-  	Functional Reactive Programming with Monadic Stream Functions
+  	Functional Reactive Programming + \\ Monadic Stream Functions
   \end{block}
 \end{frame}
 
@@ -275,18 +275,18 @@ newtype Cont a = Cont (a -> (a, Cont a))
 -- It uses a closure to capture the input
 adder :: Int -> Cont Int
 adder x = Cont (\x' -> (x + x', adder (x + x')))
-
--- Runs a continuation for n steps and
--- prints the output in each step
-runCont :: Int -> Cont Int -> IO ()
-runCont 0 _ = return ()
-runCont n (Cont cont) = do
-  let (x, cont') = cont 1
-  print x
-  runCont (n-1) cont'
 \end{minted}
 \end{block}
 \end{frame}
+
+%-- Runs a continuation for n steps and
+%-- prints the output in each step
+%runCont :: Int -> Cont Int -> IO ()
+%runCont 0 _ = return ()
+%runCont n (Cont cont) = do
+%  let (x, cont') = cont 1
+%  print x
+%  runCont (n-1) cont'
 
 \begin{frame}[fragile]{Recovered Agent}
 \begin{block}{}
@@ -358,18 +358,18 @@ susceptibleAgent coord beta gamma delta
 
 \begin{frame}{ABS + FP = Software Transactional Memory}
   \begin{itemize}
-  	\item Concurrency in ABS difficult: agents acting at same time, interacting with each other and with environment.
-	\item Synchronisation using locks: semaphors, monitors, mutex,...  	
-  	\item $\Rightarrow$ error prone (deadlocks, correctness, composability,...)
+  	\item Concurrency in ABS difficult.
+	\item Synchronisation using locks.
+  	\item $\Rightarrow$ error prone 
   	\item $\Rightarrow$ mixing of concurrency and model related code.
-  	\item New approach in Haskell: Software Transactional Memory
+  	\item New approach in Haskell: Software Transactional Memory.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Software Transactional Memory (STM)}
   \begin{itemize}   	
   	\item Lock free concurrency.
-  	\item Run STM actions optimistically concurrently and rollback / retry.
+  	\item Run STM actions concurrently and rollback / retry.
   	\item Haskell first language to implement in core.    
     \item Haskell type system guarantees retry-semantics.
   \end{itemize}
@@ -381,10 +381,9 @@ susceptibleAgent coord beta gamma delta
 
 \begin{frame}{Software Transactional Memory (STM)}
   \begin{itemize}
-  	\item Tremendous performance improvement
-    \item Substantially outperforms lock-based implementation 
-    \item STM semantics retain guarantees about non-determinism
-    \item Guarantees that the non-determinism comes only from concurrency within STM and nothing else
+  	\item Tremendous performance improvement.
+    \item Substantially outperforms lock-based implementation.
+    \item STM semantics retain guarantees about non-determinism.
   \end{itemize}
 \end{frame}
 
@@ -446,11 +445,11 @@ reverse_reverse_label xs
 \begin{footnotesize}
 \begin{verbatim}
 +++ OK, passed 100 tests:
- 5% length of random-list is 27
- 5% length of random-list is 15
- 5% length of random-list is 0
- 4% length of random-list is 4
- 4% length of random-list is 19
+ 5% length of list is 27
+ 5% length of list is 15
+ 5% length of list is 0
+ 4% length of list is 4
+ 4% length of list is 19
  ...
 \end{verbatim}
 \end{footnotesize}
@@ -489,13 +488,17 @@ reverse_reverse_cover xs  = checkCoverage
 
 \section{Conclusion}
 \begin{frame}{Conclusion}
-  \begin{itemize}
-  	\item First steps
-  	\item Develop library
-  	\item Performance
-    \item Goal is correct-by-construction implementation %The direction is towards an simulation which is more likely to be correct with the ultimate goal being a correct-by-construction implementation (up to some specification).
-    %\item A correct-by-construction implementation does NOT relief us from actually running the simulation!
-  \end{itemize}
+\begin{block}{Have we done ABS implementation wrong?}
+No, but we missed out on a lot of potential!
+\end{block}
+%
+%  \begin{itemize} 
+%  	\item First steps
+%  	\item Develop library
+%  	\item Performance
+%    \item Goal is correct-by-construction implementation %The direction is towards an simulation which is more likely to be correct with the ultimate goal being a correct-by-construction implementation (up to some specification).
+%    %\item A correct-by-construction implementation does NOT relief us from actually running the simulation!
+%  \end{itemize}
 \end{frame}
 
 \begin{frame}{}

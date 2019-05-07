@@ -1,4 +1,4 @@
-\chapter{The Gintis Case}
+\section{The Gintis Case}
 \label{sec:gintis_case}
 Discuss my developed techniques to the Gintis paper (and its follow ups: the Ionescu paper \cite{botta_functional_2011} and a Masterthesis \cite{evensen_extensible_2010} on it). Answer the following:
 
@@ -30,7 +30,7 @@ Not yet started, need to implement it but there exists code for it already (gint
 %NOTE: my hypothesis is that just by having used our pure functional approach would NOT have prevented gintis to have made the bugs as reported in the masterthesis \cite{evensen_extensible_2010} because they seemed to be like copy-paste bugs. Only rigorous code-testing (unit- / property-based) would have probably revealed these problems.
 %
 
-\section{Agent Based Computational Economics}
+\subsection{Agent Based Computational Economics}
 For many models, our techniques introduced in Part II are too powerful and a much simpler approach would suffice to implement it. In general too much power should always be avoided (at least in programming and software engineering) because with much power comes much responsibility: more power requires to pay more attention to details and thus there is more potential to make mistakes. Thus we should always look for the technique with minimal power, which solves our problem sufficiently.
 
 A very important field, which picked up ABS in recent years is economics. The field of economics is an immensely vast and complex one with many facets to it, ranging from firms, to financial markets to whole economies of a country \cite{bowles_understanding_2005}. Today its very foundations rest on rational expectations, optimization and the efficient market hypothesis. The idea is that the macroeconomics are explained by the micro foundations \cite{colell_microeconomic_1995} defined through behaviour of individual agents. These agents are characterized by rational expectations, optimizing behaviour, having perfect information, equilibrium \cite{focardi_is_2015}.
@@ -65,4 +65,4 @@ To investigate this point more in-depth we implemented \footnote{Freely availabl
 
 We are very well aware that this simple example is only one of many ACE models but even though it implements very simple \textit{zero} intelligence agents, it shows that ABS in Haskell does not need to be as complex as the use-cases in Part II - on the contrary, ABS implementations can be very concise and highly performant in Haskell.
 
-\section{Gintis Bilateral Bartering}
+\subsection{Gintis Bilateral Bartering}

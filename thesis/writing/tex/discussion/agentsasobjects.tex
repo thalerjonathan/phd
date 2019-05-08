@@ -1,12 +1,14 @@
 \subsection{Agents As Objects}
-
-
 It seems that we indeed have to agree that agents do actually map naturally to objects. Throughout the course of this thesis though it became clear that we have to think objects in a much broader context than the one of existing OO terminology as in Java, C++, Python. The reason that we have shown that we can represent agents as objects also in a purely functional way, leads us to the next question, what actually constitutes objects? We have to be careful not to confuse the \textit{concept} of objects with the \textit{implementation} of objects. Lets first be clear about the \textit{concept} of an object (Alan kay, Actors, Java/C++/Python family) and then look at \textit{implementations} (Java/C++/Python family, actors, pure functionally)
+
+
+Although object-oriented programming was invented to give programmers a better way of composing their code, strangely objects ultimately do \textit{not} compose \cite{bill_what_2017}, \cite{erkki_lindpere_why_2013}. The reason for this is that objects hide both \textit{mutation} and \textit{sharing through pointers or references} of object-internal data. This makes data-flow mostly implicit due to the side-effects on the mutable data which is globally scattered across objects. To deal with the problem of composability and implicit data-flow the seminal work \cite{gamma_design_1994} put forward the use of \textit{patterns} to organize objects and their interaction. Other concepts, trying to address the problems, were the SOLID principles and Dependency Injection. Although a huge step in the right direction, these concepts come with a very heavy overhead, are often difficult to understand and to apply and don't solve the fundamental problem \cite{lawrence_krubner_object_2014}. To put it short: even for experienced programmers, proper object-oriented programming \textit{is hard}. The difficulty arises from how to split up a problem into objects and their interactions and controlling the implicit mutation of state which is spread across all objects. Still if one masters the technique of object-oriented program-design and implementation, due to the implicit global mutable state bugs due to side-effects are the daily life of a programmer as shown below. Note that this critique of object-oriented programming addresses the deficits of this paradigm as it is implemented and in use today in languages likes Java and C++. The original idea of object-orientation, invented by Alan Kay \footnote{\url{http://wiki.c2.com/?AlanKaysDefinitionOfObjectOriented}} was very different than today and has much more common with the Actor Model as will be discussed in the literature-review.
+
 
 \paragraph{Object definition}
 identity
-state
-
+internal state
+message exchange
 
 \paragraph{Object implementation}
 Java/C++/Python family
@@ -14,8 +16,6 @@ Actors as in Erlang
 pure functionally
 
 % TODO: the history does say something else about objects as alan kay had them in mind.
-
-TODO: 
 
 When we go back to the beginning of this thesis and revisit the viewpoints that object-oriented programming (OO) is a particularly natural development environment for ABS \cite{epstein_growing_1996} and \textit{"agents map naturally to objects"} \cite{north_managing_2007} in the light of the full thesis, the obvious question which comes to mind is whether this thesis implies that we have been doing implementing ABS wrong ever since Epstein advocated OO for it in 1996 - shall Haskell be the new way to got? Obviously that is not the case but as we have shown, with (pure) functional programming comes a lot of potential. Lets elaborate on that.
 
@@ -81,3 +81,20 @@ After having undertaken this long journey on how to implement ABS pure functiona
 My approach of doing ABS and representing agents in pure FP can be interpret as trying to emulate objects in a purely functional way. In this case we have to say: yes agents map naturally to objects. The question is then: are there other, better mechanisms, more in FP I missed / didnt think of ... to implement ABS in FP? I hypothesize that this is probably NOT the case and that every approach in pure FP follows a roughly similar direction with only a few differences. Obviously it is apparent that both OOP and FP are not silverbullets to ABS and both come with their benefits and drawbacks and both have their existence. Thus I hypothesize that we might see the emergence of different computation paradigms in the future which might fit better to ABS than either one.
 
 yes agents map naturally to objects, but what kind of objects? they differ in implementation details and in this thesis proposed a pure functional approach to a notion of objects. objects in Java work different, as well as in Smalltalk and objective c. processes in the functional language Erlang can be seen as objects too as they fullfill all criteria. also cite alan kay
+
+\subsubsection{Actors}
+\label{sec:actors}
+TODO: this seems not to fit into the narrative here, maybe it fits into discussion part or further research
+
+The Actor-Model, a model of concurrency, was initially conceived by Hewitt in 1973 \cite{hewitt_universal_1973} and refined later on \cite{hewitt_what_2007}, \cite{hewitt_actor_2010}. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{grief_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a semantic mode, he termed \textit{actors} which was then developed further \cite{agha_foundation_1997} into an actor language with operational semantics which made connections to process calculi and functional programming languages (see both below). 
+
+An actor is a uniquely addressable entity which can do the following \textit{in response to a message}
+\begin{itemize}
+	\item Send an arbitrary number (even infinite) of messages to other actors.
+	\item Create an arbitrary number of actors.
+	\item Define its own behaviour upon reception of the next message.
+\end{itemize}
+
+In the actor model theory there is no restriction on the order of the above actions and so an actor can do all the things above in parallel and concurrently at the same time. This property and that actors are reactive and not pro-active is the fundamental difference between actors and agents, so an agent is \textit{not} an actor but conceptually nearly identical and definitely much closer to an agent in comparison to an object. The actor model can be seen as quite influential to the development of the concept of agents in ABS, which borrowed it from Multi Agent Systems \cite{wooldridge_introduction_2009}. Technically, it emphasises message-passing concurrency with share-nothing semantics (no shared state between agents), which maps nicely to functional programming concepts.
+
+The programming-model of actors \cite{agha_actors:_1986} was the inspiration for the Erlang programming language \cite{armstrong_erlang_2010}, which was created in the 1980's by Joe Armstrong for Eriksson for developing distributed high reliability software in telecommunications. The implication is that, the focus would shift immediately to the use of the actor model for concurrent interaction of agents through messages. The languages type-system is strong and dynamic and thus lacks type-checking at compile-time. Thus the structure of computation plays naturally no role because we cannot look at it from the abstract perspective as we can in Haskell. Purity can not be guaranteed and due to agents being processes concurrency is everywhere, and even though it is very tamed through shared-nothing messaging semantics, this implies that repeated runs with same initial conditions might lead to different results. Obviously we could avoid implementing agents as processes but then we basically sacrifice the very heart and feature of the language.

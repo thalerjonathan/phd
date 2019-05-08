@@ -1,0 +1,28 @@
+\section{Generalising Research}
+We hypothesize that our research can be transferred to other related fields as well, which puts our contributions into a much broader perspective, giving it more impact than restricting it just to the very narrow field of Agent-Based Simulation. Although we don't have the time to back up our claims with in-depth research, we argue that our findings might be applicable to the following fields at least on a conceptual level.
+
+\subsection{Simulation in general}
+We already showed in the paper \cite{thaler_pure_2019}, that purity in a simulation leads to repeatability which is of utmost importance in scientific computation. These insights are easily transferable to simulation software in general and might be of huge benefit there. Also my approach to dependent types in ABS might be applicable to simulations in general due to the correspondence between equilibrium \& totality, in use for hypotheses formulation and specifications formulation as pointed out in Chapter \ref{ch:dependent}. 
+
+\subsection{System Dynamics}
+\label{sub:generalising_system_dynamics}
+we have done that already in the appendix
+
+discuss pure functional system dynamics - correct by construction: benefits: strictly deterministic already at compile time, encode equations directly in code => correct by construction. Can serve as backend implementation of visual SD packages.
+
+\subsection{Discrete Event Simulation}
+pure functional DES easily possible with my developed synchronous messaging ABS
+DES in FP: we doing part of it in event-driven SIR. this is a potential hint at how to achieve DES in pure FP: arrowized FRP seems to be perfect for it because it allows to express data-flow networks, which is exactly what DES is as well. The problem with pure FP is that it will be more involved to propagate events through the network especially when they don't originate from the source but e.g. after a time-out from a queue. Generally all the techniques are there as discussed in the event-driven chapter but it would be interesting to do research on how to achieve the same in DES. Because data-flow networks of DES generally don't change at runtime, they are fixed already at compile time - it would be interesting to see what dependent types could offer for additional compile-time guarantees.
+
+PDES, should be  conceptually easil possible using STM, optimistic approach should be conceptually easier to implement due to persistent data-structures and controlled side-effects
+ 
+\subsection{Recursive Simulation}
+Due to the recursive nature of FP we believe that it is also a natural fit to implement recursive simulations as the one discussed in \cite{gilmer_recursive_2000}. In recursive ABS agents are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to resume time and continue with a specifically chosen action e.g. the best performing or the one in which they haven't died. More precisely, an agent has the ability to run the simulation recursively a number of times where the number is not determined initially but can depend on the outcome of the recursive simulation. So recursive ABS gives each Agent the ability to run the simulation locally from its point of view to project its actions into the future and change them in the present. Due to controlled side-effects and referential transparency, combined with the recursive nature of pure FP, we think that implementing a recursive simulation in such a setting should be straight-forward.
+
+Inspired by \cite{gilmer_recursive_2000}, add ideas about recursive simulation described in 1st year report and "paper". functional programming maps naturally here due to its inherently recursive nature and controlled side-effects which makes it easier to construct correct recursive simulations.
+recursive simulation should be conceptually easier to implememt and more likely to be correct due to recursive Nature of haskell itself, lack of sideeffeccts and mutable data
+
+\subsection{Multi Agent Systems}
+The fields of Multi Agent Systems (MAS) and ABS are closely related where ABS has drawn much inspiration from MAS \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is more on technical details, implementing a system of interacting intelligent agents within a highly complex environment with the focus on solving AI problems.
+
+Because in both fields, the concept of interacting agents is of fundamental importance, we expect our research also to be applicable in parts to the field of MAS. Especially the work on dependent types should be very useful there because MAS is very interested in correctness, verification and formally reasoning about a system and their agents, to show that a system follows a formal specifications.

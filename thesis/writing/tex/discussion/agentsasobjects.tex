@@ -1,4 +1,22 @@
-\section{Agents As Objects}
+\subsection{Agents As Objects}
+
+
+It seems that we indeed have to agree that agents do actually map naturally to objects. Throughout the course of this thesis though it became clear that we have to think objects in a much broader context than the one of existing OO terminology as in Java, C++, Python. The reason that we have shown that we can represent agents as objects also in a purely functional way, leads us to the next question, what actually constitutes objects? We have to be careful not to confuse the \textit{concept} of objects with the \textit{implementation} of objects. Lets first be clear about the \textit{concept} of an object (Alan kay, Actors, Java/C++/Python family) and then look at \textit{implementations} (Java/C++/Python family, actors, pure functionally)
+
+\paragraph{Object definition}
+identity
+state
+
+
+\paragraph{Object implementation}
+Java/C++/Python family
+Actors as in Erlang
+pure functionally
+
+% TODO: the history does say something else about objects as alan kay had them in mind.
+
+TODO: 
+
 When we go back to the beginning of this thesis and revisit the viewpoints that object-oriented programming (OO) is a particularly natural development environment for ABS \cite{epstein_growing_1996} and \textit{"agents map naturally to objects"} \cite{north_managing_2007} in the light of the full thesis, the obvious question which comes to mind is whether this thesis implies that we have been doing implementing ABS wrong ever since Epstein advocated OO for it in 1996 - shall Haskell be the new way to got? Obviously that is not the case but as we have shown, with (pure) functional programming comes a lot of potential. Lets elaborate on that.
 
 \medskip
@@ -48,7 +66,7 @@ This thesis is \textit{one} way of showing how to separate both and reap the ben
 This has lead to the fundamental conclusion that simulations which implement complex agent state and agent-communication centric models should rather be implemented in an functional language with actor based concurrency messaging. There are basically two options Cloud Haskell and Erlang \footnote{There is also Elixir, an Erlang dialect. Also there is Scala with the Akka / Actor Library but this is not purely functional and violates the shared nothing semantics, making it less data-centric}.
 They are all message orientation will allow you to easily express the complex agent-interactions whilst having the potential to run them in parallel to gain a potentially substantial speed up. Despite its focus on messages, all are (pure) functional languages, which puts you into the data-centric approach: messages are pure data with \textit{shared nothing semantics}. This makes testing easier and also opens the way for property-based testing which is available in Erlang as well where it even allows to detect race conditions \cite{claessen_finding_2009}. Thus we can conclude that agents do \textit{not} map naturally to objects, agents map naturally to actors. 
 
-% TODO: cite armstrongs blog about shared nothing semantics, should be somewhere in my 1st or 2nd year report \\
+% TODO: cite armstrongs blog about shared nothing semantics, should be somewhere in my 1st or 2nd year report 
 
 \medskip
 
@@ -63,4 +81,3 @@ After having undertaken this long journey on how to implement ABS pure functiona
 My approach of doing ABS and representing agents in pure FP can be interpret as trying to emulate objects in a purely functional way. In this case we have to say: yes agents map naturally to objects. The question is then: are there other, better mechanisms, more in FP I missed / didnt think of ... to implement ABS in FP? I hypothesize that this is probably NOT the case and that every approach in pure FP follows a roughly similar direction with only a few differences. Obviously it is apparent that both OOP and FP are not silverbullets to ABS and both come with their benefits and drawbacks and both have their existence. Thus I hypothesize that we might see the emergence of different computation paradigms in the future which might fit better to ABS than either one.
 
 yes agents map naturally to objects, but what kind of objects? they differ in implementation details and in this thesis proposed a pure functional approach to a notion of objects. objects in Java work different, as well as in Smalltalk and objective c. processes in the functional language Erlang can be seen as objects too as they fullfill all criteria. also cite alan kay
-

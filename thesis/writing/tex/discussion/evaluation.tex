@@ -15,153 +15,20 @@ The motivation are the promises pure functional programming in Haskell comes wit
 	\item The data-centric declarative style, referential transparency and immutability of data makes testing substantially easier due to composability: functions can be easily tested in isolation from each other even if they involve side-effects. This opens the door for (randomised) property-based testing which intuitively seemed to be a perfect match to test ABS implementations which are (almost) always stochastic in nature.
 \end{itemize}
 
-The relevance of each of these promises to ABS is pointed out in the respective promise and it is quite obvious that these benefits would clearly be of immense value in ABS, with the common baseline that they all support implementations of ABS to be more likely to be correct - something of fundamental value in simulation. The question was then how much of them can we actually reap if we follow a pure functional approach to ABS? To answer this we first needed to actually find out \textit{how} ABS could be done pure functionally, as there didn't exist any research which offered a systematic solution to that problem. This was answered in-depth in part II. Let shortly recap what we have done and put it into perspective:
+The relevance of each of these promises to ABS is pointed out in the respective promise and it is quite obvious that these benefits would clearly be of immense value in ABS, with the common baseline that they all support implementations of ABS to be more likely to be correct - something of fundamental value in simulation. The question was then how much of them can we actually reap if we follow a pure functional approach to ABS? To answer this we first needed to actually find out \textit{how} ABS could be done pure functionally, as there didn't exist any research which offered a systematic solution to that problem.
 
-% the problem
-It was unclear how to represent agents: how can we express agent identity, local agents state, changing behaviour and interactions amongst agents and the environment? After all this is straightforward in OO due to mutable shared state encapsulated in objects.
+\input{./tex/discussion/towards.tex}
 
-% the answer
-The solution was to use arrowized FRP both in the pure implementation of Yampa and the monadic version as in the library Dunai. The central concept behind these approaches are Signal Functions (SFs) (which were generalised in Dunai to Monadic Stream Functions MSFs ) which are implemented using closures and continuations, fundamental building blocks and concepts of pure functional programming. This allows SFs/MSFs to be seen as very simple \textit{immutable} objects with a single method following a \textit{shared nothing} semantics. This interpretation of SFs and MSFs obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again! Before we answer this question in-depth, lets carry on, looking at how we used SFs and MSFs.
+% benefit 1: static guarantees
+\input{./tex/discussion/staticGuarantees.tex}
 
-TODO: write about agent-interactions and events: this is really an object-emulation: single method with event types coming in, localized state (agent) with global state (environment). This REALLY pushes hard on the doubt that objects map naturally to objects: it seems to be simply true. Then on the other hand... my education and thinking was influenced for 15+ years by object oriented thinking, so this could be also the case that i intuitionally arrive at such a solution again.
+% benefit 2: parallel ABS
+\section{Parallel ABS}
+TODO
 
-% agents as objects goes here
+% benefit 3: property-based testing
+\section{Property-Based Testing}
+TODO
 
-\subsection{Verification and Correctness}
-Probably the biggest strength is that we can guarantee reproducibility at compile time: given identical initial conditions, repeated runs of the simulation will lead to same outputs. This is of fundamental importance in simulation and addressed in the Sugarscape model: \textit{"... when the sequence of random numbers is specified ex ante the model is deterministic. Stated yet another way, model output is invariant from run to run when all aspects of the model are kept constant including the stream of random numbers."} (page 28, footnote 16) - we can guarantee that in our pure functional approach already \textit{at compile time}.
-
-Refactoring is very convenient and quickly becomes the norm: guided by types (change / refine them) and relying on the compiler to point out problems, results in very effective and quick changes without danger of bugs showing up at run-time. This is not possible in Python because of its lack of compiler and types, and much less effective in Java due to its dynamic type-system which is only remedied through strong IDE support.
-
-Adding data-parallelism is easy and often requires simply swapping out a data-structure or library function against its parallel version. Concurrency, although still hard, is less painful to address and add in a pure functional setting due to immutable data and explicit side-effects. Further, the benefits of implementing concurrent ABS based on Software Transactional Memory (STM) has been shown \cite{thaler_tale_2018} which underlines the strength of Haskell for concurrent ABS due to its strong guarantees about retry-semantics.
-
-Testing in general allows much more control and checking of invariants due to the explicit handling of effects - together with the strong static type system, the testing-code is in full, explicit control over the functionality it tests. Property-based testing in particular is a perfect match to testing ABS due to the random nature in both and because it supports convenient expressing of specifications. Thus we can conclude that in a pure functional setting, testing is very expressive and powerful and supports working towards an implementation which is very likely to be correct.\\
-
-General there are the following basic verification \& validation requirements to ABS \cite{robinson_simulation:_2014}, which all can be addressed in our \textit{pure} functional approach as described in the paper in Appendix \ref{app:pfe}:
-
-\begin{itemize}
-	%\item Modelling progress of time - achieved using functional reactive programming (FRP)
-	%\item Modelling variability - achieved using FRP
-	\item Fixing random number streams to allow simulations to be repeated under same conditions - ensured by \textit{pure} functional programming and Random Monads
-	\item Rely only on past - guaranteed with \textit{Arrowized} FRP
-	\item Bugs due to implicitly mutable state - reduced using pure functional programming
-	\item Ruling out external sources of non-determinism / randomness - ensured by \textit{pure} functional programming
-	\item Deterministic time-delta - ensured by \textit{pure} functional programming
-	\item Repeated runs lead to same dynamics - ensured by \textit{pure} functional programming
-\end{itemize}
-
-\begin{enumerate}
-	\item Run-Time robustness by compile-time guarantees - by expressing stronger guarantees already at compile-time we can restrict the classes of bugs which occur at run-time by a substantial amount due to Haskell's strong and static type system.  This implies the lack of dynamic types and dynamic casts \footnote{Note that there exist casts between different numerical types but they are all safe and can never lead to errors at run-time.} which removes a substantial source of bugs.  Note that we can still have run-time bugs in Haskell when our functions are partial.
-	\item Purity - By being explicit and polymorphic in the types about side-effects and the ability to handle side-effects explicitly in a controlled way allows to rule out non-deterministic side-effects which guarantees reproducibility due to guaranteed same initial conditions and deterministic computation. Also by being explicit about side-effects e.g. Random-Numbers and State makes it easier to verify and test.
-	\item Explicit Data-Flow and Immutable Data - All data must be explicitly passed to functions thus we can rule out implicit data-dependencies because we are excluding IO. This makes reasoning of data-dependencies and data-flow much easier as compared to traditional object-oriented approaches which utilize pointers or references.
-	\item Declarative - describing \textit{what} a system is, instead of \textit{how} (imperative) it works. In this way it should be easier to reason about a system and its (expected) behaviour because it is more natural to reason about the behaviour of a system instead of thinking of abstract operational details.
-	\item Concurrency and parallelism - due to its pure and 'stateless' nature, functional programming is extremely well suited for massively large-scale applications as it allows adding parallelism without any side-effects and provides very powerful and convenient facilities for concurrent programming. The paper of (TODO: cite my own paper on STM) explores the use Haskell for concurrent and parallel ABS in a deeper way.
-\end{enumerate}
-
-TODO: haskell-titan
-TODO: Testing and Debugging Functional Reactive Programming \cite{perez_testing_2017}
-
-Static type system eliminates a large number run-time bugs.
-
-TODO: can we apply equational reasoning? Can we (informally) reason about various properties e.g. termination?
-
-Follow unit testing of the whole simulation as prototyped for towards paper.
-
-in this we explore something new: property-based testing in ABS
-
-\section{Generalising Research}
-We hypothesize that our research can be transferred to other related fields as well, which puts our contributions into a much broader perspective, giving it more impact than restricting it just to the very narrow field of Agent-Based Simulation. Although we don't have the time to back up our claims with in-depth research, we argue that our findings might be applicable to the following fields at least on a conceptual level.
-
-\subsection{Simulation in general}
-We already showed in the paper \cite{thaler_pure_2019}, that purity in a simulation leads to repeatability which is of utmost importance in scientific computation. These insights are easily transferable to simulation software in general and might be of huge benefit there. Also my approach to dependent types in ABS might be applicable to simulations in general due to the correspondence between equilibrium \& totality, in use for hypotheses formulation and specifications formulation as pointed out in Chapter \ref{ch:dependent}. 
-
-\subsection{System Dynamics}
-\label{sub:generalising_system_dynamics}
-we have done that already in the appendix
-
-discuss pure functional system dynamics - correct by construction: benefits: strictly deterministic already at compile time, encode equations directly in code => correct by construction. Can serve as backend implementation of visual SD packages.
-
-\subsection{Discrete Event Simulation}
-pure functional DES easily possible with my developed synchronous messaging ABS
-DES in FP: we doing part of it in event-driven SIR. this is a potential hint at how to achieve DES in pure FP: arrowized FRP seems to be perfect for it because it allows to express data-flow networks, which is exactly what DES is as well. The problem with pure FP is that it will be more involved to propagate events through the network especially when they don't originate from the source but e.g. after a time-out from a queue. Generally all the techniques are there as discussed in the event-driven chapter but it would be interesting to do research on how to achieve the same in DES. Because data-flow networks of DES generally don't change at runtime, they are fixed already at compile time - it would be interesting to see what dependent types could offer for additional compile-time guarantees.
-
-PDES, should be  conceptually easil possible using STM, optimistic approach should be conceptually easier to implement due to persistent data-structures and controlled side-effects
- 
-\subsection{Recursive Simulation}
-Due to the recursive nature of FP we believe that it is also a natural fit to implement recursive simulations as the one discussed in \cite{gilmer_recursive_2000}. In recursive ABS agents are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to resume time and continue with a specifically chosen action e.g. the best performing or the one in which they haven't died. More precisely, an agent has the ability to run the simulation recursively a number of times where the number is not determined initially but can depend on the outcome of the recursive simulation. So recursive ABS gives each Agent the ability to run the simulation locally from its point of view to project its actions into the future and change them in the present. Due to controlled side-effects and referential transparency, combined with the recursive nature of pure FP, we think that implementing a recursive simulation in such a setting should be straight-forward.
-
-Inspired by \cite{gilmer_recursive_2000}, add ideas about recursive simulation described in 1st year report and "paper". functional programming maps naturally here due to its inherently recursive nature and controlled side-effects which makes it easier to construct correct recursive simulations.
-recursive simulation should be conceptually easier to implememt and more likely to be correct due to recursive Nature of haskell itself, lack of sideeffeccts and mutable data
-
-\subsection{Multi Agent Systems}
-The fields of Multi Agent Systems (MAS) and ABS are closely related where ABS has drawn much inspiration from MAS \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is more on technical details, implementing a system of interacting intelligent agents within a highly complex environment with the focus on solving AI problems.
-
-Because in both fields, the concept of interacting agents is of fundamental importance, we expect our research also to be applicable in parts to the field of MAS. Especially the work on dependent types should be very useful there because MAS is very interested in correctness, verification and formally reasoning about a system and their agents, to show that a system follows a formal specifications.
-
-\section{Drawbacks}
-\label{sec:drawbacks}
-
-\subsection{Space-Leaks}
-discuss the problem (and potential) of lazy evaluation for ABS: can under some circumstances really increase performance when some stuff is not evaluated (see STM study) but mostly it causes problems by piling up unevaluated thunks leading to crazy memory usage which is a crucial problem in simulation. Using strict pragmas, annotations and data-structures solves the problem but is not trivial and involves carefully studying the code / getting it right from the beginning / and using the haskell profiling tools (which are fucking great at least). TODO: show the stats of memory usage
-
-Haskell is notorious for its memory-leaks due to lazy evaluation: data is only evaluated when required. Even for simple programs one can be hit hard by a serious space-leak where unevaluated code pieces (thunks) build up in memory until they are needed, leading to dramatically increased memory usage. It is no surprise that our highly complex Sugarscape implementation initially suffered severely from space-leaks, piling up about 40 MByte / second. In simulation this is a big issue, threatening the value of the whole implementation despite its other benefits: because simulations might run for a (very) long time or conceptually forever, one must make absolutely sure that the memory usage stays somewhat constant. As a remedy, Haskell allows to add so-called strictness pragmas to code-modules which forces strict evaluation of all data even if it is not used. Carefully adding this conservatively file-by file applying other techniques of forcing evaluation removed most of the memory leaks.
-
-% Another memory leak was caused by selecting the wrong data-structure for our environment, for which we initially used an immutable array. The problem is that in the case of an update the whole array is copied, causing memory leaks AND a performance problem. We replaced it by an IntMap which uses integers as key (mapping 2d coordinates to unique integers is trivial) and is internally implemented as a radix-tree which allows for very fast lookups and inserts because whole sub-trees can be re-used.
-
-
-\subsection{Efficiency}
-ordering of the transformers
-when to run a transformer,
-lazyness vs. strictness
-
-The main drawback of our approach is performance, which at the moment does not come close to OO implementations. There are two main reasons for it: first, FP is known for being slower due to higher level of abstractions, which are bought by slower code in general and second, updates are the main bottleneck due to immutable data requiring to copy the whole (or subparts) of a data structure in cases of a change. The first one is easily addressable through the use of data-parallelism and concurrency as we have done in our paper on STM \cite{thaler_tale_2018}. The second reason can be addressed by the use of linear types \cite{bernardy_linear_2017}, which allow to annotate a variable with how often it is used within a function. From this a compiler can derive aggressive optimisations, resulting in imperative-style performance but retaining the declarative nature of the code.
-
-\subsection{Productivity and learning curve}
-A case study in \cite{hanenberg_experiment_2010} hints that simply by switching to a static typesystem alone does not gain anything and can even be detriment. It also needs to have a certain level of abstractions like Haskell type system does or even dependent types as in Idris. This also mean that there is a substantial learning curve to master when one wants to enter pure functional ABS.
-
-\section{Alternatives}
-\subsection{Haskell}
-Freer Monads: \url{https://reasonablypolymorphic.com/blog/freer-monads/}. They aim to separate Definition from implementation by writing a domain-specific language using GADTs which are then interpreted. This allows to strictly separate implementation from specification, composes very well and thus is easier to test as parts can be easily mocked. Also Freer Monads free one from the order of effects imposed through Monad Transformers. In general Freer Monads seem to aim for the same abstraction what modern interface-based oop does.
-Problem: Yes, freer monads are today somewhere around 30x slower than the equivalent mtl code. because its $O(n^2)$. ABS are not IO bound, so raw computation is all what counts and this is undoubtly worse with Freer monads. Given that we are already having problematic performance, we can't sacrifice even more. There seem to be a better encoding possible, which is about 2x slower than MTL: \url{https://reasonablypolymorphic.com/blog/too-fast-too-free/}. Still it might prove to be useful in other terms like proving correctness and then translating it, but how could we do it?  
-ContT is Not an Algebraic Effect so it seems to be difficult to implement continuations in freer monads. Unfortunately this is what we really need as shown in Event driven ABS and generalising structure chapters.
-Other criticism of Freer Monads are: \url{https://medium.com/barely-functional/freer-doesnt-come-for-free-c9fade793501} are: boilerplate code which though can be generated automatically by some libraries, performance when not IO based because the program is bascially a data-structure which is interpreted, concurrency seems to be tricky, 
-TODO read: \url{https://reasonablypolymorphic.com/blog/freer-yet-too-costly/}
-
-TODO: it seems that Final Tagless is another alternative. Look into it: \url{https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html}
-
-\subsection{Languages}
-We precisely pointed out in the beginning of this thesis why we chose Haskell as language of choice. Obviously Haskell is not the only (pure) functional language and there exist a number of other alternatives which would be equally worth of systematic investigation of their use for ABS. Shortly we can conclude that the use of Haskell moves the nature of the structure of ABS computation into the light, together with compile-time guarantees, and benefits in testing and parallel implementations. Depending on each language though we get a very different direction:
-
-\paragraph{LISP} Being the oldest functional programming language and the 2nd oldest high-level programming language ever created and still used by many people, LISP had to be considered in the beginning of the thesis. The language has the immense powerful feature of homoiconicity: data is code and code is data at the same time. This allows a LISP program to generate data-structures, which resemble valid LSIP code thus mutating its own code at runtime. This would give immense power to create powerful abstractions in terms of ABS. Unfortunately LISP is fully interpreted and has no types and is also impure, which would probably have led to very imperative, traditional approaches to ABS. Still, there exists research \cite{kawabe_nepi2programming_2000} which implements a MAS in LISP.
-
-\paragraph{Erlang} The programming-model of actors \cite{agha_actors:_1986} was the inspiration for the Erlang programming language \cite{armstrong_erlang_2010}, which was created in the 1980's by Joe Armstrong for Eriksson for developing distributed high reliability software in telecommunications. The implication is that, the focus would shift immediately to the use of the actor model for concurrent interaction of agents through messages. The languages type-system is strong and dynamic and thus lacks type-checking at compile-time. Thus the structure of computation plays naturally no role because we cannot look at it from the abstract perspective as we can in Haskell. Purity can not be guaranteed and due to agents being processes concurrency is everywhere, and even though it is very tamed through shared-nothing messaging semantics, this implies that repeated runs with same initial conditions might lead to different results. Obviously we could avoid implementing agents as processes but then we basically sacrifice the very heart and feature of the language.
-	
-\paragraph{Scala} Scala is a multi-paradigm language, which also comes with an implementation of the actor-model as a library which enables to do actor-programming in the way of Erlang. It was developed in 2004 and became popular in recent years due to the increased availability of multi-core CPUs which emphasised the distributed, parallel and concurrent programming for which the actor-model is highly suited. There exists research on using Scala for ABS \cite{krzywicki_massively_2015, todd_multi-agent_nodate}. The benefit Scala has over Erlang is that it has type-checking at compile-time and is thus more robust, still it is impure due to side-effects and messages can contain references, thus violating the original shared-nothing semantics of Erlang.
-
-\paragraph{F\#} Widely used in finance TODO 
-
-\section{Actors}
-\label{sec:actors}
-TODO: this seems not to fit into the narrative here, maybe it fits into discussion part or further research
-
-The Actor-Model, a model of concurrency, was initially conceived by Hewitt in 1973 \cite{hewitt_universal_1973} and refined later on \cite{hewitt_what_2007}, \cite{hewitt_actor_2010}. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{grief_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a semantic mode, he termed \textit{actors} which was then developed further \cite{agha_foundation_1997} into an actor language with operational semantics which made connections to process calculi and functional programming languages (see both below). 
-
-An actor is a uniquely addressable entity which can do the following \textit{in response to a message}
-\begin{itemize}
-	\item Send an arbitrary number (even infinite) of messages to other actors.
-	\item Create an arbitrary number of actors.
-	\item Define its own behaviour upon reception of the next message.
-\end{itemize}
-
-In the actor model theory there is no restriction on the order of the above actions and so an actor can do all the things above in parallel and concurrently at the same time. This property and that actors are reactive and not pro-active is the fundamental difference between actors and agents, so an agent is \textit{not} an actor but conceptually nearly identical and definitely much closer to an agent in comparison to an object. The actor model can be seen as quite influential to the development of the concept of agents in ABS, which borrowed it from Multi Agent Systems \cite{wooldridge_introduction_2009}. Technically, it emphasises message-passing concurrency with share-nothing semantics (no shared state between agents), which maps nicely to functional programming concepts.
-
-There have been a few attempts on implementing the actor model in real programming languages where the most notable ones are Erlang and Scala. Erlang was created in 1986 by Joe Armstrong for Eriksson for developing distributed high reliability software in telecommunications. It implements light-weight processes, which allows to spawn thousands of them without heavy memory overhead. The language saw some use in implementing ABS with notable papers being \cite{di_stefano_using_2005, di_stefano_exat:_2007, varela_modelling_2004, sher_agent-based_2013, bezirgiannis_improving_2013}
-
-Scala is a modern mixed paradigm programming language, which also allows functional programming and also incorporates a library for the actor model. It also saw the use in the implementation of ABS with a notable paper \cite{krzywicki_massively_2015} and ScalABM \footnote{https://github.com/ScalABM} which is alibrary for ABM in economics.
-
-The paper of \cite{jennings_agent-based_2000} gives an excellent overview over the strengths and weaknesses of agent-based software-engineering, which can be directly applied to both Erlang and Scala.
-
-Due to the very different approach and implications the actor model of concurrency implies, we don't explore it further and leave it for further research as it is beyond the focus of the thesis.
-
-\input{./tex/discussion/gintisCase.tex}
-
-\input{./tex/discussion/agentsasobjects.tex}
+% put before gintis case
+\input{./tex/discussion/generalising.tex}

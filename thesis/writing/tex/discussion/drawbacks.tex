@@ -21,3 +21,25 @@ A case study in \cite{hanenberg_experiment_2010} hints that simply by switching 
 
 \subsubsection{Agent interactions}
 they are fragile and need more flexibility. so far they exist in a very specialise form for Sugarscape, a general library implementation would need to provide more robust and flexible interactions: so far if a receiver of a message does not exist (anymore), the sender has no means of finding out and the message is silently ignored.
+
+% critique of our own approach is: synchronous agent-interaction is cumbersome (one-way interaction is no problem at all) and it seems that it is not possible to achieve with STM concurrency. 
+% TODO
+
+% haskell solution: cloud haskell and/or running in IO but then we loose substantial static guarantees about reproducibility AND we can violate share nothing semantics by exchanging IORefs
+
+% further research solution: if the model is agent-interaction centric and requires concurrency e.g. due to large number of agents, treating agents as what they truly are: actors, and implement them in a concurrent, pure functional, actor based language: Erlang. Shortly discuss benefits and drawbacks and refer to further research chapter
+
+TODO: this seems not to fit into the narrative here, maybe it fits into discussion part or further research
+
+The Actor-Model, a model of concurrency, was initially conceived by Hewitt in 1973 \cite{hewitt_universal_1973} and refined later on \cite{hewitt_what_2007}, \cite{hewitt_actor_2010}. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{grief_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a semantic mode, he termed \textit{actors} which was then developed further \cite{agha_foundation_1997} into an actor language with operational semantics which made connections to process calculi and functional programming languages (see both below). 
+
+An actor is a uniquely addressable entity which can do the following \textit{in response to a message}
+\begin{itemize}
+	\item Send an arbitrary number (even infinite) of messages to other actors.
+	\item Create an arbitrary number of actors.
+	\item Define its own behaviour upon reception of the next message.
+\end{itemize}
+
+In the actor model theory there is no restriction on the order of the above actions and so an actor can do all the things above in parallel and concurrently at the same time. This property and that actors are reactive and not pro-active is the fundamental difference between actors and agents, so an agent is \textit{not} an actor but conceptually nearly identical and definitely much closer to an agent in comparison to an object. The actor model can be seen as quite influential to the development of the concept of agents in ABS, which borrowed it from Multi Agent Systems \cite{wooldridge_introduction_2009}. Technically, it emphasises message-passing concurrency with share-nothing semantics (no shared state between agents), which maps nicely to functional programming concepts.
+
+The programming-model of actors \cite{agha_actors:_1986} was the inspiration for the Erlang programming language \cite{armstrong_erlang_2010}, which was created in the 1980's by Joe Armstrong for Eriksson for developing distributed high reliability software in telecommunications. The implication is that, the focus would shift immediately to the use of the actor model for concurrent interaction of agents through messages. The languages type-system is strong and dynamic and thus lacks type-checking at compile-time. Thus the structure of computation plays naturally no role because we cannot look at it from the abstract perspective as we can in Haskell. Purity can not be guaranteed and due to agents being processes concurrency is everywhere, and even though it is very tamed through shared-nothing messaging semantics, this implies that repeated runs with same initial conditions might lead to different results. Obviously we could avoid implementing agents as processes but then we basically sacrifice the very heart and feature of the language.

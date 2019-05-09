@@ -3,10 +3,9 @@ DIFFERENT APPROACH, FOLLOW MY THESIS CONCLUSIONS
 - initial slide: pure functional programming in ABS or "have we done ABS implementations wrong in all those years?"
 - start with Epstein and north quotes
 - whats wrong with oop MUTABLE SHARED DATA connected to behaviour. inheritance, bad representing data only, open recursion
-- abstraction and deciupling dependencies is not unique to oop and can be achieved in non oo languages as well with less Overhead and issues: careful modules design with import and export. c allows abstractions as well as Haskell,...
+- abstraction and decupling dependencies is not unique to oop and can be achieved in non oo languages as well with less Overhead and issues: careful modules design with import and export. c allows abstractions as well as Haskell,...
 - talk about Haskell ABS: MSF, STM, Property based testing
 - talk about erlang ABS: actors, concurrency and parallelism
-- conclude with two ways of ABS: data- and Interaction centric
 
 TOPICS TO COVER?
 - no need for big introduction into ABS but focus more on that there are different ABS according to macal "all you ever wanted to know..." 

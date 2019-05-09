@@ -11,7 +11,7 @@ Further, it deepened the understanding of the structure of agent based computati
 In this section we briefly summarise the future research to undertake, other than the one already mentioned in various parts of this thesis, especially in the respective discussion sections.
 
 \section{Shallow encoding}
-Using arrowized FRP with pure Signal Functions as in Yampa and Monadic Stream Functions as in Dunai is only \textit{one} approach to ABS. As we have shown at length in this thesis, although it is a robust and maintainable approach with highly valuable and promising benefits, there are other potential approaches left unexplored.
+Using arrowized FRP with pure Signal Functions as in Yampa and Monadic Stream Functions as in Dunai is only \textit{one} approach to ABS \footnote{After all, my education and thinking was influenced by object oriented thinking for 15 years, so this could be also the case that I intuitionally arrive at such a solution again.}. As we have shown at length in this thesis, although it is a robust and maintainable approach with highly valuable and promising benefits, there are other potential approaches left unexplored.
 
 A standard approach to encode a problem in Haskell is by designing an embedded domain specific language (EDSL) for that (domain) problem and then implement the problem at hand in this specifically designed language. One has to distinguish between a \textit{deep} and \textit{shallow} encoding: in the former one, the EDSL is expressed "deeply" using direct data-types and functions of the host language Haskell - our approach using SFs and MSFs is of this nature.
 

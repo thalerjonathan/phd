@@ -1,0 +1,28 @@
+\chapter{Discussion}
+\label{ch:discussion}
+% starting point
+This thesis started out by challenging the established views that \textit{"[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]"} \cite{epstein_growing_1996} (p. 179) and that \textit{agents map naturally to objects} \cite{north_managing_2007}. As a highly challenging alternative, a radical different approach to implementing ABS was proposed, using the pure functional programming paradigm. The language of choice Haskell was motivated due to its matureness, increasing relevance to real-world applications and leading in pure functional programming concepts. 
+
+% motivation
+The conjecture was that by using Haskell, one can directly transfer the promises made by pure functional programming to ABS as well, directly gaining a few highly important benefits:
+\begin{enumerate}
+	\item The static strong type system allows to remove a substantial number and classes of bugs at run-time and if one programs careful one can even guarantee that no bugs as in crashes or exceptions will occur at run-time. This is especially true for purely computational problems (without IO) as ABS almost always are.
+	
+	\item Explicit handling and control of side-effects delivers even more static guarantees at compile time and allows to deal with deterministic side-effects (random-number streams, read-/write only contexts, state) in a referential transparent way. In combination with strong static typing this allows to reduce logical bugs (subject to the domain of the problem) by dramatically reducing available and valid operations on data - after all stateful applications are a fact, the challenge is how to deal with state. As ABS is full of state due to agents and the environment, this seems to be an obvious great thing to have to increase correctness of an implementation. Further, this should allow to produce an implementation which is guaranteed to reproducible (runs with same initial conditions \textit{will} result in same dynamics) at compile time.
+	
+	\item Parallel and concurrent programming is seen to be lot easier, less painful and less error prone in functional programming in general and in Haskell in particular due to immutable data and the explicit side-effects. The concept of Software Transactional Memory, which offers to formulate a problem as a data-flow problem like there was no concurrency seemed highly promising. Besides, data-parallel programming promises to speed up code without the need for changing any of the logic or types. This seemed to offer a straightforward way of speeding up ABS implementations either through data-parallelism or concurrency. This has always been quite difficult to achieve in traditional ABS due to OO and pure functional programming seems to offer a solution.
+	
+	\item The data-centric declarative style, referential transparency and immutability of data makes testing substantially easier due to composability: functions can be easily tested in isolation from each other even if they involve side-effects. This opens the door for (randomised) property-based testing which intuitively seemed to be a perfect match to test ABS implementations which are (almost) always stochastic in nature.
+\end{enumerate}
+
+The relevance of each of these promises to ABS is pointed out in the respective promise and it is quite obvious that these benefits would clearly be of immense value in ABS, with the common baseline that they all support implementations of ABS to be more likely to be correct - something of fundamental value in simulation. At this point we argue that the thesis was able to successfully show that all promises transfer to ABS implementations and we give a holistic reflection and critique of them in the subsequent sections.
+
+\input{./tex/discussion/how.tex}
+
+\input{./tex/discussion/benefits.tex}
+
+\input{./tex/discussion/drawbacks.tex}
+
+\input{./tex/discussion/generalising.tex}
+
+\input{./tex/discussion/whenNot.tex}

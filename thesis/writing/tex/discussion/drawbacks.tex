@@ -3,6 +3,10 @@
 Obviously nothing comes without drawbacks, and also our approach suffers from a few. We discuss them here and propose solutions where applicable.
 
 \subsection{Efficiency}
+TODO: report timings of time- and event-driven java implementation
+TODO: performance difference to time- and event-driven java implementation is extreme, up to a point where it completely invalidates our approach. the STM improves on that but lacks behind. this is really really bad and basically a negative result of our phd...
+
+
 The main drawback of our approach is performance, which at the moment does not come close to OO implementations. There are two main reasons for it: first, FP is known for being slower due to higher level of abstractions, which are bought by slower code in general and second, updates are the main bottleneck due to immutable data requiring to copy the whole (or subparts) of a data structure in cases of a change. The first one is easily addressable through the use of data-parallelism and concurrency as shown in the respective chapters. The second reason can be addressed by the use of linear types \cite{bernardy_linear_2017}, which allow to annotate a variable with how often it is used within a function. From this a compiler can derive aggressive optimisations, resulting in imperative-style performance but retaining the declarative nature of the code. We leave the latter one for further research (see TODO chapter).
 
 Also the use of monad transformer stacks has performance implications which can be quite subtle. We point at alternative approaches to effects in the Further research chapter (see TODO Chapter).

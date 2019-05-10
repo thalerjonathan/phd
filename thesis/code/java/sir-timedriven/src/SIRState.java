@@ -1,0 +1,6 @@
+
+public enum SIRState {
+	SUSCEPTIBLE,
+	INFECTED,
+	RECOVERED;
+}

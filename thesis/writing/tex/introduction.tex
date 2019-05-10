@@ -5,45 +5,133 @@
 %TODO claim that oop does work for ABS but makes things difficult by shared mutae state which is combined with behaviour. we hypothesize that a separation of both  state/data which is also immutable and behaviour leads to substantial benefits which are explored throughout this thesis. obviously nothing comes without a cost and we also take care pointing them out. fp allows to separate both by Definition
 
 % THE PROBLEM
-The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007}, which still holds up today. %TODO can we cite any statistics about developed models
+The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007}, which still holds up today. %TODO can we cite any statistics about number of developed ABS models?
 
 % MOTIVATION and AIM
 This thesis challenges the metaphor and explores ways of approaching ABS with the \textit{pure} functional programming paradigm using the language Haskell. To the best of the authors knowledge, it is the first one to do so on a \textit{systematical} level, developing a foundation by presenting fundamental concepts and advanced features to show how to leverage the paradigms benefits \cite{hudak_history_2007} to become available when implementing ABS functionally. By doing this, the thesis both shows \textit{how} to implement ABS purely functional and \textit{why} it is of benefit of doing so, what the drawbacks are and also when a pure functional approach should \textit{not} be used. 
 
 \medskip
 
+TODO: consider putting the description of the gintis case here as it puts everything into a more interesting perspective and gives further motivation.
+
+
+\medskip
+
 % SCOPE
-This thesis claims that the agent-based simulation community needs functional programming because of its \textit{scientific computing} nature, where results need to be reproducible and correct while simulations should be able to massively scale-up as well. The established object-oriented approaches need considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing as they lack strong static typing, use mutable shared state and have implicit side-effects.
+This thesis claims that the agent-based simulation community needs functional programming because of its \textit{scientific computing} nature, where results need to be reproducible and correct while simulations should be able to massively scale-up as well. Due to the primarily computational character of most ABS models, not requiring IO or direct user-interaction, a pure functional approach should be able to directly deliver these non-functional requirements. The established object-oriented approaches need considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing as they lack strong static typing, use mutable shared state and have implicit side-effects. 
+
+Further, we regard the functional approach as a way to think and explore ABS in a deeper way - especially to develop a deeper and more complete understanding on the computational structure underlying ABS. It is well known, that functional programming helps in structuring computation in a very clear and precise way, leading to a deeper understanding about problems. So we also see it as a tool for developing abstractions which give us a a deeper understanding of the computational structures involved in ABS. By implementing use-cases, reflecting on them and generalising we extract implicit knowledge and make it explicit. We hope that this undertaking is to the whole benefit of the ABS discipline and will also feed back into the traditional implementation techniques of OOP.
 
 % RESEARCH QUESTION and HYPOTHESEIS
 Thus this thesis' general research question is \textit{how to implement ABS purely functional and what the benefits and drawbacks are of doing so.} Further, it hypothesises that by using pure functional programming for implementing ABS makes it is easy to add parallelism and concurrency, the resulting simulations are easy to test and verify, applicable to property-based testing, guaranteed to be reproducible already at compile-time, have fewer potential sources of bugs and thus can raise the level of confidence in the correctness of an implementation to a new level.
 
+\medskip
 
-TODO one thing we are lucky in ABS is that most models at their core are pure computations without IO like user-interactions. this fact makes it a lot more promising to approach it from a pure functional approach! if this would not be the case, we would have a harder time selling pure functional programming. there are ways of dealing with IO in a pure functional way e.g. constructing IO actions and executing them outside of the agents but this only complicates things and we might as well make the agents run in IO (really? don't we gain something?)
+Note that this thesis is \textit{not} about comparing the object-oriented and pure programming paradigm in the context of implementing ABS. Such an approach would not be fruitful, as too much ink has been spilt already over which paradigm is better / worse. There seems to be no scientific evidence supporting that either one is truly superior over the other; each has its benefits and weaknesses and this thesis is primarily interested in establishing them for the pure functional programming paradigm.
 
-TODO: also i see the functional approach as a way to think and explore ABS in a deeper way - especially to develop a deeper and more complete understanding on the computational structure underlying ABS. It is established, that FP helps in structuring computation in a very clear and precise way, leading to a deeper understanding about problems TODO this is also what Ionescu says in his thesis. So we also see FP as a tool for a deeper understanding of the computational structures involved in ABS. By implementing use-cases, reflecting on them and generalising we extract implicit knowledge and make it explicit. We hope that this undertaking is to the whole benefit of the ABS discipline and will also feed back into the traditional implementation techniques of OOP.
+\section{Contributions}
+\begin{enumerate}
+	\item This thesis is the first to \textit{systematically} investigate the use of the functional programming paradigm, as in Haskell, to ABS, laying out in-depth technical foundations and identifying its benefits and drawbacks. Due to the increased interested in functional concepts which were added to object-oriented languages in recent years, because of its established benefits in concurrent programming, testing and software-development in general, presenting such foundational research gives this thesis significant impact. Also it opens the way for the benefits of FP to incorporate into scientific computing, which are explored in the contributions below.
+	
+	\item This thesis is the first to show the use of Software Transactional Memory (STM) to implement concurrent ABS and its potential benefit over lock-based approaches. STM is particularly strong in pure FP because of retry-semantics can be guaranteed to exclude non-repeatable persistent side-effects already at compile time. By showing how to employ STM it is possible to implement a simulation which allows massively large-scale ABS but without the low level difficulties of concurrent programming, making it easier and quicker to develop working and correct concurrent ABS models. Due to the increasing need for massively large-scale ABS in recent years \cite{lysenko_framework_2008}, making this possible within a purely functional approach as well, gives this thesis substantial impact.
+	
+	\item This thesis is the first to present the use of property-based testing in ABS which allows a declarative specification- testing of the implemented ABS directly in code with \textit{automated} test-case generation. This is an addition to the established Test Driven Development process and a complementary approach to unit testing, ultimately giving the developers an additional, powerful tool to test the implementation on a more conceptual level. This should lead to simulation software which is more likely to be correct, thus making this a significant contribution with valuable impact.
 
-TODO this Thesis is about abstracting the software concept of abs so we arrive at deeper understanding of abs Implementation in general, and its computatuonal structure. the tool used is pure FP because it sees structures as essential to programming. to quote Ted Kaminski in "Abstractions at the boundaries": Through the use of the right abstractions, we humans were able to reduce our attention to some partof the problem, something small enough that the human brain is capable of actually thinking deeply about it. Something we could study, and eventually emerge with a deep understand of. Then we could go back, armed with our new understanding, to re-interpret the larger problem. Eventually, with the right luck and/or genius, the real problem gets made small enough that *click*. abstractions were also a tool for human thought.
-dependent types should allow this to push even further with more Focus on structure than on application
+	\item This thesis is the first to outline the potential use of \textit{dependent types} to Agent-Based Simulation on a \textit{conceptual level} to investigate its usefulness for increasing the correctness of a simulation. Dependent types can help to narrow the gap between the model specification and its implementation, reducing the potential for conceptual errors in model-to-code translation. This immediately leads to fewer number of tests required due to guarantees being expressed already at compile time. Ultimately dependent types lead to higher confidence in correctness due to formal guarantees in code, making this a unique contribution with high impact.
+\end{enumerate}
 
-TODO: make clear that this thesis is very focused on architecture of ABS
+\section{Thesis structure}
+%This thesis focuses on a strong narrative which tells the story of \textit{how} to do ABS with pure functional programming, \textit{why} one would do so and when one should \textit{avoid} this paradigm in ABS.
 
-TODO: make clear what this thesis is NOT about: simple comparison of OO vs FP in terms of ABS. we can only compare languages in terms of concepts and that is also not what we do here. 
+The thesis is divided into 5 parts which act as the thematic narrative throughout the text followed by an Appendix . 
+
+\paragraph{Part I} opens the thesis by laying out the necessary prerequisites necessary to understand the ideas and motivation in the rest of the thesis.
+\medskip
+
+Chapter \ref{ch:intro} introduces the problem and presents the motivation, aim and hypotheses.
+
+\medskip
+
+Chapter \ref{ch:literature} presents related research. This chapter is rather short as remarkably there exists very little research in this field.
+
+\medskip
+
+Chapter \ref{ch:methodology} discusses the background necessary to understand the rest of the thesis. It presents a definition of ABS and gives a short introduction to functional programming with advanced topics necessary to understand the concepts of this thesis. Further it briefly summarises the established approach to implement ABS.
+
+\medskip
+
+Chapter \ref{ch:impl_abs} discusses an architectural categorisation on how to implement ABS from a language-agnostic point of view. 
+
+\medskip
+
+\paragraph{Part II} presents \textit{how} to do ABS in pure functional programming. 
+\medskip
+
+Chapter \ref{ch:timedriven} derives a time-driven ABS implementation for an agent-based SIR model. Because it is the starting chapter it goes quite into detail to lay out the basic concepts.
+
+\medskip
+
+Chapter \ref{ch:eventdriven} presents an event-driven approach to ABS using the highly complex Sugarscape model. It takes up the concepts derive in the previous Chapter \ref{ch:timedriven}, generalises them and pushes them forward to a more generic solution. Further it also gives a brief outline how to transform the time-driven SIR implementation into an event-driven one.
+
+\medskip
+
+Chapter \ref{ch:structure_abs_computation} takes a highly abstract look at the computational approach and structures, derived in quite an ad-hoc fashion in the previous two Chapters \ref{ch:timedriven}, ref{ch:eventdriven}. It distils the essence of the SF and MSF constructs and shows that by looking at their building blocks \textit{closures} and \textit{continuations} SF and MSF can be regarded as very simple, immutable, pure functional objects. Further it looks at how they relate to existing computational structures like Monads, Comonads and Arrows.
+
+\medskip
+
+\paragraph{Part III} presents parallel computation in ABS as the first of two parts of \textit{why} pure functional ABS is of benefit.
+\medskip
+
+Chapter \ref{ch:parallelism_ABS} shows rather briefly how to achieve deterministic and pure parallelism in pure functional ABS. 
+
+\medskip
+
+Chapter \ref{ch:concurrent_abs} presents an in-depth discussion on how to implement concurrent ABS using Software Transactional Memory.
+
+\medskip
+
+\paragraph{Part IV} presents property-based testing in ABS as the second of two parts of \textit{why} pure functional ABS is of benefit.
+\medskip
+
+Chapter \ref{ch:agentspec} shows how to use property-based testing to implement a full agent-specification of the SIR model in code and run it as property-tests.
+
+\medskip
+
+Chapter \ref{ch:sir_invariants} shows how to derive and encode invariants the dynamics of the simulation must uphold in property-tests. Further it shows how to compare two implementations of the same underlying model: the time- and event-driven SIR implementations.
+
+\medskip
+
+Chapter \ref{ch:prop_sirspec} discusses how to put model specifications into code and check them with property-tests: it shows how to compare the SD simulation to the agent-based one.
+
+\medskip
+
+\paragraph{Part V} is the closing part which looks at the thesis as a whole, discusses and concludes.
+\medskip
+
+Chapter \ref{ch:gintis_case} presents the case of an agent-based model which results lead to high hopes in the field of computational economics, only to be found out that it had several bugs, weakening the results. In this chapter we ask whether a pure functional approach would have been of benefit in this case; more specifically, could those bugs have been prevented with a pure functional approach?
+
+\medskip
+
+Chapter \ref{ch:discussion} puts all parts in perspective to each other and the initial motivation and hypothesis and discusses them under these viewpoints.
+
+\medskip
+
+Chapter \ref{ch:conclusion} concludes the thesis.
+
+\paragraph{Appendices} contains additional material which relates to the overall research of this thesis but would be out of context in the respective chapters which refer to it.
+\medskip
+
+Appendix \ref{app:sd_simulation} shows a pure functional implementation of the SIR SD simulation using functional reactive programming (FRP). Its show that we can directly encode SD specification in pure functional FRP code with extremely high guarantees in correctness. We use this implementation in Chapter \ref{ch:prop_sirspec} where we test the agent-based SIR dynamics against the SD ones.
+
+\medskip
+
+Appendix \ref{app:equilibrium_totality} discusses the deep question of whether it is possible to test or guarantee that a correct implementation of the SIR model does terminate or not. This question arises in the context of Chapter \ref{ch:sir_invariants} and \ref{ch:agentspec}.
+
+\medskip
+
+Appendix \ref{app:validating_sugarscape} contains a brief overview over the validation process we went through when trying to get our Sugarscape implementation from Chapter \ref{ch:eventdriven} in line with the results from the original specification \cite{epstein_growing_1996}. Further we show how we can use propery-based testing in this exploratory model to formulate and test hypotheses.
 
 \newpage
-
-\section{The Gintis Case}
-In \cite{axelrod_chapter_2006} Axelrod reports the vulnerability of ABS to misunderstanding. Due to informal specifications of models and change-requests among members of a research-team bugs are very likely to be introduced. He also reported how difficult it was to reproduce the work of \cite{axelrod_convergence_1995} which took the team four months which was due to inconsistencies between the original code and the published paper. The consequence is that counter-intuitive simulation results can lead to weeks of checking whether the code matches the model and is bug-free as reported in \cite{axelrod_advancing_1997}.
-The same problem was reported in \cite{ionescu_dependently-typed_2012} which tried to reproduce the work of Gintis \cite{gintis_emergence_2006}. In his work Gintis claimed to have found a mechanism in bilateral decentralized exchange which resulted in walrasian general equilibrium without the neo-classical approach of a tatonement process through a central auctioneer. This was a major break-through for economics as the theory of walrasian general equilibrium is non-constructive as it only postulates the properties of the equilibrium \cite{colell_microeconomic_1995} but does not explain the process and dynamics through which this equilibrium can be reached or constructed - Gintis seemed to have found just this process. Ionescu et al. \cite{ionescu_dependently-typed_2012} failed and were only able to solve the problem by directly contacting Gintis which provided the code - the definitive formal reference. It was found that there was a bug in the code which led to the "revolutionary" results which were seriously damaged through this error. They also reported ambiguity between the informal model description in Gintis paper and the actual implementation.
-This lead to a research in a functional framework for agent-based models of exchange as described in \cite{botta_functional_2011} which tried to give a very formal functional specification of the model which comes very close to an implementation in Haskell.
-This was investigated more in-depth in the thesis by \cite{evensen_extensible_2010} who got access to Gintis code of \cite{gintis_emergence_2006}. They found that the code didn't follow good object-oriented design principles (all was public, code duplication) and - in accordance with \cite{ionescu_dependently-typed_2012} - discovered a number of bugs serious enough to invalidate the results. This reporting seems to confirm the above observations that proper object-oriented programming is hard and if not carefully done introduces bugs.
-The author of this text can report the same when implementing \cite{epstein_growing_1996}. Although the work tries to be much more clearer in specifying the rules how the agents behave, when implementing them still some minor inconsistencies and ambiguities show up due to an informal specification.
-The fundamental problems of these reports can be subsumed under the term of verification which is the checking whether the implementation matches the specification. Informal specifications in natural language or listings of steps of behaviour will notoriously introduce inconsistencies and ambiguities which result in wrong implementations - wrong in the way that the \textit{intended} specification does not match the \textit{actual} implementation. To find out whether this is the case one needs to verify the model-specification against the code. This is a well established process in the software-industry but has not got as much attention and is not nearly as well established and easy in the field of ABS as will become evident in the literature-review.
-As ABS is almost always used for scientific research, producing often break-through scientific results as pointed out in \cite{axelrod_chapter_2006}, these ABS need to be \textit{free of bugs}, \textit{verified against their specification}, \textit{validated against hypotheses} and ultimately be \textit{reproducible}. One of the biggest challenges in ABS is the one of validation. In this process one needs to connect the results and dynamics of the simulation to initial hypotheses e.g. \textit{are the emergent properties the ones anticipated? if it is completely different why?} It is important to understand that we always \textit{must have} a hypothesis regarding the outcome of the simulation, otherwise we leave the path of scientific discovery. We must admit that sometimes it is extremely hard to anticipate \textit{emergent patterns} but still there must be \textit{some} hypothesis regarding the dynamics of the simulation otherwise we drift off into guesswork.
-
-In the concluding remarks of \cite{axelrod_chapter_2006} Axelrod explicitly mentions that the ABS community should converge both on standards for testing the robustness of ABS and on its tools. However as presented above, we can draw the conclusion that there seem to be some problems the way ABS is done so far. We don't say that the current state-of-the-art is flawed, which it is not as proved by influential models which are perfectly sound, but that it always contains some inherent danger of embarrassing failure.
-
-TODO ARGUMENT REFINEMENT: make it clear, that the aim of the thesis and the way it approaches this topic is NOT through a direct comparison with oop languages / implementations / Frameworks. they are only layed out to understand the current state of the field but not as a comparison. argue precisely why not. the basic aim is rather on a conceptual level where we sometimes draw comparison in both directions e.g. the lack of method calls\&open recursion.
 
 \section{Publications}
 Throughout the course of the Ph.D. five (5) papers were attempted to publish and four (4) were accepted:
@@ -59,60 +147,3 @@ Throughout the course of the Ph.D. five (5) papers were attempted to publish and
 	
 	\item Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation - This paper introduces property-based testing on a conceptual level to agent-based simulation using the agent-based SIR model and the Sugarscape model as two case-studies. 
 \end{enumerate}
-
-\newpage
-
-\section{Contributions}
-\begin{enumerate}
-	\item This thesis is the first to \textit{systematically} investigate the use of the functional programming paradigm, as in Haskell, to ABS, laying out in-depth technical foundations and identifying its benefits and drawbacks. Due to the increased interested in functional concepts which were added to object-oriented languages in recent years, because of its established benefits in concurrent programming, testing and software-development in general, presenting such foundational research gives this thesis significant impact. Also it opens the way for the benefits of FP to incorporate into scientific computing, which are explored in the contributions below.
-	
-	\item This thesis is the first to show the use of Software Transactional Memory (STM) to implement concurrent ABS and its potential benefit over lock-based approaches. STM is particularly strong in pure FP because of retry-semantics can be guaranteed to exclude non-repeatable persistent side-effects already at compile time. By showing how to employ STM it is possible to implement a simulation which allows massively large-scale ABS but without the low level difficulties of concurrent programming, making it easier and quicker to develop working and correct concurrent ABS models. Due to the increasing need for massively large-scale ABS in recent years \cite{lysenko_framework_2008}, making this possible within a purely functional approach as well, gives this thesis substantial impact.
-	
-	\item This thesis is the first to present the use of property-based testing in ABS which allows a declarative specification- testing of the implemented ABS directly in code with \textit{automated} test-case generation. This is an addition to the established Test Driven Development process and a complementary approach to unit testing, ultimately giving the developers an additional, powerful tool to test the implementation on a more conceptual level. This should lead to simulation software which is more likely to be correct, thus making this a significant contribution with valuable impact.
-
-	\item This thesis is the first to outline the potential use of \textit{dependent types} to Agent-Based Simulation on a \textit{conceptual level} to investigate its usefulness for increasing the correctness of a simulation. Dependent types can help to narrow the gap between the model specification and its implementation, reducing the potential for conceptual errors in model-to-code translation. This immediately leads to fewer number of tests required due to guarantees being expressed already at compile time. Ultimately dependent types lead to higher confidence in correctness due to formal guarantees in code, making this a unique contribution with high impact.
-\end{enumerate}
-
-\newpage
-
-\section{Thesis structure}
-%This thesis focuses on a strong narrative which tells the story of \textit{how} to do ABS with pure functional programming, \textit{why} one would do so and when one should \textit{avoid} this paradigm in ABS.
-
-The thesis is divided into 5 parts and an appendix which act as the thematic guidance throughout the text. 
-
-\paragraph{Part I} opens the thesis by laying out the necessary prerequisites necessary to understand the ideas and motivation in the rest of the thesis.
-\medskip
-
-Chapter 1 introduces presents the motivation, aim and hypotheses
-
-\medskip
-
-Chapter 2 presents related research. This chapter is rather short as remarkably there exists very little research on this field as already mentioned above.
-
-\medskip
-
-Chapter 3 discusses the background necessary to understand the rest of the thesis.
-
-\medskip
-
-Chapter 4 finishes with architectural categorisation on how to implement ABS from a language-agnostic point of view. 
-
-\medskip
-
-\paragraph{Part II} presents \textit{how} to do ABS in pure functional programming. 
-\medskip
-TODO: go through each chapter
-\medskip
-
-\paragraph{Part III} presents parallel computation in ABS as the first of two parts of \textit{why} pure functional ABS is of benefit.
-\medskip
-TODO: go through each chapter
-
-\paragraph{Part IV} presents property-based testing in ABS as the second of two parts of \textit{why} pure functional ABS is of benefit. \medskip
-TODO: go through each chapter
-\medskip
-
-\paragraph{Part V} is the closing part which looks at the thesis as a whole, puts all parts in perspective to each other and the initial motivation and hypothesis and discusses them under these viewpoints.
-\medskip
-TODO: go through each chapter
-\medskip

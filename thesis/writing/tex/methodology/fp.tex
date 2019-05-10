@@ -150,6 +150,9 @@ In our research we are using the \textit{pure} functional programming language H
 		Scala was considered as well and has been used in the research on the Art Of Iterating paper but is not purely functional and can be also impure.
 \end{itemize}
 
+One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code (LoC) as compared to the C++ solution with 1105 LoC. The remarkable thing is that the Jury mistook the Haskell code as specification because its approach was to implement a small embedded domain specific language (EDSL) to solve the problem - this is a perfect proof how close an EDSL can get to a specification. When implementing an EDSL one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over object-orientation and is definitely one of its major strength. The classic paper \cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL to denotationally construct a picture reminiscent of the works of Escher.
+A major strength of developing an EDSL is that one can reason about and do formal verification. A nice introduction how to do reasoning in Haskell is given in \cite{hutton_tutorial_1999}.\\
+
 \subsection{Functional Reactive Programming}
 Short introduction to FRP (yampa), based on my pure functional epidemics paper.
 \label{sec:back_frp}

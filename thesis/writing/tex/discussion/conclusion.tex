@@ -29,6 +29,7 @@ So called \textit{Freer Monads} \cite{rivas_notions_2014} allow to express such 
 
 % TAGLESS-FINAL https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html
 A related approach, also based on an interpreter is the so called \textit{Tagess Final} approach \cite{kiselyov_typed_2012}. The idea relies heavily on defining operations using type-classes and the implementing concrete instances for them which act as interpreters. This also allows to separate specification from implementation, following a similar approach as Free Monads but should not suffer the same performance penalty. %. In general Freer Monads seem to aim for the same abstraction what modern interface-based OO does.
+The major strength of Tagless Final is that it is extensible in two dimensions according to the Extension Problem (TODO: cite the paper): we can add new interpreters to existing data-types (TODO what part of the extension problem is that) and we can add new operations (TODO: what part of the extension problem is that?)
 
 \medskip
 
@@ -43,6 +44,8 @@ It would be highly interesting to see how a pure functional approach to ABS woul
 
 \section{Performance improvements}
 TODO: relate to drawbacks: our options are: we dont have much experience improving performance of haskell but directions are: careful usage of MTL: every layer increases run-time, also re-ordering of lifts results in improved performance e.g. instead of mapM (lift ...) do lift (mapM ...). Tagless final seems to avoid the layering problems of MTL, maybe its a viable direction, try a prototype.
+
+TODO: read a bit about potential haskell performance optimisation
 
 \section{A general purpose library}
 For pure functional ABS to ever reach a larger audience and acceptance, it will need a lot of support, especially in the form of a well designed, easy to use, robust, correct, high quality Haskell Library. Designing and developing such a library is research on its own as it needs to combine all the separate concepts introduced in this thesis into one code base. We hope that from this development further insights into ABS in general and pure functional ABS in particular will emerge, which can then be published to the community.

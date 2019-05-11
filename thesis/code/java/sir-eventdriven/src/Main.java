@@ -1,16 +1,23 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 public class Main {
 
-	public static void main(String[] args) {
-		int sus0 = 1;
-		int inf0 = 10;
+	public static void main(String[] args) throws IOException {
+		int sus0 = 1000;
+		int inf0 = 1;
 		int rec0 = 0;
 		int beta = 5;
 		double gamma = 0.05;
 		double delta = 15;
 		
-		double tMax = 10;
+		double tMax = 150;
 		
 		long start = System.currentTimeMillis();
 		
@@ -25,6 +32,14 @@ public class Main {
 				"after " + steps.size() + " steps, " +
 				"at t = " + lastStep.t + " susceptible = " + lastStep.s + 
 				", infected = " + lastStep.i + ", recovered = " + lastStep.r);
+		
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("sir-event.csv")));
+		out.println("T,S,I,R");
+		for (SIRStep s : steps ) {
+			out.println("" + s.t + ", " + s.s + ", " + s.i + ", " + s.r);
+		}
+		
+		out.close();
 	}
 
 }

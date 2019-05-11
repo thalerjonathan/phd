@@ -9,10 +9,8 @@ public class Agent {
 	private SIRState state;
 
 	private SIR sir;
-	private List<Agent> agents;
 	
-	public Agent(SIR sir, List<Agent> agents, SIRState state, double beta, double gamma, double delta) {
-		this.agents = agents;
+	public Agent(SIR sir, SIRState state, double beta, double gamma, double delta) {
 		this.beta = beta;
 		this.gamma = gamma;
 		this.delta = delta;
@@ -24,9 +22,9 @@ public class Agent {
 		return this.state;
 	}
 	
-	public void step(double dt) {
+	public void step(double dt, List<SIRState> neighbours) {
 		if (SIRState.SUSCEPTIBLE == this.state) {
-			this.susceptible(dt);
+			this.susceptible(dt, neighbours);
 			
 		} else if (SIRState.INFECTED == this.state) {
 			this.infected(dt);
@@ -36,11 +34,11 @@ public class Agent {
 		}
 	}
 	
-	private void susceptible(double dt) {
+	private void susceptible(double dt, List<SIRState> neighbours) {
 		if (this.occasionally(1 / this.beta, dt)) {
-			int idx = (int) (Math.random() * this.agents.size());
-			Agent a = this.agents.get(idx);
-			if (a.getState() == SIRState.INFECTED) {
+			int idx = (int) (Math.random() * neighbours.size());
+			SIRState s = neighbours.get(idx);
+			if (s == SIRState.INFECTED) {
 				if (Math.random() <= this.gamma) {
 					this.state = SIRState.INFECTED;
 				}

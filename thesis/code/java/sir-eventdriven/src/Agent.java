@@ -2,6 +2,7 @@ import java.util.List;
 
 public class Agent {
 	
+	private Integer aid;
 	private int beta;
 	private double gamma;
 	private double delta;
@@ -9,10 +10,9 @@ public class Agent {
 	private SIRState state;
 
 	private SIR sir;
-	private List<Agent> agents;
-	
-	public Agent(SIR sir, List<Agent> agents, SIRState state, int beta, double gamma, double delta) {
-		this.agents = agents;
+
+	public Agent(Integer aid, SIR sir, SIRState state, int beta, double gamma, double delta) {
+		this.aid = aid;
 		this.beta = beta;
 		this.gamma = gamma;
 		this.delta = delta;
@@ -31,9 +31,9 @@ public class Agent {
 		return this.state;
 	}
 	
-	public void handleEvent(SIREvent event) {
+	public void handleEvent(SIREvent event, List<Integer> ais) {
 		if (SIRState.SUSCEPTIBLE == this.state) {
-			this.susceptible(event);
+			this.susceptible(event, ais);
 			
 		} else if (SIRState.INFECTED == this.state) {
 			this.infected(event);
@@ -43,26 +43,18 @@ public class Agent {
 		}
 	}
 	
-	private void susceptible(SIREvent event) {
+	private void susceptible(SIREvent event, List<Integer> ais) {
 		if (SIREventType.MAKE_CONTACT == event.type) {
 			for (int i = 0; i < this.beta; i++) {
-				int idx = (int) (Math.random() * this.agents.size());
-				Agent a = this.agents.get(idx);
-				
-				if (a == this) {
-					continue;
-				}
-				
-				this.sir.scheduleEvent(SIREventType.CONTACT, 0, this, a);	
+				int idx = (int) (Math.random() * ais.size());
+				Integer receiver = ais.get(idx);
+				this.sir.scheduleEvent(SIREventType.CONTACT, 0, this.aid, receiver, SIRState.SUSCEPTIBLE);	
 			}
 			
 			this.scheduleMakeContact();
 
 		} else if (SIREventType.CONTACT == event.type) {
-			if (event.sender == this)
-				return;
-			
-			if (event.sender.getState() == SIRState.INFECTED) {
+			if (event.data == SIRState.INFECTED) {
 				if (Math.random() <= this.gamma) {
 					this.state = SIRState.INFECTED;
 					this.scheduleRecovery();
@@ -72,11 +64,8 @@ public class Agent {
 	}
 	
 	private void infected(SIREvent event) {
-		if (SIREventType.CONTACT == event.type) {
-			if (event.sender == this)
-				return;
-			
-			this.sir.scheduleEvent(SIREventType.CONTACT, 0, this, event.sender);
+		if (SIREventType.CONTACT == event.type && SIRState.SUSCEPTIBLE == event.data) {
+			this.sir.scheduleEvent(SIREventType.CONTACT, 0, this.aid, event.sender, SIRState.INFECTED);
 			
 		} else if (SIREventType.RECOVER == event.type) {
 			this.state = SIRState.RECOVERED;
@@ -84,12 +73,12 @@ public class Agent {
 	}
 	
 	private void scheduleMakeContact() {
-		this.sir.scheduleEvent(SIREventType.MAKE_CONTACT, 1.0, this, this);
+		this.sir.scheduleEvent(SIREventType.MAKE_CONTACT, 1.0, this.aid, this.aid, null);
 	}
 	
 	private void scheduleRecovery() {
 		double illnessDuration = this.randomExp(1/delta);
-		this.sir.scheduleEvent(SIREventType.RECOVER, illnessDuration, this, this);
+		this.sir.scheduleEvent(SIREventType.RECOVER, illnessDuration, this.aid, this.aid, null);
 	}
 	
 	private double randomExp(double lambda) {

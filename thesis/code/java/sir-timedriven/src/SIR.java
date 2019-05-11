@@ -10,15 +10,15 @@ public class SIR {
 		this.agents = new ArrayList<>(agentCount);
 		
 		for (int i = 0; i < susceptible; i++) {
-			this.agents.add(new Agent(this, this.agents, SIRState.SUSCEPTIBLE, beta, gamma, delta));
+			this.agents.add(new Agent(this, SIRState.SUSCEPTIBLE, beta, gamma, delta));
 		}
 		
 		for (int i = 0; i < infected; i++) {
-			this.agents.add(new Agent(this, this.agents, SIRState.INFECTED, beta, gamma, delta));
+			this.agents.add(new Agent(this, SIRState.INFECTED, beta, gamma, delta));
 		}
 		
 		for (int i = 0; i < recovered; i++) {
-			this.agents.add(new Agent(this, this.agents, SIRState.RECOVERED, beta, gamma, delta));
+			this.agents.add(new Agent(this, SIRState.RECOVERED, beta, gamma, delta));
 		}
 	}
 	
@@ -27,8 +27,13 @@ public class SIR {
 		List<SIRStep> steps = new ArrayList<>();
 		
 		while (true) {
+			List<SIRState> states = new ArrayList<>();
 			for (Agent a : this.agents) {
-				a.step(dt);
+				states.add(a.getState());
+			}
+			
+			for (Agent a : this.agents) {
+				a.step(dt, states);
 			}
 			
 			t = t + dt;

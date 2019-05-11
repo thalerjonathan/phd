@@ -1,10 +1,11 @@
 public class SIREvent {	
 	double timeStamp;
-	Agent receiver;
-	Agent sender;
+	Integer receiver;
+	Integer sender;
 	SIREventType type;
+	Object data;
 	
 	public String toString() {
-		return "" + type + "@" + timeStamp + " " + sender.getState() + " -> " + receiver.getState() + "\n";
+		return "" + type + "@" + timeStamp + " " + sender + " -> " + receiver + "\n";
 	}
 }

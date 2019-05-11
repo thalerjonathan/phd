@@ -41,6 +41,9 @@ It would be highly interesting to see how a pure functional approach to ABS woul
 	
 %\paragraph{Scala} Scala is a multi-paradigm language, which also comes with an implementation of the actor-model as a library which enables to do actor-programming in the way of Erlang. It was developed in 2004 and became popular in recent years due to the increased availability of multi-core CPUs which emphasised the distributed, parallel and concurrent programming for which the actor-model is highly suited. There exists research on using Scala for ABS \cite{krzywicki_massively_2015, todd_multi-agent_nodate}. The benefit Scala has over Erlang is that it has type-checking at compile-time and is thus more robust, still it is impure due to side-effects and messages can contain references, thus violating the original shared-nothing semantics of Erlang.
 
+\section{Performance improvements}
+TODO: relate to drawbacks: our options are: we dont have much experience improving performance of haskell but directions are: careful usage of MTL: every layer increases run-time, also re-ordering of lifts results in improved performance e.g. instead of mapM (lift ...) do lift (mapM ...). Tagless final seems to avoid the layering problems of MTL, maybe its a viable direction, try a prototype.
+
 \section{A general purpose library}
 For pure functional ABS to ever reach a larger audience and acceptance, it will need a lot of support, especially in the form of a well designed, easy to use, robust, correct, high quality Haskell Library. Designing and developing such a library is research on its own as it needs to combine all the separate concepts introduced in this thesis into one code base. We hope that from this development further insights into ABS in general and pure functional ABS in particular will emerge, which can then be published to the community.
 

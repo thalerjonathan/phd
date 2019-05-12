@@ -1,6 +1,7 @@
 \section{Pure functional programming}
 Functional programming (FP) is called \textit{functional} because it makes functions the main concept of programming, promoting them to first-class citizens: functions can be assigned to variables, they can be passed as arguments to other functions and they can be returned as values from functions. The roots of FP lie in the Lambda Calculus which was first described by Alonzo Church \cite{church_unsolvable_1936}. This is a fundamentally different approach to computing than imperative programming (includeing established object-orientation)  which roots lie in the Turing Machine \cite{turing_computable_1937}. Rather than describing \textit{how} something is computed as in the more operational approach of the Turing Machine, due to the more \textit{declarative} nature of the Lambda Calculus, code in functional programming describes \textit{what} is computed.
 
+TODO: make the enumerations more compact and summarise them, lots of repetition here 
 MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
 
 \begin{enumerate}
@@ -35,13 +36,50 @@ So functional programming is not really possible in this way in classic imperati
 The equivalence in functional programming to to the \textit{;} operator of imperative programming which allows to compose imperative statements is function composition. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
 At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherwise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
 
+\subsection{Language of choice}
+In our research we are using the \textit{pure} FP language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
+
+\begin{itemize}
+	\item Rich Feature-Set - it has all fundamental concepts of the pure FP paradigm included, of which we explain the most important ones below. Further, Haskell has influenced a large number of languages, underlining its importance and influence in programming language design.
+	
+	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_haskell_1994, hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
+	
+	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
+	
+	\item Highly advance type system - Haskell has a strong static type system which catches all type errors already at compile time and does not allow to bypass the type-system \footnote{Unless coerce or other cheating functions like unsafePerformIO are used.}. Further Haskell is a \textit{pure} functional language and in our research it is absolutely paramount, that we focus on \textit{pure} functional ABS, which avoids any IO type under all circumstances. This property is enabled by the advanced type system and its strong static nature.
+\end{itemize}
+
+One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code (LoC) as compared to the C++ solution with 1105 LoC. The remarkable thing is that the Jury mistook the Haskell code as specification because its approach was to implement a small embedded domain specific language (EDSL) to solve the problem - this is a perfect proof how close an EDSL can get to a specification. When implementing an EDSL one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over object-orientation and is definitely one of its major strength. The classic paper \cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL to denotationally construct a picture reminiscent of the works of Escher. A major strength of developing an EDSL is that one can reason about and do formal verification. A nice introduction how to do reasoning in Haskell is given in \cite{hutton_tutorial_1999}.
+
 % SHORTENING
 It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \cite{okasaki_purely_1999} showed that when approaching this problem with a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
 
 % SHORTENING
 For an excellent and widely used introduction to programming in Haskell we refer to \cite{hutton_programming_2016}. Other, more exhaustive books on learning Haskell are \cite{lipovaca_learn_2011,allen_haskell_2016}. For an introduction to programming with the Lambda-Calculus we refer to \cite{michaelson_introduction_2011}. For more general discussion of functional programming we refer to \cite{hughes_why_1989,maclennan_functional_1990,hudak_history_2007}.
 
-\subsection{Side-Effects}
+\subsection{Purity and Side-Effects}
+Consider the factorial function in Haskell:
+\begin{HaskellCode}
+factorial :: Integer -> Integer
+factorial 0 = 1
+factorial n = n * factorial (n-1)
+\end{HaskellCode}
+
+When looking at this function we can identify the following: 
+\begin{enumerate}
+	\item Declarative - we describe \textit{what} the factorial function is rather than how to compute it. This is supported by \textit{pattern matching} which allows to give multiple equations for the same function, matching on its input. 
+	
+	\item Immutable data - in FP we don't have mutable variables - after a variable is assigned, it cannot change its contents. This also means that there is no destructive assignment operator which can re-assign values to a variable. To change values, we employ recursion.
+	
+	\item Recursion - the function calls itself with a smaller argument and will eventually reach the base-case of 0. Recursion is the very meat of FP because it is the only way to implement loops in this paradigm due to immutable data.
+	
+	\item Static Types - the first line indicates the name and the type of the function. In this case the function takes one Integer as input and returns an Integer as output. Types are static in Haskell which means that there can be no type-errors at run-time e.g. when one tries to cast one type into another because this is not supported by this kind of type-system.
+	
+	\item Explicit input and output - all data which are required and produced by the function have to be explicitly passed in and out of it. There exists no global mutable data whatsoever and data-flow is always explicit.
+	
+	\item Referential transparency - calling this function with the same argument will \textit{always} lead to the same result, meaning one can replace this function by its value. This means that when implementing this function one can not read from a file or open a connection to a server. This is also known as \textit{purity} and is indicated in Haskell in the types which means that it is also guaranteed by the compiler.
+\end{enumerate}
+
 One of the fundamental strengths of Haskell is its way of dealing with side-effects in functions. A function with side-effects has observable interactions with some state outside of its explicit scope. This means that its behaviour depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side-effects are (amongst others): modifying state, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random-numbers,...
 
 Obviously, to write real-world programs which interact with the outside world we need side-effects. Haskell allows to indicate in the \textit{type} of a function that it does or does \textit{not} have side-effects. Further there are a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is then ensured by the compiler which means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile. Haskell also provides mechanisms to combine multiple effects e.g. one can define a function which can draw random-numbers and modify some state. The most common side-effect types are: \textit{IO} allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections, mutable references; \textit{Rand}  allows drawing random-numbers; \textit{Reader / Writer / State} allows to read / write / both from / to an environment.
@@ -69,95 +107,13 @@ The \textit{IO} in the first line indicates that the function runs in the IO eff
 
 Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in the function explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because running effects themselves is \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect execution. This allows a much easier approach to isolated testing because the history of the system is made explicit.  TODO: need maybe more explanation on how effects are executed
 
-Further, this type system allows Haskell to make a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. For a technical, in-depth discussion on Parallelism and Concurrency in Haskell we refer to the following books and papers: \cite{marlow_parallel_2013,osullivan_real_2008,harris_composable_2005,marlow_runtime_2009}.
-
+\subsubsection{Stacking Effects using Transformers}
 TODO: explain monad transformers because I am using them heavily throughout the thesis
 TODO: also explain MTL and the idea behind e.g. MonadRandom instead of Rand
 
-\subsection{Theoretical Foundation}
-The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.
-
-\cite{maclennan_functional_1990} defines a calculus to be "... a notation that can be manipulated mechanically to achieve some end;...". The Lambda Calculus can thus be understood to be a notation for expressing computation based on the concepts of \textit{function abstraction}, \textit{function application}, \textit{variable binding} and \textit{variable substitution}. It is fundamentally different from the notation of a Turing Machine in the way it is applicative whereas the Turing Machine is imperative / operative. To give a complete definition is out of the scope of this text, thus we will only give a basic overview of the concepts and how the Lambda Calculus works. For an exhaustive discussion of the Lambda Calculus we refer to \cite{maclennan_functional_1990} and \cite{barendregt_lambda_1984}.
-
-\paragraph{Function Abstraction}
-Function abstraction allows to define functions in the Lambda Calculus. If we take for example the function $f(x) = x^2 - 3x + a$ we can translate this into the Lambda Calculus where it denotes: $\lambda x.x^2 - 3x + a$. The $\lambda$ symbol denotes an expression of a function which takes exactly one argument which is used in the body-expression of the function to calculate something which is then the result. Functions with more than one argument are defined by using nested $\lambda$ expressions. The function $f(x, y) = x^2 + y^2$ is written in the Lambda Calculus as $\lambda x.\lambda y.x^2 + y^2$.
-
-\paragraph{Function Application}
-When wants to get the result of a function then one applies arguments to the function e.g. applying $x = 3, y = 4$ to $f(x, y) = x^2 + y^2$ results in $f(3, 4) = 25$. Function application works the same in Lambda Calculus: $((\lambda x.\lambda y.x^2 + y^2) 3) 4 = 25$ - the question is how the result is actually computed - this brings us to the next step of variable binding and substitution.
-
-\paragraph{Variable Binding}
-In the function $f(x) = x^2 - 3x + a$ the variable $x$ is \textit{bound} in the body of the function whereas $a$ is said to be \textit{free}. The same applies to the lambda expression of $\lambda x.x^2 - 3x + a$. An important property is that bound variables can be renamed within their scope without changing the meaning of the expression: $\lambda y.y^2 - 3y + a$ has the same meaning as the expression $\lambda x.x^2 - 3x + a$. Note that free variable \textit{must not be renamed} as this would change the meaning of the expression. This process is called $\alpha$-conversion and it becomes sometimes necessary to avoid name-conflicts in variable substitution.
-
-\paragraph{Variable Substitution}
-To compute the result of a Lambda Expression - also called evaluating the expression - it is necessary to substitute the bound variable by the argument to the function. This process is called $\beta$-reduction and works as follows. When we want to evaluate the expression $((\lambda x.\lambda y.x^2 + y^2) 3) 4$ we first substitute 4 for x, rendering $(\lambda y.4^2 + y^2) 3$ and then 3 for y, resulting in $(4^2 + 3^2)$ which then ultimately evaluates to 25. Sometimes $\alpha$-conversion becomes necessary e.g. in the case of the expression $((\lambda x.\lambda y.x^2 + y^2) 3) y$ we must not substitute y directly for x. The result would be $(\lambda y.y^2 + y^2) 3 = 3^2 + 3^2 = 18$ - clearly a different meaning than intended (the first y value is simply thrown away). Here we have to perform $\alpha$-conversion before substituting y for x. \\ 
-$((\lambda x.\lambda y.x^2 + y^2) 3) y = ((\lambda x.\lambda z.x^2 + z^2) 3) y$ and now we can substitute safely without risking a name-clash: $((\lambda x.\lambda z.x^2 + z^2) 3) y = (\lambda z.y^2 + z^2) 3) = (y^2 + 3^2) 3) = y^2 + 9$ where y occurs free.
-
-\subsubsection*{Examples}
-$(\lambda x.x)$ denotes the identity function - it simply evaluates to the argument. 
-
-\medskip
-
-$(\lambda x.y)$ denotes the constant function - it throws away the argument and evaluates to the free variable $y$. 
-
-\medskip
-
-$(\lambda x.xx)(\lambda x.xx)$ applies the function to itself (note that functions can be passed as arguments to functions - they are \textit{first class} in the Lambda Calculus) - this results in the same expression again and is thus a non-terminating expression.
-
-\medskip
-
-We can formulate simple arithmetic operations like addition of natural numbers using the Lambda Calculus. For this we need to find a way how to express natural numbers \footnote{In the short introduction for sake of simplicity we assumed the existence of natural numbers and the operations on them but in a pure lambda calculus they are not available. In programming languages which build on the Lambda Calculus e.g. Haskell, (natural) numbers and operations on them are built into the language and map to machine-instructions, primarily for performance reasons.}. This problem was already solved by Alonzo Church by introducing the Church numerals: a natural number is a function of an n-fold composition of an arbitrary function f. The number 0 would be encoded as $0 = \lambda f . \lambda x.x$, 1 would be encoded as $1 = \lambda f . \lambda x . f x$ and so on. This is a way of \textit{unary notation}: the natural number n is represented by n function compositions - n things denote the natural number of n.
-When we want to add two such encoded numbers we make use of the identity $f^{(m+n)}(x) = f^m(f^n(x))$. Adding 2 to 3 gives us the following lambda expressions (note that we are using a sugared version allowing multiple arguments to a function abstraction) and reduces after 7 steps to the final result:
-
-\medskip
-
-$2 = \lambda f x . f(f x)$ \\
-$3 = \lambda f x . f(f(f x))$ \\
-$ADD = \lambda m n f x . m f (n f x)$ \\
-
-ADD 2 3 \\
-$1: (\lambda m n f x. m f (n f x)) (\lambda f x.f(f(f x))) (\lambda f x.f(f x))$ \\
-$2:  (\lambda n f x. (\lambda f x.f(f(f x))) f (n f x))   (\lambda f x.f(f x))$ \\
-$3:     (\lambda f x. (\lambda f x.f(f(f x))) f ((\lambda f x.f(f x)) f x)) $ \\ 
-$4:     (\lambda f x.   (\lambda x.f(f(f x)))   ((\lambda f x.f(f x)) f x)) $ \\
-$5:     (\lambda f x.       f(f(f(\lambda f x.f(f x)) f x)))))$ \\
-$6:     (\lambda f x.       f(f(f  (\lambda x.f(f x)) x)))))$ \\
-$7:     (\lambda f x.       f(f(f     (f(f x))  )))))$
-
-\subsubsection{Types}
-The Lambda Calculus as initially introduced by Church and presented above is \textit{untyped}. This means that the data one passes around and upon one operates has no type: there are no restriction on the operations on the data, one can apply all data to all function abstractions. This allows for example to add a string to a number which behaviour may be undefined thus leading to a non-reducible expression.
-This led to the introduction of the simply typed Lambda Calculus which can be understood to add tags to a lambda-expression which identifies its type. One can then only perform function application on data which matches the given type thus ensuring that one can only operate in a defined way on data e.g. adding a string to a number is then not possible any-more because it is a semantically wrong expression.
-The simply typed lambda calculus is but only one type-system and there are much more evolved and more powerful type-system e.g. \textit{System F} and \textit{Hindley-Milner Type System} which is the type-system used in Haskell. It is completely out of the scope of this text to discuss type systems in depth but we give a short overview of the most important properties.
-
-Generally speaking, a type system defines types on data and functions. Raw data can be interpreted in arbitrary ways but a type system associates raw data with a type which tells the compiler (and the programmer) how this raw data is to be interpreted e.g. as a number, a character,... Functions have also types on their arguments and their return values which defines upon which types the function can operate. Thus ultimately the main purpose of a type system is to reduce bugs in a program. Very roughly one can distinguish between static / dynamic and strong / weak typing.
-
-\paragraph{Static and dynamic typing}
-A statically typed language performs all type checking at compile time and no type checking at runtime, thus the data has no type-information attached at all. Dynamic typing on the other hand performs type checking during run-time using type-information attached to values. Some languages use a mix of both e.g. Java performs some static type checking at compile time but also supports dynamic typing during run-time for downcasting, dynamic dispatch, late binding and reflection to implement object-orientation. Haskell on the other hand is strictly statically typed with no type checks at runtime.
-
-\paragraph{Strong and weak typing}
-A strong type system guarantees that one cannot bypass the type system in any way and can thus completely rule out type errors at runtime. Pointers as available in C are considered to be weakly typed because they can be used to completely bypass the type system e.g. by casting to and from a (void*) pointer. Other indications of weak typing are implicit type conversions and untagged unions which allow values of a given typed to be viewed as being a different type.
-There is not a general accepted definition of strong and weak typing but it is agreed that programming languages vary across the strength of their typing: e.g. Haskell is seen as very strongly typed, C very weakly, Java more strongly typed than C whereas Assembly is considered to be untyped.
-
-\subsection{Language of choice}
-In our research we are using the \textit{pure} functional programming language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
-
-\begin{itemize}
-	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm included. Further, Haskell has influenced a large number of languages, underlining its importance and influence in programming language design.
-	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_haskell_1994, hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
-	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
-	\item Purity - Haskell is a \textit{pure} functional language and in our research it is absolutely paramount, that we focus on \textit{pure} functional ABS, which avoids any IO type under all circumstances (exceptions are when doing concurrency but there we restrict most of the concepts to STM).
-	\item It is as closest to pure functional programming, as in the lambda-calculus, as we want to get. Other languages are often a mix of paradigms and soften some criteria / are not strictly functional and have different purposes. Also Haskell is very strong rooted in Academia and lots of knowledge is available, especially at Nottingham, 
-		Lisp / Scheme was considered because it was the very first functional programming language but deemed to be not modern enough with lack of sufficient libraries. Also it would have given the 
-		Erlang was considered in prototyping and allows to map the messaging concept of ABS nicely to a concurrent language but was ultimately rejected due to its main focus on concurrency and not being purely functional.
-		Scala was considered as well and has been used in the research on the Art Of Iterating paper but is not purely functional and can be also impure.
-\end{itemize}
-
-One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code (LoC) as compared to the C++ solution with 1105 LoC. The remarkable thing is that the Jury mistook the Haskell code as specification because its approach was to implement a small embedded domain specific language (EDSL) to solve the problem - this is a perfect proof how close an EDSL can get to a specification. When implementing an EDSL one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over object-orientation and is definitely one of its major strength. The classic paper \cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL to denotationally construct a picture reminiscent of the works of Escher.
-A major strength of developing an EDSL is that one can reason about and do formal verification. A nice introduction how to do reasoning in Haskell is given in \cite{hutton_tutorial_1999}.\\
 
 \subsection{Functional Reactive Programming}
-Short introduction to FRP (yampa), based on my pure functional epidemics paper.
 \label{sec:back_frp}
-
 Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 
 The central concept in Arrowized FRP is the Signal Function (SF), which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps, the system is sampled with. 

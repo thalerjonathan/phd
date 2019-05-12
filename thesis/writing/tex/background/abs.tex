@@ -38,85 +38,20 @@ Axelrod \cite{axelrod_advancing_1997}, \cite{axelrod_guide_2006} has called soci
 %This raises a number of philosophical questions \cite{frigg_philosophy_2009}, \cite{grune-yanoff_philosophy_2010}, \cite{borrill_agent-based_2011}. Although we don't want to give an in-depth discussion of the questions raised, we want to have a quick look at them as this is a foundational research-proposal for a Doctor in \textit{Philosophy} (Ph.D.).
 %TODO: read above papers and give short outline philosophical questions
 
-The first large scale ABSS model which rose to some prominence was the \textit{Sugarscape} model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon of real-world societies. Next we present two different, well-known agent-based models to give examples of two different types: the explanatory SIR model and the exploratory Sugarscape model.
+The first large scale ABSS model which rose to some prominence was the \textit{Sugarscape} model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon of real-world societies. It was this simulation which strongly advertised object oriented programming to implement ABS and due to this and also due to the general popularity of OO which started to rise in the early-mid 90s, it is reasonable to say that the established, state-of-the-art approach to implement ABS falls into three categories: % TODO: do we need citiations here to support our claims?
+\begin{enumerate}
+	\item Programming from scratch using object-oriented languages with Python, Java and C++ being the most popular ones.
+	\item Programming using a 3rd party ABS library using object-oriented languages where RePast and DesmoJ, both in Java, are the most popular ones.
+	\item Using a high-level ABS tool-kit for non-programmers, which allow customization through programming if necessary. By far the most popular one is NetLogo with an imperative programming approach followed by AnyLogic with an object-oriented Java approach.
+\end{enumerate}
+
+To get a deeper idea and understanding of ABS, we present two different, well-known agent-based models to give examples of two different types: the explanatory SIR model and the exploratory Sugarscape model.
+
+% TODO: this is a nice blog: https://drewdevault.com/2018/07/09/Simple-correct-fast.html
+% TODO: \cite{vipindeep_list_2005}
+% TODO: software errors can be costly %https://raygun.com/blog/costly-software-errors-history/
+% TODO: bugs per loc %https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio
 
 \input{./tex/background/sir.tex}
 
 \input{./tex/background/sugarscape.tex}
-
-\subsection{Existing implementation approaches}
-TODO event- vs. time-driven \cite{meyer_event-driven_2014}
-
-%An implementation of an ABS must solve two fundamental problems:
-%
-%\begin{enumerate}
-%	\item \textbf{Source of pro-activity} How can an agent initiate actions without the external stimuli of messages?
-%	\item \textbf{Semantics of Messaging} When is a message \textit{m}, sent by agent \textit{A} to agent \textit{B}, visible and processed by \textit{B}?
-%\end{enumerate}
-%
-%In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimulus, most naturally represented by a continuous increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the agent, acting as the internal stimulus. This allows the agent then to perceive time and become pro-active depending on time. So we can understand an ABS as a discrete time-simulation where time is broken down into continuous, real-valued or discrete natural-valued time-steps. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution where there are two ways of feeding time-flow into an agent. Either it has its own thread-of-execution or the system creates the illusion of its own thread-of-execution by sharing the global thread sequentially among the agents where an agent has to yield the execution back after it has executed its step. Note the similarity to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
-%
-%The semantics of messaging define when sent messages are visible to the receivers and when the receivers process them. Message-processing could happen either immediately or delayed, depending on how message-delivery works. There are two ways of message-delivery: immediate or queued. In the case of immediate message-deliver the message is sent directly to the agent without any queuing in between e.g. a direct method-call. This would allow an agent to immediately react to this message as this call of the method transfers the thread-of-execution to the agent. This is not the case in the queued message-delivery where messages are posted to the message-box of an agent and the agent pro-actively processes the message-box at regular points in time.
-
-%The most important property of a general purpose programming language is being \textit{Turing Complete}. This term says roughly that a programming language which has this property can compute anything which is \textit{computable}. We will not go into the precise meaning of computability but it suffices to say that a problem is computable if we can formulate a program which, after a finite number of steps, produces an output for a given input to the problem. This also implies that there are non-computable problems e.g. comparing whether two infinite sets are extensionally equal is uncomputable. Turing completeness also says something about the theoretical limits of a programming language, termed the \textit{halting-problem}: it is not possible for a program written in such a programming language to decide \textit{in general} whether another program of a turing complete language terminates or not. From this follows, that all general purpose programming languages which are turing complete are equal in power: none can compute something another can't and all suffer the same limitations of the halting-problem.
-%These fundamental insights come from the foundations and theory of computation and research on computability, which originated in the 1930s by the pioneering work of Turing, Church and Gödel. All of them have developed different models of computation but all were shown to be equal in power: they are all turing complete which means each of them can simulate the others \footnote{This implies that a language which guarantees that its programs always halt, is not powerful enough to interpret itself.}.
-%Today's general purpose programming languages can be generally categorized into two categories: they either build on the model of the Turing Machine as introduced by Alan Turing or on the Lambda Calculus as introduced by Alonzo Church.
-%Thus assuming that all general purpose programming languages are turing complete, one could ask the following questions:
-%
-%\begin{enumerate}
-%	\item Why don't we implement our problems directly in a Turing Machine or the Lambda Calculus?
-%		
-%	\item Why are all these programming languages necessary in the first place if all are equal in power?
-%
-%	\item What are the implications for a programming language when choosing the one or the other model of computation as their foundation?
-%\end{enumerate}
-%
-%The reason why we do not program directly in these models of computation is because the raw power quickly becomes unmanageable and too complex which is also due to the lack of a type system. The interesting thing though is that compared to the Turing Machine, the Lambda Calculus is much more manageable in terms of complexity. When one programs in a TM, the solution gets extremely complicated very quickly whereas one can program quite a while in LC because of its fundamental different nature \footnote{Actually when programming in Haskell (or ML / similar class of families) one programs basically in a slightly 'sugarized' version of the Lambda Calculus.}.
-%
-%Implementing simple arithmetic operations on natural numbers can be already quite challenging with surprisingly substantial amount of complexity \footnote{Note that these seemingly 'trivial' problems already require substantial amount of work, namely the encoding of natural numbers in either the Turing Machine or the Lambda Calculus, which is not trivial. This for a good reason: operations on natural numbers were used by Gödel to study the basics of computation.} In the subsequent chapters on functional programming and object-oriented programming we will give implementations of such simple arithmetic operations in the Lambda Calculus and the Turing Machine respectively - this will also show by example that the raw power of the Lambda Calculus is more manageable than the one of the Turing Machine.
-%Still we can conclude that the TM and LC are basically only useful as theoretical foundations and to study fundamental and foundational problems but not to solve real problems. This is because we think problems different than a TM or LC works. So both do not allow us directly to express in the way we think, we need to build  more mechanisms on top of this raw complexity. To control complexity, the best solution has always been to add layers of abstraction. Thus we build up more and more levels of abstractions where each depends on preceding ones. Some programming languages stop at some point, where other languages go further in abstractions - the point here is that not all programming languages are equal in their abstractions of complexity.
-%
-%In the end a programming language is a tool to solve a problem by expressing the solution in this language. Depending on the underlying computational model some problems may be easier to solve in different languages \textit{because the language supports expressing a given solution more natural for the given problem}.
-%When looking closer at the nature of the Turing Machine and Lambda Calculus we can attribute the Turing Machine to be an operational model and the Lambda Calculus to be a denotational one. Roughly speaking, an operational model describes \textit{how} to compute something whereas a denotational model describes \textit{what} to compute.
-%This fundamental difference of operational vs. denotational is directly reflected in programming languages which build on these two different models of computation: imperative languages follow the operational model of the TM and functional languages basically the denotational model of the LC.
-%Although today's computers are basically highly efficient Turing Machines and follow thus the operational model \footnote{TODO: why this is so is probably due to history reasons and because probably also a philosophical problem: when facing the real world we need simply operational models as this is the way to manifest something in the real-world, declarative model resorts more to magic which is not as reliable.} this means that also declarative, functional languages are ultimately translated into an operational model, which is possible because both models are of the same power. This but does not make functional languages operational, what matters here is that they allow to approach a problem from a very different perspective - how it is ultimately executed does not matter and is not visible to the programmer, nor should he or she think about it.
-%The conclusion is that because of the different approach of operational vs. denotational, one thinks problems very different in either models which in turn also implies that different paradigms and languages are differently well suited to formulate solutions to problems.
-%
-%All this ultimately leads to the question of how well the pure functional and object-oriented paradigms are suited to formulate ABS in comparison to each other. Also we are interested in the strengths of both paradigms in general and ask if they apply directly when formulating ABS. In this text we want to give an extensive answer to these questions by first looking closer into the abstractions used in pure FP and OOP to formulate an ABS and what the challenges one encounters in doing so.
-%
-%\newpage
-
-Introduce established implementation approaches to ABS. Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ. Programming: Java, Python, C++. Correctness: ad-hoc, manual testing, test-driven development.
-
-TODO: we need citiations here to support our claims!
-
-TODO: this is a nice blog: https://drewdevault.com/2018/07/09/Simple-correct-fast.html
-
-The established approach to implement ABS falls into three categories:
-\begin{enumerate}
-	\item Programming from scratch using object-oriented languages where Java and Python are the most popular ones.
-	\item Programming using a 3rd party ABS library using object-oriented languages where RePast and DesmoJ, both in Java, are the most popular one.
-	\item Using a high-level ABS tool-kit for non-programmers, which allow customization through programming if necessary. By far the most popular one is NetLogo with an imperative programming approach followed by AnyLogic with an object-oriented Java approach.
-\end{enumerate}
-
-In general one can say that these approaches, especially the 3rd one, support fast prototyping of simulations which allow quick iteration times to explore the dynamics of a model. Unfortunately, all of them suffer the same problems when it comes to verifying and guaranteeing the correctness of the simulation.
-
-The established way to test software in established object-oriented approaches is writing unit-tests which cover all possible cases. This is possible in approach 1 and 2 but very hard or even impossible when using an ABS tool-kit, as in 3, which is why this approach basically employs manual testing. In general, writing those tests or conducting manual tests is necessary because one cannot guarantee the correct working at compile-time which means testing ultimately tests the correct behaviour of code at run-time. The reason why this is not possible is due to the very different type-systems and paradigm of those approaches. Java has a strong but very dynamic type-system whereas Python is completely dynamic not requiring the programmer to put types on data or variables at all. This means that due to type-errors and data-dependencies run-time errors can occur which origins might be difficult to track down.
-
-It is no coincidence that JavaScript, the most widely used language for programming client-side web-applications, originally a completely dynamically typed language like Python, got additions for type-checking developed by the industry through TypeScript. This is an indicator that the industry acknowledges types as something important as they allow to rule out certain classes of bugs at run-time and express guarantees already at compile-time. We expect similar things to happen with Python as its popularity is surging and more and more people become aware of that problem. Summarizing, due to the highly dynamic nature of the type-system and imperative nature, run-time errors and bugs are possible both in Python and Java which absence must be guaranteed by exhaustive testing. 
-
-The problem of correctness in agent-based simulations became more apparent in the work of Ionescu et al \cite{ionescu_dependently-typed_2012} which tried to replicate the work of Gintis \cite{gintis_emergence_2006}. In his work Gintis claimed to have found a mechanism in bilateral decentralized exchange which resulted in walrasian general equilibrium without the neo-classical approach of a tatonement process through a central auctioneer. This was a major break-through for economics as the theory of walrasian general equilibrium is non-constructive as it only postulates the properties of the equilibrium \cite{colell_microeconomic_1995} but does not explain the process and dynamics through which this equilibrium can be reached or constructed - Gintis seemed to have found just this process. Ionescu et al. \cite{ionescu_dependently-typed_2012} failed and were only able to solve the problem by directly contacting Gintis which provided the code - the definitive formal reference. It was found that there was a bug in the code which led to the "revolutionary" results which were seriously damaged through this error. They also reported ambiguity between the informal model description in Gintis paper and the actual implementation. TODO: it is still not clear what this bug was, find out! look at the master thesis 
-
-This is supported by a talk \cite{sweeney_next_2006}, in which Tim Sweeney, CEO of Epic Games, discusses the use of main-stream imperative object-oriented programming languages (C++) in the context of Game Programming. Although the fields of games and ABS seem to be very different, in the end they have also very important similarities: both are simulations which perform numerical computations and update objects in a loop either concurrently or sequential \cite{gregory_game_2018}. Sweeney reports that reliability suffers from dynamic failure in such languages e.g. random memory overwrites, memory leaks, accessing arrays out-of-bounds, dereferencing null pointers, integer overflow, accessing uninitialized variables. He reports that 50\% of all bugs in the Game Engine Middleware Unreal can be traced back to such problems and presents dependent types as a potential rescue to those problems.
-
-TODO: general introduction %https://en.wikipedia.org/wiki/Software_bug
-
-
-TODO: list common bugs in object-oriented / imperative programming
-TODO: java solved many problems 
-TODO: still object-oriented / imperative ultimately struggle when it comes to concurrency / parallelism due to their mutable nature.
-
-TODO: \cite{vipindeep_list_2005}
-
-TODO: software errors can be costly %https://raygun.com/blog/costly-software-errors-history/
-TODO: bugs per loc %https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio

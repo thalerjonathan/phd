@@ -35,7 +35,7 @@ So called \textit{Freer Monads} \cite{rivas_notions_2014} allow to express such 
 \section{Performance improvements}
 TODO: relate to drawbacks: our options are: we dont have much experience improving performance of haskell but directions are: careful usage of MTL: every layer increases run-time, also re-ordering of lifts results in improved performance e.g. instead of mapM (lift ...) do lift (mapM ...).
 
-TODO: read a bit about potential haskell performance optimisation
+TODO: read a bit about potential haskell performance optimisation, https://wiki.haskell.org/Performance
 
 \section{A general purpose library}
 For pure functional ABS to ever reach a larger audience and acceptance, it will need a lot of support, especially in the form of a well designed, easy to use, robust, correct, high quality Haskell Library. Designing and developing such a library is research on its own as it needs to combine all the separate concepts introduced in this thesis into one code base. We hope that from this development further insights into ABS in general and pure functional ABS in particular will emerge, which can then be published to the community.

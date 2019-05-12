@@ -8,3 +8,14 @@
 \section{Methodology}
 TODO WHAT IS OUR METHODOLOGY? ALSO THIS REVEALS THAT I HAVE NOT COMPLETELY UNDERSTOOD THE DEFINITION OF METHODOLOGY
 - discussion of methodology is missing: what is the scientific approach we used in our thesis to address the aims and answer hypotheses? Basically we perform use-cases and discuss them
+
+first we develop how to do abs in a pure functional way: the aim is to develop a robust, maintainable and extensible solution to existing models at which example we show concepts which can be adopted to ABS in general. The overall goal is a clear representation of agents with their local (immutable) state, a way for the agents to interact with an (active) environment and interactions amongst agents where necessary. It is quite important to state this clearly as we could follow a rather completely data-driven approach, which would have been very easy in pure functional programming: represent all agents and the simulation state as a big data-structure which is passed in and out pure functions (thus read/write). Indeed it would (probably) work but we would probably end up in a difficult to understand data-flow (everything is read/write) and what is worse: we don't arrive at very general solutions as we would not abstract out concepts, existing in ABS already which could then be transferred easily
+
+Note that a more data-driven approach has indeed its value, depending on the model! In Chapter (TODO: gintis chapter) we briefly introduce the field of ACE, where agents are almost always completely represented by data and very simple behaviour and do not interact in a complex way as in Sugarscape. Examples are ZI traders or bilateral traders which are all simply represented by data and interact with each other quite indirectly through a trading and bartering process.
+
+TODO: the focus lies on retaining all static guarantees of FP, so impurity in the IO monad is out of the window. 
+
+the second step is then to show the benefits of using our pure functionsl approach:
+- we expect reproducibility at compile time
+further we explore to which extent it is possible to apply parallel and concurrent programming to our approach. both are big promises of (pure) functional programming and we expect that this will be possible in our approach as well. part III investigates this in-depth.
+- part IV investigates a central hypothesis of the thesis, namely that randomize property-based testing is a good match to test stochastic ABS implementations 

@@ -1,4 +1,7 @@
 \section{How}
+TODO ARGUMENT
+- missing OO definition
+
 The central question which needed to be answered first was \textit{how} ABS could be done pure functionally, as there didn't exist any research which offered a systematic solution to that problem. More specifically, it was unclear how to represent agents, how to express agent identity, local agents state, changing behaviour and interactions amongst agents and the environment. After all this is straightforward in OO due to mutable shared state encapsulated in objects.
 
 % the answer
@@ -16,9 +19,8 @@ It seems that we indeed have to agree that agents do actually map naturally to o
 
 % 3. what are objects
 
-There does not exist a commonly agreed upon definition of objects and OO but it is agreed that the original idea of objects was conceived by Alan Kay, the inventor of the SmallTalk language \footnote{\url{http://wiki.c2.com/?HeInventedTheTerm}}. TODO: citation? and it contained the fundamental concepts \footnote{\url{http://wiki.c2.com/?AlanKaysDefinitionOfObjectOriented}}:
+There does not exist a commonly agreed upon definition of objects and OO but it is agreed that the original idea of objects was conceived by Alan Kay, the inventor of the SmallTalk language \footnote{\url{http://wiki.c2.com/?HeInventedTheTerm}}.  citation? and it contained the fundamental concepts \footnote{\url{http://wiki.c2.com/?AlanKaysDefinitionOfObjectOriented}}:
 
-TODO
 http://wiki.c2.com/?DefinitionsForOo
 http://wiki.c2.com/?HeInventedTheTerm
 http://wiki.c2.com/?AlanKaysDefinitionOfObjectOriented
@@ -64,10 +66,10 @@ All these properties of explicit data-flow and applicability of parallelism and 
 
 The question is then why not use toolkits like Matlab or R - after all they are completely data-centric? This would be the other extreme, just like OO is and we would run into difficulties as well. The point is that ABS is not purely data-centric either and is indeed richer: agents can interact with each other and with an environment. So we have a tension here: ABS is data-centric on the one hand, and interaction-centric on the other - can we combine both worlds? Our approach is \textit{one} answer to do that in a pure, strong statically typed language - Haskell. It can be seen as an object-centric approach, which \textit{implements} a very simple \textit{concept} of shared-nothing, immutable, pure functional objects.
 
-TODO: this tension between data and objects has its origins in the expression problem (TODO: cite the paper): https://www.tedinski.com/2018/03/06/more-on-the-expression-problem.html we want to have a general approach and thus abstraction:
-in the sugarscape implementation we used a tagless final approach to effects, which is extensible in two dimensions: vertically, we can add new interpreters; horizontally, we can add new effectful operations.  
-TODO: properly study
-- https://www.tedinski.com/2018/03/06/more-on-the-expression-problem.html
-- https://serokell.io/blog/2018/12/07/tagless-final
-- https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html
-- The Expression Problem Revisited - Four new solutions using generics by Mads Torgersen
+%TODO: this tension between data and objects has its origins in the expression problem (TODO: cite the paper): https://www.tedinski.com/2018/03/06/more-on-the-expression-problem.html we want to have a general approach and thus abstraction:
+%in the sugarscape implementation we used a tagless final approach to effects, which is extensible in two dimensions: vertically, we can add new interpreters; horizontally, we can add new effectful operations.  
+%TODO: properly study
+%- https://www.tedinski.com/2018/03/06/more-on-the-expression-problem.html
+%- https://serokell.io/blog/2018/12/07/tagless-final
+%- https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html
+%- The Expression Problem Revisited - Four new solutions using generics by Mads Torgersen

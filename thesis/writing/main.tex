@@ -62,7 +62,18 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 TODO "first draft" milestone until return to UK mid June 2019
 \begin{enumerate}
-	\item draft background and methodology: needs overhaul and focussing, put SIR and Sugarscape in there, short monad transformer section in methodology)
+	\item Fix all ? ref: papers and chapters
+	\item Sugarscape model description: screenshots
+	\item Functional programming: clean up enumerations at introduction
+	\item Functional programming effects: make it clear that when we program with effects, we implement actions which then get executed. explain how pure effects are executed using run/eval/exec and how impure IO is executed. make clear distinction between impure IO and referential transparent pure effects. 
+	\item Functional programming: write transformers section, explaining how to stack effects, in which order lifts happening, also explain MTL and effects through typeclasses
+	\item Write methodology section
+	\item Event-driven implementation: refine/rewrite, also needs more implementation
+	\item Event-driven implementation: multiple types of agents through data declaration with data-structures
+	\item Parallel ABS: make clear that we also looked into it to speed up the slow sequential implementations.
+	\item Concurrent ABS: fix clarifications at the beginning of the chapter
+	\item Discussion How: fix missing OO definition
+	\item Discussion Drawbacks: finish efficiency
 	
 	\item Generalising ABS: extract the foundational properties: agents as monad / comonad / arrow and discuss their implications from an abstract point of view.
 	
@@ -71,7 +82,7 @@ TODO "first draft" milestone until return to UK mid June 2019
 
 TODO "finalise research" milestone until end of July 2019
 \begin{enumerate}
-	\item implement Gintis Case-Study and focus on property-tests and reasoning and potential directions for a dependently-typed implementation. this will be highly important for my internal assessor 
+	\item implement and write Gintis Case-Study and focus on property-tests and reasoning and potential directions for a dependently-typed implementation. this will be highly important for my internal assessor 
 
 	\item optional: implement SIR equilibrium-totality correspondence in Idris, closely related to the property-based testing, is presented as an appendix at the moment and thus treated as optional
 \end{enumerate}

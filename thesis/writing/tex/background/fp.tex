@@ -108,9 +108,9 @@ The \textit{IO} in the first line indicates that the function runs in the IO eff
 Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in the function explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because running effects themselves is \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect execution. This allows a much easier approach to isolated testing because the history of the system is made explicit.  TODO: need maybe more explanation on how effects are executed
 
 \subsubsection{Stacking Effects using Transformers}
-TODO: explain monad transformers because I am using them heavily throughout the thesis
-TODO: also explain MTL and the idea behind e.g. MonadRandom instead of Rand
-
+TODO WRITE SECTION
+- explain monad transformers because I am using them heavily throughout the thesis
+- also explain MTL and the idea behind e.g. MonadRandom instead of Rand
 
 \subsection{Functional Reactive Programming}
 \label{sec:back_frp}

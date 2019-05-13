@@ -39,8 +39,6 @@ instance Eq (QueueItem e) where
 instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 
-data SendSync e = OK [e] | NoReply | NotFound
-
 -- encapsulates the effectful API for agents
 class Monad m => MonadAgent e m | m -> e where
   -- TODO: refactor random stuff out into separate MonadRandomABS which builds on MonadRandom
@@ -55,7 +53,7 @@ class Monad m => MonadAgent e m | m -> e where
   schedEvent  :: AgentId -> e -> Double -> m ()
 
   -- TODO: this synchronously sends an event to the respective agent
-  sendSync :: AgentId -> e -> m (SendSync e)
+  sendSync :: AgentId -> e -> m (Maybe [e])
 
 --------------------------------------------------------------------------------
 -- SIR TYPE DEFINITIONS 
@@ -225,6 +223,12 @@ initSIRPure :: RandomGen g
             -> Double 
             -> Rand g (SIRAgentPureMap g, EventQueue SIREvent)
 initSIRPure ss cor inf ild = do
+    -- NOTE: sendSync does not work in initialisation sirAgent function (and
+    -- also not required and would also violate semantics of the simulation as
+    -- the simulation is not running yet and a send event would not make sense)
+    -- Thus we use an empty map and ignore the returned (empty) map in
+    -- createAgent. If an agent performs sendSync in the initialisation phase,
+    -- it will always result in a Nothing because it 
     let amEmpty = Map.empty
     (as0', ess) <- unzip <$> zipWithM (createAgent amEmpty) ais ss
 
@@ -314,10 +318,10 @@ runSIRAgentPure :: Time
                 -> SIRAgentPure g a
                 -> Rand g (a, [QueueItem SIREvent], SIRAgentPureMap g)
 runSIRAgentPure t ai ais am agentAct = do
-  let actEvtWriter  = runReaderT (unSirAgentPure agentAct) (t, ai, ais)
-      actState      = runWriterT actEvtWriter
-      actRand       = runStateT actState am
-      
+  let actEvtWriter = runReaderT (unSirAgentPure agentAct) (t, ai, ais)
+      actState     = runWriterT actEvtWriter
+      actRand      = runStateT actState am
+
   ((ret, es), am') <- actRand
   return (ret, es, am')
 
@@ -369,7 +373,8 @@ instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
 
     case aMay of
       -- not found, communicate to the initiating agent
-      Nothing -> return NotFound
+      Nothing -> return Nothing
+      -- receiver found, process
       (Just (aAct, _)) -> do
         -- get current time
         tNow <- getTime
@@ -396,28 +401,17 @@ instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
         let esToSender = map (\(QueueItem _ (Event e) _) -> e) $ filter 
               (\(QueueItem ai (Event _) t) -> ai == senderId && t == tNow) es
 
-        let esOthers = filter 
-              (\(QueueItem ai (Event _) t) -> ai /= senderId || t == tNow) es
-
         -- NOTE: all other events not in this list have to be put into the
         -- queue... this is not directly possible but we can use a trick:
         -- we simply add it to the initiator event writer using tell ;)
+        let esOthers = filter 
+              (\(QueueItem ai (Event _) t) -> ai /= senderId || t == tNow) es
+        -- schedule the other events through the event writer of the initiator
         tell esOthers
 
         _
 
-        if null esToSender
-          -- no events to initiaor found: there is no reply
-          then return NoReply
-          -- reply with the events
-          else return (OK esToSender)
-
--- runSIRAgentPure :: Time
---                 -> AgentId
---                 -> [AgentId]
---                 -> SIRAgentPureMap g
---                 -> SIRAgentPure g a
---                 -> Rand g (a, [QueueItem SIREvent], SIRAgentPureMap g)
+        return (Just esToSender)
 
 fst3 :: (a,b,c) -> a
 fst3 (a,_,_) = a

@@ -41,19 +41,11 @@ instance Ord (QueueItem e) where
 
 -- encapsulates the effectful API for agents
 class Monad m => MonadAgent e m | m -> e where
-  -- TODO: refactor random stuff out into separate MonadRandomABS which builds on MonadRandom
-  randomExp   :: Double -> m Double
-  randomBool  :: Double -> m Bool
-  randomElem  :: [a] -> m a
-  
   getAgentIds :: m [AgentId]
   getTime     :: m Time
   getMyId     :: m AgentId
-
   schedEvent  :: AgentId -> e -> Double -> m ()
-
-  -- TODO: this synchronously sends an event to the respective agent
-  sendSync :: AgentId -> e -> m (Maybe [e])
+  sendSync    :: MonadRandom m => AgentId -> e -> m (Maybe [e])
 
 --------------------------------------------------------------------------------
 -- SIR TYPE DEFINITIONS 
@@ -64,8 +56,8 @@ data SIREvent
   | Recover 
   deriving (Show, Eq)
 
-type SIRAgent g        = MSF (SIRAgentPure g) SIREvent SIRState
-type SIRAgentPureMap g = Map.IntMap (SIRAgent g, SIRState)
+type SIRAgent        = MSF SIRAgentPure SIREvent SIRState
+type SIRAgentPureMap = Map.IntMap (SIRAgent, SIRState)
 
 --------------------------------------------------------------------------------
 -- CONSTANTS 
@@ -77,7 +69,7 @@ makeContactInterval = 1.0
 -- AGENT CONSTRUCTOR
 --------------------------------------------------------------------------------
 -- | A sir agent which is in one of three states
-sirAgent :: MonadAgent SIREvent m
+sirAgent :: (MonadAgent SIREvent m, MonadRandom m)
          => Int         -- ^ the contact rate
          -> Double      -- ^ the infectivity
          -> Double      -- ^ the illness duration
@@ -97,7 +89,7 @@ sirAgent _ _ _ Recovered =
 --------------------------------------------------------------------------------
 -- AGENTS
 --------------------------------------------------------------------------------
-susceptibleAgent :: MonadAgent SIREvent m
+susceptibleAgent :: (MonadAgent SIREvent m, MonadRandom m)
                  => Int
                  -> Double
                  -> Double
@@ -107,7 +99,7 @@ susceptibleAgent cor inf ild =
       susceptibleAgentInfected
       (const infectedAgent)
   where
-    susceptibleAgentInfected :: MonadAgent SIREvent m
+    susceptibleAgentInfected :: (MonadAgent SIREvent m, MonadRandom m)
                              => MSF m SIREvent (SIRState, Maybe ()) 
     susceptibleAgentInfected = proc e -> do
       ret <- arrM handleEvent -< e
@@ -115,9 +107,11 @@ susceptibleAgent cor inf ild =
         Nothing -> returnA -< (Susceptible, ret)
         _       -> returnA -< (Infected, ret)
 
-    handleEvent :: MonadAgent SIREvent m => SIREvent -> m (Maybe ())
+    handleEvent :: (MonadAgent SIREvent m, MonadRandom m) 
+                => SIREvent 
+                -> m (Maybe ())
     handleEvent (Contact _ Infected) = do
-      r <- randomBool inf
+      r <- randomBoolM inf
       if r 
         then do
           scheduleRecoveryM ild
@@ -126,7 +120,7 @@ susceptibleAgent cor inf ild =
 
     handleEvent MakeContact = do
       ais <- getAgentIds
-      receivers <- forM [1..cor] (const $ randomElem ais)
+      receivers <- forM [1..cor] (const $ randomElemM ais)
       mapM_ makeContactWith receivers
       scheduleMakeContactM
       return Nothing
@@ -175,9 +169,9 @@ scheduleMakeContactM = do
   ai <- getMyId
   schedEvent ai MakeContact makeContactInterval
 
-scheduleRecoveryM :: MonadAgent SIREvent m => Double -> m ()
+scheduleRecoveryM :: (MonadAgent SIREvent m, MonadRandom m) => Double -> m ()
 scheduleRecoveryM ild = do
-  dt <- randomExp (1 / ild)
+  dt <- randomExpM (1 / ild)
   ai <- getMyId
   schedEvent ai Recover dt
 
@@ -196,8 +190,7 @@ runEventSIR :: RandomGen g
 runEventSIR ss cor inf ild maxEvents tLimit
     = evalRand executeAgents
   where
-    executeAgents ::  RandomGen g
-                  => Rand g [(Time, (Int, Int, Int))]
+    executeAgents :: MonadRandom m => m [(Time, (Int, Int, Int))]
     executeAgents = do
       (asMap, eq) <- initSIRPure ss cor inf ild
       
@@ -206,7 +199,7 @@ runEventSIR ss cor inf ild maxEvents tLimit
 
       reverse <$> processQueue maxEvents tLimit asMap eq ais doms []
 
-    aggregateAgentMap :: SIRAgentPureMap g -> (Int, Int, Int) 
+    aggregateAgentMap :: SIRAgentPureMap -> (Int, Int, Int) 
     aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)
       where
         aggregateAgentMapAux :: (MSF m SIREvent SIRState, SIRState)
@@ -216,12 +209,12 @@ runEventSIR ss cor inf ild maxEvents tLimit
         aggregateAgentMapAux (_, Infected) (s,i,r)    = (s,i+1,r)
         aggregateAgentMapAux (_, Recovered) (s,i,r)   = (s,i,r+1)
 
-initSIRPure :: RandomGen g
+initSIRPure :: MonadRandom m
             => [SIRState]
             -> Int
             -> Double
             -> Double 
-            -> Rand g (SIRAgentPureMap g, EventQueue SIREvent)
+            -> m (SIRAgentPureMap, EventQueue SIREvent)
 initSIRPure ss cor inf ild = do
     -- NOTE: sendSync does not work in initialisation sirAgent function (and
     -- also not required and would also violate semantics of the simulation as
@@ -244,25 +237,24 @@ initSIRPure ss cor inf ild = do
   where
     ais  = [0.. length ss - 1]
 
-    createAgent :: RandomGen g
-                => SIRAgentPureMap g
+    createAgent :: MonadRandom m
+                => SIRAgentPureMap
                 -> AgentId
                 -> SIRState
-                -> Rand g (SIRAgent g, [QueueItem SIREvent])
+                -> m (SIRAgent, [QueueItem SIREvent])
     createAgent am ai s = do
-      (as, es, _) <-  runSIRAgentPure 0 ai ais am (sirAgent cor inf ild s)
+      (as, es, _) <- runSIRAgentPure 0 ai ais am (sirAgent cor inf ild s)
       return (as, es)
 
--- TODO: fix, extremely high memory demands!
-processQueue :: RandomGen g
+processQueue :: MonadRandom m
              => Integer 
              -> Double
-             -> SIRAgentPureMap g
+             -> SIRAgentPureMap
              -> EventQueue SIREvent
              -> [AgentId]
-             -> (SIRAgentPureMap g -> Double -> s)
+             -> (SIRAgentPureMap -> Double -> s)
              -> [s]
-             -> Rand g [s]
+             -> m [s]
 processQueue 0 _ _ _ _ _ acc = return acc -- terminated by externals of simulation: hit event limit
 processQueue n tLimit am q ais dsf acc 
     | isNothing mayHead = return acc -- terminated by internals of simulation model: no more events
@@ -289,11 +281,11 @@ processQueue n tLimit am q ais dsf acc
     eventTime :: QueueItem e -> Time
     eventTime (QueueItem _ _ et) = et
 
-processEvent :: RandomGen g
-             => SIRAgentPureMap g
+processEvent :: MonadRandom m
+             => SIRAgentPureMap
              -> [AgentId]
              -> QueueItem SIREvent
-             -> Rand g (Maybe (SIRAgentPureMap g, [QueueItem SIREvent]))
+             -> m (Maybe (SIRAgentPureMap, [QueueItem SIREvent]))
 processEvent am ais (QueueItem receiver (Event e) evtTime)
   | isNothing aMay = return Nothing
   | otherwise = do
@@ -311,39 +303,32 @@ processEvent am ais (QueueItem receiver (Event e) evtTime)
 --------------------------------------------------------------------------------
 -- INTERPRETER
 --------------------------------------------------------------------------------
-runSIRAgentPure :: Time
+runSIRAgentPure :: MonadRandom m
+                => Time
                 -> AgentId
                 -> [AgentId]
-                -> SIRAgentPureMap g
-                -> SIRAgentPure g a
-                -> Rand g (a, [QueueItem SIREvent], SIRAgentPureMap g)
-runSIRAgentPure t ai ais am agentAct = do
-  let actEvtWriter = runReaderT (unSirAgentPure agentAct) (t, ai, ais)
-      actState     = runWriterT actEvtWriter
-      actRand      = runStateT actState am
+                -> SIRAgentPureMap
+                -> SIRAgentPure a
+                -> m (a, [QueueItem SIREvent], SIRAgentPureMap)
+runSIRAgentPure = undefined
+-- runSIRAgentPure t ai ais am agentAct = do
+--   let actEvtWriter = runReaderT (unSirAgentPure agentAct) (t, ai, ais)
+--       actState     = runWriterT actEvtWriter
+--       actRand      = runStateT actState am
 
-  ((ret, es), am') <- actRand
-  return (ret, es, am')
+--   ((ret, es), am') <- actRand
+--   return (ret, es, am')
 
-newtype SIRAgentPure g a = SIRAgentPure 
+newtype SIRAgentPure a = SIRAgentPure 
   { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) 
                         (WriterT [QueueItem SIREvent] 
-                          (StateT (SIRAgentPureMap g) (Rand g))) a}
-  deriving (Functor, Applicative, Monad, MonadRandom,
+                          (State SIRAgentPureMap)) a}
+  deriving (Functor, Applicative, Monad,
             MonadWriter [QueueItem SIREvent],
             MonadReader (Time, AgentId, [AgentId]),
-            MonadState (SIRAgentPureMap g))
+            MonadState SIRAgentPureMap)
 
-instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
-  -- randomExp :: Double -> m Double
-  randomExp = randomExpM
-  
-  -- randomBool :: Double -> m Bool
-  randomBool = randomBoolM
-
-  -- randomElem :: [a] -> m a
-  randomElem = randomElemM
-
+instance MonadAgent SIREvent SIRAgentPure where
   -- schedEvent :: AgentId -> SIREvent -> Double -> m ()
   schedEvent receiver e dt = do
     t <- asks fst3
@@ -371,6 +356,10 @@ instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
     -- look for the receiver 
     aMay <- gets (Map.lookup receiverId) 
 
+    -- IMPORTANT TODO
+    -- TODO: can we engage in multiple sendSync? e.g. can agent A sendSync to 
+    -- Agent B which sendSync to agent C?
+
     case aMay of
       -- not found, communicate to the initiating agent
       Nothing -> return Nothing
@@ -389,7 +378,6 @@ instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
         let ret = runSIRAgentPure tNow receiverId ais am receiverAct
 
         -- execute the random effect
-        -- TODO: fix it, this seems not be working atm
         ((ao, aAct'), es, am') <- ret
 
         -- update the agent MSF and update the State Monad with it
@@ -409,7 +397,7 @@ instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
         -- schedule the other events through the event writer of the initiator
         tell esOthers
 
-        _
+        --  _
 
         return (Just esToSender)
 

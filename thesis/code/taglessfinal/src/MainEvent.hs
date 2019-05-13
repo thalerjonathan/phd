@@ -1,6 +1,7 @@
 module Main where
 
 import System.Random
+import Control.Monad.Random
 
 import Export.Compress
 import Export.CSV
@@ -38,6 +39,9 @@ main = do
   --let g0 = mkStdGen seed
   g0 <- getStdGen
 
+  print $ runRand testRandT g0
+  print $ runRand testMonadRand g0
+
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
@@ -52,3 +56,15 @@ main = do
   putStrLn $ "Events compressed to " ++ show (length ssCompr) ++ " events."
 
   writeCSVFile "sir-tagless.csv" ssCompr
+
+testRandT :: RandomGen g => Rand g (Int, Int)
+testRandT = do
+  r1 <- getRandomR (0, 10)
+  r2 <- testMonadRand
+  return (r1, r2)
+
+testMonadRand :: MonadRandom m => m Int
+testMonadRand = do
+  r1 <- getRandomR (0, 10)
+  r2 <- testRandT
+  return (r1, r2)

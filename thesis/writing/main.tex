@@ -58,7 +58,9 @@
 
 \section*{Abstract}
 This thesis shows how to implement Agent-Based Simulations (ABS) using the \textit{pure} functional programming paradigm and what the benefits and drawbacks are when doing so. As language of choice, Haskell is used due to its modern nature, increasing use in real-world applications and \textit{pure} nature. The thesis presents various implementation techniques to ABS and then discusses concurrency and parallelism and verification and validation in ABS in a pure functional setting. Additionally the thesis briefly discusses the use of dependent types in ABS, to close the gap between specification and implementation - something the presented implementation techniques don't focus on.
-Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS. \\
+Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS.
+
+\bigskip
 
 TODO "first draft" milestone until return to UK mid June 2019
 \begin{enumerate}
@@ -66,7 +68,8 @@ TODO "first draft" milestone until return to UK mid June 2019
 	\item MODERATE EFFORT: Functional programming: write transformers section, explaining how to stack effects, in which order lifts happening, also explain MTL and effects through typeclasses
 	\item MODERATE EFFORT: Discussion How: fix missing OO definition
 	\item MODERATE EFFORT: Discussion Drawbacks: finish efficiency	
-	\item HIGH EFFORT: Event-driven implementation: refine/rewrite, also needs more implementation
+	
+	\item HIGH EFFORT: refine/rewrite event-driven implementation, it is too ad-hoc and the weakest (finished) chapter atm
 	
 	\item Generalising ABS: extract the foundational properties: agents as monad / comonad / arrow and discuss their implications from an abstract point of view.
 	
@@ -75,9 +78,9 @@ TODO "first draft" milestone until return to UK mid June 2019
 
 TODO "finalise research" milestone until end of July 2019
 \begin{enumerate}
-	\item implement and write Gintis Case-Study and focus on property-tests and reasoning and potential directions for a dependently-typed implementation. this will be highly important for my internal assessor 
+	\item MANDATORY: write "Gintis Case Revisited" as it will be highly important for my internal assessor. Try to get the implementation working and refactor it into a functional implementation, atm it is awful
 
-	\item optional: implement SIR equilibrium-totality correspondence in Idris, closely related to the property-based testing, is presented as an appendix at the moment and thus treated as optional
+	\item OPTIONAL: implement total SD and ABS SIR implementation in Idris on a very simple level to make the point that we can (or cannot) make use of dependent types in this context to show the totality of a simulation under given equilibrium assumption.
 \end{enumerate}
 
 TODO "finalising, reflecting and filling in holes" milestone until end of August 2019

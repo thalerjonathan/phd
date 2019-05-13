@@ -12,6 +12,7 @@ import Data.Maybe
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
+import Control.Monad.State
 import Control.Monad.Trans.MSF.Except
 import Data.MonadicStreamFunction.InternalCore
 import Data.MonadicStreamFunction
@@ -64,6 +65,9 @@ data SIREvent
   | Contact AgentId SIRState
   | Recover 
   deriving (Show, Eq)
+
+type SIRAgent g        = MSF (SIRAgentPure g) SIREvent SIRState
+type SIRAgentPureMap g = Map.IntMap (SIRAgent g, SIRState)
 
 --------------------------------------------------------------------------------
 -- CONSTANTS 
@@ -182,8 +186,6 @@ scheduleRecoveryM ild = do
 --------------------------------------------------------------------------------
 -- SIMULATION KERNEL
 --------------------------------------------------------------------------------
-type SIRAgentPureMap g = Map.IntMap (MSF (SIRAgentPure g) SIREvent SIRState, SIRState)
-
 runEventSIR :: RandomGen g
             => [SIRState]
             -> Int
@@ -223,7 +225,8 @@ initSIRPure :: RandomGen g
             -> Double 
             -> Rand g (SIRAgentPureMap g, EventQueue SIREvent)
 initSIRPure ss cor inf ild = do
-    (as0', ess) <- unzip <$> mapM (\(ai, s) -> runSIRAgentPure 0 ai ais (sirAgent cor inf ild s)) (zip ais ss)
+    let amEmpty = Map.empty
+    (as0', ess) <- unzip <$> zipWithM (createAgent amEmpty) ais ss
 
     let es    = concat ess
         asMap = Prelude.foldr 
@@ -236,6 +239,15 @@ initSIRPure ss cor inf ild = do
     return (asMap, eq)
   where
     ais  = [0.. length ss - 1]
+
+    createAgent :: RandomGen g
+                => SIRAgentPureMap g
+                -> AgentId
+                -> SIRState
+                -> Rand g (SIRAgent g, [QueueItem SIREvent])
+    createAgent am ai s = do
+      (as, es, _) <-  runSIRAgentPure 0 ai ais am (sirAgent cor inf ild s)
+      return (as, es)
 
 -- TODO: fix, extremely high memory demands!
 processQueue :: RandomGen g
@@ -278,18 +290,18 @@ processEvent :: RandomGen g
              -> [AgentId]
              -> QueueItem SIREvent
              -> Rand g (Maybe (SIRAgentPureMap g, [QueueItem SIREvent]))
-processEvent as ais (QueueItem receiver (Event e) evtTime)
+processEvent am ais (QueueItem receiver (Event e) evtTime)
   | isNothing aMay = return Nothing
   | otherwise = do
     let agentAct  = unMSF a e
-        
-    ((ao, a'), es) <- runSIRAgentPure evtTime receiver ais agentAct
 
-    let as' = Map.insert receiver (a', ao) as
+    ((ao, a'), es, am') <- runSIRAgentPure evtTime receiver ais am agentAct
 
-    return $ Just (as', es)
+    let am'' = Map.insert receiver (a', ao) am'
+
+    return $ Just (am'', es)
   where
-    aMay  = Map.lookup receiver as
+    aMay  = Map.lookup receiver am
     (a,_) = fromJust aMay
 
 --------------------------------------------------------------------------------
@@ -298,20 +310,25 @@ processEvent as ais (QueueItem receiver (Event e) evtTime)
 runSIRAgentPure :: Time
                 -> AgentId
                 -> [AgentId]
+                -> SIRAgentPureMap g
                 -> SIRAgentPure g a
-                -> Rand g (a, [QueueItem SIREvent])
-runSIRAgentPure t ai ais act = do
-  let actEvtWriter  = runReaderT (unSirAgentPure act) (t, ai, ais)
-      actRand       = runWriterT actEvtWriter
-      --((a, es), g') = runRand actRand g
-
-  --(a, es, g')
-  actRand
+                -> Rand g (a, [QueueItem SIREvent], SIRAgentPureMap g)
+runSIRAgentPure t ai ais am agentAct = do
+  let actEvtWriter  = runReaderT (unSirAgentPure agentAct) (t, ai, ais)
+      actState      = runWriterT actEvtWriter
+      actRand       = runStateT actState am
+      
+  ((ret, es), am') <- actRand
+  return (ret, es, am')
 
 newtype SIRAgentPure g a = SIRAgentPure 
-  { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) (WriterT [QueueItem SIREvent] (Rand g)) a }
+  { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) 
+                        (WriterT [QueueItem SIREvent] 
+                          (StateT (SIRAgentPureMap g) (Rand g))) a}
   deriving (Functor, Applicative, Monad, MonadRandom,
-            MonadWriter [QueueItem SIREvent], MonadReader (Time, AgentId, [AgentId]))
+            MonadWriter [QueueItem SIREvent],
+            MonadReader (Time, AgentId, [AgentId]),
+            MonadState (SIRAgentPureMap g))
 
 instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
   -- randomExp :: Double -> m Double
@@ -337,7 +354,70 @@ instance RandomGen g => MonadAgent SIREvent (SIRAgentPure g) where
 
   getMyId = asks snd3
 
-  sendSync _receiver _e = return NoReply
+  -- NOTE: this schedules an event with dt = 0 to the receiver by running the 
+  -- receiver and filtering the replies with dt = 0 to the sender
+  sendSync receiverId evt = do
+    -- get the id of the agent who initiates the synchronous send
+    senderId <- getMyId
+
+    -- don't allow to send to itself because this will cause problems
+    when (receiverId == senderId) 
+      (error "sendSync semantic error: receiver and sender cannot be the same!")
+
+    -- look for the receiver 
+    aMay <- gets (Map.lookup receiverId) 
+
+    case aMay of
+      -- not found, communicate to the initiating agent
+      Nothing -> return NotFound
+      (Just (aAct, _)) -> do
+        -- get current time
+        tNow <- getTime
+        -- get all agent ids
+        ais <- getAgentIds
+        -- get all agent MSFs 
+        am <- get
+
+        -- get the receivers MSF by sending the event
+        let receiverAct = unMSF aAct evt
+        -- run the receiver
+        let ret = runSIRAgentPure tNow receiverId ais am receiverAct
+
+        -- execute the random effect
+        -- TODO: fix it, this seems not be working atm
+        ((ao, aAct'), es, am') <- ret
+
+        -- update the agent MSF and update the State Monad with it
+        put (Map.insert receiverId (aAct', ao) am')
+
+        -- filter the events to the initiator: agent id has to match AND 
+        -- it has to be an instantaneous event with dt = 0/time to schedule is 
+        -- the current time.
+        let esToSender = map (\(QueueItem _ (Event e) _) -> e) $ filter 
+              (\(QueueItem ai (Event _) t) -> ai == senderId && t == tNow) es
+
+        let esOthers = filter 
+              (\(QueueItem ai (Event _) t) -> ai /= senderId || t == tNow) es
+
+        -- NOTE: all other events not in this list have to be put into the
+        -- queue... this is not directly possible but we can use a trick:
+        -- we simply add it to the initiator event writer using tell ;)
+        tell esOthers
+
+        _
+
+        if null esToSender
+          -- no events to initiaor found: there is no reply
+          then return NoReply
+          -- reply with the events
+          else return (OK esToSender)
+
+-- runSIRAgentPure :: Time
+--                 -> AgentId
+--                 -> [AgentId]
+--                 -> SIRAgentPureMap g
+--                 -> SIRAgentPure g a
+--                 -> Rand g (a, [QueueItem SIREvent], SIRAgentPureMap g)
 
 fst3 :: (a,b,c) -> a
 fst3 (a,_,_) = a

@@ -41,14 +41,14 @@ main = do
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected
 
-      (ss, evtCnt) = runEventSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
+      ss  = runEventSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
 
   print $ "Finished at t = " ++ show (fst $ last ss) ++ 
-          ", after " ++ show evtCnt ++ 
+          ", after " ++ show (length ss) ++ 
           " events"
 
   let ssCompr = compressOutput ss
 
-  let ssCompr' = map (\(t, (s, i, r)) -> (t, (fromIntegral s, fromIntegral i, fromIntegral r))) ssCompr
-  --writeMatlabFile "sir-event.m" ssCompr'
-  writeCSVFile "sir-tagless.csv" ssCompr'
+  putStrLn $ "Events compressed to " ++ show (length ssCompr) ++ " events."
+
+  writeCSVFile "sir-tagless.csv" ssCompr

@@ -17,5 +17,4 @@ sirDynamicToString (t, (s, i, r)) =
   printf "%.4f" t ++
   "," ++ printf "%d" s ++
   "," ++ printf "%d" i ++ 
-  "," ++ printf "%d" r ++
-  ";"
+  "," ++ printf "%d" r

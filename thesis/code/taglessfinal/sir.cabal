@@ -45,7 +45,7 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-executable sir-event
+executable sir
   -- .hs or .lhs file containing the Main module.
   main-is:             MainEvent.hs
   

@@ -25,7 +25,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 -- use negative number for unlimited number of events
-maxEvents :: Integer
+maxEvents :: Int
 maxEvents = -1
 
 -- use 1 / 0 for unrestricted time
@@ -36,9 +36,6 @@ main :: IO ()
 main = do
   let g0 = mkStdGen seed
   --g0 <- getStdGen
-
-  -- print $ runRand testRandT g0
-  -- print $ runRand testMonadRand g0
 
   let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
             replicate infectedCount Infected

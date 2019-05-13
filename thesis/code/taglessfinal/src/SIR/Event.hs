@@ -4,7 +4,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE FunctionalDependencies     #-}
-
 module SIR.Event where
 
 import Data.Maybe
@@ -26,11 +25,10 @@ import SIR.Model
 --------------------------------------------------------------------------------
 -- GENERAL ABS TYPE DEFINITIONS 
 --------------------------------------------------------------------------------
-type EventId      = Integer
 type Time         = Double
 type AgentId      = Int
 newtype Event e   = Event e deriving Show
-data QueueItem e  = QueueItem !AgentId !(Event e) Time deriving Show
+data QueueItem e  = QueueItem !AgentId !(Event e) !Time deriving Show
 type EventQueue e = PQ.MinQueue (QueueItem e)
 
 instance Eq (QueueItem e) where
@@ -55,13 +53,17 @@ class Monad m => MonadAgent e m | m -> e where
 --------------------------------------------------------------------------------
 data SIREvent 
   = MakeContact
-  | Contact AgentId SIRState
+  | Contact !AgentId !SIRState
   | Recover 
   deriving (Show, Eq)
 
 type SIRAgent        = MSF SIRAgentPure SIREvent SIRState
 type SIRAgentPureMap = Map.IntMap (SIRAgent, SIRState)
 
+data SimState = SimState
+  { simStateRng    :: !StdGen
+  , simStateAgents :: !SIRAgentPureMap
+  }
 --------------------------------------------------------------------------------
 -- CONSTANTS 
 --------------------------------------------------------------------------------
@@ -185,7 +187,7 @@ runEventSIR :: [SIRState]
             -> Int
             -> Double
             -> Double 
-            -> Integer
+            -> Int
             -> Double    
             -> StdGen
             -> [(Time, (Int, Int, Int))]
@@ -246,7 +248,7 @@ initSIRPure as cor inf ild rng = do
       where
         (a, es, ss') = runSIRAgentPure 0 ai ais ss (sirAgent cor inf ild s)
 
-processQueue :: Integer 
+processQueue :: Int 
              -> Double
              -> SimState
              -> EventQueue SIREvent
@@ -269,12 +271,12 @@ processQueue n tLimit ss q ais acc
           let q'' = foldr PQ.insert q' es
           
           -- sample domain-state for current event
-          let (tPre, _) = head acc
-          let sir = (evtTime, aggregateAgentMap (simStateAgents ss'))
+          let (tPre, sirPre) = head acc
+          let sir = aggregateAgentMap (simStateAgents ss')
 
-          let acc' = if evtTime == tPre 
-                      then sir : tail acc
-                      else sir : acc
+          let acc' = if evtTime == tPre || sirPre == sir
+                      then (evtTime, sir) : tail acc
+                      else (evtTime, sir) : acc
           
           processQueue (n-1) tLimit ss' q'' ais acc'
   where
@@ -314,23 +316,6 @@ runSIRAgentPure t ai ais ss agentAct = (ret, es, ss')
     actEvtWriter     = runReaderT (unSirAgentPure agentAct) (t, ai, ais)
     actState         = runWriterT actEvtWriter
     ((ret, es), ss') = runState actState ss
-
-
-{- newtype SIRAgentPure a = SIRAgentPure 
-  { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) 
-                        (WriterT [QueueItem SIREvent] 
-                          (StateT SIRAgentPureMap (Rand StdGen))) a}
-  deriving (Functor, Applicative, Monad,
-            MonadRandom, 
-            MonadWriter [QueueItem SIREvent],
-            MonadReader (Time, AgentId, [AgentId]),
-            MonadState SIRAgentPureMap)
- -}
-
-data SimState = SimState
-  { simStateRng    :: StdGen
-  , simStateAgents :: SIRAgentPureMap
-  }
 
 newtype SIRAgentPure a = SIRAgentPure 
   { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) 

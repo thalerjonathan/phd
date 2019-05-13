@@ -62,6 +62,8 @@ public class SIR {
 		List<SIRStep> steps = new ArrayList<>();
 		List<Integer> ais   = new ArrayList<>(this.agents.keySet());
 		
+		steps.add(this.aggregate());
+		
 		while (true) {
 			SIREvent evt = this.events.poll();
 			if (null == evt) {
@@ -73,29 +75,15 @@ public class SIR {
 			Agent receiver = this.agents.get(evt.receiver);
 			receiver.handleEvent(evt, ais);
 		
-			int s = 0;
-			int i = 0;
-			int r = 0;
-
-			for (Agent a : this.agents.values()) {
-				if (SIRState.SUSCEPTIBLE == a.getState() ) {
-					s++;
-				} else if (SIRState.INFECTED == a.getState() ) {
-					i++;
-				} else if (SIRState.RECOVERED == a.getState() ) {
-					r++;
-				}
-			}
+			SIRStep step = this.aggregate();
 			
-			SIRStep step = new SIRStep();
-			step.t = t;
-			step.s = s;
-			step.i = i;
-			step.r = r;
+			if (steps.get(steps.size() - 1).t == step.t) {
+				steps.remove(steps.size() - 1);
+			}
 			
 			steps.add(step);
 			
-			if (i == 0 && tMax == 0) {
+			if (step.i == 0 && tMax == 0) {
 				break;
 			} else {
 				if (t >= tMax) {
@@ -105,5 +93,29 @@ public class SIR {
 		}
 		
 		return steps;
+	}
+	
+	private SIRStep aggregate() {
+		int s = 0;
+		int i = 0;
+		int r = 0;
+
+		for (Agent a : agents.values()) {
+			if (SIRState.SUSCEPTIBLE == a.getState() ) {
+				s++;
+			} else if (SIRState.INFECTED == a.getState() ) {
+				i++;
+			} else if (SIRState.RECOVERED == a.getState() ) {
+				r++;
+			}
+		}
+		
+		SIRStep step = new SIRStep();
+		step.t = t;
+		step.s = s;
+		step.i = i;
+		step.r = r;
+		
+		return step;
 	}
 }

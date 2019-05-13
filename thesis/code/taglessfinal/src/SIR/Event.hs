@@ -12,7 +12,7 @@ import Data.Maybe
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Writer
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Control.Monad.Trans.MSF.Except
 import Data.MonadicStreamFunction.InternalCore
 import Data.MonadicStreamFunction
@@ -289,7 +289,7 @@ processEvent ss ais (QueueItem receiver (Event e) evtTime) = do
 
   let ((ao, a'), es, ss') = runSIRAgentPure evtTime receiver ais ss agentAct
 
-  let ss'' = ss { simStateAgents = Map.insert receiver (a', ao) (simStateAgents ss') }
+  let ss'' = ss' { simStateAgents = Map.insert receiver (a', ao) (simStateAgents ss') }
 
   Just (ss'', es)
 
@@ -340,7 +340,7 @@ runRandWithSimState :: MonadState SimState m
 runRandWithSimState act = do
   g <- gets simStateRng
   let (ret, g') = runRand act g
-  modify (\s -> s { simStateRng = g' })
+  modify' (\s -> s { simStateRng = g' })
   return ret
 
 instance MonadAgent SIREvent SIRAgentPure where
@@ -400,7 +400,7 @@ instance MonadAgent SIREvent SIRAgentPure where
         put ss'
 
         -- update the agent MSF and update the State Monad with it
-        modify (\s -> s { simStateAgents = Map.insert receiverId (aAct', ao) (simStateAgents s) })
+        modify' (\s -> s { simStateAgents = Map.insert receiverId (aAct', ao) (simStateAgents s) })
 
         -- filter the events to the initiator: agent id has to match AND 
         -- it has to be an instantaneous event with dt = 0/time to schedule is 

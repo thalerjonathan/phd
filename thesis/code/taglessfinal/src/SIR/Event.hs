@@ -204,7 +204,7 @@ runEventSIR ss cor inf ild maxEvents tLimit
       let ais = Map.keys asMap
       let doms as t = (t, aggregateAgentMap as)
 
-      processQueue maxEvents tLimit asMap eq ais doms
+      reverse <$> processQueue maxEvents tLimit asMap eq ais doms []
 
     aggregateAgentMap :: SIRAgentPureMap g -> (Int, Int, Int) 
     aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)
@@ -245,26 +245,25 @@ processQueue :: RandomGen g
              -> EventQueue SIREvent
              -> [AgentId]
              -> (SIRAgentPureMap g -> Double -> s)
+             -> [s]
              -> Rand g [s]
-processQueue 0 _ _ _ _ _ = return [] -- terminated by externals of simulation: hit event limit
-processQueue n tLimit am q ais dsf 
-    | isNothing mayHead = return [] -- terminated by internals of simulation model: no more events
-    | evtTime > tLimit  = return [] -- terminated by externals of simulation: hit time limit
+processQueue 0 _ _ _ _ _ acc = return acc -- terminated by externals of simulation: hit event limit
+processQueue n tLimit am q ais dsf acc 
+    | isNothing mayHead = return acc -- terminated by internals of simulation model: no more events
+    | evtTime > tLimit  = return acc -- terminated by externals of simulation: hit time limit
     | otherwise = do
       retMay <- processEvent am ais evt
       -- receiver not found, remove event and carray on
       case retMay of
         -- event-receiver not found, next event
-        Nothing -> processQueue (n-1) tLimit am q' ais dsf  
+        Nothing -> processQueue (n-1) tLimit am q' ais dsf acc
         -- event receiver found
         (Just (am', es)) -> do
           -- insert new events into queue
           let q'' = foldr PQ.insert q' es
           -- sample domain-state for current event
           let s = dsf am' evtTime
-          -- non tail-recursive call to support infinite [s]
-          ss <- processQueue (n-1) tLimit am' q'' ais dsf
-          return (s : ss)
+          processQueue (n-1) tLimit am' q'' ais dsf (s : acc)
   where
     mayHead = PQ.getMin q
     evt     = fromJust mayHead

@@ -1,10 +1,7 @@
 \chapter{Concurrent ABS}
 \label{ch:concurrent_abs}
 
-TODO REFINE ARGUMENT
-- in this chapter we asume that concurrent execution has no influence. we can use the techniques of property-based testing to check that but we leave that for further research.
--  Concurrency is a control-flow oriented concern. Parallelism is a data-flow oriented concern. Using STM allows us to treat the concurrent problem within an agent as a data-flow oriented one 
-- no comparison to io or repast: the story is "concurrency with compile time guarantees", only mention that an io based single lock performs much worse in sir and slightly worse in sugarscape. leave Array i IORef for further research
+%- no comparison to io or repast: the story is "concurrency with compile time guarantees", only mention that an io based single lock performs much worse in sir and slightly worse in sugarscape. leave Array i IORef for further research
 
 In an ideal world, we would like to solve all our problems using parallelism but unfortunately, it can't be applied to all parallel problems and ABS is no exception. As soon as there are data-dependencies, like we have them in the Sugarscape model in the form of the read/write environment and synchronous agent-interactions, and to a lesser extent in the monadic SIR with the Rand monad, we cannot avoid concurrency. More general, this is due to the fact that agents are executed within a monadic context, from which the  sequencing of effectful computations immediately follows - the very meaning of the Monad abstraction. Indeed, we have shown both by argument and measurement in the previous chapter the very fact that parallelism is simply not applicable to monadic execution of agents due to sequencing of effects, which renders all attempts of running monadic agents in parallel void. In this chapter we discuss the use of concurrency to run agents which have a monadic context in parallel - which is the only way we can execute monadic agents at the same time.
 

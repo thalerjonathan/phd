@@ -34,7 +34,7 @@ To quote John Carmack \footnote{\url{http://www.gamasutra.com/view/news/169296/I
 %TODO: report LoC and compare it with other implementations we found on the internet
 
 \subsection{Multiple types of agents}
-TODO shortly mention, that we can also do different types of agents: add to the data declaration of observable output an additional case. unfortunately all agent types have to speak the same event-language because in regards of types the agents are treated the same way. this is also true for the monadic stack.
+In the Sugarscape example we have only considered one type of agents, thus the whole population is a homogeneous one in regards of the \textit{type} of the agent. It is quite straightforward to have heterogeneous agent types as well, which is accomplished through adding additional data-declarations to the observable output and the agent-state. A consequence is that all agent types have to speak the same event-language because in regards of types the agents are treated the same way - this is also true for the monadic / effect stack: different agent types cannot have different effect types in this approach as they are seen as the same on the type level.
 
 \subsection{Conclusion}
 Overall we think that this event-driven approach is quite feasible and is \textit{the way to go} to implement ABS in a pure functional way. The time-driven approach is quite expressive but is not as flexible and general as the event-driven one. Also performance is considerably better in event-driven approach as shown in the short section \ref{sec:eventdriven_sir} on the event-driven SIR.

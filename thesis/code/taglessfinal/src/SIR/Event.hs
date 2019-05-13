@@ -190,21 +190,22 @@ runEventSIR :: [SIRState]
             -> StdGen
             -> [(Time, (Int, Int, Int))]
 runEventSIR as cor inf ild maxEvents tLimit rng
-    = reverse $ processQueue maxEvents tLimit ss0 eq ais doms []
+    = reverse $ processQueue maxEvents tLimit ss0 eq ais [(0, sir0)]
   where
+    
     (ss0, eq) = initSIRPure as cor inf ild rng
     ais       = Map.keys (simStateAgents ss0)
-    doms am t = (t, aggregateAgentMap am)
-
-    aggregateAgentMap :: SIRAgentPureMap -> (Int, Int, Int) 
-    aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)
-      where
-        aggregateAgentMapAux :: (MSF m SIREvent SIRState, SIRState)
-                             -> (Int, Int, Int) 
-                             -> (Int, Int, Int) 
-        aggregateAgentMapAux (_, Susceptible) (s,i,r) = (s+1,i,r)
-        aggregateAgentMapAux (_, Infected) (s,i,r)    = (s,i+1,r)
-        aggregateAgentMapAux (_, Recovered) (s,i,r)   = (s,i,r+1)
+    sir0      = aggregateAgentMap (simStateAgents ss0)
+    
+aggregateAgentMap :: SIRAgentPureMap -> (Int, Int, Int)
+aggregateAgentMap = Prelude.foldr aggregateAgentMapAux (0,0,0)
+  where
+    aggregateAgentMapAux :: (MSF m SIREvent SIRState, SIRState)
+                         -> (Int, Int, Int)
+                         -> (Int, Int, Int)
+    aggregateAgentMapAux (_, Susceptible) (s,i,r) = (s+1,i,r)
+    aggregateAgentMapAux (_, Infected) (s,i,r)    = (s,i+1,r)
+    aggregateAgentMapAux (_, Recovered) (s,i,r)   = (s,i,r+1)
 
 initSIRPure :: [SIRState]
             -> Int
@@ -250,11 +251,10 @@ processQueue :: Integer
              -> SimState
              -> EventQueue SIREvent
              -> [AgentId]
-             -> (SIRAgentPureMap -> Double -> s)
-             -> [s]
-             -> [s]
-processQueue 0 _ _ _ _ _ acc = acc -- terminated by externals of simulation: hit event limit
-processQueue n tLimit ss q ais dsf acc 
+             -> [(Time, (Int, Int, Int))]
+             -> [(Time, (Int, Int, Int))]
+processQueue 0 _ _ _ _ acc = acc -- terminated by externals of simulation: hit event limit
+processQueue n tLimit ss q ais acc 
     | isNothing mayHead = acc -- terminated by internals of simulation model: no more events
     | evtTime > tLimit  = acc -- terminated by externals of simulation: hit time limit
     | otherwise = do
@@ -262,14 +262,21 @@ processQueue n tLimit ss q ais dsf acc
       -- receiver not found, remove event and carray on
       case retMay of
         -- event-receiver not found, next event
-        Nothing -> processQueue (n-1) tLimit ss q' ais dsf acc
+        Nothing -> processQueue (n-1) tLimit ss q' ais acc
         -- event receiver found
         (Just (ss', es)) -> do
           -- insert new events into queue
           let q'' = foldr PQ.insert q' es
+          
           -- sample domain-state for current event
-          let s = dsf (simStateAgents ss') evtTime
-          processQueue (n-1) tLimit ss' q'' ais dsf (s : acc)
+          let (tPre, _) = head acc
+          let sir = (evtTime, aggregateAgentMap (simStateAgents ss'))
+
+          let acc' = if evtTime == tPre 
+                      then sir : tail acc
+                      else sir : acc
+          
+          processQueue (n-1) tLimit ss' q'' ais acc'
   where
     mayHead = PQ.getMin q
     evt     = fromJust mayHead

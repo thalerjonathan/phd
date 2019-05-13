@@ -50,8 +50,7 @@ executable sir-event
   main-is:             MainEvent.hs
   
   -- Modules included in this executable, other than Main.
-  other-modules:       Export.Compress
-                     , Export.CSV
+  other-modules:       Export.CSV
                      , SIR.Event
                      , SIR.Model
   

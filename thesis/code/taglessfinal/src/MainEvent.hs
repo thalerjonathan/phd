@@ -2,7 +2,6 @@ module Main where
 
 import System.Random
 
-import Export.Compress
 import Export.CSV
 import SIR.Event
 import SIR.Model
@@ -35,8 +34,8 @@ maxTime = 150.0
 
 main :: IO ()
 main = do
-  --let g0 = mkStdGen seed
-  g0 <- getStdGen
+  let g0 = mkStdGen seed
+  --g0 <- getStdGen
 
   -- print $ runRand testRandT g0
   -- print $ runRand testMonadRand g0
@@ -46,15 +45,11 @@ main = do
 
       ss  = runEventSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
 
-  print $ "Finished at t = " ++ show (fst $ last ss) ++ 
-          ", after " ++ show (length ss) ++ 
-          " events"
+  putStrLn $ "Finished at t = " ++ show (fst $ last ss) ++ 
+             ", after " ++ show (length ss) ++ 
+             " events"
 
-  let ssCompr = compressOutput ss
-
-  putStrLn $ "Events compressed to " ++ show (length ssCompr) ++ " events."
-
-  writeCSVFile "sir-tagless.csv" ssCompr
+  writeCSVFile "sir-tagless.csv" ss
 
 -- testRandT :: RandomGen g => Rand g Int
 -- testRandT = do

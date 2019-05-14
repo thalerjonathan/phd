@@ -4,7 +4,8 @@ import System.Random
 
 import Export.CSV
 import SIR.Model
-import SIR.Pure
+-- import SIR.Pure
+import SIR.Impure
 
 seed :: Int
 seed = 42
@@ -34,13 +35,12 @@ maxTime = 150.0
 
 main :: IO ()
 main = do
-  let g0 = mkStdGen seed
-  --g0 <- getStdGen
+  setStdGen (mkStdGen seed)
 
   let as = createSIRStates susceptibleCount infectedCount 0 
       
-  let ss = runPureSIR 
-            as contactRate infectivity illnessDuration maxEvents maxTime g0 
+  ss <- runImpureSIR 
+            as contactRate infectivity illnessDuration maxEvents maxTime 
 
   putStrLn $ "Finished at t = " ++ show (fst $ last ss) ++ 
              ", after " ++ show (length ss) ++ 

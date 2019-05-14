@@ -53,6 +53,7 @@ executable sir
   other-modules:       Export.CSV
                      , SIR.Agent
                      , SIR.API
+                     , SIR.Impure
                      , SIR.Model
                      , SIR.Pure
   

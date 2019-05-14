@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleContexts           #-}
--- {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
--- {-# LANGUAGE InstanceSigs               #-}
+{-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+-- {-# LANGUAGE FlexibleInstances          #-}
 module SIR.Pure
   ( runPureSIR
   ) where
@@ -39,7 +39,6 @@ data SimState = SimState
   , simStateAgents :: !SIRAgentPureMap
   }
 
-
 runPureSIR :: [SIRState]
            -> Int
            -> Double
@@ -72,32 +71,26 @@ initSIRPure :: [SIRState]
             -> Double 
             -> StdGen
             -> (SimState, EventQueue SIREvent)
-initSIRPure as cor inf ild rng = do 
+initSIRPure as cor inf ild rng = (ss0'', eq) 
+  where
     -- NOTE: sendSync does not work in initialisation sirAgent function (and
     -- also not required and would also violate semantics of the simulation as
     -- the simulation is not running yet and a send event would not make sense)
     -- Thus we use an empty map and ignore the returned (empty) map in
     -- createAgent. If an agent performs sendSync in the initialisation phase,
     -- it will always result in a Nothing because it 
-    let ss0 = SimState { simStateRng = rng, simStateAgents = Map.empty }
-    let (ss0', ret) = foldr createAgent (ss0, []) (zip ais as)
-
-    let (ags, ess) = unzip ret
-
-    let es    = concat ess
-        asMap = Prelude.foldr 
-                  (\(aid, a, s) acc -> Map.insert aid (a, s) acc) 
-                  Map.empty 
-                  (Prelude.zip3 ais ags as)
-
-        eq = foldr PQ.insert PQ.empty es
-
-    let ss0'' = ss0' { simStateAgents = asMap }
-
-    (ss0'', eq)
-  where
-    ais  = [0.. length as - 1]
-
+    ais         = [0.. length as - 1]
+    ss0         = SimState { simStateRng = rng, simStateAgents = Map.empty }
+    (ss0', ret) = foldr createAgent (ss0, []) (zip ais as)
+    (ags, ess0) = unzip ret
+    es0         = concat ess0
+    am          = Prelude.foldr 
+                    (\(aid, a, s) acc -> Map.insert aid (a, s) acc) 
+                    Map.empty 
+                    (Prelude.zip3 ais ags as)
+    eq          = foldr PQ.insert PQ.empty es0
+    ss0''       = ss0' { simStateAgents = am }
+  
     createAgent :: (AgentId, SIRState)
                 -> (SimState, [(SIRAgent, [QueueItem SIREvent])])
                 -> (SimState, [(SIRAgent, [QueueItem SIREvent])])
@@ -114,33 +107,32 @@ processQueue :: Int
              -> [(Time, (Int, Int, Int))]
 processQueue 0 _ _ _ _ acc = acc -- terminated by externals of simulation: hit event limit
 processQueue n tLimit ss q ais acc 
-    | isNothing mayHead = acc -- terminated by internals of simulation model: no more events
-    | evtTime > tLimit  = acc -- terminated by externals of simulation: hit time limit
-    | otherwise = do
-      let retMay = processEvent ss ais evt
-      -- receiver not found, remove event and carray on
-      case retMay of
-        -- event-receiver not found, next event
-        Nothing -> processQueue (n-1) tLimit ss q' ais acc
-        -- event receiver found
-        (Just (ss', es)) -> do
-          -- insert new events into queue
-          let q'' = foldr PQ.insert q' es
-          
-          -- sample domain-state for current event
-          let (tPre, sirPre) = head acc
-          let sir = aggregateAgentMap (simStateAgents ss')
-
-          let acc' = if evtTime == tPre || sirPre == sir
-                      then (evtTime, sir) : tail acc
-                      else (evtTime, sir) : acc
-          
-          processQueue (n-1) tLimit ss' q'' ais acc'
+    -- terminated by internals of simulation model: no more events
+    | isNothing mayHead = acc 
+    -- terminated by externals of simulation: hit time limit
+    | evtTime > tLimit = acc 
+    -- event-receiver not found, next event
+    | isNothing retMay = processQueue (n-1) tLimit ss q' ais acc
+    -- event receiver found
+    | otherwise = processQueue (n-1) tLimit ss' q'' ais acc'
   where
     mayHead = PQ.getMin q
     evt     = fromJust mayHead
     evtTime = eventTime evt
     q'      = PQ.drop 1 q
+
+    retMay    = processEvent ss ais evt
+    (ss', es) = fromJust retMay
+    -- insert new events into queue
+    q'' = foldr PQ.insert q' es
+          
+    -- sample domain-state for current event
+    (tPre, sirPre) = head acc
+    sir = aggregateAgentMap (simStateAgents ss')
+
+    acc' = if evtTime == tPre || sirPre == sir
+            then (evtTime, sir) : tail acc
+            else (evtTime, sir) : acc
 
     eventTime :: QueueItem e -> Time
     eventTime (QueueItem _ _ et) = et
@@ -152,9 +144,7 @@ processEvent :: SimState
 processEvent ss ais (QueueItem receiver (Event e) evtTime) = do
   (a,_) <- Map.lookup receiver (simStateAgents ss)
   let agentAct = unMSF a e
-
   let ((ao, a'), es, ss') = runSIRAgentPure evtTime receiver ais ss agentAct
-
   let ss'' = ss' { simStateAgents = Map.insert receiver (a', ao) (simStateAgents ss') }
 
   Just (ss'', es)
@@ -249,7 +239,7 @@ instance MonadAgent SIREvent SIRAgentPure where
         put ss'
 
         -- update the agent MSF and update the State Monad with it
-        modify' (\s -> s { simStateAgents = Map.insert receiverId (aAct', ao) (simStateAgents s) })
+        modify' (\s -> s { simStateAgents = Map.insert receiverId (aAct', ao) (simStateAgents s)})
 
         -- filter the events to the initiator: agent id has to match AND 
         -- it has to be an instantaneous event with dt = 0/time to schedule is 
@@ -261,7 +251,7 @@ instance MonadAgent SIREvent SIRAgentPure where
         -- queue... this is not directly possible but we can use a trick:
         -- we simply add it to the initiator event writer using tell ;)
         let esOthers = filter 
-              (\(QueueItem ai (Event _) t) -> ai /= senderId || t == tNow) es
+              (\(QueueItem ai (Event _) t) -> not (ai == senderId || t == tNow)) es
         -- schedule the other events through the event writer of the initiator
         tell esOthers
 

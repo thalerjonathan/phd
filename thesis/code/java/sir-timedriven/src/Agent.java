@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Random;
 
 public class Agent {
 	
@@ -8,13 +9,13 @@ public class Agent {
 	
 	private SIRState state;
 
-	private SIR sir;
+	private Random r;
 	
-	public Agent(SIR sir, SIRState state, double beta, double gamma, double delta) {
+	public Agent(Random r, SIRState state, double beta, double gamma, double delta) {
 		this.beta = beta;
 		this.gamma = gamma;
 		this.delta = delta;
-		this.sir = sir;
+		this.r = r;
 		this.state = state;
 	}
 	
@@ -36,10 +37,10 @@ public class Agent {
 	
 	private void susceptible(double dt, List<SIRState> neighbours) {
 		if (this.occasionally(1 / this.beta, dt)) {
-			int idx = (int) (Math.random() * neighbours.size());
+			int idx = (int) (r.nextDouble() * neighbours.size());
 			SIRState s = neighbours.get(idx);
 			if (s == SIRState.INFECTED) {
-				if (Math.random() <= this.gamma) {
+				if (r.nextDouble() <= this.gamma) {
 					this.state = SIRState.INFECTED;
 				}
 			}
@@ -54,11 +55,6 @@ public class Agent {
 	
 	private boolean occasionally(double lamba, double dt) {
 		double p = 1 - Math.exp(-(dt/lamba));
-		return (Math.random() <= p);
-	}
-	
-	private double randomExp(double lambda) {
-		double r = Math.random();
-		return -(Math.log(r)) / lambda;
+		return (r.nextDouble() <= p);
 	}
 }

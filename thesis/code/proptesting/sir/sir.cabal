@@ -106,7 +106,6 @@ executable sir-time
   ghc-options:         -O2
                        -Wall 
                        -Werror 
-                       -threaded -with-rtsopts=-N
 
 executable sir-sd
   -- .hs or .lhs file containing the Main module.

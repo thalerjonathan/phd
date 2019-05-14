@@ -19,6 +19,7 @@ import Control.Monad.Random
 import Data.List
 import FRP.Yampa
 
+import Export.Compress
 import SIR.Model
 
 data SIRSimCtx g = SIRSimCtx
@@ -68,7 +69,7 @@ runTimeSIRFor :: RandomGen g
               -> g
               -> [(Double, (Int, Int, Int))]
 runTimeSIRFor as0 cr inf0 dur dt tMax g0 
-    = zip ts (map aggregateSIRStates ass)
+    = compressOutput $ zip ts (map aggregateSIRStates ass)
   where
     steps = floor $ tMax / dt
     dts   = if tMax == 0 then repeat (dt, Nothing) else replicate steps (dt, Nothing)
@@ -179,8 +180,8 @@ drawRandomElemSFSafe g = proc as -> do
 initAgents :: Int -> Int -> Int -> [SIRState]
 initAgents s i r = sus ++ inf ++ recs
   where
-    sus = replicate s Susceptible
-    inf = replicate i Infected
+    sus  = replicate s Susceptible
+    inf  = replicate i Infected
     recs = replicate r Recovered
 
 defaultSIRCtx :: RandomGen g 
@@ -192,7 +193,7 @@ defaultSIRCtx g = SIRSimCtx {
 
   , syCtxRng         = g
 
-  , syCtxSusceptible = 999
+  , syCtxSusceptible = 1000
   , syCtxInfected    = 1
   , syCtxRecovered   = 0
 

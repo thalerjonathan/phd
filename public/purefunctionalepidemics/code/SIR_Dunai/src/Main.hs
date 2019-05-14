@@ -42,7 +42,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentGridSize :: (Int, Int)
-agentGridSize = (31, 31)
+agentGridSize = (10, 10)
 
 winSize :: (Int, Int)
 winSize = (800, 800)
@@ -56,7 +56,7 @@ main = do
 
   let visualise = False
       t         = 150
-      dt        = 0.1
+      dt        = 0.01
       seed      = 123 -- 123 -- 42 leads to recovery without any infection
       
       g         = mkStdGen seed

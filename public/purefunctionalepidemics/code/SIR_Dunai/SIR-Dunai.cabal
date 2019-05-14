@@ -73,4 +73,4 @@ executable SIR-Dunai
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs
+  ghc-options:         -O2 -Wall -Werror

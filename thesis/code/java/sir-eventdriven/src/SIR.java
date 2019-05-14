@@ -4,14 +4,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Random;
 
 public class SIR {
 	private PriorityQueue<SIREvent> events;
 	private Map<Integer, Agent> agents;
+	private Random r;
 	
 	private double t;
 	
-	public SIR(int susceptible, int infected, int recovered, int beta, double gamma, double delta) {
+	public SIR(int susceptible, int infected, int recovered, int beta, double gamma, double delta, int seed) {
 		int agentCount = susceptible + infected + recovered;
 		
 		this.agents = new HashMap<>(agentCount);
@@ -28,20 +30,22 @@ public class SIR {
 			}
 		});
 		
+		this.r = new Random(seed);
+		
 		int idx = 0;
 		
 		for (int i = 0; i < susceptible; i++) {
-			this.agents.put(idx, new Agent(idx, this, SIRState.SUSCEPTIBLE, beta, gamma, delta));
+			this.agents.put(idx, new Agent(idx, this, SIRState.SUSCEPTIBLE, beta, gamma, delta, this.r));
 			idx++;
 		}
 		
 		for (int i = 0; i < infected; i++) {
-			this.agents.put(idx, new Agent(idx, this, SIRState.INFECTED, beta, gamma, delta));
+			this.agents.put(idx, new Agent(idx, this, SIRState.INFECTED, beta, gamma, delta, this.r));
 			idx++;
 		}
 		
 		for (int i = 0; i < recovered; i++) {
-			this.agents.put(idx, new Agent(idx, this, SIRState.RECOVERED, beta, gamma, delta));
+			this.agents.put(idx, new Agent(idx, this, SIRState.RECOVERED, beta, gamma, delta, this.r));
 			idx++;
 		}
 	}

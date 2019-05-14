@@ -16,9 +16,11 @@ public class Main {
 		double tMax = 150;
 		double dt = 0.01;
 		
+		int seed = 42;
+		
 		long start = System.currentTimeMillis();
 		
-		SIR sir = new SIR(sus0, inf0, rec0, beta, gamma, delta);
+		SIR sir = new SIR(sus0, inf0, rec0, beta, gamma, delta, seed);
 		List<SIRStep> steps = sir.run(tMax, dt);
 		
 		SIRStep lastStep = steps.get(steps.size() - 1);

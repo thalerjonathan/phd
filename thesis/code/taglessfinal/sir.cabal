@@ -51,8 +51,10 @@ executable sir
   
   -- Modules included in this executable, other than Main.
   other-modules:       Export.CSV
-                     , SIR.Event
+                     , SIR.Agent
+                     , SIR.API
                      , SIR.Model
+                     , SIR.Pure
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    

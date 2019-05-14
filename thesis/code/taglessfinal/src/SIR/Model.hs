@@ -1,17 +1,22 @@
 module SIR.Model where
 
+import SIR.API
+
 data SIRState
   = Susceptible
   | Infected
   | Recovered
   deriving (Show, Eq)
 
-aggregateSIRStates :: [SIRState] -> (Int, Int, Int)
-aggregateSIRStates as = (sus, inf, recs)
-  where
-    sus  = length $ filter (==Susceptible) as
-    inf  = length $ filter (==Infected) as
-    recs = length $ filter (==Recovered) as
+data SIREvent 
+  = MakeContact
+  | Contact !AgentId !SIRState
+  | Recover 
+  deriving (Show, Eq)
 
-int3ToDbl3 :: (Int, Int, Int) -> (Double, Double, Double) 
-int3ToDbl3 (x,y,z) = (fromIntegral x, fromIntegral y, fromIntegral z)
+createSIRStates :: Int -> Int -> Int -> [SIRState]
+createSIRStates s i r = ss ++ is ++ rs
+  where
+    ss = replicate s Susceptible
+    is = replicate i Infected
+    rs = replicate r Recovered 

@@ -3,14 +3,14 @@ module Main where
 import System.Random
 
 import Export.CSV
-import SIR.Event
 import SIR.Model
+import SIR.Pure
 
 seed :: Int
 seed = 42
 
-agentCount :: Int
-agentCount = 1000
+susceptibleCount :: Int
+susceptibleCount = 1000
 
 infectedCount :: Int
 infectedCount = 1
@@ -37,31 +37,13 @@ main = do
   let g0 = mkStdGen seed
   --g0 <- getStdGen
 
-  let ss0 = replicate (agentCount - infectedCount) Susceptible ++ 
-            replicate infectedCount Infected
-
-      ss  = runEventSIR ss0 contactRate infectivity illnessDuration maxEvents maxTime g0 
+  let as = createSIRStates susceptibleCount infectedCount 0 
+      
+  let ss = runPureSIR 
+            as contactRate infectivity illnessDuration maxEvents maxTime g0 
 
   putStrLn $ "Finished at t = " ++ show (fst $ last ss) ++ 
              ", after " ++ show (length ss) ++ 
              " events"
 
   writeCSVFile "sir-tagless.csv" ss
-
--- testRandT :: RandomGen g => Rand g Int
--- testRandT = do
---   r1 <- getRandomR (0, 10)
---   return r1
-
--- testMonadRand :: MonadRandom m => m (Int, Int)
--- testMonadRand = do
---   r1 <- getRandomR (0, 10)
---   r2 <- runRandInMonadRandom testRandT
---   return (r1, r2)
-
--- runRandInMonadRandom :: (MonadState g m, MonadRandom m) => Rand g a -> m a
--- runRandInMonadRandom act = do
---   g <- get
---   let (as', g') = runRand act g
---   put g'
---   return as'

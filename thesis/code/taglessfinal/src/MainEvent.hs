@@ -2,7 +2,7 @@ module Main where
 
 import System.Random
 
--- import Export.CSV
+import Export.CSV
 import SIR.Event
 import SIR.Model
 
@@ -46,7 +46,7 @@ main = do
              ", after " ++ show (length ss) ++ 
              " events"
 
-  -- writeCSVFile "sir-tagless.csv" ss
+  writeCSVFile "sir-tagless.csv" ss
 
 -- testRandT :: RandomGen g => Rand g Int
 -- testRandT = do

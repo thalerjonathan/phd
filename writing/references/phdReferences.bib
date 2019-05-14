@@ -3622,17 +3622,6 @@ The simulation was translated into the Netlogo language by Iain Weaver as a summ
 	file = {Snapshot:/home/jonathan/Zotero/storage/6ZSU4JKC/10.html:text/html;Snapshot:/home/jonathan/Zotero/storage/QNAUCNTW/10.html:text/html}
 }
 
-@misc{kqr_competing_2017,
-	type = {https://two-wrongs.com/},
-	title = {On {Competing} with {C} {Using} {Haskell}},
-	url = {https://two-wrongs.com/on-competing-with-c-using-haskell},
-	urldate = {2018-08-10},
-	journal = {Two Wrongs},
-	author = {kqr},
-	month = jun,
-	year = {2017}
-}
-
 @article{figueredo_comparing_2014,
 	title = {Comparing {Stochastic} {Differential} {Equations} and {Agent}-{Based} {Modelling} and {Simulation} for {Early}-{Stage} {Cancer}},
 	volume = {9},
@@ -4893,7 +4882,7 @@ sockets, asynchronous programming with threads, and a high level network applica
 	month = may,
 	year = {2014},
 	note = {arXiv: 1406.4823},
-	keywords = {Computer Science - Logic in Computer Science, Computer Science - Programming Languages, Mathematics - Category Theory},
+	keywords = {Mathematics - Category Theory, Computer Science - Programming Languages, Computer Science - Logic in Computer Science},
 	file = {arXiv\:1406.4823 PDF:/home/jonathan/Zotero/storage/PQG7QFPU/Rivas and Jaskelioff - 2014 - Notions of Computation as Monoids.pdf:application/pdf}
 }
 
@@ -4911,6 +4900,72 @@ sockets, asynchronous programming with threads, and a high level network applica
 	author = {Marlow, Simon and Newton, Ryan and Peyton Jones, Simon},
 	year = {2011},
 	note = {event-place: Tokyo, Japan},
-	keywords = {haskell, parallel},
+	keywords = {parallel, haskell},
 	pages = {71--82}
+}
+
+@inproceedings{coutts_stream_2007,
+	title = {Stream {Fusion}. {From} {Lists} to {Streams} to {Nothing} at {All}},
+	abstract = {This paper presents an automatic deforestation system, stream fusion, based on equational transformations, that fuses a wider range of functions than existing short-cut fusion systems. In particular, stream fusion is able to fuse zips, left folds and functions over nested lists, including list comprehensions. A distinguishing feature of the framework is its simplicity: by transforming list functions to expose their structure, intermediate values are eliminated by general purpose compiler optimisations. We have reimplemented the Haskell standard List library on top of our framework, providing stream fusion for Haskell lists. By allowing a wider range of functions to fuse, we see an increase in the number of occurrences of fusion in typical Haskell programs. We present benchmarks documenting time and space improvements.},
+	booktitle = {Icfp’07},
+	author = {Coutts, Duncan and Leshchinskiy, Roman and Stewart, Don},
+	year = {2007},
+	file = {Citeseer - Full Text PDF:/home/jonathan/Zotero/storage/2XVT2RTS/Coutts et al. - 2007 - Stream Fusion. From Lists to Streams to Nothing at.pdf:application/pdf;Citeseer - Snapshot:/home/jonathan/Zotero/storage/F2DUI8T4/summary.html:text/html}
+}
+
+@inproceedings{mainland_haskell_2013,
+	title = {Haskell {Beats} {C} {Using} {Generalized} {Stream} {Fusion}},
+	abstract = {Stream fusion [3] is a powerful technique for automatically transforming high-level sequence-processing functions into efficient implementations. It has been used to great effect in Haskell libraries for manipulating byte arrays, Unicode text, and unboxed vectors. However, some operations, like vector append, still do not perform well within the standard stream fusion framework. Others, like SIMD computation using the SSE and AVX instructions available on modern x86 chips, do not seem to fit in the framework at all. In this paper we introduce generalized stream fusion, which solves these issues. The key insight is to bundle together multiple stream representations, each tuned for a particular class of stream consumer. We also describe a stream representation suited for efficient computation with SSE instructions. Our ideas are implemented in modified versions of the GHC compiler and vector library. Benchmarks show that high-level Haskell code written using our compiler and libraries can produce code that is competitive with hand-tuned assembly.},
+	urldate = {2019-05-14},
+	author = {Mainland, Geoffrey},
+	year = {2013},
+	keywords = {Advanced Vector Extensions, Append, Benchmark (computing), Byte, Compiler, Computation, First-class function, High- and low-level, HL7PublishingSubSection {\textless}operations{\textgreater}, Libraries, Programmer, Standard streams, Stream processing, Streaming SIMD Extensions, The Glorious Glasgow Haskell Compilation System, Unicode, Version, X86},
+	file = {Full Text PDF:/home/jonathan/Zotero/storage/CYLXD2JS/Mainland - 2013 - Haskell Beats C Using Generalized Stream Fusion.pdf:application/pdf}
+}
+
+@misc{stolarek_haskell_2013,
+	title = {Haskell as fast as {C}: {A} case study},
+	url = {http://lambda.jstolarek.com/2013/04/haskell-as-fast-as-c-a-case-study/},
+	abstract = {Once in a while someone, most likely new to Haskell, asks how does Haskell performance compare with C. In fact, when I was beginning with Haskell, I asked exactly the same question. During last couple of days I’ve been playing a bit with squeezing out some performance from a very simple piece of Haskell code. Turned out that the results I got are comparable with C so I thought I might share this. This will be a short case study, so I don’t intend to cover the whole subject of Haskell vs. C performance. There was a lot written on this already so I encourage to search through the Haskell-cafe archives as well as some other blogs. Most of all I suggest reading this and this post on Don Stewart’s blog.},
+	urldate = {2019-05-14},
+	journal = {Yet Another Lambda Blog},
+	author = {Stolarek, Jan},
+	month = feb,
+	year = {2013}
+}
+
+@misc{kqr_competing_2017,
+	title = {On {Competing} with {C} {Using} {Haskell}},
+	url = {https://two-wrongs.com/on-competing-with-c-using-haskell},
+	abstract = {Mark Karpov wrote in his article on Migrating text metrics to pure Haskell how he originally did foreign calls out to C for many of the functions in his text metric package, but now ported them to Haskell when he learned that Haskell can give you performance comparable to C.},
+	journal = {Two Wrongs},
+	author = {kqr, Chris},
+	month = jun,
+	year = {2017}
+}
+
+@misc{stewart_haskell_2008,
+	title = {Haskell as fast as {C}: working at a high altitude for low level performance},
+	url = {https://donsbot.wordpress.com/2008/06/04/haskell-as-fast-as-c-working-at-a-high-altitude-for-low-level-performance/},
+	urldate = {2019-05-14},
+	journal = {Control.Monad.Writer},
+	author = {Stewart, Don},
+	month = jun,
+	year = {2008}
+}
+
+@article{gill_worker/wrapper_2009,
+	title = {The {Worker}/{Wrapper} {Transformation}},
+	volume = {19},
+	issn = {0956-7968},
+	url = {http://dx.doi.org/10.1017/S0956796809007175},
+	doi = {10.1017/S0956796809007175},
+	abstract = {The worker/wrapper transformation is a technique for changing the type of a computation, usually with the aim of improving its performance. It has been used by compiler writers for many years, but the technique is little known in the wider functional programming community, and has never been described precisely. In this article we explain, formalise and explore the generality of the worker/wrapper transformation. We also provide a systematic recipe for its use as an equational reasoning technique for improving the performance of programs, and illustrate the power of this recipe using a range of examples.},
+	number = {2},
+	urldate = {2019-05-14},
+	journal = {J. Funct. Program.},
+	author = {Gill, Andy and Hutton, Graham},
+	month = mar,
+	year = {2009},
+	pages = {227--251}
 }

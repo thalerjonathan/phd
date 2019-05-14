@@ -1,7 +1,9 @@
 \section{Implementation Concepts}
 \label{sec:eventdriven_implementation}
 
-TODO REFINE / REWORK CHAPTER, CAN BE DONE MUCH BETTER BOTH AT EXPLAINING AND CONTENT, NEEDS REFACTORING
+TODO REFINE / REWORK / REWRITE CHAPTER
+- IMPORTANT: follow same step-by-step approach as in time-driven approach: make clear we are using sequential iteration strategy, then add environment on top of rand, then scheduling of events, adding of local encapsulated state, using a transformer approach, then switch to tagless final, then finally introduce sync agent-interactions which are possible through tagless final
+
 - IMPORTANT!!! i got the intuition that using the event-driven SIR implementation to introduce the basic concepts here is of more value than jumping straight into the highly complex sugarscape. The reasons:  the SIR is already covered in the chapter before and thus well known; i use the event-driven in the property-based chapter (a lot) but have not really discussed it on a technical level; i can really show all concepts with full code, in sugarscape it is so much that we cannot do this.
 Still I want to discuss Sugarscape as well in-depth as it demonstrates that we can implement a highly complex simulation in Haskell as well. I just need to fit it better into the overall narrative: yes discuss some technical details but also focus on the more software-engineering part
 

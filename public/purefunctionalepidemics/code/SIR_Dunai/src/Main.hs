@@ -42,7 +42,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentGridSize :: (Int, Int)
-agentGridSize = (10, 10)
+agentGridSize = (51, 51)
 
 winSize :: (Int, Int)
 winSize = (800, 800)
@@ -55,8 +55,8 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let visualise = False
-      t         = 150
-      dt        = 0.01
+      t         = 100
+      dt        = 0.1
       seed      = 123 -- 123 -- 42 leads to recovery without any infection
       
       g         = mkStdGen seed

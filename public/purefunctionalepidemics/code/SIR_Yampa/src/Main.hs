@@ -24,7 +24,7 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let t    = 150
-      dt   = 0.1
+      dt   = 0.01
       seed = 42
       g    = mkStdGen seed
       
@@ -36,6 +36,7 @@ main = do
       --ass  = runSimulationUntil g t dt as
       --dyns = aggregateAllStates ass
 
+  --print $ aggregateStates $ last ass
   --writeAggregatesToFile "SIR_YAMPA.m" dyns
   writeSimulationUntil g t dt as "SIR_YAMPA.m"
 

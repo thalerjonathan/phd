@@ -84,9 +84,51 @@ Although it might seem very restrictive at first, we get a number of benefits fr
 A note on effect execution. It is important to understand that the code fragments of effectful computations are in fact  made up of enclosing lambda expressions, with the \textit{do} notation being a syntactic sugared version. Thus functions which have an effect in their type can be seen as \textit{pure} functions, which are referentially transparent and return such a fragment. This fragment, also often called \textit{action}, results in an effect and a result when executed. We have to distinguish between the execution of pure effects like Rand,Read,Write,State and the impure effect of IO. Pure effects are executed using special runner functions. They take an action together with initial values defining the history / context of the effect e.g. an initial value for the State or the read-only value of the Reader, and run the action and return their result value. Thus these pure effects can be executed in a referential transparent and completely controlled way. The impure IO effect works different: there exists no dedicated IO execution function but it can only be executed from within the root IO action, which emanates from the \textit{main :: IO ()} function of each Haskell program. Thus IO actions can only be run within an enclosing IO action, with the main IO action ultimately being executed by the Haskell Runtime which is linked against the executable. The reason for that is that if we would have a way of executing IO actions within pure code we would lose all guarantees about referential transparency. There exists indeed the function \textit{unsafePerformIO :: IO a $\rightarrow$ a}, which allows to execute an IO action within a pure function but its use is very limited and highly discouraged. Throughout this thesis and in all our code we have avoided the use of this function by all costs and it is not used anywhere.
 
 \subsubsection{Stacking Effects using Transformers}
-TODO WRITE SECTION
-- explain monad transformers because I am using them heavily throughout the thesis
-- also explain MTL and the idea behind e.g. MonadRandom instead of Rand
+Often it is necessary to have multiple effects available, for example we want to manipulate a global state, write to some logging mechanism and need to be able to draw random numbers. The way this is achieved in Haskell is by using Monad Transformers \cite{jones_functional_1995}, for which Haskell provides the two libraries \textit{mtl} and \textit{transformers} which basically achieve the same things with slightly different philosophies. In our approach we primarily use \textit{mtl} as it allows to overload functions with monadic typeclasses as explained below.
+
+\medskip
+
+Although Monads share a common interface and properties, it is not possible to compose Monads in a general way as each monad has different internals and thus it always depends on the Monad how to compose it into another arbitrary Monad \footnote{The technical details are quite involved but we don't go into that here and refer to the respective literature and tutorials on Monad Transformers}. Thus, the \textit{mtl} library provides so called transformer implementations of each of the standard Monads. A transformer has an additional type-parameter in its type-constructor which has to be a Monad or another Transformer. This allows to stack multiple Monads/Transformers on top of each other. The stack is closed by using a normal Monad. Note that in \textit{mtl} all non-transformer Monads are actually transformers with the Identity Monad as type-parameter e.g. \textit{State Int} is \textit{ StateT Int Identity}. Access to the various layers of the stack is achieved with the \textit{lift} function. Lets look at how we can define the type of a function which has multiple effects available:
+
+\begin{HaskellCode}
+data SimState = SimState 
+  { simStateAgents :: [SimAgent]
+  ...
+  }
+
+simulationCore :: RandomGen g 
+               => Time
+               -> StateT SimState (WriterT [String] (Rand g)) SimOut
+simulationCore t = do
+  -- get the agents from the simulation state 
+  -- encapsulated in StateT SimState
+  as <- gets simStateAgents
+  
+  -- writing a logging output to the WriterT [String]
+  -- here we need 1 lift 
+  lift (tell ["Next step " ++ show t])
+  
+  -- shuffle agents by running the MonadRandom action using the
+  -- Rand Monad, need 2 lifts as it is the outermost monad
+  asShuf <- lift $ lift $ randomShuffle as
+  
+  let simOut = ...
+  
+  return simOut
+  
+randomShuffle :: MonadRandom m => [a] -> m [a]
+\end{HaskellCode}
+
+The Monad stack consists of three effects: the \textit{StateT} with \textit{SimState} as its internal state as the innermost Monad. Note that although in the types it is the outermost, in terms of the transformer stack it is the innermost, requiring no \textit{lift} to access. \textit{WriterT} with \textit{[String]} as the logging facility is a parameter to the \textit{StateT} transformer, making it the second effect in the stack, thus requiring one \textit{lift}. The stack is closed using the \textit{Rand} Monad, which is the outermost effect, requiring two \textit{lifts} to access it.
+
+Note the use of \textit{randomShuffle} and its type. It is an overloaded function, which has the \textit{MonadRandom} typeclass in its type-constraints. This indicates that it is a monadic action where \textit{m} is of type \textit{MonadRandom}, which supports the same functionality as \textit{Rand}. This is the major benefit \textit{mtl} provides, which often results in much cleaner function types and does not require to state fixed monad stacks in the type. The benefit is that we do not need lifts any more; the drawback is that we cannot have multiple Monads of the same type which would be still possible in a fully qualified Monad stack. The benefits becomes particularly clear when more than one effect is required, for example we could have written the type of \textit{simulationCore}
+
+\begin{HaskellCode}
+simulationCore :: (MonadState SimState m, MonadWriter [String] m, MonadRandom m) 
+               => Time -> m SimOut
+\end{HaskellCode}
+
+A final note on commutativity on Monad Transformers: because we are stacking effects on top of each other, subsequent effects can change the final outcome, depending on their position within the stack - this is called commutativity of Monads. All the Monads in the example above commute, which means it does not matter where they are positioned in the stack, the outcome will be the same. An exception to this is the \textit{MaybeT} transformer, which introduces failure as an effect within a stack, thus when failure occurs, subsequent effects will not be applied any more, making \textit{MaybeT} non-commutative. 
 
 \subsection{Functional Reactive Programming}
 \label{sec:back_frp}

@@ -64,9 +64,7 @@ Finally a case-study is presented which tries to bring together the insights of 
 
 TODO "first draft" milestone until return to UK mid June 2019
 \begin{enumerate}
-	\item MODERATE EFFORT: Discussion How: fix missing OO definition
-
-	\item LEAVE THE THESIS ASIDE FOR 3 WEEKS. then read whole thesis front to back and point out weaknesses in each chapter
+	\item LEAVE THE THESIS ASIDE FOR 2 WEEKS. then read whole thesis front to back and point out weaknesses in each chapter
 \end{enumerate}
 
 TODO "finalise research" milestone until end of July 2019
@@ -75,7 +73,7 @@ TODO "finalise research" milestone until end of July 2019
 
 	\item MANDATORY, HIGH EFFORT: write "The structure of ABS computation" section: extract the foundational properties: introduce continuations and closures and show how they are used in SF and MSF to be simple immutable objects, further discuss agents as monad / comonad / arrow and discuss their implications from an abstract point of view.
 	
-	\item MANDATORY, HIGH EFFORT: write "Gintis Case Revisited" as it will be highly important for my internal assessor. Try to get the implementation working and refactor it into a functional implementation, atm it is awful
+	\item OPTIONAL, MODERATE EFFORT: write "Gintis Case Revisited" as it will be highly important for my internal assessor. Try to get the implementation working and refactor it into a functional implementation, atm it is awful. If its too much effort, condense into a shorter section and put it into the Discussion chapter.
 
 	\item OPTIONAL, HIGH EFFORT: implement total SD and ABS SIR implementation in Idris on a very simple level to make the point that we can (or cannot) make use of dependent types in this context to show the totality of a simulation under given equilibrium assumption.
 \end{enumerate}
@@ -126,6 +124,10 @@ TODO prepare for viva:
 	\item read basic libraries chapter	
 	
 	\item completely understand monad-transformers: what is executed in which order? what about commutativity? e.g. STM is innermost monad, will be evaluated last to get an IO but this in fact leads then to the evaluation of all the monads before because STM is able to re-run
+	
+	\item come up with technical and knowledge-based questions the examiners can ask: explain Monads; explain Monad Transformers; why don't Monads compose? What are shared-nothing semantics (in messaging)? 
+	
+	\item come up with tricky questions about my methodology, narrative and methods, pointing out weaknesses of my approach and of my thesis:
 \end{enumerate}
 
 %TODO: from the 2nd annual review i got the feedback that i need to come up with a more coherent thesis structure which tells a story: i need to make myself clear what story i want to tell with my phd and what research and publications i still need to do for that (identify chapters and to which extent they are already finished). Also I need to come up with a precise publication plan, focusing on writing papers early than doing research for a too long time and starting an early thesis writing. This is because any unpublished research is lost and every published research is a contribution to knowledge. "A good PhD is asking more questions than it answers."

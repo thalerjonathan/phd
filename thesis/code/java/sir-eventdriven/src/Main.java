@@ -7,7 +7,7 @@ import java.util.List;
 public class Main {
 
 	public static void main(String[] args) throws IOException {
-		int sus0 = 1000;
+		int sus0 = 5000;
 		int inf0 = 1;
 		int rec0 = 0;
 		int beta = 5;

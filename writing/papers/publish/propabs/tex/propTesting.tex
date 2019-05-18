@@ -15,7 +15,7 @@ append_associative xs ys zs = (xs ++ ys) ++ zs == xs ++ (ys ++ zs)
 -- reverse is distributive over concatenation (++)
 -- xs and ys need to be swapped on the right-hand side!
 reverse_distributive :: [Int] -> [Int] -> Bool
-reverse_distributive xs ys = reverse (xs ++ ys) == reverse ys ++ reverse ys
+reverse_distributive xs ys = reverse (xs ++ ys) == reverse ys ++ reverse xs
 
 -- the reverse of a reversed list is the original list
 reverse_reverse :: [Int] -> Bool

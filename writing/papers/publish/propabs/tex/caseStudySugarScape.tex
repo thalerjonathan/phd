@@ -1,23 +1,26 @@
 \section{Case Study II: SugarScape}
 \label{sec:case_sug}
-We now look at how property-based testing can be made of use in the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996}. It was one of the first models in ABS, with the aim to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon observed in real-world societies. In this model a population of agents move around in a discrete 2D environment, where sugar grows, and interact with each other and the environment in many different ways. The main features of this model are (amongst others): searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology. For our research we undertook a \textit{full and validated} implementation of the Sugarscape model \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}}. We validated of our implementation against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}} during which we also implemented property tests. Due to lack of space we added a discussion of the validation process as an Appendix \ref{app:validation}.
+We now look at how property-based testing can be made of use in the \textit{exploratory} Sugarscape model \cite{epstein_growing_1996}. It was one of the first models in ABS, with the aim to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon observed in real-world societies. In this model a population of agents move around in a discrete 2D environment, where sugar grows, and interact with each other and the environment in many different ways. The main features of this model are (amongst others): searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology. For our research we undertook a \textit{full and validated} implementation of the Sugarscape model \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/haskell-sugarscape}}. We validated of our implementation against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}} during which we also implemented property tests. Due to lack of space we added a discussion of the validation process as an Appendix \ref{app:validation}.
 
-Whereas in the explanatory SIR case-study we had an analytical solution, inspired by the SD origins of the model, the fundamental difference in the exploratory Sugarscape model is that none such analytical solutions exist. This raises the question, which properties we can actually test in such a model - we propose the following:
+Whereas in the explanatory SIR case-study we had an analytical solution, inspired by the SD origins of the model, the fundamental difference in the exploratory Sugarscape model is that no such analytical solutions exist. This raises the question, which properties we can actually test in such a model - we propose the following:
+
 \begin{itemize}
 	\item Environment behaviour - the Sugarscape environment has its own behaviour which boils down to regrowing of resources. The correct working can be tested using property-tests by generating random environments and checking laws governing the regrowth.
-	\item Agent behaviour - obviously full agent behaviour could be tested with property-tests, using randomly generated agents (with random values in their properties). As it turned out to be quite difficult to derive properties for, in this paper we restricted ourselves to test parts of agent behaviour and also left out testing of agent interactions.
-	\item Emergent behaviour - although we don't have analytical descriptions of properties of our model in the case of Sugarscape, there still exist informal descriptions and more formal hypotheses about emergent properties. Property-testing can be used to check them and when proved to be valid can be seen as regression tests.
+	
+	\item Agent behaviour - obviously full agent behaviour could be tested with property-tests, using randomly generated agents (with random values in their properties). It turned out to be quite difficult to derive properties for full agent behaviour, thus in this paper we restricted ourselves to test parts of agent behaviour and also left out testing of agent interactions.
+
+	\item Emergent behaviour - although we don't have analytical descriptions of properties of our model in the case of Sugarscape, there still exist informal descriptions and more formal hypotheses about emergent properties. Property-testing can be used to check them and if proved to be valid can be seen as regression tests.
 \end{itemize}
 
 \subsection{Environment behaviour}
-The environment in the Sugarscape model has some very simple behaviour: each site has a sugar level and when harvested by an agent, it regrows back to the full level over time. Depending on the configuration of the model it either grows back immediately within 1 tick or over multiple ticks. We can construct simple property-tests for these behaviours. In the case the sugar grows back immediately we let QuickCheck generate a random environment and then run the environment behaviour for 1 tick and then check the property that all sites have to be back to their maximum sugar level. In the case of regrow over multiple ticks, we also use QuickCheck to generate a random environment but additionally a random \textit{positive} rate (which is a floating point number) which we then use to calculate the number of ticks until full regrowth. After running the random environment for the given number of ticks all sites have to be back to full sugar level - see \ref{alg:prop_test_rateregwroth} for an algorithm for this case.
+The environment in the Sugarscape model has some very simple behaviour: each site has a sugar level and when harvested by an agent, it regrows back to the full level over time. Depending on the configuration of the model it either grows back immediately within 1 tick or over multiple ticks. We can construct simple property-tests for these behaviours. In the case the sugar grows back immediately, we let QuickCheck generate a random environment and then run the environment behaviour for 1 tick and then check the property that all sites have to be back to their maximum sugar level. In the case of regrow over multiple ticks, we also use QuickCheck to generate a random environment but additionally a random \textit{positive} rate (which is a floating point number) which we then use to calculate the number of ticks until full regrowth. After running the random environment for the given number of ticks all sites have to be back to full sugar level - see Algorithm \ref{alg:prop_test_rateregwroth} for this case.
 
 Note that QuickCheck initially doesn't know how to generate a random environment because each site consists of a custom data-structure for which QuickCheck is not able to generate random instances by default. This problem is solved by writing a custom data-generator, for which existing QuickCheck functions can be used e.g. picking the current sugar level of a site from a random range.
 
 \begin{algorithm}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
 \Input{Random environment \textit{env} generated by QuickCheck}
-\Input{Regrowth rate \textit{randRate} (positive floating point) generated by QuickCheck}
+\Input{Random regrowth rate \textit{randRate} generated by QuickCheck}
 maxTicks = maxSugarCapacityOnSites / randRate\;
 env' = runEnvironmentTicks maxTicks env\;
 sites = getEnvironmentSites env'\;
@@ -28,14 +31,14 @@ sites = getEnvironmentSites env'\;
   FAIL\;
 }
 \caption{Property-based test for rate-based regrow of sugar on all sites.}
-\end{algorithm}
 \label{alg:prop_test_rateregwroth}
+\end{algorithm}
 
-The Sugarscape environment is a torus where the coordinates wrap around in both dimensions. To check whether the implementation of the wrapping-calculation is correct we used both unit- and property-tests. With the unit-tests we carefully constructed all possible cases we could think of and came up with 13 test-cases. With the property-based test we simply defined a single test-case where we expressed the property that after wrapping \textit{any} coordinates, supplied by QuickCheck, the wrapped coordinates have to be within bounds. See the algorithm in \ref{alg:prop_test_wrapcoords}.
+The Sugarscape environment is a torus where the coordinates wrap around in both dimensions. To check whether the implementation of the wrapping calculation is correct we used both unit- and property-tests. With the unit-tests we carefully constructed all possible cases we could think of and came up with 13 test-cases. With the property-based test we simply defined a single test-case where we expressed the property, that after wrapping \textit{any} random coordinates supplied by QuickCheck, the wrapped coordinates have to be within bounds. See Algorithm \ref{alg:prop_test_wrapcoords}.
 
 \begin{algorithm}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{Random 2d discrete coordinate \textit{randCoord} generated by QuickCheck}
+\Input{Random 2D discrete coordinate \textit{randCoord} generated by QuickCheck}
 (x, y) = wrapCoordinates randCoord\;
 
 \eIf{(x $\geq$ 0 and x $\leq$ environmentDimX) and (y $\geq$ 0 and y $\leq$ environmentDimY)}{
@@ -44,37 +47,34 @@ The Sugarscape environment is a torus where the coordinates wrap around in both 
   FAIL\;
 }
 \caption{Property-based test for wrap-coordinates functionality.}
-\end{algorithm}
 \label{alg:prop_test_wrapcoords}
+\end{algorithm}
 
 \subsection{Agent behaviour}
 We implemented a number of property-tests for agent functions which just cover a part of an agents behaviour: checks whether an agent has died of age or starved to death, the metabolism, immunisation step, check if an agent is a potential borrower or fertile, lookout, trading transactions. We provided custom data-generators for the agents and let QuickCheck generate the random data and us running the agent with the provided data, checking for the properties. 
 
-As an example, provided in listing \ref{alg:prop_test_agent}, we give the property-test of an agent dying of age, which happens when the agents age is greater or equal its maximum age. It might look trivial but property-based testing helps us here to clearly state the invariants (properties) and relieves us from constructing all possible edge-cases because we rely on QuickChecks abilities to cover them for us.
+As an example, provided in Algorithm \ref{alg:prop_test_agent}, we give the property-test of an agent dying of age, which happens when the agents age is greater or equal its maximum age. It might look trivial but property-based testing helps us here to clearly state the invariants (properties) and relieves us from constructing all possible edge-cases because we rely on QuickChecks abilities to cover them for us.
 
 \begin{algorithm}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{Random agent \textit{ag} generated by QuickCheck}
-\Input{Random age \textit{randAge} within a specified range generated by QuickCheck}
-set age of agent ag to randAge\;
-ageLimit = get agents age limit\; 
-died = agentDieOfAge ag;\
+\Input{Random agent \textit{ag} with random age generated by QuickCheck}
+died = hasAgentDiedOfAge ag;\
 
-\eIf{died == (randAge >= ageLimit}{
+\eIf{died == (age ag >= maxAge ag)} {
   PASS\;
 } {
   FAIL\;
 }
 \caption{Property-based test for agent dying of age.}
-\end{algorithm}
 \label{alg:prop_test_agent}
+\end{algorithm}
 
 \subsection{Emergent properties}
-In the validation and verification process of our Sugarscape implementation we put informal descriptions and hypotheses about emergent properties from the Sugarscape book into formal property-tests. Examples for such hypotheses / informal descriptions of emergent properties are e.g. the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present.
+In the validation and verification process of our Sugarscape implementation we put informal descriptions and hypotheses about emergent properties from the Sugarscape book into formal property-tests. Examples for such hypotheses / informal descriptions of emergent properties are e.g. the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1,000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2,700 steps either one culture dominates the other or both are equally present.
 
-The property we test for is whether \textit{the emergent property under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number streams and require that the tests all pass with arbitrary random number streams. Unfortunately this revealed that this property doesn't hold for all emergent properties. The problem is that QuickCheck generates by default 100 test-cases for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a t-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a t-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
+The property we test for is whether \textit{the emergent property under test is stable under varying random-number seeds} or not. Put another way, we let QuickCheck generate random number streams and require that the tests all pass. Unfortunately, this revealed that this property doesn't hold for all hypotheses. The problem is that QuickCheck generates by default 100 test-cases for each property-test where all need to pass for the whole property-test to pass - this wasn't the case, where most of the 100 test-cases passed but unfortunately not all. Thus in this case a different approach is required: instead of requiring \textit{every} test to pass we require that \textit{most} tests pass, which can be achieved using a T-test with a confidence interval of e.g. 95\%. This means we won't use QuickCheck anymore and resort to a normal unit-test where we run the simulation 100 times with different random number streams each time and then performing a T-test with a 95\% confidence interval. Note that we are now technically speaking of a unit-test but conceptually it is still a property-test.
 
-In listing \ref{alg:prop_test_trading} we show the algorithm of a property-test for checking whether after 1000 steps the standard deviation of trading prices is less than 0.05. The test passes if out of 100 runs a 95\% confidence interval is reached using a t-test.
+In Algorithm \ref{alg:prop_test_trading} we show a property-test for checking whether after 1,000 steps the standard deviation of trading prices is less than 0.05. The test passes if out of 100 runs a 95\% confidence interval is reached using a T-test.
 
 \begin{algorithm}
 maxTicks = 1000\;
@@ -99,5 +99,5 @@ tTestPass = perform 1-sided t-test comparing stdAverage with tradingPriceStdsLis
   FAIL\;
 }
 \caption{Property-based test for trading prices.}
-\end{algorithm}
 \label{alg:prop_test_trading}
+\end{algorithm}

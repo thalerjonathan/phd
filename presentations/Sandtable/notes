@@ -7,6 +7,18 @@ DIFFERENT APPROACH, FOLLOW MY THESIS CONCLUSIONS
 - talk about Haskell ABS: MSF, STM, Property based testing
 - talk about erlang ABS: actors, concurrency and parallelism
 
+Erlang, the future of ABS?
+- dynamically, strongly typed, functional
+- concurrent actor-based: maps very naturally to ABS which center around complex agent-interactions, and can exploit concurrency really well
+- easy emulation of data-parallelism (not statically guaranteed)
+- performance: substantially faster than pure functional Haskell approach, still slower than a sequential java approach BUT it should scale much better to large number of agents 
+- property-based testing available
+- extreme robust, has proven itself in the industry (1.7 million lines of code in TODO switch of Eriksson, with downtime of 2 hours over 40 years)
+- think about always-online, distributed simulations which can be upgraded (e.g. introduce new agents) while the simulation is running
+- think about: distributed simulations
+- Process calculi are directly applicable (CPS, CCS, pi-calculus) and provide a means to compensate for the lack of static typing
+- emulate oo: encapsulation (obviously), polymorphism (same interface, different behaviour), basiclly like a immutable, single method object, which transitions into a new object upon receiption of a message
+
 TOPICS TO COVER?
 - no need for big introduction into ABS but focus more on that there are different ABS according to macal "all you ever wanted to know..." 
 	-> direct communication yes / no 

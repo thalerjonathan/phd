@@ -1,0 +1,98 @@
+============================================================================ 
+SummerSim 2019 Reviews for Submission #4
+============================================================================ 
+
+Title: The Agents New Cloths? Towards Pure Functional Programming in ABS
+Authors: Jonathan Thaler and Peer-Olaf Siebers
+============================================================================
+                            REVIEWER #1
+============================================================================
+
+---------------------------------------------------------------------------
+Reviewer's Scores
+---------------------------------------------------------------------------
+                   Appropriateness (1-5): 3
+                           Clarity (1-5): 2
+      Originality / Innovativeness (1-5): 5
+           Soundness / Correctness (1-5): 4
+             Meaningful Comparison (1-5): 1
+                      Thoroughness (1-5): 1
+        Impact of Ideas or Results (1-5): 2
+                    Recommendation (1-5): 1
+               Reviewer Confidence (1-5): 1
+
+Detailed Comments
+---------------------------------------------------------------------------
+This paper reads more like promotion of the Haskell language in particular and functional paradigm, in general. Although I agree with the role and significance of the functional programming paradigm in developing reliable, precise, and concise programs that are free of side effects, its use in Agent-Oriented Modeling and Software Engineering is not necessarily a new concept. Half of the paper is based on introducing Haskell concepts, and the remainder is a rudimentary and incomplete treatment of agent modeling with functional programming constructs. Java and Python languages, along with many other imperative languages have introduced lambda calculus into their syntax, and hence make it feasible to implement functional objects. Haskell is a pure and cleaner functional language, but it is not necessary to adopt a functional perspective in programming agents. Moreover, a cursory review of the literature on Agent-Oriented Software Engineering and Modeling by the authors would re!
+ veal the extensive use of logic and function-based languages that they can compare their approach with. 
+
+I am also concerned with an incomplete and highly rudimentary presentation of Haskel-based modeling of agents that appears to lack many fundamental aspects of agents. There is not even a toy case study to demonstrate the constructs of the proposed agent language. The authors can implement at the least the Schelling or Prey-Predator model to demonstrate their solution in terms of a meaningful example. 
+
+The Haskell examples shown in the paper are extremely basic and similar to examples in introductory programming with Haskell tutorials. 
+
+The idea should further be developed. I encourage the authors to make progress toward developing an agent modeling framework with Haskell, but as is, the presented solution is quite sketchy and rudimentary.
+---------------------------------------------------------------------------
+
+
+
+============================================================================
+                            REVIEWER #2
+============================================================================
+
+---------------------------------------------------------------------------
+Reviewer's Scores
+---------------------------------------------------------------------------
+                   Appropriateness (1-5): 4
+                           Clarity (1-5): 5
+      Originality / Innovativeness (1-5): 2
+           Soundness / Correctness (1-5): 3
+             Meaningful Comparison (1-5): 5
+                      Thoroughness (1-5): 2
+        Impact of Ideas or Results (1-5): 3
+                    Recommendation (1-5): 3
+               Reviewer Confidence (1-5): 1
+
+Detailed Comments
+---------------------------------------------------------------------------
+The paper introduces the functional programming paradigm in ABS and presents Haskell to implement ABS on a conceptual level. Furthermore, the paper presents a case study to demonstrate the key features and drawbacks.
+The conclusions provided in the paper requires more intensive applications of ABS.
+---------------------------------------------------------------------------
+
+
+
+============================================================================
+                            REVIEWER #3
+============================================================================
+
+---------------------------------------------------------------------------
+Reviewer's Scores
+---------------------------------------------------------------------------
+                   Appropriateness (1-5): 4
+                           Clarity (1-5): 2
+      Originality / Innovativeness (1-5): 4
+           Soundness / Correctness (1-5): 4
+             Meaningful Comparison (1-5): 2
+                      Thoroughness (1-5): 3
+        Impact of Ideas or Results (1-5): 2
+                    Recommendation (1-5): 3
+               Reviewer Confidence (1-5): 4
+
+Detailed Comments
+---------------------------------------------------------------------------
+The article focuses on the definition of functional programming based ABS.
+
+It uses pure Haskell to define ABS.
+
+The first 5 pages of the paper include a generic introduction and a detailed description of Haskell (which, to me, it was too long). The paper is 10 pages long only (2 pages of references).
+
+It then goes into a case study (a sugarscape model) explaining how to define the agents using Haskell.
+
+The paper fails to fulfill the claims in the introduction; I don't see a generic view on how to deal with ABS in functional programming, an abstract model, or similar; they just present a simple example on how to use this tool to use functional programming.
+
+A proper formalization can be found even in Zeigler's book on DEVS, where he defined the Systems Entity Structure using FP over 30 years? ago (he used Scheme, a variant of LISP). They should read that book to start; most of the concepts have been already defined.
+
+In Zeigler's book there's a good definition of how to simulate the FP models (which is lacking here) and in his work in the '90s he showed how to define Agent-based modeling using these ideas.
+
+It should be completely rewritten, with a shorter introduction, a more compact literature (and more complete), with a focus on Haskell implementation (instead of a generic FP theoretical work, which this is not), and a good explanation of the simulation algorithms with simulation results for the reader to learn how to apply this method. The paper has some potential, but it should be improved.
+---------------------------------------------------------------------------
+

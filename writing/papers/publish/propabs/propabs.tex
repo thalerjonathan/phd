@@ -14,6 +14,7 @@
 %****************************************************************************
 % AUTHOR: You may want to use some of these packages. (Optional)
 \usepackage{amsmath}
+\usepackage{listings}
 %\usepackage{amsfonts}
 %\usepackage{amssymb}
 %\usepackage{amsbsy}
@@ -128,10 +129,10 @@
 
 % AUTHOR: Enter the title, all letters in upper case
 
-\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
+%\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 % Title portion. Note the short title for running heads
-\title{SHOW ME YOUR PROPERTIES! \\ \small{The Potential Of Property-Based Testing In Agent-Based Simulation}}
+\title{SHOW ME YOUR PROPERTIES! \\ The Potential Of Property-Based Testing In Agent-Based Simulation}
 %\subtitle{The Potential Of Property-Based Testing In Agent-Based Simulation}
 
 % AUTHOR: Enter the authors of the article, see end of the example document for further examples
@@ -149,9 +150,18 @@ Nottingham, United Kingdom \\
 \maketitle
 
 \section*{Abstract}
+%OK	There should be no period at the end of the keywords list
+%OK	The entire title needs to be 12pt all caps
+%OK US English must be used. For example, "behaviour" should be "behavior"
+%OK Footnotes are not allowed
+%OK Five equations are given a single equation number, which does not match the required format for equations. They must either be listed within the text, or if listed separately than would each need to be on their own line with their own number.
+%OK Code listing on page 4 should be in a listing environment instead of floating with no caption
+%OK Need to ensure that all citations in text with at least 4 authors are written in abbreviated form
+%OK Author biographies need to be added.
+
 This paper presents property-based testing, an approach for testing implementations of agent-based simulations (ABS), never considered so far in this field. It is a complementary technique to unit-testing and allows to test specifications and laws of an implementation directly in code which is then checked using \textit{automated} test-data generation. As case-studies, we present two different models, an agent-based SIR model and the SugarScape model, in which we will show how to apply property-based testing to explanatory and exploratory agent-based models and what its limits are.
 
-\textbf{Keywords:} Agent-Based Simulation, Validation \& Verification, Property-Based Testing, Haskell.
+\textbf{Keywords:} Agent-Based Simulation, Validation \& Verification, Property-Based Testing, Haskell
 
 \maketitle
 
@@ -177,13 +187,9 @@ The authors would like to thank J. Hey for valuable feedback and discussions.
 % AUTHOR: Include your bib file here
 \bibliography{../../../references/phdReferences.bib}
 
-%\appendix
-%\newpage
-%\input{./tex/validatingSugarscape.tex}
+\section*{Author Biographies}
+\textbf{\uppercase{JONATHAN THALER}} is a Ph.D. student at the University of Nottingham and part of the Intelligent Modelling and Analysis Group (\url{http://www.cs.nott.ac.uk/~psxjat/}). His main research interest is the benefits and drawbacks of using pure functional programming for implementing Agent-Based Simulations.
 
-% what a waste of space
-%\section*{Author Biographies}
-%\textbf{\uppercase{JONATHAN THALER}} is a PhD. student.
-%\textbf{\uppercase{PEER-OLAF SIEBERS}} is Jonathans Supervisor.
+\textbf{\uppercase{PEER-OLAF SIEBERS}} is a lecturer in the School of Computer Science at the University of Nottingham in the United Kingdom (\url{http://www.cs.nott.ac.uk/~pszps/}). His main research interest is the application of data driven computer simulation to study human-centric complex adaptive systems. This is a highly interdisciplinary research field, involving disciplines like social science, psychology, management science, operations research, economics and engineering. Other areas of interest include Risk Analysis and Systems Biology.
 
 \end{document}

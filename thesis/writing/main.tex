@@ -5,22 +5,25 @@
 
 \usepackage[toc,page]{appendix}
 \usepackage{minted}
-\usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{hyperref}
-\usepackage{amsmath} % Required for some math elements 
-\usepackage{pdflscape}
-\usepackage{pdfpages}
-\usepackage{float}
+\usepackage{amsmath} 
 \usepackage{subcaption}
-\usepackage{verbatim}
 \usepackage{epigraph}
 \usepackage{titlesec}
 \usepackage{multirow}
-\usepackage[]{algorithm2e}
+
+% UNUSED
+%\usepackage[english]{babel}
+%\usepackage{pdflscape}
+%\usepackage{pdfpages}
+%\usepackage{float}
+%\usepackage{verbatim}
+%\usepackage[]{algorithm2e}
 
 \interfootnotelinepenalty=10000
 
+% define HaskellCode command for nice formatting of Haskell Code
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 \makeatletter
@@ -57,16 +60,18 @@
 \cleardoublepage
 
 \section*{Abstract}
-This thesis shows how to implement Agent-Based Simulations (ABS) using the \textit{pure} functional programming paradigm and what the benefits and drawbacks are when doing so. As language of choice, Haskell is used due to its modern nature, increasing use in real-world applications and \textit{pure} nature. The thesis presents various implementation techniques to ABS and then discusses concurrency and parallelism and verification and validation in ABS in a pure functional setting. Additionally the thesis briefly discusses the use of dependent types in ABS, to close the gap between specification and implementation - something the presented implementation techniques don't focus on.
-Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS.
+This thesis systematically investigates the use of the \textit{pure} functional programming paradigm for implementing Agent-Based Simulations (ABS) and provides in-depth discussions on the benefits and drawbacks when doing so. As language of choice, Haskell is used due to its modern, \textit{pure} nature and increasing use in real-world applications. 
+
+%The thesis presents various implementation techniques to ABS and then discusses concurrency and parallelism and verification and validation in ABS in a pure functional setting. Additionally the thesis briefly discusses the use of dependent types in ABS, to close the gap between specification and implementation - something the presented implementation techniques don't focus on.
+%Finally a case-study is presented which tries to bring together the insights of the previous chapters by replicating an agent-based model both in pure and dependently typed functional programming. The agent-based model which was selected was much discussed in ABS communities as it claimed to have solved a fundamental problem of economics but it was then found that the implementation had a number of bugs which shed doubt on the validity and correctness of the results. The thesis' case study investigates whether this failure could have happened in pure and dependent functional programming and is a further test to see of how much value functional programming is to ABS.
 
 \bigskip
 
 TODO "first draft" milestone until return to UK mid June 2019
 \begin{enumerate}
-	\item MANDATORY, HIGH EFFORT: write "The structure of ABS computation" section: extract the foundational properties: introduce continuations and closures and show how they are used in SF and MSF to be simple immutable objects, further discuss agents as monad / comonad / arrow and discuss their implications from an abstract point of view. This requires a lot of reading and some writing.
-
 	\item LEAVE THE THESIS ASIDE FOR 2 WEEKS. then read whole thesis front to back and point out weaknesses in each chapter
+
+	\item MANDATORY, HIGH EFFORT: write "The structure of ABS computation" section: extract the foundational properties: introduce continuations and closures and show how they are used in SF and MSF to be simple immutable objects, further discuss agents as monad / comonad / arrow and discuss their implications from an abstract point of view. This requires a lot of reading and some writing.
 \end{enumerate}
 
 TODO "finalise research" milestone until end of July 2019

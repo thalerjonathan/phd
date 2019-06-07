@@ -113,26 +113,26 @@ sugarscapeAgent asInit = AgentCont (\ (sender, msg) ->
 
 \subsection{Stepping the simulation}
 The simulation kernel keeps track of the existing agents and the message-queue and processes the queue one element at a time. The new messages of an agent are inserted \textit{at the front} of the queue, ensuring that synchronous bi-directional messages are possible without violating resources constraints. The Sugarscape model specifies that in each tick all agents run in random order, thus to start the agent-behaviour in a new time-step, the core inserts a \textit{Tick} message to each agent in random order which then results in them being executed and emitting new messages. The current time-step has finished when all messages in the queue have been processed. See algorithm \ref{alg:stepping_simulation} for the pseudo-code for the simulation stepping.
-
-\begin{algorithm}
-\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{All agents \textit{as}}
-\Input{List of agent observables}
-shuffle all agents as\;
-messageQueue = schedule Tick to all agents\;
-agentObservables = empty List\;
-\While{messageQueue not empty} {
-  msg = pop message from messageQueue\;
-  a = lookup receiving agent in as\;
-  (out, a') = runAgent a msg\;
-  update agent with continuation a' in as\;
-  add agent observable from out to agentObservables\;
-  add messages of agent at front of messageQueue\;
-}
-return agentObservables\;
-\caption{Stepping the simulation.}
-\end{algorithm}
-\label{alg:stepping_simulation}
+%
+%\begin{algorithm}
+%\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+%\Input{All agents \textit{as}}
+%\Input{List of agent observables}
+%shuffle all agents as\;
+%messageQueue = schedule Tick to all agents\;
+%agentObservables = empty List\;
+%\While{messageQueue not empty} {
+%  msg = pop message from messageQueue\;
+%  a = lookup receiving agent in as\;
+%  (out, a') = runAgent a msg\;
+%  update agent with continuation a' in as\;
+%  add agent observable from out to agentObservables\;
+%  add messages of agent at front of messageQueue\;
+%}
+%return agentObservables\;
+%\caption{Stepping the simulation.}
+%\end{algorithm}
+%\label{alg:stepping_simulation}
 
 \subsection{Environment and agent-environment interaction}
 The agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well. All of this low level continuation plumbing exists already as a high quality library called Dunai, based on research on Functional Reactive Programming  \cite{hudak_arrows_2003} and Monadic Stream Functions \cite{perez_functional_2016,perez_extensible_2017}.

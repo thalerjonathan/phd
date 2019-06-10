@@ -68,6 +68,7 @@
 %****************************************************************************
 
 \usepackage[]{algorithm2e}
+\SetAlCapSty{} % caption of algorithms not bold
 \usepackage{listings}
 
 %#########################################################
@@ -154,6 +155,13 @@ Nottingham, United Kingdom \\
 %OK Code listing on page 4 should be in a listing environment instead of floating with no caption
 %OK Need to ensure that all citations in text with at least 4 authors are written in abbreviated form
 %OK Author biographies need to be added.
+
+%OK On page 4 there is a reference to Listing 3, but I believe Listing 1 is meant.
+%TODO The hyperlinks in the text must show the URL such that someone reading a paper copy can see it. The recommended way (see the guidelines http://scs.org/authorskit) is to put the URL in the reference list, and add a citation in the text after the hyperlink.
+%TODO The De Vries reference in the reference list is incomplete and missing the period after the author name.
+%OK The algorithm labels should not be bold, but regular text as with the rest of the caption.
+%OK The listing caption should be underneath the listing.
+%OK Using a citation as a noun should list the authors as part of the text, followed by the year. For example, “The paper (Onggo and Karatas 2016)...” should instead be written as “Onggo and Karatas (2016) say...”. There are a number of these situations within the paper that should be fixed.
 
 This paper presents property-based testing, an approach for testing implementations of agent-based simulations (ABS), never considered so far in this field. It is a complementary technique to unit-testing and allows to test specifications and laws of an implementation directly in code which is then checked using \textit{automated} test-data generation. As case-studies, we present two different models, an agent-based SIR model and the SugarScape model, in which we will show how to apply property-based testing to explanatory and exploratory agent-based models and what its limits are.
 

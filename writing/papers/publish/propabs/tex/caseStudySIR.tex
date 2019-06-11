@@ -38,7 +38,7 @@ In this model, people in a population of size $N$ can be in either one of three 
 %\end{equation}
 
 \subsection{Deriving a property}
-Our goal is to derive a property which connects the agent-based implementation to the SD equations. The foundation are both the infection- and recovery-rate where the infection-rate determines how many \textit{Susceptible} agents per time-unit become \textit{Infected} and the recovery-rate determines how many \textit{Infected} agents per time-unit become \textit{Recovered}. Let's look at the algorithm of the susceptible agent behavior, which is key for the infection-rate:
+Our goal is to derive a property which connects the agent-based implementation to the SD equations. The foundation are both the infection- and recovery-rate where the infection-rate determines how many \textit{Susceptible} agents per time-unit become \textit{Infected} and the recovery-rate determines how many \textit{Infected} agents per time-unit become \textit{Recovered}. Let's look at Algorithm \ref{alg:make_contacts}, describing the susceptible agent behavior, which is key for the infection-rate:
 
 \begin{algorithm}
 generate on average $\beta$ make-contact events per time-unit\; 
@@ -49,6 +49,7 @@ generate on average $\beta$ make-contact events per time-unit\;
   }  
 }
 \caption{Susceptible behavior}
+\label{alg:make_contacts}
 \end{algorithm}
 
 Per time-unit, a susceptible agent makes \textit{on average} contact with $\beta$ other agents, where in the case of a contact with an infected agent, the susceptible agent becomes infected with a given probability $\gamma$. In this description there is another probability hidden, the probability of making contact with an infected agent, which is simply the ratio of number of infected agents to number non-infected agents. We can now derive the formula for the probability of a \textit{Susceptible} agent to become infected: $\frac{\beta * \gamma * \text{number of infected (I)}}{\text{number of non-infected (N)}}$. When we look at the formula we can see that it is conceptually the same representation of the \textit{infection-rate} of the SD specification as shown above - except that it only considers a single \textit{Susceptible} agent instead of the aggregate of \textit{S} susceptible agents. We have now a property we can check using a property-test.

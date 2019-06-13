@@ -10,45 +10,45 @@ Software Transactional Memory (STM) was introduced by \cite{shavit_software_1995
 
 Worse, concurrency does not compose. It is very difficult to write two functions (or methods in an object) acting on concurrent data which can be composed into a larger concurrent behaviour. The reason for it is that one has to know about internal details of locking, which breaks encapsulation and makes composition dependent on knowledge about their implementation. Therefore, it is impossible to compose two  functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
 
-STM promises to solve all these problems for a low cost by executing actions \textit{atomically}, where modifications made in such an action are invisible to other threads and changes by other threads are invisible as well until actions are committed - STM actions are atomic and isolated. When an STM action exits, either one of two outcomes happen: if no other thread has modified the same data as the thread running the STM action, then the modifications performed by the action will be committed and become visible to the other threads. If other threads have modified the data then the modifications will be discarded, the action block rolled-back and automatically restarted.
+STM promises to solve all these problems for a low cost by executing actions \textit{atomically}, where modifications made in such an action are invisible to other threads and changes by other threads are invisible as well until actions are committed - STM actions are atomic and isolated. When an STM action exits, either one of two outcomes happen: if no other thread has modified the same data as the thread running the STM action, then the modifications performed by the action will be committed and become visible to the other threads. If other threads have modified the data then the modifications will be discarded, the action rolled-back and automatically restarted.
 
 \subsection{STM in Haskell}
-The work of \cite{harris_composable_2005, harris_transactional_2006} added STM to Haskell, which was one of the first programming languages to incorporate STM into its main core and added the ability to composable operations. There exist various implementations of STM in other languages as well (Python, Java, C\#, C/C++, etc) but we argue, that it is in Haskell with its type-system and the way how side-effects are treated where it truly shines.
+The work of \cite{harris_composable_2005, harris_transactional_2006} added STM to Haskell, which was one of the first programming languages to incorporate STM with composable operations into its main core. There exist various implementations of STM in other languages as well (Python, Java, C\#, C/C++, etc) but we argue, that it is in Haskell with its type-system and the way how side-effects are treated where it truly shines.
 
-In the Haskell implementation, STM actions run within the \textit{STM} context. This restricts the operations to only STM primitives as shown below, which allows to enforce that STM actions are always repeatable without persistent side-effects because such persistent side-effects (e.g. writing to a file, launching a missile) are not possible in an \textit{STM} context. This is also the fundamental difference to  \textit{IO}, where all bets are off because \textit{everything} is possible as there are basically no restrictions because \textit{IO} can run everything.
+In the Haskell implementation, STM actions run within the \textit{STM} Monad. This restricts the operations to only STM primitives as shown below, which allows to enforce that STM actions are always repeatable without persistent side-effects because such persistent side-effects (e.g. writing to a file, launching a missile) are not possible in the \textit{STM} Monad. This is also the fundamental difference to  \textit{IO}, where all bets are off because \textit{everything} is possible as there are basically no restrictions because \textit{IO} can run everything.
 
-Thus the ability to \textit{restart} a block of actions without any visible effects is only possible due to the nature of Haskells type-system: by restricting the effects to STM only, ensures that no uncontrolled effects, which cannot be rolled-back, occur.
+Thus the ability to \textit{restart} an action without any visible effects is only possible due to the nature of Haskells type system: by restricting the effects to \textit{STM} only, ensures that only controlled effects, which can be rolled back, occur.
 
 STM comes with a number of primitives to share transactional data. Amongst others the most important ones are:
 
 \begin{itemize}
-	\item \textit{TVar} - A transactional variable which can be read and written arbitrarily;
-	\item \textit{TMVar} - A transactional \textit{synchronising} variable which is either empty or full. To read from an empty or write to a full \textit{TMVar} will cause the current thread to block and retry its transaction when \textit{any} transactional primitive of this block has changed.
-	\item \textit{TArray} - A transactional array where each cell is an individual transactional variable \textit{TVar}, allowing much finer-grained transactions instead of e.g. having the whole array in a \textit{TVar};
-	\item \textit{TChan} - A transactional channel, representing an unbounded FIFO channel, based on a linked list of \textit{TVar}.
+	\item \textit{TVar} - a transactional variable which can be read and written arbitrarily;
+	\item \textit{TMVar} - a transactional \textit{synchronising} variable which is either empty or full. To read from an empty or write to a full \textit{TMVar} will cause the current thread to block and retry its transaction when \textit{any} transactional primitive of this action has changed.
+	\item \textit{TArray} - a transactional array where each cell is an individual transactional variable \textit{TVar}, allowing much finer-grained transactions instead of e.g. having the whole array in a \textit{TVar};
+	\item \textit{TChan} - a transactional channel, representing an unbounded FIFO channel, based on a linked list of \textit{TVar}.
 \end{itemize}
 
 Further STM also provides combinators to deal with blocking and composition:
 
 \begin{itemize}
-	\item \textit{retry :: STM ()} - Retries an \textit{STM} block. This will cause to abort the current transaction and block the thread it is running in. When \textit{any} of the transactional data primitives has changed, the block will be run again. This is useful to await the arrival of data in a \textit{TVar} or put more concretely, to block on arbitrary conditions. 
+	\item \textit{retry :: STM ()} - Retries an \textit{STM} action. This will cause to abort the current transaction and block the thread it is running in. When \textit{any} of the transactional data primitives has changed, the action will be run again. This is useful to await the arrival of data in a \textit{TVar} or put more general, to block on arbitrary conditions. 
 	
-	\item \textit{orElse :: STM a $\rightarrow$ STM a $\rightarrow$ STM a} - Allows to combine two blocking operations where either one is executed but not both. The first operation is run and if it is successful its result is returned. If it retries, then the second is run and if that one is successful its result is returned. If the second one retries, the whole orElse retries. This can be used to implement alternatives in blocking conditions, which can be obviously nested arbitrarily.
+	\item \textit{orElse :: STM a $\rightarrow$ STM a $\rightarrow$ STM a} - Allows to combine two blocking actions where either one is executed but not both. The first actions is run and if it is successful its result is returned. If it retries, then the second is run and if that one is successful its result is returned. If the second one retries, the whole \textit{orElse} retries. This can be used to implement alternatives in blocking conditions, which can be obviously nested arbitrarily.
 \end{itemize}
 
-To run an \textit{STM} action the function \textit{atomically :: STM a $\rightarrow$ IO a} is provided, which performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context, either within the main-thread or an explicitly forked thread.
+To run an \textit{STM} action the function \textit{atomically :: STM a $\rightarrow$ IO a} is provided, which performs a series of \textit{STM} actions atomically within the \textit{IO} Monad. It takes the \textit{STM} action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. Note that the \textit{IO} action can only be executed from within an \textit{IO} Monad, either within the main-thread or an explicitly forked thread.
 
-STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not: whether other threads have written to memory it has read. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
+STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not - it checks whether other threads have written to memory it has read and thus it can identify whether a roll-back is required or not. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
 
 In the paper \cite{heindl_modeling_2009} the authors use a model of STM to simulate optimistic and pessimistic STM behaviour under various scenarios using the AnyLogic simulation package. They conclude that optimistic STM may lead to 25\% less retries of transactions. The authors of \cite{perfumo_limits_2008} analyse several Haskell STM programs with respect to their transactional behaviour. They identified the roll-back rate as one of the key metric which determines the scalability of an application. Although STM might promise better performance, they also warn of the overhead it introduces which could be quite substantial in particular for programs which do not perform much work inside transactions as their commit overhead appears to be high.
 
 \subsection{An example}
-We provide a short example to demonstrate the use of STM. To make it more interesting and to show the retry semantics, we use it within a \textit{StateT} transformer where \textit{STM} is the innermost monad. It is important to understand that STM does not provide a transformer instance for very good reasons. If it would provide a transformer then we could make \textit{IO} the innermost monad and perform IO actions within STM. This would violate the retry semantics as in case of a retry, STM is unable to undo the effects of IO actions in general. This stems from the fact, that the IO type is simply too powerful and we cannot distinguish between different kinds of IO actions in the type, be it simply reading from a file or actually launching a missile. % Note that this would not only apply to the IO monad but to other monads as well, for example if the STM would be placed on a higher stack level, the levels below would not be subject to a retry. For monads like the \textit{ReaderT} this would not matter because they are read-only but for a StateT this fact would matter a lot. 
+We provide a short example to demonstrate the use of STM. To make it more interesting and to show the retry semantics, we use it within a \textit{StateT} transformer where \textit{STM} is the outermost monad. It is important to understand that \textit{STM} does not provide a transformer instance for very good reasons. If it would provide a transformer then we could make \textit{IO} the outermost Monad and perform \textit{IO} actions within \textit{STM}. This would violate the retry semantics as in case of a retry, \textit{STM} is unable to undo the effects of \textit{IO} actions in general. This stems from the fact, that the \textit{IO} type is simply too powerful and we cannot distinguish between different kinds of \textit{IO} actions in the type, be it simply reading from a file or actually launching a missile. % Note that this would not only apply to the IO monad but to other monads as well, for example if the STM would be placed on a higher stack level, the levels below would not be subject to a retry. For monads like the \textit{ReaderT} this would not matter because they are read-only but for a StateT this fact would matter a lot. 
 Lets look at the example code:
 
 \begin{HaskellCode}
 stmAction :: TVar Int -> StateT Int STM Int 
-stmAction = do
+stmAction v = do
   -- print a debug output and increment the value in StateT 
   Debug.trace "increment!" (modify (+1))
   -- read from the TVar
@@ -61,7 +61,7 @@ stmAction = do
     else return n
 \end{HaskellCode}
 
-In this example, the \textit{STM} is the innermost monad in a stack with a \textit{StateT} transformer. When the \textit{stmAction} is run, it prints an "increment!" debug message to the console and increments the value in the \textit{StateT} transformer. Then it awaits a condition: as long as \textit{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \textit{TVar}. We see the combined effects of using the transformer stack: we have both the \textit{StateT} and the \textit{STM} effects available. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
+In this example, the \textit{STM} is the outermost Monad in a stack with a \textit{StateT} transformer. When \textit{stmAction} is run, it prints an "increment!" debug message to the console and increments the value in the \textit{StateT} transformer. Then it awaits a condition: as long as \textit{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \textit{TVar}. We see the combined effects of using the transformer stack: we have both the \textit{StateT} and the \textit{STM} effects available. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
 
 \begin{HaskellCode}
 stmThread :: TVar Int -> IO ()
@@ -69,7 +69,7 @@ stmThread v = do
   -- the initial state of the StateT transformer
   let s = 0
   -- run the state transformer with initial value of s (0)
-  let ret = runStateT stmAction s
+  let ret = runStateT (stmAction v) s
   -- atomically run the STM block
   (a, s') <- atomically ret
   
@@ -77,7 +77,7 @@ stmThread v = do
   putStrLn (", STM computation result = " ++ show a)
 \end{HaskellCode}
 
-The thread simply runs the \textit{StateT} transformer layer with the initial value of 0 and then the STM computation through \textit{atomically} and prints the result to the console. Note that \textit{a} is the result of \textit{stmAction} and \textit{s'} is the final state of the \textit{StateT} computation. To actually run this example we need the main-thread to updated the \textit{TVar} until the condition is met within \textit{stmAction}:
+The thread simply runs the \textit{StateT} transformer layer with the initial value of 0 and then the \textit{STM} computation through \textit{atomically} and prints the result to the console. Note that \textit{a} is the result of \textit{stmAction} and \textit{s'} is the final state of the \textit{StateT} computation. To actually run this example we need the main-thread to updated the \textit{TVar} until the condition is met within \textit{stmAction}:
 
 \begin{HaskellCode}
 main :: IO ()
@@ -94,4 +94,4 @@ main = do
     atomically (writeTVar v i))
 \end{HaskellCode}
 
-If we run this program, we will see "increment!" printed 43 times, followed by "final StateT state = 1, STM computation result = 42". This clearly demonstrates the retry semantics: \textit{stmAction} is retried 42 times and thus prints "increment" 43 times to the console. The \textit{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data-structure: simply throw away the new value and retry with the original value. This example also demonstrates that any IO actions which happen within an STM block are persistent and can obviously not be rolled back - Debug.trace is an IO action masked as pure using \textit{unsafePerformIO}.
+If we run this program, we will see "increment!" printed 43 times, followed by "final StateT state = 1, STM computation result = 42". This clearly demonstrates the retry semantics: \textit{stmAction} is retried 42 times and thus prints "increment" 43 times to the console. The \textit{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data-structure: simply throw away the new value and retry with the original value. This example also demonstrates that any \textit{IO} actions which happen within an \textit{STM} action are persistent and can obviously not be rolled back - Debug.trace is an \textit{IO} action masked as pure using \textit{unsafePerformIO}.

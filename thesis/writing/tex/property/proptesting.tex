@@ -3,16 +3,16 @@
 
 Property-based testing allows to formulate \textit{functional specifications} in code which then a property-based testing library tries to falsify by \textit{automatically} generating test-data, covering as much cases as possible. When a case is found for which the property fails, the library then reduces the test-data to its simplest form for which the test still fails e.g. shrinking a list to a smaller size. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and exploratory nature of ABS. Further, the automatic test-generation can make testing of large scenarios in ABS feasible because it does not require the programmer to specify all test-cases by hand, as is required in e.g. traditional unit tests.
 
-Property-based testing was introduced in \cite{claessen_quickcheck_2000,claessen_testing_2002} where the authors present the QuickCheck library in Haskell, which tries to falsify the specifications by \textit{randomly} sampling the test space. We argue, that the stochastic sampling nature of this approach is particularly well suited to ABS, because it is itself almost always driven by stochastic events and randomness in the agents behaviour, thus this correlation should make it straightforward to map ABS to property-testing.
+Property-based testing was introduced in \cite{claessen_quickcheck_2000,claessen_testing_2002} where the authors present the QuickCheck library in Haskell, which tries to falsify the specifications by \textit{randomly} sampling the test space. %We argue, that the stochastic sampling nature of this approach is particularly well suited to ABS, because it is itself almost always driven by stochastic events and randomness in the agents behaviour, thus this correlation should make it straightforward to map ABS to property-testing.
 %The main challenge when using QuickCheck, as will be shown later, is to write \textit{custom} test-data generators for agents and the environment which cover the space sufficiently enough to not miss out on important test-cases.
 According to the authors of QuickCheck \textit{"The major limitation is that there is no measurement of test coverage."} \cite{claessen_quickcheck_2000}. Although QuickCheck provides help to report the distribution of test-cases it is not able to measure the coverage of tests in general. This could lead to the case that test-cases which would fail are never tested because of the stochastic nature of QuickCheck. Fortunately, the library provides mechanisms for the developer to measure coverage in specific test-cases where the data and its (expected) distribution is known to the developer. This is a powerful tool for testing randomness in ABS as will be shown in subsequent chapters.
 
 \medskip
 
-As a remedy for the potential coverage problems of QuickCheck, there exists also a deterministic property-testing library called SmallCheck \cite{runciman_smallcheck_2008}, which instead of randomly sampling the test-space, enumerates test-cases exhaustively up to some depth. It is based on two observations, derived from model-checking, that (1) \textit{"If a program fails to meet its specification in some cases, it almost always fails in some simple case"} and (2) \textit{"If a program does not fail in any simple case, it hardly ever fails in any case} \cite{runciman_smallcheck_2008}. This non-stochastic approach to property-based testing might be a complementary addition in some cases where the tests are of non-stochastic nature with a search-space  too large to test manually by unit tests but small enough to enumerate exhaustively. The main difficulty and weakness of using SmallCheck is to reduce the dimensionality of the test-case depth search to prevent combinatorial explosion, which would lead to exponential number of cases. Thus one can see QuickCheck and SmallCheck as complementary instead of in opposition to each other.
+As a remedy for the potential coverage problems of QuickCheck, there exists also a deterministic property-testing library called SmallCheck \cite{runciman_smallcheck_2008}, which instead of randomly sampling the test-space, enumerates test-cases exhaustively up to some depth. It is based on two observations, derived from model-checking, that (1) \textit{"If a program fails to meet its specification in some cases, it almost always fails in some simple case"} and (2) \textit{"If a program does not fail in any simple case, it hardly ever fails in any case} \cite{runciman_smallcheck_2008}. This non-stochastic approach to property-based testing might be a complementary addition in some cases where the tests are of non-stochastic nature with a search space too large to test manually by unit testing but small enough to enumerate exhaustively. The main difficulty and weakness of using SmallCheck is to reduce the dimensionality of the test-case depth search to prevent combinatorial explosion, which would lead to exponential number of cases. Thus one can see QuickCheck and SmallCheck as complementary instead of in opposition to each other.
 
 \subsection*{A brief overview of QuickCheck}
-To give a good understanding on how property-based testing works with QuickCheck, we give a few examples of property-tests on lists, which are directly expressed as functions in Haskell. Such a function has to return a \textit{Bool} which indicates \textit{True} in case the test succeeds or \textit{False} if not and can take input arguments which data is automatically generated by QuickCheck.
+To give a good understanding of how property-based testing works with QuickCheck, we give a few examples of property-tests on lists, which are directly expressed as functions in Haskell. Such a function has to return a \textit{Bool} which indicates \textit{True} in case the test succeeds or \textit{False} if not and can take input arguments which data is automatically generated by QuickCheck.
 
 \begin{HaskellCode}
 -- append operator (++) is associative
@@ -47,21 +47,21 @@ When we run the tests using \textit{main}, we get the following output:
 [1]
 \end{verbatim}
 
-We see that QuickCheck generates 100 test-cases for each property-test and it does this by generating random data for the input arguments. Note that we have not specified any data for our input arguments; QuickCheck is able to provide a suitable data-generator through type-inference: for lists and all the existing Haskell types there exist custom data-generators already.
+We see that QuickCheck generates 100 test-cases for each property-test and it does this by generating random data for the input arguments. Note that we have not specified any data for our input arguments; QuickCheck is able to provide a suitable data-generator through type-inference: for lists and all the existing Haskell types there exist custom data-generators already. Note that we have to use a monomorphic list, in our case \textit{Int}, and cannot use polymorphic lists because QuickCheck would not know how to generate data for a polymorphic type. Still, by appealing to genericity and polymorphism, we get the guarantee that the test-case is the same for all types of a lists.
 
 QuickCheck generates 100 test-cases by default and requires all to pass - if there is a test-case which fails, the overall property-test fails and QuickCheck shrinks the input to a minimal size which still fails and reports it as a counter example. This is the case in the last property-test \textit{reverse\_distributive} which is wrong as \textit{xs} and \textit{ys} need to be swapped on the right-hand side. In this run, QuickCheck found a counter-example to the property after 5 tests and applied 6 shrinks to find the minimal failing example of \textit{xs = [0]} and \textit{ys = [1]}. If we swap \textit{xs} and \textit{ys}, the property-test passes 100 test-cases just like the other two did. Note that it is possible to configure QuickCheck to generate more or less random test-cases, which can be used to increase the coverage if the sampling space is quite large - this will become useful later.
 
 \subsubsection*{Generators}
-QuickCheck comes with a lot of data-generators for existing types like Strings, Int, Double, Lists,... but in case one wants to randomize custom data-types one has to write custom data-generators. There are two ways to do this: fix them at compile-time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data-type can then be used as random argument to a function as in the examples above.
+QuickCheck comes with a lot of data-generators for existing types like \textit{Strings, Int, Double, Lists},... but in case one wants to randomize custom data-types one has to write custom data-generators. There are two ways to do this: fix them at compile-time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data type can then be used as random argument to a function as in the examples above.
 
-Lets implement a custom data-generator for the \textit{SIRState} for both cases. Lets start with the run-time option, running in the \textit{Gen} Monad:
+Lets implement a custom data-generator for the \textit{SIRState} for both cases. We start with the run-time option, running in the \textit{Gen} Monad:
 
 \begin{HaskellCode}
 genSIRState :: Gen SIRState
 genSIRState = elements [Susceptible, Infected, Recovered]
 \end{HaskellCode}
 
-This implementation makes use of the \textit{elements :: [a] $\rightarrow$ Gen a} functions, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \textit{frequency :: [(Int, Gen a)] $\rightarrow$ Gen a} function, where a frequency can be specified for each element. For example to generate on average 80\% Susceptible, 15\% Infected and 5\% Recovered can be achieved using this function:
+This implementation makes use of the \textit{elements :: [a] $\rightarrow$ Gen a} functions, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \textit{frequency :: [(Int, Gen a)] $\rightarrow$ Gen a} function, where a frequency can be specified for each element. For example generating on average 80\% Susceptible, 15\% Infected and 5\% Recovered can be achieved using this function:
 
 \begin{HaskellCode}
 genSIRState :: Gen SIRState
@@ -75,7 +75,7 @@ instance Arbitrary SIRState where
   arbitrary = genSIRState
 \end{HaskellCode}
 
-When we have a random Double as input to a function but want to restrict its random range to (0,1) because it reflects a probability, we can do this easily with \textit{newtype} and implementing an \textit{Arbitrary} instance. The same can be done for limiting the simulation duration to a lower range than the full Double range.
+When we have a random \textit{Double} as input to a function but want to restrict its random range to (0,1) because it reflects a probability, we can do this easily with \textit{newtype} and implementing an \textit{Arbitrary} instance. The same can be done for limiting the simulation duration to a lower range than the full \textit{Double} range.
 
 \begin{HaskellCode}
 newtype Probability = P Double deriving Show
@@ -88,10 +88,12 @@ instance Arbitrary TimeRange where
   arbitrary = T <$> choose (0, 50)
 \end{HaskellCode}
 
-The simulations we run all rely on a random-number generator, thus we need a randomly initialised random-number generator each time we run a simulation. This can be easily achieved by drawing a seed from the full Int range and creating an \textit{StdGen} from it:
+The simulations we run all rely on a random-number generator, thus we need a randomly initialised random-number generator each time we run a simulation. This can be easily achieved by drawing a seed from the full \textit{Int} range and creating an \textit{StdGen} from it:
 
 \begin{HaskellCode}
 genStdGen :: Gen StdGen
+-- min/maxBound are defined in the Haskell Prelude and
+-- define the smallest and largest value of a Bounded type 
 genStdGen = mkStdGen <$> choose (minBound, maxBound)
 
 instance Arbitrary StdGen where
@@ -110,7 +112,7 @@ genTimeSIR :: [SIRState]  -- ^ Population
            -> Double      -- ^ Time Limit
            -> Gen [(Double, (Int, Int, Int))]
 genTimeSIR as cor inf ild dt tMax 
-  = runTimeSIRFor as cor inf ild dt tMax <$> genStdGen
+  = runTimeSIR as cor inf ild dt tMax <$> genStdGen
 \end{HaskellCode}
 %$
 
@@ -138,7 +140,7 @@ When running the test, we see the following output:
 \end{verbatim}
 
 \subsubsection*{Coverage}
-The most powerful functions to work with test-case distributions though are \textit{cover} and \textit{checkCoverage}. The function \textit{cover :: Testable prop $\Rightarrow$ Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test-cases belong to a given class. The first argument is the expected percentage, the second argument is a \textit{Bool} which indicates whether the current test-case belongs to the class or not; the third argument is a label for the coverage; the fourth argument is the property which needs to hold for the test-case to succeed. 
+The most powerful functions to work with test-case distributions though are \textit{cover} and \textit{checkCoverage}. The function \textit{cover :: Testable prop $\Rightarrow$ Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test-cases belong to a given class. The first argument is the expected percentage, the second argument is a \textit{Bool} indicating whether the current test-case belongs to the class or not; the third argument is a label for the coverage; the fourth argument is the property which needs to hold for the test-case to succeed. 
 
 Lets look at an example - we use \textit{cover} to express that we expect 15\% of all test-cases to have a random list with at least 50 elements.
 
@@ -157,7 +159,7 @@ Only 10% Length of random-list at least 50, but expected 15%.
 +++ OK, passed 100 tests (21% length of random-list at least 50).
 \end{verbatim}
 
-As can be seen, QuickCheck runs the default 100 test-cases and prints a warning if the expected coverage is not reached. This is quite nice but it is up to us to decide whether 100 test-cases are suitable and whether we can really claim that the given coverage will be reached or not. Fortunately, QuickCheck provides the powerful function \textit{checkCoverage :: Testable prop $\Rightarrow$ prop $\rightarrow$ Property} which does this for us. When \textit{checkCoverage} is used, QuickCheck will run an increasing number of test-cases until it can decide whether the percentage in \textit{cover} was reached or cannot be reached at all. The way QuickCheck does it, is by using sequential statistical hypothesis testing \cite{wald_sequential_1992}, thus if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving strong confidence in the result.
+As can be seen, QuickCheck runs the default 100 test-cases and prints a warning if the expected coverage is not reached. This is a useful feature but it is up to us to decide whether 100 test-cases are suitable and whether we can really claim that the given coverage will be reached or not. Fortunately, QuickCheck provides the powerful function \textit{checkCoverage :: Testable prop $\Rightarrow$ prop $\rightarrow$ Property} which does this for us. When \textit{checkCoverage} is used, QuickCheck will run an increasing number of test-cases until it can decide whether the percentage in \textit{cover} was reached or cannot be reached at all. The way QuickCheck does it, is by using sequential statistical hypothesis testing \cite{wald_sequential_1992}, thus if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving strong confidence in the result.
 
 When we run the example from above but now with \textit{checkCoverage} we get the following output:
 
@@ -166,9 +168,9 @@ When we run the example from above but now with \textit{checkCoverage} we get th
     (15.445% length of random-list at least 50).
 \end{verbatim}
 
-We see that after QuickCheck has ran 12,800 tests it came to the statistically robust conclusion that indeed at least 15\% of the test-cases have a random-list with at least 50 elements. 
+We see that after QuickCheck has run 12,800 tests it came to the statistically robust conclusion that indeed at least 15\% of the test-cases have a random-list with at least 50 elements. 
 
 \subsubsection*{Emulating Failure}
 As already mentioned, \textit{all} test-cases have to pass for the whole property-test to succeed. If just a single test-case fails, the whole property-test fails. This is sometimes too strong, especially when we are dealing with stochastic systems like ABS models.
 
-The function \textit{cover} can be used to emulate failure of test-cases and get a measure of failure. Instead of computing the \textit{True/False} property in the last \textit{prop} argument, we set the last argument always to \textit{True} and compute the \textit{True/False} property in the second \textit{Bool} argument. This has the effect that \textit{all} test-cases are successful but that we get a distribution of failed/successful ones. In combination with \textit{checkCoverage}, this is a particularly powerful pattern for testing ABS which allows us to test hypotheses and statistical tests on distributions as will be shown in later chapters.
+The function \textit{cover} can be used to emulate failure of test-cases and get a measure of failure. Instead of computing the \textit{True/False} property in the last \textit{prop} argument, we set the last argument always to \textit{True} and compute the \textit{True/False} property in the second \textit{Bool} argument, indicating whether the test-case belongs to the class of passed tests or not. This has the effect that \textit{all} test-cases are successful but that we get a distribution of failed/successful ones. In combination with \textit{checkCoverage}, this is a particularly powerful pattern for testing ABS which allows us to test hypotheses and statistical tests on distributions as will be shown in the following chapters.

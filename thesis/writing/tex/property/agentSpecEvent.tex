@@ -5,7 +5,7 @@ In general, testing event-driven agents is fundamentally different and more comp
 
 Note that the concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details - after all we are interested in deriving concepts, not dealing with specific technicalities.
 
-With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only 3 events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. 
+With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only three events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. 
 
 \subsection{Deriving the specification}
 We start by giving the full \textit{specification} of the susceptible, infected and recovered agent by stating the input-to-output event relations. The susceptible agent is specified as follows:
@@ -23,7 +23,7 @@ This specification implicitly covers that a susceptible agent can never transiti
 \begin{enumerate}
 	\item \textit{Recover} - If the agent receives this, it will not schedule any events and make the transition to the \textit{Recovered} state.
 	
-	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to \textit{sender}, where \textit{ai} is the infected agents id and the scheduling time-stamp is the current time. It will not schedule any events and stays \textit{Infected}.
+	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to \textit{sender}, where \textit{ai} is the infected agents' id and the scheduling time-stamp is the current time. It will not schedule any events and stays \textit{Infected}.
 	
 	\item In case of any other event, the agent will not schedule any events and stays \textit{Infected}.
 \end{enumerate}
@@ -65,7 +65,7 @@ susceptibleProps (Contact _ Infected) Infected es ai
 susceptibleProps _ _ _ _ = False
 \end{HaskellCode}
 
-Next we give the implementation for the \textit{checkMakeContactInvariants} and \textit{checkInfectedInvariants} functions. The function \textit{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \textit{MakeContact} event. The \textit{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent got \textit{Infected}. Both implementations reads like a formal specification, again thanks to the declarative nature of functional programming and pattern matching:
+Next, we give the implementation for the \textit{checkMakeContactInvariants} and \textit{checkInfectedInvariants} functions. The function \textit{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \textit{MakeContact} event. The \textit{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent got \textit{Infected}. Both implementations read like a formal specification, again thanks to the declarative nature of functional programming and pattern matching:
 
 \begin{HaskellCode}
 checkInfectedInvariants :: AgentId              -- ^ Agent id of the agent 
@@ -106,10 +106,10 @@ checkMakeContactInvariants sender es contactRate
     checkMakeContactInvariantsAux 
         (QueueItem receiver (Event MakeContact) t') (b, mkb, n) 
       = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
-           && t' == t + 1.0        -- the MakeContact event is scheduled 1 time-unit into the future
+           && t' == t + 1          -- the MakeContact event is scheduled 1 time-unit into the future
            &&  not mkb, True, n)   -- there can only be one MakeContact event
     checkMakeContactInvariantsAux _ (_, _, _) 
-      = (False, False, 0) -- other patterns are invalid
+      = (False, False, 0)          -- other patterns are invalid
 \end{HaskellCode}
 
 What is left is to actually write a property-test using QuickCheck. We are making heavy use of random parameters to express that the properties have to hold invariant of the model parameters. We make use of additional data-generator modifiers: \textit{Positive} ensures that the value generated is positive; \textit{NonEmptyList} ensures that the randomly generated list is non-empty.
@@ -149,7 +149,7 @@ case evt of
 ...
 \end{HaskellCode}
 
-Note the usage pattern of \textit{cover}: we always include the test-case into the coverage class and all test-cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have use randomised model parameters. For this reason, and to keeps the concerns separated we opted for two different tests, which makes them also much more readable.
+Note the usage pattern of \textit{cover}: we always include the test-case into the coverage class and all test-cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have use randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable.
 
 %\begin{HaskellCode}
 %prop_susceptible_proabilities :: Positive Double      -- ^ Current simulation time
@@ -224,7 +224,7 @@ When running the property-test we get the following output:
 After 819,200 (!) test-cases QuickCheck comes to the conclusion that the distributions generated by the test-cases reflect the expected distributions and passes the property-test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing QuickCheck is able to conclude that the coverage are statistically equal.
 
 \subsubsection{Infected agent}
-We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute an expected probability agents have an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. The question is how to get the infected illness duration. This is simply achieved by infecting a susceptible agent and taking the scheduling time of the \textit{Recover} event. We have written a custom data-generator for this:
+We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute the expected probability for agents having an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. The question is how to get the infected illness duration. This is simply achieved by infecting a susceptible agent and taking the scheduling time of the \textit{Recover} event. We have written a custom data-generator for this:
 
 \begin{HaskellCode}
 getInfectedAgentDuration :: Double -> Gen (SIRState, Double)

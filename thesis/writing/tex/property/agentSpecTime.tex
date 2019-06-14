@@ -1,9 +1,9 @@
 \section{Time-driven specification}
 \label{sec:timedriven_specification}
-The time-driven SIR agents have a very small interface: they only receive the agent-population from the previous step and output their state in the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas arrowized FRP. Thus a specification in time-driven approach is given in terms of probabilities and timeouts, rather than in events as in the event-driven testing as presented before.
+The time-driven SIR agents have a very small interface: they only receive the agent population from the previous step and output their state in the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas arrowized FRP. Thus a specification in time-driven approach is given in terms of probabilities and timeouts, rather than in events as in the event-driven testing as presented before.
 
 \begin{itemize}
-	\item Susceptible agent - makes \textit{on average} contact with $\beta$ (contact rate) agents per time-unit. The distribution follows the exponential distribution with $\lambda = \frac{1}{\beta}$. If a susceptible agents get into contact with an infected agent, it will become infected with a uniform probability of $\gamma$ (infectivity).
+	\item Susceptible agent - makes \textit{on average} contact with $\beta$ (contact rate) agents per time-unit. The distribution follows the exponential distribution with $\lambda = \frac{1}{\beta}$. If a susceptible agent gets into contact with an infected agent, it will become infected with a uniform probability of $\gamma$ (infectivity).
 	
 	\item Infected agent - \textit{will} recover \textit{on average} after $\delta$ (illness duration) time units. The distribution follows the exponential distribution with $\lambda = \delta$.
 
@@ -52,7 +52,7 @@ prop_susceptible_invariants :: Positive Double  -- ^ beta, contact rate
                             -> Probability      -- ^ gamma, infectivity within (0,1) range
                             -> Positive Double  -- ^ delta, illness duration
                             -> TimeRange        -- ^ simulation duration, within (0,50) range
-                            -> [SIRState]       -- ^ population
+                            -> [SIRState]       -- ^ random population
                             -> Property
 prop_susceptible_invariants
       (Positive cor) (P inf) (Positive ild) (T t) as = property (do  
@@ -139,10 +139,10 @@ When running the test we get the following output, indicating that QuickCheck fi
     duration of 15.0 or less, expected 63.21).
 \end{verbatim}
 
-The fact that we run the random infected agent without time-limit explicitly expresses the invariant that an infected agent \textit{will} recover in \textit{finite} time-steps: a correct implementation will produce a stream which contains an index from which on elements are all \textit{Infected}, thus resulting in \textit{Just} recovery time. This is a direct expression of the fact that the CDF of the exponential distribution reaches 100\% at infinity. An approach which would guarantee the termination would be to limit the time to run the infected agent to \textit{illnessDuration} and evaluate the property always to True. This approach guarantees termination but removes an important part of the specification - we decided to follow the initial approach to make the specification really clear, and in practice it has turned out to terminate within a very short time (see below).
+The fact that we run the random infected agent without time-limit explicitly expresses the invariant that an infected agent \textit{will} recover in \textit{finite} time-steps: a correct implementation will produce a stream which contains an index after which all elements are \textit{Infected}, thus resulting in \textit{Just} recovery time. This is also a direct expression of the fact that the CDF of the exponential distribution reaches 1.0 at infinity. An approach which would guarantee the termination would be to limit the time to run the infected agent to \textit{illnessDuration} and evaluate the property always to True. This approach guarantees termination but removes an important part of the specification - we decided to follow the initial approach to make the specification really clear, and in practice it has turned out to terminate within a very short time (see below).
 
 \subsection{The non-computability of the recovered agent test}
-The property-test for the recovered agent is trivial: we run a random recovered agent for a random number of time-units with $\Delta t = 0.01$ and require that all elements in the output stream are \textit{Recovered}. Of course this is no proof that the recovered agent stays recovered \textit{forever} as this would take \textit{forever} to test and is thus not computable.  Here we are hitting the limits of what is possible with random black-box testing: without looking at the actual implementation it is not possible to prove that the recovered agent is really behaving as specified. We made this fact very clear at the beginning of this thesis part: property-based testing is not a proof for the correctness but only supports one in raising the confidence in the correctness by constructing cases which show that the behaviour is not incorrect.
+The property-test for the recovered agent is trivial: we run a random recovered agent for a random number of time-units with $\Delta t = 0.01$ and require that all elements in the output stream are \textit{Recovered}. Of course this is no proof that the recovered agent stays recovered \textit{forever} as this would take \textit{forever} to test and is thus not computable.  Here we are hitting the limits of what is possible with random black-box testing: without looking at the actual implementation it is not possible to prove that the recovered agent is really behaving as specified. We made this fact very clear at the beginning of this part: property-based testing is not a proof for the correctness but is only a support for raising the confidence in the correctness by constructing cases which show that the behaviour is not incorrect.
 
 To be really sure that the recovered agent behaves as specified we need to employ white-box verification and look at the actual implementation. It is immediately obvious that the implementation follows the specification and actually \textit{is} the specification, and we can even regard it as a very concise proof that it will stay recovered \textit{forever}:
 
@@ -151,4 +151,4 @@ recoveredAgent :: SIRAgent
 recoveredAgent = constant Recovered
 \end{HaskellCode}
 
-The signal function \textit{constant} is the \textit{const} function lifted into an arrow: \textit{constant b = arr (const b)}. This should be proof enough that a recovered agent will stay recovered \textit{forever}. We discuss this the topic of computability in pure functional ABS in a slightly different context in Appendix \ref{app:equilibrium_totality}.
+The signal function \textit{constant} is the \textit{const} function lifted into an arrow: \textit{constant b = arr (const b)}. This should be proof enough that a recovered agent will stay recovered \textit{forever}. We discuss the topic of computability in pure functional ABS in a slightly different context in Appendix \ref{app:equilibrium_totality}.

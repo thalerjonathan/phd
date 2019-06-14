@@ -55,8 +55,8 @@ Throughout the course of the Ph.D. five (5) papers were written and attempted to
 
 	\item The Agents' New Cloths? Towards Pure Functional Agent-Based Simulation (TODO cite) submitted and rejected at the Summer Simulation Conference 2019 - This paper summarizes the main benefits of using pure functional programming as in Haskell to implement ABS and discusses on a conceptual level how to implement it and also what potential drawbacks are and where the use of a functional approach is not encouraged. It is written as a conceptual / review paper, which tries to "sell" pure functional programming to the agent-based community without too much technical detail and parlance where it refers to the important technical literature from where an interested reader can start. Chapter \ref{ch:structure_abs_computation} follows the ideas loosely. Further the introduction to FP in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
 	
-	\item Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation (TODO cite); submitted and accepted at the Summer Simulation Conference 2019 - This paper introduces property-based testing on a conceptual level to agent-based simulation using the agent-based SIR model and the Sugarscape model as two case-studies. All Chapters 
-\ref{ch:agentspec}, \ref{ch:sir_invariants}, \ref{ch:prop_sirspec} of Part IV and the Appendix \ref{app:validating_sugarscape} are substantially expanded discussions of the ideas presented in this paper.
+	\item Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation (TODO cite); submitted and accepted at the Summer Simulation Conference 2019 - This paper introduces property-based testing on a conceptual level to agent-based simulation using the agent-based SIR model and the Sugarscape model as two case-studies. Both Chapters 
+\ref{ch:agentspec} and \ref{ch:sir_invariants} of Part IV and the Appendix \ref{app:validating_sugarscape} are substantially expanded discussions of the ideas presented in this paper.
 \end{enumerate}
 
 
@@ -113,11 +113,7 @@ Chapter \ref{ch:agentspec} shows how to use property-based testing to implement 
 
 \medskip
 
-Chapter \ref{ch:sir_invariants} shows how to derive and encode invariants, the dynamics of the simulation must uphold in property-tests. Further it shows how to compare the dynamics of two implementations of the same underlying model, namely the the time- and event-driven SIR implementations.
-
-\medskip
-
-Chapter \ref{ch:prop_sirspec} discusses how to put model specifications into code and check them with property-tests: it shows how to compare the SD simulation to the agent-based one.
+Chapter \ref{ch:sir_invariants} shows how to derive and encode invariants, the dynamics of the simulation must uphold in property-tests. It also shows how to compare the dynamics of two implementations of the same underlying model, namely the the time- and event-driven SIR implementations. Further it shows how to put model specifications into code and check them with property-tests: it shows how to compare the SD simulation to the agent-based one.
 
 \medskip
 
@@ -137,7 +133,7 @@ Chapter \ref{ch:conclusion} concludes, briefly outlines unanswered questions and
 \paragraph{Appendices} contains additional material which relates to the overall research of this thesis but would be out of context in the respective chapters referring to it.
 \medskip
 
-Appendix \ref{app:sd_simulation} shows a pure functional implementation of a System Dynamics (SD) SIR simulation using Functional Reactive Programming (FRP). It shows that we can directly encode SD specification in pure functional FRP code with extremely high guarantees in correctness. We use this implementation in Chapter \ref{ch:prop_sirspec} where we test the agent-based SIR dynamics against the SD ones.
+Appendix \ref{app:sd_simulation} shows a pure functional implementation of a System Dynamics (SD) SIR simulation using Functional Reactive Programming (FRP). It shows that we can directly encode SD specification in pure functional FRP code with extremely high guarantees in correctness. We use this implementation in Chapter \ref{ch:sir_invariants} where we test the agent-based SIR dynamics against the SD ones.
 
 \medskip
 

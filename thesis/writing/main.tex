@@ -1,6 +1,6 @@
 \documentclass[oneside]{book}
 
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{1}
 \setcounter{secnumdepth}{3}
 
 \usepackage[toc,page]{appendix}
@@ -67,13 +67,6 @@ This thesis systematically investigates the use of the \textit{pure} functional 
 
 \bigskip
 
-TODO "first draft" milestone until return to UK 23rd June 2019
-\begin{enumerate}
-	\item LEAVE THE THESIS ASIDE FOR 2 WEEKS. then read whole thesis front to back, correct mistakes, spelling, inconsistencies and expression and if necessary correct / point out weaknesses in each chapter.
-	
-	
-\end{enumerate}
-
 TODO "finalise research" milestone until end of August 2019
 \begin{enumerate}
 	\item Reading: Ionescu thesis
@@ -81,10 +74,6 @@ TODO "finalise research" milestone until end of August 2019
 	\item MANDATORY, HIGH EFFORT: refine/rewrite event-driven implementation, it is too ad-hoc and the weakest (finished) chapter atm, see the chapter notes for more details on the rewrite. Need to give careful thought about the new structure, how we combine Sugarscape and event-driven SIR in it.
 	
 	\item MANDATORY, HIGH EFFORT: write "The structure of ABS computation" section: extract the foundational properties: introduce continuations and closures and show how they are used in SF and MSF to be simple immutable objects, further discuss agents as monad / comonad / arrow and discuss their implications from an abstract point of view. This requires a lot of reading and some writing.
-
-	\item Refine Discussion part, structure is average: Agent-interactions in discussion chapter is not coherent and comes across as strange, refine it; Actor based ABS in conclusion chapter is not coherent and comes across as strange, refine it
-
-	%\item OPTIONAL, HIGH EFFORT: implement total SD and ABS SIR implementation in Idris on a very simple level to make the point that we can (or cannot) make use of dependent types in this context to show the totality of a simulation under given equilibrium assumption.
 \end{enumerate}
 
 TODO "cleaning up / polishing" milestone until end of September 2019
@@ -92,6 +81,10 @@ TODO "cleaning up / polishing" milestone until end of September 2019
 	\item Refine Discussion part, structure is average: Agent-interactions in discussion chapter is not coherent and comes across as strange, refine it; Actor based ABS in conclusion chapter is not coherent and comes across as strange, refine it
 
 	\item another proof-reading by me	
+
+	\item proof reading by my supervisors?
+
+	\item martin handley proof-reading?
 	
 	\item reading by thomas schwarz for content
 		
@@ -118,22 +111,24 @@ TODO "cleaning up / polishing" milestone until end of September 2019
 	\item when citing multiple references, make sure they are in ascending order of their reference number
 	\item Fix all ? ref: papers and chapters
 		
-	\item proof reading
-	
 	\item put full implementations of existing models from phd repo in separate gitrepso. e.g. sugarscape, SIR event and time as and reconcile all code into thesis code folder?
 	
 	\item extract all references of the thesis in separate file and manually fine-tune them so that they are perfect: including DOI, include link to webpage in case of a blog,...
-	
-	\item put my simulations of my phd into separate git repos each
 \end{enumerate}
 
 TODO prepare for viva:
 \begin{enumerate}
 	\item read transformers chapters
 	
-	\item read exception chapter
-
 	\item read basic libraries chapter	
+	
+	\item completely understand monads (read / do all about monads): be able to derive and explain them
+	
+	\item completely understand continuations: be able to derive and explain them
+		
+	\item completely understand arrows: be able to derive and explain them
+	
+	\item be able to produce the proof of non computable as given in the book on computation (because i often mention it)	
 	
 	\item completely understand monad-transformers: what is executed in which order? what about commutativity? e.g. STM is innermost monad, will be evaluated last to get an IO but this in fact leads then to the evaluation of all the monads before because STM is able to re-run
 	

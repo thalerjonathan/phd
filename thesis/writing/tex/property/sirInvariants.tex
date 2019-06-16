@@ -8,6 +8,7 @@ In this chapter we will discuss how we can encode properties and specifications 
 We first show how we can encode actual laws of the underlying SIR model into properties and write property-tests in QuickCheck for them. We then employ random event-sampling to check whether these invariants also hold when ignoring the event-interdependencies between agents. Further, we compare both the event- and time-driven implementations with each other, giving an excellent use-case for property-based testing in ABS. Finally we show how to verify both the time- and event-driven implementations against the original SD specification.
 
 \section{Invariants in simulation dynamics}
+\label{sec:prop_invariants_dynamics}
 By informally reasoning about the agent specification and by realising that they are in fact a state-machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered}, we can come up with a few invariants which have to hold for any SIR simulation run, independent of the random-number stream and the population:
 
 \begin{enumerate}

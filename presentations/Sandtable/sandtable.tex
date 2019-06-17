@@ -64,7 +64,7 @@
 
 \begin{frame}{Outline}
 \begin{itemize}
-  \item Defining Agent-Based Simulation (ABS)
+  %\item Defining Agent-Based Simulation (ABS)
   
   \item What is \textit{pure} Functional Programming (FP)?
   
@@ -78,52 +78,34 @@
 \end{itemize}
 \end{frame}
 
-\section{Agent-Based Simulation}
-\begin{frame}{Defining Agent-Based Simulation (ABS)}
-  \begin{block}{What is Agent-Based Simulation?}
-    Agent-Based Simulation is a methodology to \textbf{model} and \textbf{simulate} a system, where the \textbf{global behaviour} may be \textbf{unknown} but the behaviour and \textbf{interactions} of the \textbf{parts} making up the system \textbf{is known}. Those parts, called \textbf{agents}, are modelled and simulated, out of which then the aggregate \textbf{global behaviour} of the whole system \textbf{emerges}.
-  \end{block}
-\end{frame}
+%\section{Agent-Based Simulation}
+%\begin{frame}{Defining Agent-Based Simulation (ABS)}
+%  \begin{block}{What is Agent-Based Simulation?}
+%    Agent-Based Simulation is a methodology to \textbf{model} and \textbf{simulate} a system, where the \textbf{global behaviour} may be \textbf{unknown} but the behaviour and \textbf{interactions} of the \textbf{parts} making up the system \textbf{is known}. Those parts, called \textbf{agents}, are modelled and simulated, out of which then the aggregate \textbf{global behaviour} of the whole system \textbf{emerges}.
+%  \end{block}
+%\end{frame}
+%
+%\begin{frame}{Defining ABS cont'd}
+%  \begin{block}{}
+%    We informally assume the following about our agents \cite{macal_everything_2016, odell_objects_2002, siebers_introduction_2008, wooldridge_introduction_2009}:
+%  \end{block}
+%  
+%  \begin{enumerate}
+%    \item They are \textbf{uniquely addressable} entities with some \textbf{internal state} over which they have full, \textbf{exclusive control}.
+%	\item They are \textbf{pro-active}, which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
+%	\item They are situated in an \textbf{environment} and can \textbf{interact} with it.
+%	\item They can \textbf{interact} with \textbf{other agents} situated in the same environment by means of \textbf{messaging}.
+%  \end{enumerate}
+%\end{frame}
 
-\begin{frame}{Defining ABS cont'd}
-  \begin{block}{}
-    We informally assume the following about our agents \cite{macal_everything_2016, odell_objects_2002, siebers_introduction_2008, wooldridge_introduction_2009}:
-  \end{block}
-  
-  \begin{enumerate}
-    \item They are \textbf{uniquely addressable} entities with some \textbf{internal state} over which they have full, \textbf{exclusive control}.
-	\item They are \textbf{pro-active}, which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
-	\item They are situated in an \textbf{environment} and can \textbf{interact} with it.
-	\item They can \textbf{interact} with \textbf{other agents} situated in the same environment by means of \textbf{messaging}.
-  \end{enumerate}
-\end{frame}
-
-\begin{frame}{Agent-Based Spatial SIR Model}
-  \includegraphics[width=0.7\textwidth]{./fig/SIR_transitions.png}
-  
-  \begin{itemize}
-    \item Population size $N = 1,000$
- 	\item Contact rate $\beta = 5$
- 	\item Infection probability $\gamma = 0.05$
- 	\item Illness duration $\delta = 15$
- 	\item 1 initially infected agent
- 	\item On a 2D grid with Moore Neighbourhood
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Agent-Based Spatial SIR Model Dynamics}
-  \center
-  \includegraphics[width=0.7\textwidth]{./fig/SIR_Dunai_dt001.png}
-\end{frame}
-
-\section{Pure functional programming}
+\section{Functional programming}
 \begin{frame}[fragile]{What is pure functional programming?}
   \begin{block}{Functions as first class citizens}
   	Passed as arguments, returned as values and assigned to variables.
   \end{block}
   
   \begin{block}{}
-  \begin{minted}[fontsize=\normalsize]{haskell}
+  \begin{minted}[fontsize=\normalsize]{Haskell}
   map :: (a -> b) -> [a] -> [b]
 	
   const :: a -> (b -> a)
@@ -238,7 +220,7 @@
 \begin{block}{}
 \begin{minted}[fontsize=\footnotesize]{haskell}
 -- continuation type-definition
-newtype Cont a = Cont (a -> (a, Cont a))
+newtype Cont i o = Cont (i -> (o, Cont i o))
 
 -- A continuation which sums up inputs.
 -- It uses a closure to capture the input
@@ -246,6 +228,43 @@ adder :: Int -> Cont Int
 adder x = Cont (\x' -> (x + x', adder (x + x')))
 \end{minted}
 \end{block}
+\end{frame}
+
+\begin{frame}{Agent-Based Spatial SIR Model}
+  \includegraphics[width=0.7\textwidth]{./fig/SIR_transitions.png}
+  
+  \begin{itemize}
+    \item Population size $N = 1,000$
+ 	\item Contact rate $\beta = 5$
+ 	\item Infection probability $\gamma = 0.05$
+ 	\item Illness duration $\delta = 15$
+ 	\item 1 initially infected agent
+ 	\item On a 2D grid with Moore Neighbourhood
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Agent-Based Spatial SIR Model Dynamics}
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Dunai_dt001_environment.png}
+			\caption{Environment at $t = 50$}
+			\label{fig:sir_dunai_env}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.43\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/SIR_Dunai_dt001.png}
+			\caption{Dynamics over time}
+			\label{fig:sir_dunai_env_dynamics}
+		\end{subfigure}
+	\end{tabular}
+\end{center}
+\end{figure}
 \end{frame}
 
 \begin{frame}[fragile]{Recovered Agent}
@@ -342,6 +361,7 @@ susceptibleAgent coord beta gamma delta
 \begin{frame}{Software Transactional Memory (STM)}
   \begin{itemize}
   	\item Tremendous performance improvement.
+  	\item No pollution of code with locking semantics.´
     \item Substantially outperforms lock-based implementation.
     \item STM semantics retain guarantees about non-determinism.
   \end{itemize}
@@ -436,27 +456,81 @@ reverse_reverse_cover xs  = checkCoverage
 \end{block}
 \end{frame}
 
+\begin{frame}[fragile]{Property-Based Testing ABS example: SIR invariants}
+\begin{minted}[fontsize=\footnotesize]{haskell}
+prop_sir_invariants :: Positive Int    -- ^ contact rate
+                    -> Probability     -- ^ infectivity (0,1)
+                    -> Positive Double -- ^ illness duration
+                    -> TimeRange       -- ^ duration
+                    -> [SIRState]      -- ^ population
+                    -> Property
+prop_sir_invariants 
+    (Positive cor) (P inf) (Positive ild) (T t) as  
+  = property (do
+    -- total agent count
+    let n = length ss
+    -- run the SIR simulation with a new RNG 
+    ret <- genSimulationSIR ss cor inf ild t
+    -- check invariants and return result
+    return (sirInvariants n ret)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Property-Based Testing ABS example: SIR invariants}
+\begin{minted}[fontsize=\tiny]{haskell}
+sirInvariants :: Int                    -- ^ N total number of agents
+              -> [(Time,(Int,Int,Int))] -- ^ output each step: (Time, (S,I,R))
+              -> Bool
+sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
+  where
+    (ts, sirs)  = unzip aos
+    (ss, _, rs) = unzip3 sirs
+
+    -- 1. time is monotonic increasing
+    timeInc = allPairs (<=) ts
+    -- 2. number of agents N stays constant in each step
+    aConst = all agentCountInv sirs
+    -- 3. number of susceptible S is monotonic decreasing
+    susDec = allPairs (>=) ss
+    -- 4. number of recovered R is monotonic increasing
+    recInc = allPairs (<=) rs
+    -- 5. number of infected I = N - (S + R)
+    infInv = all infectedInv sirs
+
+    agentCountInv :: (Int,Int,Int) -> Bool
+    agentCountInv (s,i,r) = s + i + r == n
+
+    infectedInv :: (Int,Int,Int) -> Bool
+    infectedInv (s,i,r) = i == n - (s + r)
+
+    allPairs :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
+    allPairs f xs = all (uncurry f) (pairs xs)
+
+    pairs :: [a] -> [(a,a)]
+    pairs xs = zip xs (tail xs)
+\end{minted}
+\end{frame}
+
 \begin{frame}{Property-Based Testing Conclusion}
   \begin{itemize}
+    \item Matching the constructive and exploratory nature of ABS.
     \item Test agent specification.
     \item Test simulation invariants.
-    \item constructive and exploratory nature of ABS
-    \item Validate dynamics against real world data.
     \item Exploratory models: hypotheses tests about dynamics.
     \item Explanatory models: validate against formal specification.
   \end{itemize}
 \end{frame}
 
-\section{Conclusions}
+\section{Drawbacks}
 
 \begin{frame}{ABS + FP = Drawbacks!}
   \begin{itemize}
     \item Direct bi-directional / sync Agent-interactions are \textit{very} cumbersome.
     \item STM not applicable to direct agent-interactions.
-    \item SF/MSFs with many effects are \textit{terribly} slow!
+    \item MSFs can become \textit{terribly} slow!
     \item Steep learning curve: learning Haskell \textit{is} hard.
     \item (Good) Haskell programmers are a \textit{very} scarce resource.
-    \item Strong, static type-system sometimes a burden as we want to be more dynamic.
+    \item Strong, static type-system burden, sometimes want to be more dynamic.
   \end{itemize}
   
   \begin{block}{Is (pure) functional ABS a dead end?}
@@ -464,36 +538,42 @@ reverse_reverse_cover xs  = checkCoverage
   \end{block}
 \end{frame}
 
+\section{Erlang}
+
 \begin{frame}{Erlang = Future of ABS?}
   \begin{itemize}
     \item Functional language; dynamically strongly typed; \textit{not} pure.
-    \item Concurrent actor-based messaging with shared-nothing semantics.
-    \item extreme robust, has proven itself in the industry (1.7 million lines of code in TODO switch of Eriksson, with downtime of 2 hours over 40 years)
-    \item property-based testing available, can even detect races with quickcheck-statemachine
-    \item emulate oo: encapsulation (obviously), polymorphism (same interface, different behaviour), basiclly like a immutable, single method object, which transitions into a new object upon reception of a message, sync method-call possible (send and receive)
-    \item philosophy: fail fast, seems to work as proven in highly complex industry 
+    \item Actor Model: message-based concurrency, shared-nothing semantics.
+    \item Extremely robust and mature: 1.7 million lines of code in Eriksson telecom switch, 2 hours downtime in 40 years.
+    \item Property-based testing: detect races and deadlocks.
+    \item STM behaviour: can be emulated or use Erlangs Mnesia.
+    %\item emulate oo: encapsulation (obviously), polymorphism (same interface, different behaviour), basiclly like a immutable, single method object, which transitions into a new object upon reception of a message, sync method-call possible (send and receive)
+    \item Philosophy: fail fast! % seems to work as proven in highly complex industry 
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Erlang + ABS}
   \begin{itemize}
-    \item maps very naturally to ABS which center around complex agent-interactions, and can exploit concurrency really well
-    \item easy emulation of data-parallelism (not statically guaranteed)
-    \item performance: substantially faster than pure functional Haskell approach, still slower than a sequential java approach BUT it should scale much better to large number of agents 
-    \item think about adistributed, always-online, distributed simulations which can be upgraded (e.g. introduce new agents) while the simulation is running
-    \item Process calculi are directly applicable (CPS, CCS, pi-calculus) and provide a means to compensate for the lack of static typing
-    \item First prototypes done by me (SIR, Sugarscape) are promising.
-    \item Ideal for: agent-interaction heavy model with huge populations of computationally expensive agents, needing a distributed always online approach. I think these kind of models are the future of ABS!
+  	\item Prototypes (SIR, Sugarscape) look promising.
+  	\item Performance is promising. %substantially faster than pure functional Haskell approach, still slower than a sequential java approach BUT it should scale much better to large number of agents 
+    \item Maps naturally to models with complex agent-interactions with the need to scale up.
+    \item Easy emulation of data-parallelism. % (though not statically guaranteed).
+    \item Use Process Calculi (CPS, CCS, pi-calculus) for specification and algebraic reasoning.
   \end{itemize}
+  
+  \begin{block}{The Future?}
+Agent-interaction heavy model with huge populations of computationally expensive agents, needing a distributed always online approach, which can be updated while simulation is running (e.g. introduce new agents).
+  \end{block}
 \end{frame}
 
+\section{Conclusions}
 
 \begin{frame}{Conclusion}
 \begin{block}{Have we done ABS implementation wrong?}
 No, but we missed out on a lot of potential!
 \end{block}
 
-\begin{block}{I propose Erlang as the future of ABS implementation}
+\begin{block}{I hypothesise that Erlang could be the future of ABS}
 But... who is going to take the risk?
 \end{block}
 \end{frame}

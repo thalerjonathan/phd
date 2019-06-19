@@ -67,13 +67,10 @@
   %\item Defining Agent-Based Simulation (ABS)
   
   \item What is \textit{pure} Functional Programming (FP)?
-  
   \item How can we do ABS + FP?  
-  
   \item ABS + FP = ?
-  
+  \item Drawbacks
   \item Erlang = Future of ABS?
-  
   \item Conclusions
 \end{itemize}
 \end{frame}
@@ -224,7 +221,7 @@ newtype Cont i o = Cont (i -> (o, Cont i o))
 
 -- A continuation which sums up inputs.
 -- It uses a closure to capture the input
-adder :: Int -> Cont Int
+adder :: Int -> Cont Int Int
 adder x = Cont (\x' -> (x + x', adder (x + x')))
 \end{minted}
 \end{block}
@@ -361,7 +358,7 @@ susceptibleAgent coord beta gamma delta
 \begin{frame}{Software Transactional Memory (STM)}
   \begin{itemize}
   	\item Tremendous performance improvement.
-  	\item No pollution of code with locking semantics.´
+  	\item No pollution of code with locking semantics.
     \item Substantially outperforms lock-based implementation.
     \item STM semantics retain guarantees about non-determinism.
   \end{itemize}

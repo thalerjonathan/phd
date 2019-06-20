@@ -169,30 +169,26 @@
 
 \section{ABS + FP}
 \begin{frame}{How can we do ABS + FP?}
-  \begin{block}{How can we represent an Agent, its local state and its interface?}
-	We don't have objects and mutable state...
+  \begin{block}{Without classes, objects and mutable state...}
+	\begin{itemize}
+		\item How can we represent an Agent, its local state and its interface?
+		\item How can we implement direct agent-to-agent interactions?
+		\item How can we implement an environment and agent-to-environment interactions?
+	\end{itemize}
   \end{block}
-  
-  \begin{block}{How can we implement direct agent-to-agent interactions?}
-	We don't have method calls and mutable state...
-  \end{block}
-  
-  \begin{block}{How can we implement an environment and agent-to-environment interactions?}
-	We don't have method calls and mutable state...
-  \end{block}
-  
+ 
   \begin{block}{Solution}
-  	Functional Reactive Programming + \\ Monadic Stream Functions
+  	Functional Reactive Programming (FRP) + \\ Monadic Stream Functions (MSF)
   \end{block}
 \end{frame}
 
-\begin{frame}{Arrowized Functional Reactive Programming (AFRP)}
+\begin{frame}{Arrowized Functional Reactive Programming}
   \begin{itemize}
     \item Continuous- \& discrete-time systems in FP
- 	\item Signal Function 
+ 	\item Signal Functions: processes over time
  	\item Events
- 	\item Effects like random-numbers, global state, concurrency
- 	\item \textit{Arrowized} FRP using the \textit{Dunai} library
+ 	\item Effects: random-numbers, global state, concurrency
+ 	\item \textit{Arrowized} FRP: \textit{Dunai} library
   \end{itemize}
 \end{frame}
 

@@ -1,0 +1,42 @@
+\section{Basics of event-driven ABS}
+This section we derive step-by-step the basics of event-driven SIR using the SIR model, as introduced in Chapter \ref{sec:sir_model}, with an event-driven approach. This is in stark contrast to the time-driven implementation in Chapter \ref{sec:timedriven_firststep}. The solutions are quantitatively equal as they produce the same class of dynamics. Qualitatively they fundamentally differ though in terms of expressivity and performance as we will see below.
+
+The basics of event-driven ABS are the concept of agent identity, events and event-scheduling. We introduce them step-by-step using various Monads and then generalise the interface to a \textit{tagless final} approach. 
+
+\subsection{An event-driven SIR}
+Before we can derive implementation concepts, we first need to discuss how an event-driven SIR model works, as inspired by \cite{macal_agent-based_2010}. Fundamentally, what is required is to transform all time-dependent behaviour and agent interactions into the reception and scheduling of events. In the event-driven SIR only three event-types are needed:
+
+\begin{enumerate}
+	\item \textbf{MakeContact} - is used to let susceptible agents pro-actively make contact with $\beta$ (contact rate) other agents per 1 time-unit.
+	\item \textbf{Contact$_{Sender \  SIRState}$} - is used to make contact between agents where agents reveal their state by sending or replying with their current state.
+	\item \textbf{Recover} - is used to let infected agents pro-actively recover after the given $\delta$ (illness duration). 
+\end{enumerate}
+
+Now we can give a concise definition of all three agent behaviours:
+
+\paragraph{Susceptible Agent}
+\begin{itemize}
+	\item A susceptible agent initially schedules a \textit{MakeContact} event with $\Delta t = 1$ to itself.
+	\item When receiving \textit{MakeContact}, the agent sends a \textit{Contact} event to $\beta$ (contact rate) random other agents with $\Delta t = 0$. This will result in these events to be scheduled immediately. Further the agent schedules \textit{MakeContact} with $\Delta t = 1$ to itself, to keep the pro-active process of making contact with other agents active.
+	\item When the agent receives a \textit{Contact} event, it checks if it is from an infected agent. If the event is not from an infected agent, it ignores it. Otherwise it becomes infected with a given probability.
+\end{itemize}
+
+\paragraph{Infected Agent}
+\begin{itemize}
+	\item An infected agent initially schedules a \textit{Recover} event to itself, with a random $\Delta t$ of $\delta$ (illness duration), which follows the exponential distribution.
+	\item When the agent receives a \textit{Contact} event, it checks if it is from a susceptible agent. If the event is not from a susceptible agent, it ignores it. Otherwise it simply replies to this susceptible agent with a \textit{Contact} event with $\Delta t = 0$.
+\end{itemize}
+
+\paragraph{Recovered Agent}
+The recovered agent does not change any more, reacts to no incoming events and schedules no events - it stays constant forever.
+
+\subsection{Agent-Identity}
+- ReaderT Time for current global time (its the same as bearriver SF but the semantics are different, not time-delta but absolute time)
+- ReaderT [AgentId] for all agents
+
+\subsection{Events}
+- WriterT [QueueItem e]
+
+\subsection{Scheduling}
+
+\subsection{Tagless Final}

@@ -12,10 +12,14 @@ The event-driven approach makes the simulation kernel technically closely relate
 First we start using an event-driven agent-based SIR model, inspired by \cite{macal_agent-based_2010} to introduce the concepts of agent identity and also event scheduling utilising both \textit{Reader} and \textit{Writer} Monads which we then generalise to a \textit{tagless final} approach. Note that in event-driven ABS, due to the fact that agents are not signals any more, we abandon time-aware signal functions from the previous chapter and focus solely on Monadic Stream Functions (MSFs).
 
 We then use the highly complex Sugarscape model as introduced in Chapter \ref{sec:sugarscape}, to develop more advanced features of ABS in a pure functional context: dynamic creation and removal of agents during simulation, reading/writing from a shared mutable environment, local mutable agent state and synchronised direct agent-interactions. 
-Note that the Sugarscape model is not a real event-driven model like the event-driven SIR one is: in it the agents do schedule events but they don't do this into the future - events in Sugarscape don't have associated time-stamps.
+Note that the Sugarscape model is not a real event-driven model like the event-driven SIR one is as in it the agents do schedule events but they don't do this into the future - events in Sugarscape don't have associated time-stamps.
+
+\input{./tex/eventdriven/basics.tex}
+
+\input{./tex/eventdriven/advanced.tex}
 
 \input{./tex/eventdriven/implementation.tex}
 
-\input{./tex/eventdriven/eventdrivenSir.tex}
+\input{./tex/eventdriven/eventdrivenSIR.tex}
 
 \input{./tex/eventdriven/discussion.tex}

@@ -1,0 +1,28 @@
+China experience
+- coursework
+	-> demonstrate
+	-> originally too hard
+	-> ... then too easy
+
+- exam was no big deal
+	-> preparation lecture: showed them basically 2 of the most difficult examples, still many didnt get it right (KVStore)
+
+- teaching was awesome
+	-> students nice, respectful, ask many questions per email and after the lecture directly or in the office. they ask until they have understood it 
+
+Property-Based Testing in ABS
+- general explanation of cover and checkCoverage in QuickCheck
+	-> cover 15 (length xs >= 50) (reverse (reverse xs) == xs)
+	-> checkCoverage
+
+- explain event-driven SIR
+
+- agent-specification
+	-> input-to-output events
+	-> checking of computed coverage
+
+- sir invariants
+
+- comparison of time- and event-driven SIR
+
+- validation against SD implementation

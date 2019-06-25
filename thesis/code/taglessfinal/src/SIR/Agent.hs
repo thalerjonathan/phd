@@ -68,9 +68,8 @@ susceptibleAgent cor inf ild =
 
     handleEvent MakeContact = do
       ais       <- getAgentIds
-      ai        <- getMyId
       receivers <- forM [1..cor] (const $ randomElem ais)
-      mapM_ (makeContactWith ai) receivers
+      mapM_ makeContactWith receivers
       scheduleMakeContactM
       return Nothing
 
@@ -86,9 +85,10 @@ susceptibleAgent cor inf ild =
 
     handleEvent _ = return Nothing
 
-    makeContactWith :: MonadAgent SIREvent m => AgentId -> AgentId -> m ()
-    makeContactWith ai receiver 
-      = schedEvent receiver (Contact ai Susceptible) 0
+    makeContactWith :: MonadAgent SIREvent m => AgentId -> m ()
+    makeContactWith receiver = do
+      ai <- getMyId
+      schedEvent (Contact ai Susceptible) receiver 0
 
     -- makeContact :: MonadAgent SIREvent m => Int -> AgentId -> [AgentId] -> m Bool
     -- makeContact 0 _ _ = return False
@@ -145,7 +145,7 @@ infectedAgent =
     replyContact :: MonadAgent SIREvent m => AgentId -> m ()
     replyContact receiver = do
       ai <- getMyId
-      schedEvent receiver (Contact ai Infected) 0
+      schedEvent (Contact ai Infected) receiver 0
 
 recoveredAgent :: MonadAgent SIREvent m => MSF m SIREvent SIRState
 recoveredAgent = arr (const Recovered)
@@ -156,10 +156,10 @@ recoveredAgent = arr (const Recovered)
 scheduleMakeContactM :: MonadAgent SIREvent m => m ()
 scheduleMakeContactM = do
   ai <- getMyId
-  schedEvent ai MakeContact makeContactInterval
+  schedEvent MakeContact ai makeContactInterval
 
 scheduleRecoveryM :: MonadAgent SIREvent m => Double -> m ()
 scheduleRecoveryM ild = do
   dt <- randomExp (1 / ild)
   ai <- getMyId
-  schedEvent ai Recover dt
+  schedEvent Recover ai dt

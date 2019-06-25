@@ -1,12 +1,9 @@
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE InstanceSigs           #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module SIR.API where
 
-type Time       = Double
-type AgentId    = Int
-newtype Event e = Event e deriving Show
+type Time    = Double
+type AgentId = Int
 
 -- encapsulates the effectful API for agents
 class Monad m => MonadAgent e m | m -> e where
@@ -16,5 +13,5 @@ class Monad m => MonadAgent e m | m -> e where
   getAgentIds :: m [AgentId]
   getTime     :: m Time
   getMyId     :: m AgentId
-  schedEvent  :: AgentId -> e -> Double -> m ()
-  sendSync    :: AgentId -> e -> m (Maybe [e])
+  schedEvent  :: e -> AgentId -> Double -> m ()
+  sendSync    :: e -> AgentId -> m (Maybe [e])

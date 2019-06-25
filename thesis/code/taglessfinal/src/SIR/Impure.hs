@@ -21,7 +21,7 @@ import SIR.Agent
 import SIR.API
 import SIR.Model
 
-data QueueItem e  = QueueItem !AgentId !(Event e) !Time deriving Show
+data QueueItem e  = QueueItem !e !AgentId !Time deriving Show
 type EventQueue e = PQ.MinQueue (QueueItem e)
 
 instance Eq (QueueItem e) where
@@ -138,7 +138,7 @@ processEvent :: SimState
              -> [AgentId]
              -> QueueItem SIREvent
              -> IO (Maybe (SimState, [QueueItem SIREvent]))
-processEvent ss ais (QueueItem receiverId (Event e) evtTime) 
+processEvent ss ais (QueueItem e receiverId evtTime) 
     | isNothing receiverMay = return Nothing
     | otherwise = do
       let agentAct = unMSF receiver e
@@ -181,10 +181,9 @@ instance MonadAgent SIREvent SIRAgentImpure where
   randomExp  = liftIO . evalRandIO . randomExpM
   
   -- schedEvent :: AgentId -> SIREvent -> Double -> m ()
-  schedEvent receiver e dt = do
+  schedEvent e receiver dt = do
     t <- getTime
-    let qe = QueueItem receiver (Event e) (t + dt)
-    tell [qe]
+    tell [QueueItem e receiver (t + dt)]
 
   -- getAgentIds :: m [AgentId]
   getAgentIds = asks trd
@@ -196,7 +195,7 @@ instance MonadAgent SIREvent SIRAgentImpure where
 
   -- NOTE: this schedules an event with dt = 0 to the receiver by running the 
   -- receiver and filtering the replies with dt = 0 to the sender
-  sendSync receiverId evt = do
+  sendSync evt receiverId = do
     -- get the id of the agent who initiates the synchronous send
     senderId <- getMyId
 
@@ -237,14 +236,14 @@ instance MonadAgent SIREvent SIRAgentImpure where
         -- filter the events to the initiator: agent id has to match AND 
         -- it has to be an instantaneous event with dt = 0/time to schedule is 
         -- the current time.
-        let esToSender = map (\(QueueItem _ (Event e) _) -> e) $ filter 
-              (\(QueueItem ai (Event _) t) -> ai == senderId && t == tNow) es
+        let esToSender = map (\(QueueItem e _ _) -> e) $ filter 
+              (\(QueueItem _ ai t) -> ai == senderId && t == tNow) es
 
         -- NOTE: all other events not in this list have to be put into the
         -- queue... this is not directly possible but we can use a trick:
         -- we simply add it to the initiator event writer using tell ;)
         let esOthers = filter 
-              (\(QueueItem ai (Event _) t) -> not (ai == senderId || t == tNow)) es
+              (\(QueueItem _ ai t) -> not (ai == senderId || t == tNow)) es
         -- schedule the other events through the event writer of the initiator
         tell esOthers
 

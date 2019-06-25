@@ -41,7 +41,7 @@ It is easy to see that this behaviour emulates the time-driven one and is qualit
 	\label{fig:sir_eventdriven_dynamics}
 \end{figure}
 
-\subsection{First steps}
+\subsection{Events, Agent Identity and Scheduling}
 We can now start to discuss the concepts from an implementation perspective. First, we need to make the concept of an event explicit: they are of a given type, have a receiver and a time-stamp in \textit{absolute} simulation time when they shall be scheduled. We keep the event-type polymorphic and represent the receiver by an \textit{AgentId} which is a simple \textit{Int}. For efficient scheduling, the events are kept in a priority-queue \footnote{We are using the \textit{Data.PQueue.Min} implementation from the \textit{pqueue} package.}, sorted ascending by the time-stamp. Thus we define the following:
 
 \begin{HaskellCode}
@@ -57,7 +57,7 @@ instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 \end{HaskellCode}
 
-Next, we define a polymorphic type for our agent. As already pointed out, we will switch to the direct use of \textit{MSF} instead of BearRivers \textit{SF}. As input, the polymorphic event-type \textit{e} is used, because in event-driven ABS agents receive events, which drive the simulation. As output, the polymorphic output-type \textit{o} is used, which will be instantiated to a specific monomorphic type in the SIR model below. The question is now, what Monad shall be used. For scheduling purposes (and maybe also some models require it in general), agents should be able to \textit{read} the current simulation time: this is accomplished through a \textit{ReaderT Time}. Further, agents should be able to \textit{read} the identities of the other agents available in the simulation so they can schedule events to them when necessary: this is accomplished through a \textit{ReaderT [AgentId]}. Most importantly, agents have to be able to schedule events, meaning they have to be able to \textit{write} the events into some sink where they are accumulated for scheduling: this is accomplished through a \textit{WriterT [QueueItem e]}. Finally, the transformer stack needs to be extendible by other Monads, specified in concrete models like the SIR below, so we add another polymorphic type \textit{m}, indicating the closing Monad (stack).
+Next, we define a polymorphic type for our agent. As already pointed out, we will switch to the direct use of \textit{MSF} instead of BearRivers \textit{SF}. In event-driven ABS agents receive events, thus as input to an \textit{MSF} the polymorphic event type \textit{e} is used. As output, the polymorphic output type \textit{o} is used, which will be instantiated to a specific monomorphic type in the SIR model below. The question is now what Monad shall be used. For scheduling purposes (and maybe also some models require it in general), agents should be able to \textit{read} the current simulation time: this is accomplished through a \textit{ReaderT Time}. Further, agents should be able to \textit{read} the identities of the other agents available in the simulation so they can schedule events to them when necessary: this is accomplished through a \textit{ReaderT [AgentId]}. Most importantly, agents have to be able to schedule events, meaning they have to be able to \textit{write} the events into some sink where they are accumulated for scheduling: this is accomplished through a \textit{WriterT [QueueItem e]}. Finally, the transformer stack needs to be extendible by other Monads, specified in concrete models like the SIR below, so we add another polymorphic type \textit{m}, indicating the closing Monad (stack).
 
 \begin{HaskellCode}
 type ABSMonad m e   = ReaderT Time (WriterT [QueueItem e] (ReaderT [AgentId] m))
@@ -73,9 +73,9 @@ allAgentIds :: Monad m => (ABSMonad m e) [AgentId]
 allAgentIds = lift (lift ask)
 
 scheduleEvent :: Monad m
-              => e                 -- ^ event
-              -> AgentId           -- ^ receiver
-              -> Double            -- ^ time-delay
+              => e        -- ^ event
+              -> AgentId  -- ^ receiver
+              -> Double   -- ^ time-delay
               -> (ABSMonad m e) ()
 scheduleEvent e aid dt = do
   -- get current simulation time
@@ -91,97 +91,213 @@ Processing events can also be implemented generically and is straight forward, t
 The events are then processed in the order provided by the queue and each event is executed with the given receiver. Running a receiver is simply achieved using the agent map, where a reviver is looked up and its \textit{MSF} is evaluated with the given event as input and the resulting monadic actions executed with the given information.
  
 \subsection{Parametrising for SIR}
+With the generic concepts now established, we show how to parametrise them to the concrete SIR model. First, we define the already well known states the agents can be in and the three different event types, as already introduced above.
 
 \begin{HaskellCode}
-data SIRState
-  = Susceptible
-  | Infected
-  | Recovered
+data SIRState = Susceptible | Infected | Recovered
   
-data SIREvent 
-  = MakeContact
-  | Contact AgentId SIRState
-  | Recover 
+data SIREvent = MakeContact | Contact AgentId SIRState | Recover 
 \end{HaskellCode}
+
+Next, we parametrise the \textit{ABSMonad} to the SIR model: because behaviour is stochastic, we need to make use of the \textit{Rand} Monad, which also closes the Monad stack of \textit{ABSMonad}. Further, the event type is obviously parametrised to \textit{SIREvent}.
 
 \begin{HaskellCode}
 type SIRMonad g = ABSMonad (Rand g) SIREvent
-type SIRAgent g = AgentId -> (SIRMonad g) (AgentMSF (SIRMonad g) SIREvent SIRState)
+\end{HaskellCode}
 
+Now we define a \textit{SIRAgent} which can be understood as a constructor, run once upon construction of the agent. This constructing functions runs already in the \textit{SIRMonad}, thus agents can already make full use of the functionality, so they can schedule initial events, depending on their initial state. This is important for the susceptible and infected agent, which both need to schedule initial events for pro-active behaviour. The constructing functions also takes the \textit{AgentId} of the agent, thus making it available to the agent at construction time. It returns the initial agent-behaviour as \textit{AgentMSF}.
+
+\begin{HaskellCode}
+type SIRAgent g = AgentId -> (SIRMonad g) (AgentMSF (SIRMonad g) SIREvent SIRState)
+\end{HaskellCode}
+
+The implementation of the constructing function of type \textit{SIRAgent} is straight forward and follows the specification given above. It makes use of the functions \textit{scheduleMakeContact} and \textit{scheduleRecovery} which are implemented using the generic \textit{scheduleEvent} from above.
+
+\begin{HaskellCode}
 sirAgent :: RandomGen g 
-         => Int         -- ^ the contact rate
-         -> Double      -- ^ the infectivity
-         -> Double      -- ^ the illness duration
-         -> SIRState    -- ^ the initial state of the agent
+         => Int         -- ^ contact rate (beta)
+         -> Double      -- ^ infectivity (gamma)
+         -> Double      -- ^ illness duration (delta)
+         -> SIRState    -- ^ initial state of the agent
          -> SIRAgent g
 sirAgent beta gamma delta Susceptible aid = do
-  -- on start
+  -- on start, schedule MakeContact to itself
   scheduleMakeContact aid 1
+  -- return susceptible behaviour
   return (susceptibleAgent aid beta gamma delta)
 sirAgent _ _ delta Infected aid = do
-  -- on start
+  -- on start, schedule recover to itself
   scheduleRecovery aid delta
+  -- return infected behaviour
   return (infectedAgent aid)
 sirAgent _ _ _ Recovered _ = 
+  -- simply return recovered behaviour
   return recoveredAgent
 
 scheduleMakeContact :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
-scheduleMakeContact aid = scheduleEvent MakeContact aid
+scheduleMakeContact aid = scheduleEvent aid MakeContact
 
 scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
-scheduleRecovery aid ild = do
-  dt <- (lift . lift . lift) (randomExpM (1 / ild))
-  scheduleEvent Recover aid dt
+scheduleRecovery aid delta = do
+  dt <- (lift . lift . lift) (randomExpM (1 / delta))
+  scheduleEvent aid Recover dt
+
+-- returns random value following exponential distribution with given lambda
+randomExpM :: MonadRandom m => Double -> m Double
 \end{HaskellCode}
 
-Next, we show the full implementation of the susceptible agent behaviour. The infected and recovered behaviours are conceptually equivalent and thus not shown here.
+Now we are finally ready to implement the actual behaviour of an agent, where we discuss the full implementation of the susceptible agent behaviour. The basic structure should be already familiar from the time-driven approach, using \textit{switch} to dynamically change the behaviour to \textit{infectedAgent} in case of an infection. The behaviour is then a simple event handler, pattern matching on the incoming events:
 
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g 
-                 => AgentId
-                 -> Int
-                 -> Double
-                 -> Double
+                 => AgentId        -- ^ agents id
+                 -> Int            -- ^ contact rate (beta)
+                 -> Double         -- ^ infectivity (gamma)
+                 -> Double         -- ^ illness duration (delta)
                  -> SIRAgentMSF g
-susceptibleAgent aid cor inf ild = 
-    switch
-      susceptibleAgentInfected
-      (const (infectedAgent aid))
+susceptibleAgent aid beta gamma delta = 
+    switch susceptibleAgentInfected (const (infectedAgent aid))
   where
     susceptibleAgentInfected :: RandomGen g 
-                             => MSF
-                                (SIRMonadT g) 
-                                SIREvent
-                                (SIRState, Maybe ()) 
+                             => MSF (SIRMonadT g) SIREvent (SIRState, Maybe ()) 
     susceptibleAgentInfected = proc e -> do
+      -- handle incoming event in monadic action
       ret <- arrM handleEvent -< e
       case ret of
         Nothing -> returnA -< (Susceptible, ret)
         _       -> returnA -< (Infected, ret)
-
-    handleEvent :: RandomGen g => SIREvent -> (SIRMonadT g) (Maybe ())
-    handleEvent (Contact _ Infected) = do
-      r <- (lift . lift . lift) (randomBoolM inf)
-      if r 
-        then do
-          scheduleRecovery aid ild
-          return (Just ())
-        else return Nothing
-
-    handleEvent MakeContact = do
-      ais       <- allAgentIds
-      receivers <- (lift . lift . lift) (forM [1..cor] (const (randomElem ais)))
-      mapM_ makeContactWith receivers
-      scheduleMakeContact aid makeContactInterval
-      return Nothing
-
-    handleEvent _ = return Nothing
-
-    makeContactWith :: AgentId -> (SIRMonadT g) ()
-    makeContactWith receiver = 
-      scheduleEvent (Contact aid Susceptible) receiver 0
 \end{HaskellCode}
 
+We strictly follow the specification as above. In case the agent receives \textit{Contact} from an infected agent it might become infected with a given probability. If it becomes infected, it already schedules the recovery as it will make the transition to an infected agent.
+
+\begin{HaskellCode}
+-- received Contact from an Infected agent
+handleEvent :: RandomGen g => SIREvent -> (SIRMonadT g) (Maybe ())
+handleEvent (Contact _ Infected) = do
+  -- become infected with gamma probability
+  r <- (lift . lift . lift) (randomBoolM gamma)
+  if r
+    -- got infected 
+    then do
+      -- schedule recovery, because switching to Infected
+      scheduleRecovery aid delta
+      return (Just ())
+    -- no infection
+    else return Nothing
+
+-- returns True with given probability
+randomBoolM :: MonadRandom m => Double -> m Bool
+\end{HaskellCode}
+
+In case the agent receivers \textit{MakeContact} from itself, it will send \textit{Contact} with \textit{Susceptible} to $\beta$ other agents without delay and \textit{MakeContact} to itself with 1 time unit delay.
+
+\begin{HaskellCode}
+-- received MakeContact (from itself)
+handleEvent MakeContact = do
+  ais <- allAgentIds
+  -- get beta random agents
+  receivers <- (lift . lift . lift) (forM [1..beta] (const (randomElemM ais)))
+  -- make contact with random agents
+  mapM_ makeContactWith receivers
+  -- re-schedule MakeContact to self
+  scheduleMakeContact aid 1
+  return Nothing
+  
+makeContactWith :: AgentId -> (SIRMonadT g) ()
+makeContactWith receiver = 
+  -- schedule Contact event immediately
+  scheduleEvent (Contact aid Susceptible) receiver 0
+
+randomElemM :: MonadRandom m => [e] -> m e
+\end{HaskellCode}
+
+The infected and recovered behaviours are conceptually equivalent and thus left as a trivial exercise to the reader. 
+
 \subsection{Tagless Final}
-The main benefit of a \textit{tagless final} approach is that it is a solution to the expression problem \cite{kiselyov_typed_2012}: it is possible to add new interpreters of an embedded language and add new functionality without breaking the existing implementations. Interpretation in our case means that we can use different underlying Monads to run the agents in: if we want to guarantee purity, no IO Monad shall be used in  the interpreter. Otherwise when concurrency with a lock-based approach or a lock-free approach is required IO or STM can be used in the underlying interpreter. Also, for reproducible unit testing testing, one can write custom test-interpreters where methods always return a-priori known results, similar to mocking.
-Adding new functionality is less an issue here but might become highly important when designing a more general ABS library in Haskell, building on the \textit{tagless final} approach. It would allow the user of such a library to extend existing agents or default behaviour with new, custom-built methods, without breaking the existing ones.
+At this point, the basics of event-driven ABS should be clear: how events are represented and processed using an event queue, how agents are represented with an \textit{MSF} and the idea behind the underlying polymorphic Monad transformer stack. Further, by parametrising the polymorphic concepts to the SIR model, we showed how to instantiate the generic concepts into a concrete model to arrive at a robust, maintainable and solid solution which is very likely to be correct up to the initial informal specification.
+
+\medskip
+
+In this section we briefly want to show how the so-called \textit{tagless final} approach \cite{kiselyov_typed_2012} can be used to arrive at a cleaner and more extensible interface of our implementation, which is also open to different \textit{interpretations}. The idea behind \textit{tagless final} is simple: specify the interface of operations in a typeclass and then write one or multiple interpreters for it, which simply means writing an instance implementation for the given typeclass. We start by defining the typeclass \textit{MonadAgent} with all the necessary methods, making up the effectful API of our agents. Note that we need to enable two language extensions: \textit{MultiParamTypeClasses} because we want to have more than a single type parameter in the typeclass - besides the Monad \textit{m}, we also want to parametrise over the event type \textit{e}; \textit{FunctionalDependencies} because the event type \textit{e} is determined by the Monad type \textit{m}.
+
+\begin{HaskellCode}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE FunctionalDependencies #-}
+
+class Monad m => MonadAgent e m | m -> e where
+  randomBool  :: Double -> m Bool
+  randomExp   :: Double -> m Double
+  randomElem  :: [a] -> m a
+  getAgentIds :: m [AgentId]
+  getTime     :: m Time
+  getMyId     :: m AgentId
+  schedEvent  :: e -> AgentId -> Double -> m ()
+\end{HaskellCode}
+
+The methods are self explaining. This typeclass is now used to replace the Monad stack by an overloaded type definition in the respective functions. Thus, the implementation of the agent constructing function and the agent behaviours are the same, with only the types changing slightly and lifts becoming obsolete. We don't give the full implementation again but only the type of the agent construction function as example, the types of the agent behaviours follow a similar pattern: 
+
+\begin{HaskellCode}
+sirAgent :: MonadAgent SIREvent m  -- CHANGED: overloaded with typeclass
+         => Int         -- ^ contact rate (beta)
+         -> Double      -- ^ infectivity (gamma)
+         -> Double      -- ^ illness duration (delta)
+         -> SIRState    -- ^ initial state of the agent
+         -> m (MSF m SIREvent SIRState) -- CHANGED: no more Monad stack
+\end{HaskellCode}
+
+Note that we added a \textit{getMyId} method, which shall return the \textit{AgentId} of the agent itself, avoiding the need for the agent of keeping the agent id around and also making it possible to implement more robust self-scheduling functions. For example, the \textit{scheduleRecovery} function is implemented in the \textit{tagless final} approach in the following way:
+
+\begin{HaskellCode}
+scheduleRecovery :: MonadAgent SIREvent m => Double -> m ()
+scheduleRecovery delta = do
+  -- draw random value from exponential distribution
+  dt <- randomExp (1 / delta)
+  -- get id of agent, no more need to pass it explicitly
+  ai <- getMyId
+  -- schedule Recover to itself
+  schedEvent Recover ai dt
+\end{HaskellCode}
+
+What we are missing is a \textit{pure} interpreter for the agent implementation and the \textit{MonadAgent} typeclass. We start by defining a \textit{newtype}, which basically is a conceptually similar Monad stack as in the original implementation without the \textit{tagless final} approach. We let Haskell automatically derive monadic typeclasses, Functor, Applicative and Monad instances which saves a lot of boiler plate code, for which the \textit{GeneralizedNewtypeDeriving} language extension is required. Note that there is no \textit{Rand} Monad any more, as we emulate similar behaviour using \textit{SimState} which carries the random-number generator.
+
+\begin{HaskellCode}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+newtype SIRAgentPure a = SIRAgentPure 
+  { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) 
+                        (WriterT [QueueItem SIREvent]
+                          (State SimState)) a}
+  deriving (Functor, Applicative, Monad, 
+            MonadWriter [QueueItem SIREvent],
+            MonadReader (Time, AgentId, [AgentId]),
+            MonadState SimState)
+\end{HaskellCode}
+
+Having this \textit{newtype} we can now write a \textit{pure} interpreter for the \textit{MonadAgent}. The implementations are straight forward and should be self explanatory.
+
+\begin{HaskellCode}   
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+      
+instance MonadAgent SIREvent SIRAgentPure where
+  randomBool = runRandWithSimState . randomBoolM
+  randomElem = runRandWithSimState . randomElemM
+  randomExp  = runRandWithSimState . randomExpM
+  -- schedEvent :: SIREvent -> AgentId -> Double -> m ()
+  schedEvent e receiver dt = do
+    t <- getTime 
+    tell [QueueItem e receiver (t + dt)]
+  -- getAgentIds :: m [AgentId]
+  getAgentIds = asks trd
+  -- getTime :: m Time
+  getTime = asks fst3
+  -- getMyId :: m AgentId
+  getMyId = asks snd3
+
+fst3 :: (a,b,c) -> a
+snd3 :: (a,b,c) -> b
+trd :: (a,b,c) -> c
+runRandWithSimState :: MonadState SimState m => Rand StdGen a -> m a
+\end{HaskellCode}
+
+The main benefit of a \textit{tagless final} approach is that it is a solution to the expression problem \cite{kiselyov_typed_2012}: it is possible to add new interpreters of an embedded language and add new functionality without breaking the existing implementations. Interpretation in our case means that we can use different underlying Monads to run the agents: if we want to guarantee purity, no \textit{IO} Monad shall be used. Otherwise when concurrency with a lock-based approach or a lock-free approach is required \textit{IO} or \textit{STM} can be used in the underlying interpreter. Also, for reproducible unit testing, one can write custom test-interpreters where methods always return a-priori known results, similar to mocking. Adding new functionality is less an issue here but might become highly important when designing a more general ABS library, building on the \textit{tagless final} approach. It would allow the user of such a library to extend existing agents or default behaviour with new, custom-built methods, without breaking the existing ones.

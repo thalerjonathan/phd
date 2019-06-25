@@ -64,9 +64,123 @@ type ABSMonad m e   = ReaderT Time (WriterT [QueueItem e] (ReaderT [AgentId] m))
 type AgentMSF m e o = MSF (ABSMonad m e) e o
 \end{HaskellCode}
 
-Note that the \textit{ReaderT Time} is the same as bearriver SF but the semantics are different, not time-delta but absolute time)
+Note that BearRivers \textit{SF} has also a \textit{ReaderT Double} as the innermost Monad but we deliberately avoided its use because the intended semantics of an \textit{SF} are different: the value in the \textit{ReaderT} of the \textit{SF} represents the sampling time-delta and not the absolute time, as in the event-driven case.
 
-- scheduling
+We can already implement a few polymorphic functions, operating on the given Monad stack. First, we implement a function \textit{allAgentIds} which simply returns the \textit{AgentId} of all agents, the contents of the \textit{ReaderT [AgentId]}. Second, we implement a function \textit{scheduleEvent} which allows to schedule a given event to a given receiver into the future given a specific time-delay, relative to the current simulation time.
+ 
+\begin{HaskellCode}
+allAgentIds :: Monad m => (ABSMonad m e) [AgentId]
+allAgentIds = lift (lift ask)
+
+scheduleEvent :: Monad m
+              => e                 -- ^ event
+              -> AgentId           -- ^ receiver
+              -> Double            -- ^ time-delay
+              -> (ABSMonad m e) ()
+scheduleEvent e aid dt = do
+  -- get current simulation time
+  t <- ask
+  -- construct queue item
+  let q = QueueItem e aid (t + dt)
+  -- write/append (tell) to the WriterT (QueueItem e)
+  lift (tell [q])
+\end{HaskellCode}
+
+Processing events can also be implemented generically and is straight forward, thus we only discuss the subtleties. For efficient lookup of event receivers all agents are organised into an \textit{IntMap}, which also holds the current output of the agent, to allow sampling of the domain-state. In general, the domain-state is highly model specific, thus a generic implementation needs to offer some mechanism to update the domain-state after an event, a process we named domain-state sampling. Our approach is to call a function which receives the agent map and returns a new domain-state for the current event/time-step. These domain-states are appended to an infinite list which forms the output of the simulation.
+
+The events are then processed in the order provided by the queue and each event is executed with the given receiver. Running a receiver is simply achieved using the agent map, where a reviver is looked up and its \textit{MSF} is evaluated with the given event as input and the resulting monadic actions executed with the given information.
+ 
+\subsection{Parametrising for SIR}
+
+\begin{HaskellCode}
+data SIRState
+  = Susceptible
+  | Infected
+  | Recovered
+  
+data SIREvent 
+  = MakeContact
+  | Contact AgentId SIRState
+  | Recover 
+\end{HaskellCode}
+
+\begin{HaskellCode}
+type SIRMonad g = ABSMonad (Rand g) SIREvent
+type SIRAgent g = AgentId -> (SIRMonad g) (AgentMSF (SIRMonad g) SIREvent SIRState)
+
+sirAgent :: RandomGen g 
+         => Int         -- ^ the contact rate
+         -> Double      -- ^ the infectivity
+         -> Double      -- ^ the illness duration
+         -> SIRState    -- ^ the initial state of the agent
+         -> SIRAgent g
+sirAgent beta gamma delta Susceptible aid = do
+  -- on start
+  scheduleMakeContact aid 1
+  return (susceptibleAgent aid beta gamma delta)
+sirAgent _ _ delta Infected aid = do
+  -- on start
+  scheduleRecovery aid delta
+  return (infectedAgent aid)
+sirAgent _ _ _ Recovered _ = 
+  return recoveredAgent
+
+scheduleMakeContact :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
+scheduleMakeContact aid = scheduleEvent MakeContact aid
+
+scheduleRecovery :: RandomGen g => AgentId -> Double -> (SIRMonadT g) ()
+scheduleRecovery aid ild = do
+  dt <- (lift . lift . lift) (randomExpM (1 / ild))
+  scheduleEvent Recover aid dt
+\end{HaskellCode}
+
+Next, we show the full implementation of the susceptible agent behaviour. The infected and recovered behaviours are conceptually equivalent and thus not shown here.
+
+\begin{HaskellCode}
+susceptibleAgent :: RandomGen g 
+                 => AgentId
+                 -> Int
+                 -> Double
+                 -> Double
+                 -> SIRAgentMSF g
+susceptibleAgent aid cor inf ild = 
+    switch
+      susceptibleAgentInfected
+      (const (infectedAgent aid))
+  where
+    susceptibleAgentInfected :: RandomGen g 
+                             => MSF
+                                (SIRMonadT g) 
+                                SIREvent
+                                (SIRState, Maybe ()) 
+    susceptibleAgentInfected = proc e -> do
+      ret <- arrM handleEvent -< e
+      case ret of
+        Nothing -> returnA -< (Susceptible, ret)
+        _       -> returnA -< (Infected, ret)
+
+    handleEvent :: RandomGen g => SIREvent -> (SIRMonadT g) (Maybe ())
+    handleEvent (Contact _ Infected) = do
+      r <- (lift . lift . lift) (randomBoolM inf)
+      if r 
+        then do
+          scheduleRecovery aid ild
+          return (Just ())
+        else return Nothing
+
+    handleEvent MakeContact = do
+      ais       <- allAgentIds
+      receivers <- (lift . lift . lift) (forM [1..cor] (const (randomElem ais)))
+      mapM_ makeContactWith receivers
+      scheduleMakeContact aid makeContactInterval
+      return Nothing
+
+    handleEvent _ = return Nothing
+
+    makeContactWith :: AgentId -> (SIRMonadT g) ()
+    makeContactWith receiver = 
+      scheduleEvent (Contact aid Susceptible) receiver 0
+\end{HaskellCode}
 
 \subsection{Tagless Final}
 The main benefit of a \textit{tagless final} approach is that it is a solution to the expression problem \cite{kiselyov_typed_2012}: it is possible to add new interpreters of an embedded language and add new functionality without breaking the existing implementations. Interpretation in our case means that we can use different underlying Monads to run the agents in: if we want to guarantee purity, no IO Monad shall be used in  the interpreter. Otherwise when concurrency with a lock-based approach or a lock-free approach is required IO or STM can be used in the underlying interpreter. Also, for reproducible unit testing testing, one can write custom test-interpreters where methods always return a-priori known results, similar to mocking.

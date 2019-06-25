@@ -99,12 +99,12 @@ checkMakeContactInvariants sender es contactRate
                                   -> (Bool, Bool, Int)
                                   -> (Bool, Bool, Int)
     checkMakeContactInvariantsAux 
-        (QueueItem receiver (Event (Contact sender' Susceptible)) t') (b, mkb, n)
+        (QueueItem (Contact sender' Susceptible) receiver t') (b, mkb, n)
       = (b && sender == sender'    -- the sender in Contact must be the Susceptible agent
            && receiver `elem` ais  -- the receiver of Contact must be in the agent ids
            && t == t', mkb, n+1)   -- the Contact event is scheduled immediately
     checkMakeContactInvariantsAux 
-        (QueueItem receiver (Event MakeContact) t') (b, mkb, n) 
+        (QueueItem MakeContact receiver t') (b, mkb, n) 
       = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
            && t' == t + 1          -- the MakeContact event is scheduled 1 time-unit into the future
            &&  not mkb, True, n)   -- there can only be one MakeContact event
@@ -235,7 +235,7 @@ getInfectedAgentDuration ild = do
   where
     -- expect exactly one event: Recover
     recoveryTime :: [QueueItem SIREvent] -> Double
-    recoveryTime [QueueItem _ (Event Recover) t]  = t
+    recoveryTime [QueueItem Recover _ t]  = t
     recoveryTime _ = 0
 \end{HaskellCode}
 

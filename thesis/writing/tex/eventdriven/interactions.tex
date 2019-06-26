@@ -1,16 +1,16 @@
 \subsection{Synchronous Agent interactions}
-With the concepts introduced so far we can achieve already a lot in terms of agent-interactions: agents can react to incoming events, which are either the Tick-event advancing simulation time by one step or a message sent by another agent (or the agent itself). This is enough to implement simple one-directional asynchronous agent-interactions where one agent sends a message to another agent but does not await an answer within the same tick. This one-directional asynchronous interactions is used in the model to implement the passing of diseases, the paying back of debt, passing on wealth to children upon death - the agent simply sends a message and forgets about it.
+With the concepts introduced so far we can achieve already a lot in terms of agent interactions: agents can react to incoming events, which are either the \textit{Tick} event advancing simulation time by one step or a message sent by another agent (or the agent itself). This is enough to implement simple one-directional asynchronous agent interactions where one agent sends a message to another agent but does not await an answer within the same \textit{Tick}. This one-directional asynchronous interactions is used in the model to implement the passing of diseases, the paying back of debt, passing on wealth to children upon death - the agent simply sends a message and forgets about it.
 
-Unfortunately this mechanism is not enough to implement the other agent-interactions in the Sugarscape model, which are structurally richer: they need to be synchronous. In the use-cases of mating, trading and lending two agents need to come to an agreement over multiple interactions steps within the same tick which need to be exclusive and synchronous.  This means that an agent A initiates such a multi-step conversation with another agent B by sending an initial message to which agent B has to react by a reply to agent A who upon reception of the message, will pick up computation from that point and reply with a new message and so on. Both agents must not interact with other agents during this conversation to guarantee resource constraints, otherwise it would become quite difficult and cumbersome to ensure that agents don't spend more than they have when trading with multiple other agents at the same time. Also the initiating agent A must be able to pick up processing of its Tick event from the point where it started the conversation with agent B because sending a message always requires the handling of the current event to exit and hand the control back to the simulation kernel. See Figure \ref{fig:syncagentinteractions} for a visualisation of the sequence of actions.
+Unfortunately this mechanism is not enough to implement the other agent-interactions in the Sugarscape model, which are structurally richer: they need to be synchronous. In the use-cases of mating, trading and lending two agents need to come to an agreement over multiple interactions steps within the same \textit{Tick} which need to be exclusive and synchronous.  This means that an agent A initiates such a multi-step conversation with another agent B by sending an initial message to which agent B has to react by a reply to agent A who upon reception of the message, will pick up computation from that point and reply with a new message and so on. Both agents must not interact with other agents during this conversation to guarantee resource constraints, otherwise it would become quite difficult and cumbersome to ensure that agents don't spend more than they have when trading with multiple other agents at the same time. Also the initiating agent A must be able to pick up processing of its \textit{Tick} event from the point where it started the conversation with agent B because sending a message always requires the handling of the current event to exit and hand the control back to the simulation kernel. See Figure \ref{fig:syncagentinteractions} for a visualisation of the sequence of actions.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=1.0\textwidth, angle=0]{./fig/eventdriven/syncagentinteractions.png}
-	\caption{Sequence diagram of synchronous agent-interaction with the trading use-case. Upon the handling of the 'Tick' event, Agent A looks for trading partners and finds Agent B within its neighbourhood and sends a 'TradingOffer' message. Agent B replies to this message and Agent A continues with the trading algorithm by picking up where it has left the execution when sending the message to Agent B. After Agent A has finished the trading with Agent B, it turns to Agent C, where the same procedure follows and is thus not included fully in this diagram.}
+	\caption{Sequence diagram of synchronous agent interaction in the trading use-case. Upon the handling of the \textit{Tick} event, agent A looks for trading partners and finds agent B within its neighbourhood and sends a \textit{TradingOffer} message. Agent B replies to this message with \textit{TradeReply} and agent A continues with the trading algorithm by picking up where it has left the execution when sending the message to agent B. After agent A has finished the trading with agent B, it turns to agent C, where the same procedure follows.}
 	\label{fig:syncagentinteractions}
 \end{figure}
 
-The way to implement this is to allow an agent to be able to change its internal event-handling state: to switch into different event-handlers, after having sent an event, to be able to react to the incoming reply in a specific way by encapsulating local state for the current synchronous interaction through closures and currying. Further by making use of continuations the agent can pick up the processing of the 'Tick' event after the synchronous agent-interaction has finished. Key to this is the function \textit{continueWithAfter} which we already shortly introduced through \textit{generalEventHandler}. This function takes an MSF which returns an output b and an optional MSF. If this optional Maybe MSF is Just then the \textit{next} input is handled by this new MSF. In case no new MSF is returned (Nothing), the MSF will stay the same. This is a more specialised version of the \textit{switch} combinator introduced in Chapter \ref{sec:back_frp} in the way that it doesn't need an additional function to produce the actual MSF continuation. Note that the semantics are different though: whereas \textit{continueWithAfter} only applies the new MSF in the \textit{next} step, \textit{switch} runs the new MSF immediately. The implementation of the function is as follows:
+The way to implement this is to allow an agent to be able to change its internal event-handling state: to switch into different event-handlers, after having sent an event, to be able to react to the incoming reply in a specific way by encapsulating local state for the current synchronous interaction through closures and currying. Further, by making use of continuations the agent can pick up the processing of the \textit{Tick} event after the synchronous agent interaction has finished. Key to this is the function \textit{continueWithAfter} which we already shortly introduced through \textit{generalEventHandler}. This function takes an MSF which returns an output of type \textit{b} and an optional MSF. If this optional \textit{Maybe} MSF is \textit{Just} then the \textit{next} input is handled by this new MSF. In case no new MSF is returned (\textit{Nothing}), the MSF will stay the same. This is a more specialised version of the \textit{switch} combinator introduced in Chapter \ref{sec:back_frp} in the way that it doesn't need an additional function to produce the actual MSF continuation. Note that the semantics are different though: whereas \textit{switch} runs the new MSF immediately, \textit{continueWithAfter} only applies the new MSF in the \textit{next} step. The implementation of the function is as follows:
 
 \begin{HaskellCode}
 continueWithAfter :: Monad m => MSF m a (b, Maybe (MSF m a b)) -> MSF m a b
@@ -20,22 +20,29 @@ continueWithAfter msf = MSF (\a -> do
   return (b, msfNext))
 \end{HaskellCode}
 
-We can now look at the Tick handling function. It returns a Maybe (EventHandler g) which if is Just will result in to a change of the top-level event handler through \textit{continueWithAfter} as shown in \textit{generalEventHandler} above. Note the use of continuations in the case of \textit{agentMating, agentTrade, agentLoan}. All these functions return a Maybe (EventHandler g) because all of them can potentially result in synchronous agent-interactions which require to change the top-level event handler. When calling \textit{agentDisease} we are passing a default continuation which simply switches back into \textit{generalEventHandler} to finish the processing of a Tick in an agent.
+Finally, we can discuss the \textit{Tick} handling function. It returns a value of type \textit{Maybe (EventHandler g)} which if is \textit{Just} will result in to a change of the top-level event handler through \textit{continueWithAfter} as shown in \textit{generalEventHandler} above. Note the use of continuations in the case of \textit{agentMating, agentTrade} and  \textit{agentLoan}. All these functions return a \textit{Maybe (EventHandler g)} because all of them can potentially result in synchronous agent interactions which require to change the top-level event handler. The function \textit{agentDisease} is the last in the chain of agent behaviour, thus we are passing a default continuation which simply switches back into \textit{generalEventHandler} to finish the processing of a \textit{Tick} in an agent.
 
 \begin{HaskellCode}
 handleTick :: RandomGen g => DTime -> AgentLocalMonad g (Maybe (EventHandler g))
 handleTick dt = do
+  -- perform ageing of agent
   agentAgeing dt
-  
+  -- agent move, returns amount it of resources it harvested
   harvestAmount <- agentMove
-  metabAmount   <- agentMetabolism
+  -- metabolise resources, depending on agents metabolism rate
+  -- returns amount metabolised
+  metabAmount <- agentMetabolism
+  -- polute environment given harvest and metabolism amount
   agentPolute harvestAmount metabAmount
 
+  -- check if agent has starved to death or died of age
   ifThenElseM
     (starvedToDeath `orM` dieOfAge)
     (do
+      -- died of age or starved to deat: remove from simulation
       agentDies agentMsf
       return Nothing) 
+    -- still alive, perform the remaining steps of the behaviour
     -- pass agentContAfterMating as continuation to pick up after mating
     -- synchronous conversations have finished
     (agentMating agentMsf agentContAfterMating)

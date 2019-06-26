@@ -95,7 +95,6 @@ With the generic concepts now established, we show how to parametrise them to th
 
 \begin{HaskellCode}
 data SIRState = Susceptible | Infected | Recovered
-  
 data SIREvent = MakeContact | Contact AgentId SIRState | Recover 
 \end{HaskellCode}
 
@@ -258,7 +257,7 @@ scheduleRecovery delta = do
   schedEvent Recover ai dt
 \end{HaskellCode}
 
-What we are missing is a \textit{pure} interpreter for the agent implementation and the \textit{MonadAgent} typeclass. We start by defining a \textit{newtype}, which basically is a conceptually similar Monad stack as in the original implementation without the \textit{tagless final} approach. We let Haskell automatically derive monadic typeclasses, Functor, Applicative and Monad instances which saves a lot of boiler plate code, for which the \textit{GeneralizedNewtypeDeriving} language extension is required. Note that there is no \textit{Rand} Monad any more, as we emulate similar behaviour using \textit{SimState} which carries the random-number generator.
+What we are missing is a \textit{pure} interpreter for the agent implementation and the \textit{MonadAgent} typeclass. We start by defining a \textit{newtype}, which basically is a conceptually similar Monad stack as in the original implementation without the \textit{tagless final} approach. We let Haskell automatically derive monadic typeclasses, Functor, Applicative and Monad instances which saves a lot of boiler plate code, for which the \textit{GeneralizedNewtypeDeriving} language extension is required. Instead of the \textit{Rand} Monad, a \textit{StateT SimState} is used, which carries the random-number generator and other data  for synchronous agent-interactions as discussed in the advanced section. 
 
 \begin{HaskellCode}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -273,7 +272,7 @@ newtype SIRAgentPure a = SIRAgentPure
             MonadState SimState)
 \end{HaskellCode}
 
-Having this \textit{newtype} we can now write a \textit{pure} interpreter for the \textit{MonadAgent}. The implementations are straight forward and should be self explanatory.
+Having this \textit{newtype} we can now write a \textit{pure} interpreter for the \textit{MonadAgent}. The implementations are straight forward and should be self explanatory. To run \textit{Rand} Monad actions, the function \textit{runRandWithSimState} is used, which extracts the random-number generator from \textit{SimState}, runs the action and puts the changed random-number generator back into the \textit{SimState}.
 
 \begin{HaskellCode}   
 {-# LANGUAGE FlexibleContexts           #-}

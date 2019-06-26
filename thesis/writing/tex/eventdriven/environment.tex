@@ -1,0 +1,46 @@
+\subsection{Shared mutable pro-active environment}
+In many agent-based models, agents are placed on a discrete 2D grid environment and can move around and interact with the environment. Often, there also exist specific constraints, for example that each position can only be occupied by one agent at most. This requires specific iteration semantics, which make it impossible that two agents end up at the same time on the same spot. In general, such models solve this problem by using the sequential-strategy as described in Chapter \ref{sec:seq_strategy}, where agents are run in random order, one after another. This allows the agents to access the globally shared, mutable environment exclusively when its their turn and interact and change it without the danger of other agents interfering.
+
+To implement a shared mutable and pro-active environment, first we define a generic discrete 2D grid environment, with polymorphic cells. The selection of the right data-structure is crucial. Initially we used an \textit{IArray} from the array package. This data-structure has excellent read performance but in performance tests we experienced serious performance and memory leak issues with updates, leading to allocation of about 40 MByte / second on our machine. Clearly this is unacceptable for simulation purposes, which often requires software to run for hours, and thus needs a constant memory consumption and must prevent even slowly linearly increasing memory usage under all costs. The solution was to switch to \textit{IntMap} from the containers package as an underlying data-structure. We used the discrete 2D coordinates to map the environment cells to a unique index. This solved both the performance and memory leak issues completely.
+
+\begin{HaskellCode}
+type Discrete2dCell c = (Discrete2dCoord, c)
+type Discrete2d c     = Map.IntMap (Discrete2dCell c)
+\end{HaskellCode}
+
+Having introduced the \textit{AgentMSF} and fixed the \textit{AgentMonad} with the \textit{StateT ABSState} as innermost Monad, adding a globally shared, mutable environment is straight forward. The solution is to simply add another \textit{StateT} transformer with the given environment as type. Below, we give the parametrised definition as in the Sugarscape implementation. Note that Sugarscape closes the Monad stack with the \textit{Rand} Monad as stochastics play an important role in the Sugarscape model as well. Therefore, a full expansion of the Monad stack used in Sugarscape is  \textit{StateT ABState (StateT SugEnvironment (Rand g))}.
+
+\begin{HaskellCode}
+data SugEnvSite = SugEnvSite 
+  { sugEnvSiteSugarCapacity :: Double
+  , sugEnvSiteSugarLevel    :: Double
+
+  , sugEnvSiteSpiceCapacity :: Double
+  , sugEnvSiteSpiceLevel    :: Double
+
+  , sugEnvSitePolutionLevel :: Double
+  , sugEnvSiteOccupier      :: Maybe SugEnvSiteOccupier
+  }
+  
+data SugEnvSiteOccupier = SugEnvSiteOccupier 
+  { sugEnvOccId :: AgentId
+  ...
+  }
+
+type SugEnvironment  = Discrete2d SugEnvSite
+type SugAgentMonad g = AgentMonad (StateT SugEnvironment (Rand g))
+\end{HaskellCode}
+
+When implementing pro-activity of the environment, we must make a clear distinction between the environments data structure, how agents access it and the environments behaviour. In the Sugarscape model, the behaviour of the environment is quite trivial: it simply regrows resources over time and diffuses pollution in case pollution is turned on. This behaviour is achieved by providing a pure function without any monadic context or MSF. This is not necessary because the environment how we implement it, does not encapsulate local state and it does not interact with agents through messages and vice versa. Thus a pure function which maps the environment to the environment is enough: \textit{Time $\rightarrow$ SugEnvironment $\rightarrow$ SugEnvironment}. Further it also takes the current simulation time so it can implement seasons, where the speed of regrowth of resources is different in different regions and swaps after some time. This function is called in the simulation kernel after every \textit{Tick}.
+
+Generally, one can distinguish between four different types of environments in ABS:
+
+\begin{enumerate}
+	\item \textit{Passive read-only} - implemented in Chapter \ref{sec:adding_env}, where the environment itself is not modelled as an active process and is static information, e.g. a list of neighbours, passed to each agent. The agents cannot change the environment actively - in the case of Chapter \ref{sec:adding_env} this is enforced at compile time by simply making it read only, as input to the agent but not adding it to the output type of an agent. Note the agents change the environment implicitly by changing their state but there is no notion of an active environment process.
+	
+	\item \textit{Passive read/write} - The environment is just shared data, which can be accessed and manipulated by the agents. Note that this forces some arbitration mechanism to prevent conflicting updates e.g. running the agents sequentially one after the other, to ensure that only one agent has access at a time.
+	
+	\item \textit{Active read/write} - as implemented above. To make it active a pure function is used where the environment data is owned by the simulation kernel and then made available to the agents through a \textit{State} Monad. Another approach would be to implement the environment process as an agent, which is run together with all the other agents. This allows the environment to send and receive messages but the guarantees about when the environment will be run is lost if agents are run sequentially in random order.
+	
+	\item \textit{Active read-only} - can be implemented as above but instead of providing the environment data through a \textit{State} Monad, a \textit{Reader} Monad is used. The environment data is owned by the Simulation kernel and the process runs as a pure function as before but the data is provided in a read-only way through the \textit{Reader} Monad. Note that the same can also be achieved by passing it as input only to the agent as was done in Chapter \ref{sec:adding_env}.
+\end{enumerate}

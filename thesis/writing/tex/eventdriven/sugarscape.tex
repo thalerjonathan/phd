@@ -1,0 +1,21 @@
+\subsection{An event-driven Sugarscape}
+The event-driven approach of Sugarscape alters slightly from the event-driven SIR, discussed before. In the SIR, the dynamics are driven by the pro-activity of the agents through the \textit{MakeContact} and \textit{Recover} events, which the agents (re-)schedule to themselves and thus drive time and the dynamics forward as a group without central authority. In Sugarscape, the semantics of the model are different, where in each time-step simply all agents are executed in random order where they perform their actions and interact with each other. Time is advanced discretely, in natural numbers, centrally through the simulation kernel, by scheduling a \textit{Tick} event to each of the agents in random order. Thus, events have no associated time-stamp as there is no need for scheduling of events into the future. Indeed, beside the simulation kernel-specific \textit{Tick} event, the model-specific events in Sugarscape are used solely for the purpose of agent interactions as will be discussed below. This follows the same approach of the event-driven SIR, where agent interactions between susceptible and infected are implemented by scheduling events with a time-delay of 0. The Sugarscape implementation follows the same idea but does that without the use of time-delays: model specific events are scheduled immediately within the same \textit{Tick} event.
+
+The polymorphic event definition in Sugarscape is thus split into two parts: \textit{Tick}, which is scheduled by the simulation kernel and indicates to the agent the start of a new time-step; \textit{DomainEvent}, which is scheduled by other agents to a specific receiver within a given \textit{Tick} and received by the target agent within the same \textit{Tick}. The \textit{Tick} event carries the time-delta between steps to avoid the necessity of hard-coding it into the agent; \textit{DomainEvent} also carries the sender of the event, to support easy replying to events and avoids the need to add the sender to the actual event type as was done in the event-driven SIR. Due to the discrete time semantics of Sugarscape, where time is advanced in natural numbered steps, time and time-delta between steps are represented both as \textit{Int}.
+
+\begin{HaskellCode}
+type Time       = Int
+type DTime      = Int
+type AgentId    = Int
+data ABSEvent e = Tick DTime 
+                | DomainEvent AgentId e
+\end{HaskellCode}
+
+The fact that Sugarscape schedules event without time-stamps has also implications for the simulation kernel, which does not require a priority queue. Although the Sugarscape kernel also keeps track of the agents using an \textit{IntMap} for the agent mappings, it uses a list to keep track of the events. Processing of events is implemented in the pure function \textit{processEvents}, which takes the \textit{EventList}, the simulation state, which contains the agent mappings amongst others, and returns the new simulation state as soon as the event list is empty, indicating that all events in the current \textit{Tick} have been processed.
+
+\begin{HaskellCode}
+type EventList e = [(AgentId, ABSEvent e)] -- (receiver, ABSEvent)
+processEvents :: EventList e -> SimulationState g -> SimulationState g
+\end{HaskellCode}
+
+The function extracts the event at the front of the \textit{EventList}. In case the list is empty it returns the simulation state unchanged otherwise looks up the receiver and runs it with the given event. Newly scheduled events of the receiver are prepended at the front of the \textit{EventList} through a recursive call. The initial \textit{EventList} passed to \textit{processEvents} is a list with \textit{Tick} events scheduled for every agent, in random order. It is important to understand that the events an agent emits, are prepended to the front of the \textit{EventList}. This ensures that those events are processed next, which is of utmost importance for a correct working of the direct agent interactions discussed below. This also implies that \textit{processEvents} is a potentially non-terminating function, in case there is at least one agent which produces at least one event for every event it receives.

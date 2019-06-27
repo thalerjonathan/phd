@@ -6,7 +6,7 @@ module SIR.Agent
   ( sirAgent
   ) where
 
-import Control.Monad
+-- import Control.Monad
 import Control.Monad.Trans.MSF.Except
 import Data.MonadicStreamFunction
 
@@ -55,71 +55,71 @@ susceptibleAgent cor inf ild =
         Nothing -> returnA -< (Susceptible, ret)
         _       -> returnA -< (Infected, ret)
 
-    handleEvent :: MonadAgent SIREvent m
-                => SIREvent 
-                -> m (Maybe ())
-    handleEvent (Contact _ Infected) = do
-      r <- randomBool inf
-      if r 
-        then do
-          scheduleRecoveryM ild
-          return $ Just ()
-        else return Nothing
-
-    handleEvent MakeContact = do
-      ais       <- getAgentIds
-      receivers <- forM [1..cor] (const $ randomElem ais)
-      mapM_ makeContactWith receivers
-      scheduleMakeContactM
-      return Nothing
+    -- handleEvent :: MonadAgent SIREvent m
+    --             => SIREvent 
+    --             -> m (Maybe ())
+    -- handleEvent (Contact _ Infected) = do
+    --   r <- randomBool inf
+    --   if r 
+    --     then do
+    --       scheduleRecoveryM ild
+    --       return $ Just ()
+    --     else return Nothing
 
     -- handleEvent MakeContact = do
-    --   ais        <- getAgentIds
-    --   ai         <- getMyId
-    --   isInfected <- makeContact cor ai ais
-    --   if isInfected
-    --     then return $ Just ()
-    --     else do
-    --       scheduleMakeContactM
-    --       return Nothing
+    --   ais       <- getAgentIds
+    --   receivers <- forM [1..cor] (const $ randomElem ais)
+    --   mapM_ makeContactWith receivers
+    --   scheduleMakeContactM
+    --   return Nothing
+
+    -- makeContactWith :: MonadAgent SIREvent m => AgentId -> m ()
+    -- makeContactWith receiver = do
+    --   ai <- getMyId
+    --   schedEvent (Contact ai Susceptible) receiver 0
+
+    handleEvent MakeContact = do
+      ais        <- getAgentIds
+      ai         <- getMyId
+      isInfected <- makeContact cor ai ais
+      if isInfected
+        then return $ Just ()
+        else do
+          scheduleMakeContactM
+          return Nothing
 
     handleEvent _ = return Nothing
 
-    makeContactWith :: MonadAgent SIREvent m => AgentId -> m ()
+    makeContact :: MonadAgent SIREvent m => Int -> AgentId -> [AgentId] -> m Bool
+    makeContact 0 _ _ = return False
+    makeContact n ai ais = do
+      receiver <- randomElem ais
+      if ai == receiver
+        then makeContact (n-1) ai ais
+        else do
+          ret <- makeContactWith receiver
+          if ret
+            then return True
+            else makeContact (n-1) ai ais
+
+    makeContactWith :: MonadAgent SIREvent m => AgentId -> m Bool
     makeContactWith receiver = do
-      ai <- getMyId
-      schedEvent (Contact ai Susceptible) receiver 0
+      ai     <- getMyId
+      retMay <- sendSync (Contact ai Susceptible) receiver
 
-    -- makeContact :: MonadAgent SIREvent m => Int -> AgentId -> [AgentId] -> m Bool
-    -- makeContact 0 _ _ = return False
-    -- makeContact n ai ais = do
-    --   receiver <- randomElem ais
-    --   if ai == receiver
-    --     then makeContact (n-1) ai ais
-    --     else do
-    --       ret <- makeContactWith receiver
-    --       if ret
-    --         then return True
-    --         else makeContact (n-1) ai ais
-
-    -- makeContactWith :: MonadAgent SIREvent m => AgentId -> m Bool
-    -- makeContactWith receiver = do
-    --   ai     <- getMyId
-    --   retMay <- sendSync receiver (Contact ai Susceptible)
-
-    --   case retMay of 
-    --     Nothing -> return False
-    --     (Just es) -> do
-    --       let fromInf = any (\(Contact _ s) -> s == Infected) es
-    --       if not fromInf
-    --         then return False
-    --         else do
-    --           r <- randomBool inf
-    --           if r 
-    --             then do
-    --               scheduleRecoveryM ild
-    --               return True
-    --             else return False
+      case retMay of 
+        Nothing -> return False
+        (Just es) -> do
+          let fromInf = any (\(Contact _ s) -> s == Infected) es
+          if not fromInf
+            then return False
+            else do
+              r <- randomBool inf
+              if r 
+                then do
+                  scheduleRecoveryM ild
+                  return True
+                else return False
 
 infectedAgent :: MonadAgent SIREvent m => MSF m SIREvent SIRState
 infectedAgent = 

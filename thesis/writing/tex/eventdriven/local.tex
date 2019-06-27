@@ -1,5 +1,5 @@
 \subsection{Agent-local abstractions}
-After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before, we can parametrise the \textit{AgentMSF} we need to define model specific data definitions for the event type \textit{e} and the output type \textit{o}. Thus, we define the event type \textit{SugEvent}, which defines all event types of Sugarscape and the output type \textit{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation purposes or exporting to a file. 
+After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \textit{AgentMSF} we need to define model specific data definitions for the event type \textit{e} and the output type \textit{o}. Thus, we define the event type \textit{SugEvent}, which defines all event types of Sugarscape and the output type \textit{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation purposes or exporting to a file. 
 
 \begin{HaskellCode}
 data SugEvent = MatingRequest AgentGender
@@ -51,7 +51,7 @@ To implement the local encapsulation of the agents' state is straight forward wi
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g
-sugarscapeAgent scenario aid s0 = feedback s0 (proc (evt, s) -> do ... )
+sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do ... )
 \end{HaskellCode}
 
 Before we can move on to write a function handling incoming events, we need to define the \textit{agent-local} Monad stack. The event handler must be able to manipulate the agent-local state we just encapsulated through \textit{feedback}, support reading the unique agent id and model scenario and scheduling of events.
@@ -83,10 +83,10 @@ To run the handler, which has an extended monadic context within the \textit{Sug
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g
-sugarscapeAgent params aid s0 = feedback s0 (proc (evt, s) -> do
+sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do
   (s', (ao', _)) <- runStateS 
                       (runReaderS 
-                        (runWriterS generalEventHandler)) -< (s, ((params, aid), evt))
+                        (runWriterS generalEventHandler)) -< (s, ((scen, aid), evt))
   let obs = sugObservableFromState s
   returnA -< ((ao', obs), s'))
 
@@ -164,17 +164,17 @@ handleMatingRequest sender otherGender = do
   sendEventTo sender (MatingReply acc)
 \end{HaskellCode}
 
-Finally we have a look at how to actually run an agents' MSF using the function \textit{runAgentSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in 5 arguments and get a 6-tuple as result but this is the price we have to pay for pure functional programming: everything is explicit, with all its benefits and drawbacks.
+Finally we have a look at how to actually run an agents' MSF using the function \textit{runAgentMSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in 5 arguments and get a 6-tuple as result but this is the price we have to pay for pure functional programming: everything is explicit, with all its benefits and drawbacks.
 
 \begin{HaskellCode}
-runAgentSF :: RandomGen g        -- ^ RandomGen typeclass, g is a random-number generator
-           => SugAgentMSF g      -- ^ The agents MSF to run.
-           -> ABSEvent SugEvent  -- ^ The event it receives.
-           -> ABSState           -- ^ The ABSState (next agent id and current time)
-           -> SugEnvironment     -- ^ The environment state
-           -> g                  -- ^ The random-number generator
-           -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
-runAgentSF msf evt absState env g = (ao, obs, msf', absState', env', g') 
+runAgentMSF :: RandomGen g        -- ^ RandomGen typeclass, g is a random-number generator
+            => SugAgentMSF g      -- ^ The agents MSF to run.
+            -> ABSEvent SugEvent  -- ^ The event it receives.
+            -> ABSState           -- ^ The ABSState (next agent id and current time)
+            -> SugEnvironment     -- ^ The environment state
+            -> g                  -- ^ The random-number generator
+            -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
+runAgentMSF msf evt absState env g = (ao, obs, msf', absState', env', g') 
   where
     -- extract the monadic function to run
     msfAbsState = unMSF msf evt

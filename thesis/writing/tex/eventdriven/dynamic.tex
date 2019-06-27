@@ -11,7 +11,7 @@ data AgentOut m e o = AgentOut
 
 Note that \textit{AgentOut} contains already the list of scheduled events, which makes it clear that scheduling of events in this approach is implemented different than in the event-driven SIR, where the agents Monad stack had a \textit{WriterT} to write events to. The reason for that is that we treat agent-local abstractions different here because of the need to encapsulate local agent state as explained in subsequent sections.
 
-If the agent wants to remove itself from the simulation, it simply sets \textit{aoKill} to True; it it wants to create new agents it adds an agent definition \textit{AgentDef} to the \textit{aoCreate} list. The agent definition \textit{AgentDef} holds the new id of the agent (note that an agent-controlled id makes it possible to re-use ids in case an agent dies and in case ids have no other purposes than identifying event receivers in a model), the MSF of the agent to create and the initial output of the new agent, so it has a representation in the visual or textual output.
+If the agent wants to remove itself from the simulation, it simply sets \textit{aoKill} to True; if it wants to create new agents it adds an agent definition \textit{AgentDef} to the \textit{aoCreate} list. The agent definition \textit{AgentDef} holds the new id of the agent \footnote{Note that an agent-controlled id makes it possible to re-use ids in case an agent dies and in case ids have no other purposes than identifying event receivers in a model}, the MSF of the agent to create and the initial output of the new agent, so it has a representation in the visual or textual output for the current step without the need to run the new agent.
 
 \begin{HaskellCode}
 data AgentDef m e o = AgentDef
@@ -33,7 +33,7 @@ To make it \textit{globally} available to all agents a \textit{StateT ABSState} 
 type AgentMonad m = StateT ABSState m
 \end{HaskellCode}
 
-Finally, we can define the polymorphic type of the agent MSF, as it is used in Sugarscape, where it is parametrised with model specific types (see next sections). It is similar to the event-driven SIR, where the agent takes the \textit{ABSEvent} as input but the output is now a tuple of \textit{AgentOut} and the polymorphic agent output type \textit{o}. The reason why the output type \textit{o} is not part of \textit{AgentOut} is to keep \textit{AgentOut} a Monoid, which allows accumulative / iterative change to \textit{AgentOut}, which is important for scheduling events, as explained in the agent-local abstractions below.
+Finally, we can define the polymorphic type of the agent MSF, as it is used in Sugarscape, where it is parametrised with model specific types (see next sections). It is similar to the event-driven SIR, where the agent takes the \textit{ABSEvent} as input but the output is now a tuple of \textit{AgentOut} and the polymorphic agent output type \textit{o}. The reason why the output type \textit{o} is not part of \textit{AgentOut} is to keep \textit{AgentOut} a Monoid, which allows accumulative / iterative change to \textit{AgentOut}, which is important for creating new agents and scheduling events, as explained in the agent-local abstractions below.
 
 \begin{HaskellCode}
 type AgentMSF m e o = MSF (AgentMonad m) (ABSEvent e) (AgentOut m e o, o)

@@ -71,17 +71,16 @@ defaultCont = return (Just generalEventHandler)
 \subsubsection{Tagless final}
 Although the indirect, continuation based approach to synchronous agent interactions as shown before works, it is quite cumbersome, fragile and it is easy to get something wrong. What would be more desirable is to have a truly synchronous approach, where the reply to an event happens directly as a result of the \textit{sendEventTo} function: when calling \textit{sendEventTo}, behind the scenes the receiving agent is executed and the result is returned directly to the caller, without any indirections. With the \textit{tagless final} approach as introduced in the event-driven SIR above, this becomes possible in an elegant and robust way. We have developed this concept for the event-driven SIR only. Still, it should be equally applicable for the Sugarscape but we leave that for further research.
 
-We start by extending the API defined in the typeclass by one method:
+We start by extending the API by defining a \textit{new} typeclass \textit{MonadAgentSync}:
 
 \begin{HaskellCode}
-class Monad m => MonadAgent e m | m -> e where
-  ...
+class Monad m => MonadAgentSync e m | m -> e where
   sendSync :: e -> AgentId -> m (Maybe [e])
 \end{HaskellCode}
 
-The semantics behind this method shall be that it allows to send an event of type \textit{e} to agent with id \textit{AgentId}. If the agent cannot be found it will return \textit{Nothing}, otherwise it will return \textit{Just} the list of events the receiving agent replies to the sending agent. 
+The semantics behind the \textit{sendSync} method shall be that it allows to send an event of type \textit{e} to agent with id \textit{AgentId}. If the agent cannot be found it will return \textit{Nothing}, otherwise it will return \textit{Just} the list of events the receiving agent replies to the sending agent. 
 
-The only place which has to be changed is the susceptible agent but due to the different semantics parts of it behaviour needs to be rewritten. The receiving agents are left unchanged as at the moment a receiver has no means to distinguish between asynchronous and synchronous events and is not forced to reply to the sender in case of a synchronous event. It would be useful to have some mechanism that in case of a synchronous event, the receiver can only reply to the sender. We leave that issue for further research.
+The only place which has to be changed is the susceptible agent but due to the different semantics, parts of its behaviour needs to be rewritten. The receiving agents are left unchanged as at the moment a receiver has no means to distinguish between asynchronous and synchronous events and is not forced to reply to the sender in case of a synchronous event. It would be useful to have some mechanism that in case of a synchronous event, the receiver can only reply to the sender. We leave that issue for further research.
 
 Handling an incoming \textit{Contact} from an \textit{Infected} is no longer necessary as it won't happen, because the interactions go directly through \textit{sendSync} and infected agents don't make contact pro-actively. Thus, the \textit{MakeContact} handler has to be changed to take into account that the infection can happen directly there:
 
@@ -102,7 +101,7 @@ handleEvent MakeContact = do
 The function \textit{makeContact} recursively \textit{makeContactWith} $\beta$ (contact rate) other agents. Whereas previously, sending a \textit{Contact} event to itself was not a problem, this is not allowed any more and must be prevented explicitly. The reason for that is discussed below in the implementation of the \textit{sendSync} method of the pure interpreter. Note that sending to itself counts against the $\beta$ contacts, as it would make no difference: receiving a \textit{Contact} from a \textit{Susceptible} has no effect on a susceptible agent anyway. If the case arises in a model that agents need to send events to themselves, it cannot happen through mechanisms like \textit{sendSync} but it has to go through asynchronous scheduling of events which decouples the sending from the receiving.
 
 \begin{HaskellCode}
-makeContact :: MonadAgent SIREvent m 
+makeContact :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m)
             => Int       -- ^ number of contacts to make
             -> AgentId   -- ^ sender agent id
             -> [AgentId] -- ^ all agent ids (including self)
@@ -124,12 +123,14 @@ makeContact n ai ais = do
         else makeContact (n-1) ai ais
 \end{HaskellCode}
 
-Finally we can use \textit{sendSync} to directly send events to a receiving agent, which replies with a list of events to the sender.
+Finally we can use \textit{sendSync} to directly send events to a receiving agent, which replies with a list of events to the sender. Note that we needed to add the new \textit{MonadAgentSync} typeclass to the overloaded function, to make the \textit{sendSync} method available.
 
 \begin{HaskellCode}
-makeContactWith :: MonadAgent SIREvent m => AgentId -> m Bool
+makeContactWith :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m) 
+                => AgentId -> m Bool
 makeContactWith receiver = do
   ai     <- getMyId
+  -- DIRECT SYNCHRONOUS AGENT INTERACTION HAPPENS HERE
   retMay <- sendSync (Contact ai Susceptible) receiver
   case retMay of 
     -- receiver not found, no infection
@@ -152,8 +153,8 @@ makeContactWith receiver = do
             else return False
 \end{HaskellCode}
 
-The \textit{sendSync} method implementation involves many technical details which we don't discuss here but focus only on it conceptually. Basically, the method simply looks up the receiving agent, runs it with the given event of the sender and filters the replies to the sending agent. Obviously, to do that, the method needs to have all agents available to actually execute them. This is achieved by keeping the agent mappings in the \textit{SimState}, introduced in the initial section on \textit{tagless final} of the event-driven SIR. They are managed using a \textit{State} Monad, thus can be read and written, which both is necessary as after a successful run of the receiving agent, its new MSF needs to be put back into the agent mappings.
+The \textit{sendSync} method needs to be implemented in a new \textit{pure} interpreter, which follows exactly the same concept as before so we briefly discuss it conceptually. The method looks up the receiving agent, runs it with the given event of the sender and filters the replies to the sending agent. To do that, the method needs to have all agents available to actually execute them. This is achieved by keeping the agent mappings in the \textit{SimState}, introduced in the initial section on \textit{tagless final} of the event-driven SIR. They are managed using a \textit{State} Monad, thus can be read and written, which both is necessary as after a successful run of the receiving agent, its new MSF needs to be put back into the agent mappings.
 
 Now it becomes clear why an agent cannot send an event with \textit{sendSync} to itself and why circular (agent A sendSync to agent B sendSync to agent C sendSync to agent A) \textit{sendSync} are also not allowed. The new MSF of an agent which was just run and updated in the \textit{SimState} will be overridden by the subsequent updates of runs which were initiated earlier. Fortunately, this can be conveniently checked within the \textit{sendSync} method and an error or exception can be generated which is better than silently ignoring it, resulting in unexpected behaviour. It is possible because the initiating agents id is always known and because it is easy to keep track of the agent ids currently engaged in a \textit{sendSync} by storing their ids in the \textit{SimState}, thus arriving at some kind of call stack management.
 
-Although the very direct \textit{tagless final} agent interaction approach makes things under certain circumstances easier, it comes also with subtle drawbacks, thus it depends on the model semantics which approach to synchronous agent interactions should be chosen. Still we think that this approach is another demonstration of the usefulness of a \textit{tagless final} approach and we leave it for further research to explore this kind of direct synchronous agent interactions more in-depth.
+Although the very direct \textit{tagless final} agent interaction approach makes things under certain circumstances easier, it comes also with subtle drawbacks, thus it depends on the model semantics which approach to synchronous agent interactions should be chosen. Still we think that this approach is another demonstration of the usefulness of a \textit{tagless final} approach: we have shown how to extend the existing API with new operations without breaking the existing implementation. Also we think that we only scratched the surface with this approach of direct synchronous agent interactions but we leave a more in-depth exploration of it for further research.

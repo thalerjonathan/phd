@@ -14,4 +14,6 @@ class Monad m => MonadAgent e m | m -> e where
   getTime     :: m Time
   getMyId     :: m AgentId
   schedEvent  :: e -> AgentId -> Double -> m ()
-  sendSync    :: e -> AgentId -> m (Maybe [e])
+
+class Monad m => MonadAgentSync e m | m -> e where
+  sendSync :: e -> AgentId -> m (Maybe [e])

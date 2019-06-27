@@ -1,5 +1,5 @@
 \subsection{Agent-local abstractions}
-After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \textit{AgentMSF} we need to define model specific data definitions for the event type \textit{e} and the output type \textit{o}. Thus, we define the event type \textit{SugEvent}, which defines all event types of Sugarscape and the output type \textit{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation purposes or exporting to a file. 
+After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \textit{AgentMSF} we need to define model specific data definitions for the event type \textit{e} and the output type \textit{o}. Thus, we define the event type \textit{SugEvent}, which defines all event types of Sugarscape and the output type \textit{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation or exporting purposes. 
 
 \begin{HaskellCode}
 data SugEvent = MatingRequest AgentGender
@@ -25,9 +25,8 @@ Next, we define the type of the top-level agent behaviour function. We want to m
 
 \begin{HaskellCode}
 data SugarScapeScenario = SugarScapeScenario 
-  { sgScenarioName        :: String
-  , sgAgentCount          :: Int
-  , spSugarEndowmentRange :: (Int, Int)
+  { sgScenarioName    :: String
+  , sgPollutionActive :: Bool
   ...
   }
 
@@ -39,15 +38,15 @@ data SugAgentState = SugAgentState
   }
   
 type SugarScapeAgent g 
-  = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
+       = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 \end{HaskellCode}
 
-Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \textit{IO} monadic context anywhere in our type definitions and we can also guarantee that it won't get sneaked in: the transformer-stack of the agents MSF is terminated through the \textit{Rand} monad - it is simply not possible to add other layers. 
+Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \textit{IO} monadic context anywhere in our type definitions and we can also guarantee that it won't get sneaked in. The transformer stack of the agents MSF is terminated through the \textit{Rand} Monad thus it is simply not possible to add other layers. 
 
-An agent is fully represented by a top level \textit{SugarScapeAgent} function, which encapsulates the whole agent-behaviour. We next look at how to define agent-local behaviour, which is hidden behind the \textit{SugarScapeAgent} function type: whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
+An agent is fully represented by a top level \textit{SugarScapeAgent} function, which encapsulates the whole agent behaviour. We next look at how to define agent-local behaviour, which is hidden behind the \textit{SugarScapeAgent} function type: whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
 
 \subsubsection{Agent-local state}
-To implement the local encapsulation of the agents' state is straight forward with MSFs as they are continuations, allowing them to capture local data using closures. Fortunately we don't need to implement the low-level plumbing, as Dunai provides us with a suitable function: \textit{feedback :: Monad m $\Rightarrow$ c $\rightarrow$ MSF m (a, c) (b, c) $\rightarrow$ MSF m a b}. It takes an initial value of type \textit{c} and an MSF which takes in addition to its input \textit{a} also the given type \textit{c} and outputs in addition to type \textit{b} also the type \textit{c}, which clearly indicates the read/write property of type \textit{c}. The function returns a new MSF which only operates on \textit{a} as input and returns \textit{b} as output by running the provided MSF and feeding back the \textit{c} (with the initial \textit{c} at the first call).
+To implement the local encapsulation of the agents' state is straight forward with MSFs as they are continuations, allowing them to capture local data using closures. Fortunately we do not need to implement the low-level plumbing, as Dunai provides us with a suitable function: \textit{feedback :: Monad m $\Rightarrow$ c $\rightarrow$ MSF m (a, c) (b, c) $\rightarrow$ MSF m a b}. It takes an initial value of type \textit{c} and an MSF which takes in addition to its input \textit{a} also the given type \textit{c} and outputs in addition to type \textit{b} also the type \textit{c}, which clearly indicates the read/write property of type \textit{c}. The function returns a new MSF which only operates on \textit{a} as input and returns \textit{b} as output by running the provided MSF and feeding back the \textit{c} (with the initial \textit{c} at the first call).
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g
@@ -79,7 +78,7 @@ Now we can define the MSF which handles an event. It has the \textit{AgentLocalM
 type EventHandler g = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
 \end{HaskellCode}
 
-To run the handler, which has an extended monadic context within the \textit{SugarScapeAgent} we make use of Dunais functionality which provides functions to run MSFs with additional monadic layers within MSFs, similar to the \textit{Control.Monad} approach. We use \textit{runStateS}, \textit{runReaderS} and \textit{runWriterS} (\textit{S} indicates the stream character) to run the \textit{generalEventHandler}, providing the initial values for the respective Monads: \textit{s} for the \textit{StateT}, \textit{(params, aid)} for the \textit{ReaderT} and the \textit{evt} as the input to the event handler. Note that \textit{WriterT} does not need an initial value, it will be provided through the \textit{Monoid} instance of \textit{AgentOut}.
+To run the handler, which has an extended monadic context within the \textit{SugarScapeAgent} we make use of Dunais functionality which provides functions to run MSFs with additional monadic layers within MSFs. We use \textit{runStateS}, \textit{runReaderS} and \textit{runWriterS} (\textit{S} indicates the stream character) to run the \textit{generalEventHandler}, providing the initial values for the respective Monads: \textit{s} for the \textit{StateT}, \textit{(params, aid)} for the \textit{ReaderT} and the \textit{evt} as the input to the event handler. Note that \textit{WriterT} does not need an initial value, it will be provided through the Monoid instance of \textit{AgentOut}.
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g
@@ -134,9 +133,9 @@ handleTick :: RandomGen g => DTime -> AgentLocalMonad g (Maybe (EventHandler g))
 handleMatingRequest :: AgentId -> AgentGender -> AgentLocalMonad g ()
 \end{HaskellCode}
 
-Note the use of \textit{continueWithAfter}, which is a customised version of the already known \textit{switch} combinator, as used in Chapter \ref{sec:timedriven_firststep}. It allows to swap out the event-handler for a different one, which is the foundation for the synchronous agent-interactions, as discussed in the sections below.
+Note the use of \textit{continueWithAfter}, which is a customised version of the already known \textit{switch} combinator. It allows to swap out the event-handler for a different one, which is the foundation for the synchronous agent interactions, as discussed in the sections below.
 
-To see how an event handler works, we provide the implementation of \textit{handleMatingRequest}. It is sent by an agent to its neighbours to request whether they want to mate with this agent. The handler receives the sender and the other agents gender (see \textit{generalEventHandler}) and replies with \textit{sendEventTo} which sends a \textit{MatingReply} event back to the sender. The function \textit{sendEventTo} operates on the \textit{WriterT} to append (using \textit{tell}) an event to the list of events this agent sends when handling this event. Note the use of \textit{agentProperty}, which reads the value of a given field of the local agent state. 
+To see how an event handler works, we provide the implementation of \textit{handleMatingRequest}. It is sent by an agent to its neighbours to request whether they want to mate with this agent. The handler receives the sender and the other agents gender and replies with \textit{sendEventTo} which sends a \textit{MatingReply} event back to the sender. The function \textit{sendEventTo} operates on the \textit{WriterT} to append (using \textit{tell}) an event to the list of events this agent sends when handling this event. Note the use of \textit{agentProperty}, which reads the value of a given field of the local agent state. 
 
 \begin{HaskellCode}
 handleMatingRequest :: AgentId
@@ -144,7 +143,7 @@ handleMatingRequest :: AgentId
                     -> AgentLocalMonad g ()
 handleMatingRequest sender otherGender = do
   -- check if the agent is able to accept the mating request: 
-  -- fertile, wealthy enough, different gender
+  -- fertile + wealthy enough + different gender
   accept <- acceptMatingRequest otherGender
 
   -- each parent provides half of its sugar-endowment for the new-born child

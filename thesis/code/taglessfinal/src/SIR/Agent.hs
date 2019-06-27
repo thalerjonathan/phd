@@ -17,7 +17,7 @@ makeContactInterval :: Double
 makeContactInterval = 1.0
 
 -- | A sir agent which is in one of three states
-sirAgent :: MonadAgent SIREvent m
+sirAgent :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m)
          => Int         -- ^ the contact rate
          -> Double      -- ^ the infectivity
          -> Double      -- ^ the illness duration
@@ -37,7 +37,7 @@ sirAgent _ _ _ Recovered =
 --------------------------------------------------------------------------------
 -- AGENTS
 --------------------------------------------------------------------------------
-susceptibleAgent :: MonadAgent SIREvent m
+susceptibleAgent :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m)
                  => Int
                  -> Double
                  -> Double
@@ -47,7 +47,7 @@ susceptibleAgent cor inf ild =
       susceptibleAgentInfected
       (const infectedAgent)
   where
-    susceptibleAgentInfected :: MonadAgent SIREvent m
+    susceptibleAgentInfected :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m) 
                              => MSF m SIREvent (SIRState, Maybe ()) 
     susceptibleAgentInfected = proc e -> do
       ret <- arrM handleEvent -< e
@@ -90,7 +90,8 @@ susceptibleAgent cor inf ild =
 
     handleEvent _ = return Nothing
 
-    makeContact :: MonadAgent SIREvent m => Int -> AgentId -> [AgentId] -> m Bool
+    makeContact :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m) 
+                => Int -> AgentId -> [AgentId] -> m Bool
     makeContact 0 _ _ = return False
     makeContact n ai ais = do
       receiver <- randomElem ais
@@ -102,7 +103,8 @@ susceptibleAgent cor inf ild =
             then return True
             else makeContact (n-1) ai ais
 
-    makeContactWith :: MonadAgent SIREvent m => AgentId -> m Bool
+    makeContactWith :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m) 
+                    => AgentId -> m Bool
     makeContactWith receiver = do
       ai     <- getMyId
       retMay <- sendSync (Contact ai Susceptible) receiver

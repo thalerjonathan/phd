@@ -1,5 +1,5 @@
 \section{Event-Driven specification}
-In this section we present how QuickCheck can be used to test event-driven agents by expressing their \textit{specification} as property-tests in the case of the event-driven SIR implementation from chapter \ref{sec:eventdriven_sir}.
+In this section we present how QuickCheck can be used to test event-driven agents by expressing their \textit{specification} as property-tests in the case of the event-driven SIR implementation from chapter \ref{sec:eventdriven_basics}.
 
 In general, testing event-driven agents is fundamentally different and more complex than testing time-driven agents, as their interface surface is generally much larger: events form the input to the agents to which they react with new events - the dependencies between those can be quite complex and deep. Using property-based tests we can encode the invariants and end up with an actual specification of their behaviour, acting as documentation, regression test within a TDD and property tests.
 

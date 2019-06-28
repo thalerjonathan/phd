@@ -199,6 +199,7 @@ instance MonadAgent SIREvent SIRAgentPure where
 
   getMyId = asks snd3
 
+instance MonadAgentSync SIREvent SIRAgentPure where
   -- NOTE: this schedules an event with dt = 0 to the receiver by running the 
   -- receiver and filtering the replies with dt = 0 to the sender
   sendSync evt receiverId = do
@@ -225,8 +226,14 @@ instance MonadAgent SIREvent SIRAgentPure where
         ss <- get
 
         -- IMPORTANT TODO
-        -- TODO: can we engage in multiple sendSync? e.g. can agent A sendSync to 
-        -- Agent B which sendSync to agent C?
+        -- Engageing in multiple sendSync e.g. agent A sendSync to 
+        -- Agent B which sendSync to agent C should work withouth problems BUT
+        -- it is not allowed to sendSync to an agent which is already part
+        -- of a sendSync "call stack": agent A sendSync -> agent B sendSync ->
+        -- sendSync agent C -> agent A.
+        -- This will result in wrong semantics: the last agent A will be
+        -- overridden by the results of the first agent A, which is (proably)
+        -- not what we want and (proably) results in erroneous / unexpected behaviour.
 
         -- get the receivers MSF by sending the event
         let receiverAct = unMSF aAct evt

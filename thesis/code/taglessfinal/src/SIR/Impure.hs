@@ -193,6 +193,7 @@ instance MonadAgent SIREvent SIRAgentImpure where
 
   getMyId = asks snd3
 
+instance MonadAgentSync SIREvent SIRAgentImpure where
   -- NOTE: this schedules an event with dt = 0 to the receiver by running the 
   -- receiver and filtering the replies with dt = 0 to the sender
   sendSync evt receiverId = do

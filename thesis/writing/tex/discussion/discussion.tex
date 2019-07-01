@@ -16,6 +16,12 @@ The conjecture was that by using Haskell, one can directly transfer the promises
 	\item The data-centric declarative style, referential transparency and immutability of data makes testing substantially easier due to composability: functions can be easily tested in isolation from each other even if they involve side-effects. This opens the door for (randomised) property-based testing which intuitively seemed to be a perfect match to test ABS implementations which are (almost) always stochastic in nature.
 \end{enumerate}
 
+TODO: add a "look back" part, where the whole thesis is re-visited a bit more in detail
+The central question which needed to be answered first was \textit{how} ABS could be done pure functionally, as there didn't exist any research which offered a systematic solution to that problem. More specifically, it was unclear how to represent agents, how to express agent identity, local agents state, changing behaviour and interactions amongst agents and the environment. After all, this is straightforward in object-oriented programming due to method calls and mutable shared state encapsulated in objects.
+% the answer
+The solution was to use arrowized FRP both in the pure implementation of Yampa and the monadic version as in the library Dunai. Building on top of them allowed us to implement pro-activity of agents, encapsulation of local agent state, an environment as shared mutable state and synchronous agent-interactions based on an event-driven approach. The central concept behind these approaches are Signal Functions (SF), generalised in Dunai to Monadic Stream Functions (MSF), which are implemented using closures and continuations, fundamental building blocks and concepts of pure functional programming. 
+
+
 We argue that the thesis has successfully demonstrated in the respective chapters that all promises successfully transfer to pure functional ABS implementations in a reasonable, robust and maintainable way. Below we discuss respective points more in-depth and give a holistic reflection and critique of our pure functional approach in general.
 
 \input{./tex/discussion/benefits.tex}

@@ -1,155 +1,63 @@
 \chapter{The structure of ABS computation}
+\epigraph{The purpose of abstraction is not to be vague, but to create a new semantic level in which one can be absolutely precise.}{Dijkstra, EWD340}
 \label{ch:structure_abs_computation}
 
-TODO UNFINISHED MANDATORY CHAPTER
+TODO: finish mandatory chapter; take discussion on "agents as objects" as structure for the whole chapter and fill in co-algebras and the various links to drive the point home that agents are objects but we need to think objects in a broader context.
 
-The purpose of abstraction is not to be vague, but to create a new semantic level in which one can be absolutely precise. - Dijkstra, EWD340
+\medskip
 
-generalising the structure of agent computation - with our case studies we explore them in a more practical / applied way and in this chapter we extract and distil the general concepts and abstractions behind agent computation: how can ABS, which is pure computation, can be seen structurally? This gives the ABS field for the first time a deeper understanding of the deeper structure of the computations behind agent-based simulation, which has so far always been more ad-hoc without a proper, more rigorous formulation. 
+After having given an answer to the question of \textit{how} ABS can be done pure functionally, we turn now to a more general discussion of the developed approach where we want to look at its underlying abstractions and re-visit the claim that \textit{agents map naturally to objects} \cite{north_managing_2007} to review it in the new light of our pure functional approach and its abstractions.
 
-pure functional computation with effects can be seen as computations over some data-structure where the data-structure defines the structure of the computation as well e.g. monoids, applicatives, monads, traversable, foldable
+\medskip
 
-Note that agent-based simulation is almost always entirely pure computation without the need for direct, synchronous user-interaction or impure IO. When IO is really needed we can keep purity by creating IO actions and pass them to the simulation kernel which executes them and communicates the result back if needed - in this case only the simulation kernel needs to run in IO monad but not the agents and the environment computations.
+The fundamental building blocks of our approach are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. \textit{Continuations} in turn, are functions which allow to encapsulate the execution state of a program by capturing local variables (known as closure) to pick up computation from that point later on by returning a new function.
 
-agentout as monoid with writer: solves the Problem of iteratively constructing it the output during an event.
-
-BUT: isnt our approach similar to the early days IO of Haskell with continuations? if this is the case we should be able to get the direct method style by writing an agent monad?
-
-NOTE: "And a closure is just a primitive form of object: the special case of an object with just one method." https://www.tedinski.com/2018/11/20/message-oriented-programming.html
-
-- this is still research which needs to be done by reading the papers below and reflecting  and understanding on co-monads and my implementations in general.
-
-- can we derive an agent-monad?
-
-https://www.javiercasas.com/articles/codata-in-action/
-
-- what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. stopped at comonad section, continue from there. understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/ and https://chshersh.github.io/posts/2019-03-25-comonadic-builders
-
-- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
-
-- comonads https://fmapfixreturn.wordpress.com/2008/07/09/comonads-in-everyday-life/
-
-- comonads are objects very important and closely related http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html
-
-- if conal elliott can make a comonadic formulatin of FRP and comonads are objects, then i guess i am very close to a pure functional representation of objects? pure functional objects?
-
-
-independent of time-driven or event-driven, our agents are MSFs.
-
-in fact i am deriving pure functional objects
-
-- i have the feeling that co-algebras might be an underlying structure, which in CS come up in infinite streams - ABS can be seen as this where the agents are such streams with their output and potentially running for an infinite time, depending on the model. Ionescus thesis might reveal more information / might be an additional source on that.
-
-In general it is easy to see why agents can not be represented by pure functions: they change over time. This is precisely what pure functions cannot do: they can't rely on some surrounding context / or on history - everything what they do is determined by their input arguments and their output. In general we have two ways of approaching this: we either have the agents changing data and behaviour internalised as we did in the previous chapters or we externalise it e.g. in the simulation kernel and provide all necessary information through arguments which was the case in the sugarscape environment.
-
-- FREE MONADS % http://www.haskellforall.com/2012/07/purify-code-using-free-monads.html http://comonad.com/reader/2011/free-monads-for-less/, https://stackoverflow.com/questions/13352205/what-are-free-monads
-
-\section{A Functional View}
-Due to the fundamentally different approaches of FP, an ABS needs to be implemented fundamentally differently, compared to established OOP approaches. We face the following challenges:
-
-\begin{enumerate}
-	\item How can we represent an Agent, its local state and its interface?
-	\item How can we implement direct agent-to-agent interactions?
-	\item How can we implement an environment and agent-to-environment interactions? 
-\end{enumerate}
-
-\subsection{Agent representation}
-The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations are functions which allow to encapsulate the execution state of a program by capturing local variables (known as closure) and pick up computation from that point later on by returning a new function. As an illustratory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value for the current step:
+As an explanatory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value of the current step. First, we define the type of a general continuation which takes a polymorphic type \textit{i} as input and returns a polymorphic type \textit{o} as output together with a new continuation
 
 \begin{HaskellCode}
--- define the type of the continuation: it takes an arbitrary type a 
--- and returns a type a with a new continuation
-newtype Cont a = Cont (a -> (a, Cont a))
-
--- an instance of a continuation with type a fixed to Int
--- takes an initial value x and sums up the values passed to it
--- note that it returns adder with the new sum recursively as 
--- the new continuation
-adder :: Int -> Cont Int
-adder x = Cont (\x' -> (x + x', adder (x + x')))
-
--- this function runs the given continuation for a given number of steps
--- and always passes 1 as input and prints the continuations output
-runCont :: Int -> Cont Int -> IO ()
-runCont 0 _ = return () -- finished
-runCont n (Cont cont) = do -- pattern match to extract the function
-  -- run the continuation with 1 as input, cont' is the new continuation
-  let (x, cont') = cont 1
-  print x
-  -- recursive call, run next step
-  runCont (n-1) cont'
-
--- main entry point of a Haskell program
--- run the continuation adder with initial value of 0 for 100 steps 
-main :: IO ()
-main = runCont 100 (adder 0)
+newtype Cont i o = C (i -> (o, Cont i o))
 \end{HaskellCode}
 
-We implement an agent as a continuation: this lets us encapsulate arbitrary complex agent-state which is only visible and accessible from within the continuation - the agent has exclusive access to it. Further, with a continuation it becomes possible to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state-machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
-
-The fact that we design an agent as a function, raises the question of the interface of it: what are the inputs and the output? Note that the type of the function has to stay the same (type \textit{a} in the example above) although we might switch into different continuations - our interface needs to capture all possible cases of behaviour. The way we define the interface is strongly determined by the direct agent-agent interaction. In case of Sugarscape, agents need to be able to conduct two types of direct agent-agent interaction: 1. one-directional, where agent A sends a message to agent B without requiring agent B to synchronously reply to that message e.g. repaying a loan or inheriting money to children; 2. bi-directional, where two agents negotiate over multiple steps e.g. accepting a trade, mating or lending. Thus it seems reasonable to define as input type an enumeration (algebraic data-type in Haskell, see example below) which defines all possible incoming messages the agent can handle. The agents continuation is then called every time the agent receives a message and can process it, update its local state and might change its behaviour.
-
-As output we define a data-structure which allows the agent to communicate to the simulation kernel 1. whether it wants to be removed from the system, 2. a list of new agents it wants to spawn, 3. a list of messages the agent wants to send to other agents. Further because the agents data is completely local, it also returns a data-structure which holds all \textit{observable} information the agent wants to share with the outside world. Together with the continuation this guarantees that the agent is in full control over its local state, no one can mutate or access from outside. This also implies that information can only get out of the agent by actually running its continuation. It also means that the output type of the function has to cover all possible input cases - it cannot change or depend on the input. 
+Then we implement an actual instance of a continuation with input and output types fixed to \textit{Int}. It takes an initial value \textit{x} and sums up the values passed to it. It returns \textit{adder} with the new sum recursively as the new continuation.
 
 \begin{HaskellCode}
-type AgentId    = Int
-data Message    = Tick Int | MatingRequest AgentGender ... 
-data AgentState = AgentState { agentAge :: Int, ... }             
-data Observable = Observable { agentAgeObs :: Int, ... } 
-data AgentOut   = AgentOut
-  { kill       :: Bool
-  , observable :: Observable
-  , messages   :: [(AgentId, Message)] -- list of messages with receiver
-  }
--- agent continuation has different types for input and output
-newtype AgentCont inp out = AgentCont (in -> (out, AgentCont inp out))
--- taking the initial AgentState as input and returns the continuation
-sugarscapeAgent :: AgentState -> AgentCont (AgentId, Message) AgentOut
-sugarscapeAgent asInit = AgentCont (\ (sender, msg) -> 
-  case msg of
-    agentCont (sender, Tick t) = ... handle tick
-    agentCont (sender, MatingRequest otherGender) = ... handle mating request)
+adder :: Int -> Cont Int Int
+adder x = C (\x' -> let s = x + x' in
+                    (s, adder s))
 \end{HaskellCode}
 
-\subsection{Stepping the simulation}
-The simulation kernel keeps track of the existing agents and the message-queue and processes the queue one element at a time. The new messages of an agent are inserted \textit{at the front} of the queue, ensuring that synchronous bi-directional messages are possible without violating resources constraints. The Sugarscape model specifies that in each tick all agents run in random order, thus to start the agent-behaviour in a new time-step, the core inserts a \textit{Tick} message to each agent in random order which then results in them being executed and emitting new messages. The current time-step has finished when all messages in the queue have been processed. See algorithm \ref{alg:stepping_simulation} for the pseudo-code for the simulation stepping.
-%
-%\begin{algorithm}
-%\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-%\Input{All agents \textit{as}}
-%\Input{List of agent observables}
-%shuffle all agents as\;
-%messageQueue = schedule Tick to all agents\;
-%agentObservables = empty List\;
-%\While{messageQueue not empty} {
-%  msg = pop message from messageQueue\;
-%  a = lookup receiving agent in as\;
-%  (out, a') = runAgent a msg\;
-%  update agent with continuation a' in as\;
-%  add agent observable from out to agentObservables\;
-%  add messages of agent at front of messageQueue\;
-%}
-%return agentObservables\;
-%\caption{Stepping the simulation.}
-%\end{algorithm}
-%\label{alg:stepping_simulation}
+To run a continuation, we implement a function which runs a given continuation for a given number of steps and always passes \textit{x} as input and prints the continuations output.
 
-\subsection{Environment and agent-environment interaction}
-The agents in the Sugarscape are located in a discrete 2d environment where they move around and harvest resources, which means the need to read and write data of environment. This is conveniently implemented by adding a State side-effect type to the agent continuation function. Further we also add a Random effect type because dynamics in most ABS in general and Sugarscapes in particular are driven by random number streams, so our agent needs to have access to one as well. All of this low level continuation plumbing exists already as a high quality library called Dunai, based on research on Functional Reactive Programming  \cite{hudak_arrows_2003} and Monadic Stream Functions \cite{perez_functional_2016,perez_extensible_2017}.
+\begin{HaskellCode}
+runCont :: Int -> Int -> Cont Int Int -> IO ()
+runCont 0 x _ = return () 
+runCont n x (Cont cont) = do 
+  -- run the continuation with x as input, cont' is the new continuation
+  let (x', cont') = cont x
+  print x'
+  runCont (n-1) x cont' 
+\end{HaskellCode}
 
-\section{Discussion}
-The central question which needed to be answered first was \textit{how} ABS could be done pure functionally, as there didn't exist any research which offered a systematic solution to that problem. More specifically, it was unclear how to represent agents, how to express agent identity, local agents state, changing behaviour and interactions amongst agents and the environment. After all, this is straightforward in object-oriented programming due to method calls and mutable shared state encapsulated in objects.
+When actually running the continuation \textit{adder} with an initial value of -1 for 10 steps and increments of 2, we get the following output:
 
-% the answer
-The solution was to use arrowized FRP both in the pure implementation of Yampa and the monadic version as in the library Dunai. Building on top of them allowed us to implement pro-activity of agents, encapsulation of local agent state, an environment as shared mutable state and synchronous agent-interactions based on an event-driven approach. The central concept behind these approaches are Signal Functions (SF), generalised in Dunai to Monadic Stream Functions (MSF), which are implemented using closures and continuations, fundamental building blocks and concepts of pure functional programming. 
+\begin{HaskellCode}
+> runCont 100 2 (adder (-1))
+1
+3
+...
+17
+19
+\end{HaskellCode}
 
-% WARNING: don't fall again into the pitfall of opinionated OO criticism, this can burn me as it is too opinionated. simply refer to what we cannot do properly with java objects
+This explanatory example should make it clear that we can encapsulate arbitrary complex state, which is only visible and accessible from within the continuation. Further, with a continuation it becomes possible to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
 
-% 1. SFs/MSFs can be seen as simple objects
-SF and MSF can be seen as very simple \textit{immutable} objects with a single method following a \textit{shared nothing} semantics as discussed in Chapter \ref{ch:structure_abs_computation} already at length. This interpretation and the fact that we seem to achieve encapsulation of local agent state and interactions obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again!
+In fact, Yampas Signal Functions (SF) and Dunais Monadic Stream Functions (MSF) are nothing else than such continuations: SFs are pure, without a monadic context, as in the explanatory example; MSFs have an additional monadic context, which makes it possible to execute effectful computations within the continuation; the underlying concepts are the same. Building on top of them allowed us to implement pro-activity of agents, encapsulation of local agent state, an environment as shared mutable state and synchronous agent-interactions based on an event-driven approach.
 
+Indeed, one way to look at an SF and MSF is to see them as very simple \textit{immutable} objects with a single method - the continuation - following a \textit{shared nothing} semantics. This interpretation and the fact that we seem to achieve encapsulation of local agent state and interactions obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again!
+
+\section{Agents as objects}
 % 2. it seems that agents map to objects, but what are objects?
-It seems that we indeed have to agree that agents do actually map naturally to objects. However, throughout the course of this thesis it should have become clear that we have to think objects in a much broader context than the one of existing object-oriented terminology as in the popular family of Java, C++ and Python. The fact that we can represent agents as objects also in a purely functional way, leads us to the question, what actually constitutes objects and we have to be careful not to confuse the \textit{concept} of objects with their \textit{implementation} within a language.
+It seems that we indeed have to agree that agents do actually map naturally to objects. However, we argue we have to think objects in a much broader context than the one of existing object-oriented terminology as in the popular family of Java, C++ and Python. The fact that we can represent agents as objects also in a purely functional way, leads us to the question, what actually constitutes objects and we have to be careful not to confuse the \textit{concept} of objects with their \textit{implementation} within a language.
 
 \medskip
 
@@ -207,3 +115,51 @@ The question is then why not use toolkits like Matlab or R - after all they are 
 %- https://serokell.io/blog/2018/12/07/tagless-final
 %- https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html
 %- The Expression Problem Revisited - Four new solutions using generics by Mads Torgersen
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% NOTES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+look at coalgebras from cezars thesis
+
+generalising the structure of agent computation - with our case studies we explore them in a more practical / applied way and in this chapter we extract and distil the general concepts and abstractions behind agent computation: how can ABS, which is pure computation, can be seen structurally? This gives the ABS field for the first time a deeper understanding of the deeper structure of the computations behind agent-based simulation, which has so far always been more ad-hoc without a proper, more rigorous formulation. 
+
+pure functional computation with effects can be seen as computations over some data-structure where the data-structure defines the structure of the computation as well e.g. monoids, applicatives, monads, traversable, foldable
+
+Note that agent-based simulation is almost always entirely pure computation without the need for direct, synchronous user-interaction or impure IO. When IO is really needed we can keep purity by creating IO actions and pass them to the simulation kernel which executes them and communicates the result back if needed - in this case only the simulation kernel needs to run in IO monad but not the agents and the environment computations.
+
+agentout as monoid with writer: solves the Problem of iteratively constructing it the output during an event.
+
+BUT: isnt our approach similar to the early days IO of Haskell with continuations? if this is the case we should be able to get the direct method style by writing an agent monad?
+
+NOTE: "And a closure is just a primitive form of object: the special case of an object with just one method." https://www.tedinski.com/2018/11/20/message-oriented-programming.html
+
+- this is still research which needs to be done by reading the papers below and reflecting  and understanding on co-monads and my implementations in general.
+
+- can we derive an agent-monad?
+
+https://www.javiercasas.com/articles/codata-in-action/
+
+- what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. stopped at comonad section, continue from there. understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/ and https://chshersh.github.io/posts/2019-03-25-comonadic-builders
+
+- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
+
+- comonads https://fmapfixreturn.wordpress.com/2008/07/09/comonads-in-everyday-life/
+
+- comonads are objects very important and closely related http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html
+
+- if conal elliott can make a comonadic formulatin of FRP and comonads are objects, then i guess i am very close to a pure functional representation of objects? pure functional objects?
+
+
+independent of time-driven or event-driven, our agents are MSFs.
+
+in fact i am deriving pure functional objects
+
+- i have the feeling that co-algebras might be an underlying structure, which in CS come up in infinite streams - ABS can be seen as this where the agents are such streams with their output and potentially running for an infinite time, depending on the model. Ionescus thesis might reveal more information / might be an additional source on that.
+
+In general it is easy to see why agents can not be represented by pure functions: they change over time. This is precisely what pure functions cannot do: they can't rely on some surrounding context / or on history - everything what they do is determined by their input arguments and their output. In general we have two ways of approaching this: we either have the agents changing data and behaviour internalised as we did in the previous chapters or we externalise it e.g. in the simulation kernel and provide all necessary information through arguments which was the case in the sugarscape environment.
+
+- FREE MONADS % http://www.haskellforall.com/2012/07/purify-code-using-free-monads.html http://comonad.com/reader/2011/free-monads-for-less/, https://stackoverflow.com/questions/13352205/what-are-free-monads
+

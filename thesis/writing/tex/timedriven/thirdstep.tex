@@ -29,6 +29,7 @@ We can directly map the SIR model to a discrete 2D environment by placing the ag
 We also implemented this spatial approach in Java using the well known ABS library RePast \cite{north_complex_2013}, to have a comparison with a state of the art approach and came to the same results as shown in Figure \ref{fig:sir_dunai}. This supports, that our pure functional approach can produce such results as well and compares positively to the state of the art in the ABS field.
 
 \subsection{Implementation}
+\label{sub:timedriven_thirdstep_impl}
 We start by defining the discrete 2D environment for which we use an indexed two dimensional array. Each cell stores the agent state of the last time-step, thus we use the \textit{SIRState} as type for our array data. Also, we re-define the agent signal function to take the structured environment \textit{SIREnv} as input instead of the list of all agents as in our previous approach. As output we keep the \textit{SIRState}, which is the state the agent is currently in. Also we run in the \textit{Rand} Monad as introduced before to avoid the random number correlation. 
 
 \begin{HaskellCode}

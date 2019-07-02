@@ -8,8 +8,7 @@ TODO: finish mandatory chapter; take discussion on "agents as objects" as struct
 
 After having given an answer to the question of \textit{how} ABS can be done pure functionally, we turn now to a more general discussion of the developed approach where we want to look at its underlying abstractions and re-visit the claim that \textit{agents map naturally to objects} \cite{north_managing_2007} to review it in the new light of our pure functional approach and its abstractions.
 
-\medskip
-
+\section{Continuations}
 The fundamental building blocks of our approach are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. \textit{Continuations} in turn, are functions which allow to encapsulate the execution state of a program by capturing local variables (known as closure) to pick up computation from that point later on by returning a new function.
 
 As an explanatory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value of the current step. First, we define the type of a general continuation which takes a polymorphic type \textit{i} as input and returns a polymorphic type \textit{o} as output together with a new continuation
@@ -51,11 +50,39 @@ When actually running the continuation \textit{adder} with an initial value of -
 
 This explanatory example should make it clear that we can encapsulate arbitrary complex state, which is only visible and accessible from within the continuation. Further, with a continuation it becomes possible to switch behaviour dynamically e.g. switching from one mode of behaviour to another like in a state machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
 
-In fact, Yampas Signal Functions (SF) and Dunais Monadic Stream Functions (MSF) are nothing else than such continuations: SFs are pure, without a monadic context, as in the explanatory example; MSFs have an additional monadic context, which makes it possible to execute effectful computations within the continuation; the underlying concepts are the same. Building on top of them allowed us to implement pro-activity of agents, encapsulation of local agent state, an environment as shared mutable state and synchronous agent-interactions based on an event-driven approach.
-
-Indeed, one way to look at an SF and MSF is to see them as very simple \textit{immutable} objects with a single method - the continuation - following a \textit{shared nothing} semantics. This interpretation and the fact that we seem to achieve encapsulation of local agent state and interactions obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again!
+In fact, Yampas Signal Functions (SF) and Dunais Monadic Stream Functions (MSF) are nothing else than such continuations: SFs are pure, without a monadic context, as can be seen in the implementation of the supersampling in Chapter \ref{sub:timedriven_results}; MSFs have an additional monadic context, which makes it possible to execute effectful computations within the continuation as can be seen in the implementation of the simulation stepping MSF in Chapter \ref{sub:timedriven_thirdstep_impl}. 
 
 \section{Agents as objects}
+Building on top of continuations allowed us to implement pro-activity of agents, encapsulation of local agent state, a pro-active environment with shared mutable state and synchronous agent interactions based on an event-driven approach. With our case studies we have explored the structure of agent computation in a more practical / applied way and we have extracted and distilled the general concepts and abstractions behind agent computation and showed how pure ABS computation can be seen structurally. This should give the ABS field a deeper understanding of the structure of the computations behind ABS, which has so far always been more ad-hoc. As already mentioned in the introduction, this becomes possible through pure functional programming because it treats computations in a more structural way, where data structures and types defines the structure of various kinds of computation e.g. Monoids, Applicatives, Monads, Comonads, Arrows,...
+
+Still, there is an even deeper underlying theory to continuations and our approach: co-algebras, which in computer science are identified as infinite streams. Indeed, agents can be seen as infinite streams with their output and potentially running for an infinite time - this is precisely what happened in the time-driven approach. Now it is also easy to see why agents can not be represented by pure functions: they change over time. This is precisely what pure functions cannot do: they can't rely on some surrounding context / or on history - everything what they do is determined by their input arguments and their output. %In general we have two ways of approaching this: we either have the agents changing data and behaviour internalised as we did in the previous chapters or we externalise it e.g. in the simulation kernel and provide all necessary information through arguments which was the case in the sugarscape environment.
+
+To answer the question whether agents map naturally to objects or not, we need to connect functional with object oriented programming. This can be done by co-data.
+
+\bigskip
+
+% STEP 1: FRP as co-monads, co-algebras co-recursion, co-data
+- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
+- https://www.javiercasas.com/articles/codata-in-action/
+- what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. stopped at comonad section, continue from there. understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/ and https://chshersh.github.io/posts/2019-03-25-comonadic-builders
+- comonads https://fmapfixreturn.wordpress.com/2008/07/09/comonads-in-everyday-life/
+
+% STEP 2: co-monads are objects,
+- comonads are objects very important and closely related http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html
+
+% STEP 3: agents are objects?
+- if conal elliott can make a comonadic formulatin of FRP and comonads are objects, then i guess i am very close to a pure functional representation of objects? pure functional objects?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% NOTES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%- FREE MONADS % http://www.haskellforall.com/2012/07/purify-code-using-free-monads.html http://comonad.com/reader/2011/free-monads-for-less/, https://stackoverflow.com/questions/13352205/what-are-free-monads
+
+\section{Discussion}
+%INSPIRATION: "And a closure is just a primitive form of object: the special case of an object with just one method." https://www.tedinski.com/2018/11/20/message-oriented-programming.html
+
+As we have seen in this chapter is that indeed, one way to look at an SF and MSF is to see them as very simple \textit{immutable} objects with a single method - the continuation - following a \textit{shared nothing} semantics. This interpretation and the fact that we seem to achieve encapsulation of local agent state and interactions obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again!
+
 % 2. it seems that agents map to objects, but what are objects?
 It seems that we indeed have to agree that agents do actually map naturally to objects. However, we argue we have to think objects in a much broader context than the one of existing object-oriented terminology as in the popular family of Java, C++ and Python. The fact that we can represent agents as objects also in a purely functional way, leads us to the question, what actually constitutes objects and we have to be careful not to confuse the \textit{concept} of objects with their \textit{implementation} within a language.
 
@@ -115,51 +142,3 @@ The question is then why not use toolkits like Matlab or R - after all they are 
 %- https://serokell.io/blog/2018/12/07/tagless-final
 %- https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html
 %- The Expression Problem Revisited - Four new solutions using generics by Mads Torgersen
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% NOTES
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-look at coalgebras from cezars thesis
-
-generalising the structure of agent computation - with our case studies we explore them in a more practical / applied way and in this chapter we extract and distil the general concepts and abstractions behind agent computation: how can ABS, which is pure computation, can be seen structurally? This gives the ABS field for the first time a deeper understanding of the deeper structure of the computations behind agent-based simulation, which has so far always been more ad-hoc without a proper, more rigorous formulation. 
-
-pure functional computation with effects can be seen as computations over some data-structure where the data-structure defines the structure of the computation as well e.g. monoids, applicatives, monads, traversable, foldable
-
-Note that agent-based simulation is almost always entirely pure computation without the need for direct, synchronous user-interaction or impure IO. When IO is really needed we can keep purity by creating IO actions and pass them to the simulation kernel which executes them and communicates the result back if needed - in this case only the simulation kernel needs to run in IO monad but not the agents and the environment computations.
-
-agentout as monoid with writer: solves the Problem of iteratively constructing it the output during an event.
-
-BUT: isnt our approach similar to the early days IO of Haskell with continuations? if this is the case we should be able to get the direct method style by writing an agent monad?
-
-NOTE: "And a closure is just a primitive form of object: the special case of an object with just one method." https://www.tedinski.com/2018/11/20/message-oriented-programming.html
-
-- this is still research which needs to be done by reading the papers below and reflecting  and understanding on co-monads and my implementations in general.
-
-- can we derive an agent-monad?
-
-https://www.javiercasas.com/articles/codata-in-action/
-
-- what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. stopped at comonad section, continue from there. understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/ and https://chshersh.github.io/posts/2019-03-25-comonadic-builders
-
-- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
-
-- comonads https://fmapfixreturn.wordpress.com/2008/07/09/comonads-in-everyday-life/
-
-- comonads are objects very important and closely related http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html
-
-- if conal elliott can make a comonadic formulatin of FRP and comonads are objects, then i guess i am very close to a pure functional representation of objects? pure functional objects?
-
-
-independent of time-driven or event-driven, our agents are MSFs.
-
-in fact i am deriving pure functional objects
-
-- i have the feeling that co-algebras might be an underlying structure, which in CS come up in infinite streams - ABS can be seen as this where the agents are such streams with their output and potentially running for an infinite time, depending on the model. Ionescus thesis might reveal more information / might be an additional source on that.
-
-In general it is easy to see why agents can not be represented by pure functions: they change over time. This is precisely what pure functions cannot do: they can't rely on some surrounding context / or on history - everything what they do is determined by their input arguments and their output. In general we have two ways of approaching this: we either have the agents changing data and behaviour internalised as we did in the previous chapters or we externalise it e.g. in the simulation kernel and provide all necessary information through arguments which was the case in the sugarscape environment.
-
-- FREE MONADS % http://www.haskellforall.com/2012/07/purify-code-using-free-monads.html http://comonad.com/reader/2011/free-monads-for-less/, https://stackoverflow.com/questions/13352205/what-are-free-monads
-

@@ -2,13 +2,13 @@
 \epigraph{The purpose of abstraction is not to be vague, but to create a new semantic level in which one can be absolutely precise.}{Dijkstra, EWD340}
 \label{ch:structure_abs_computation}
 
-TODO: finish mandatory chapter; take discussion on "agents as objects" as structure for the whole chapter and fill in co-algebras and the various links to drive the point home that agents are objects but we need to think objects in a broader context.
+%TODO: finish mandatory chapter; take discussion on "agents as objects" as structure for the whole chapter and fill in co-algebras and the various links to drive the point home that agents are objects but we need to think objects in a broader context.
 
-\medskip
+After having given an answer to the question of \textit{how} ABS can be done pure functionally, we turn now to a more general discussion of the developed approach where we want to look at its underlying abstractions, connect them to existing theory and re-visit the claim that \textit{agents map naturally to objects} \cite{north_managing_2007} to review it in the new light of our pure functional approach and its abstractions.
 
-After having given an answer to the question of \textit{how} ABS can be done pure functionally, we turn now to a more general discussion of the developed approach where we want to look at its underlying abstractions and re-visit the claim that \textit{agents map naturally to objects} \cite{north_managing_2007} to review it in the new light of our pure functional approach and its abstractions.
+Note that it is not the intention of this chapter to give an in-depth introduction of these underlying concepts and theories as it is beyond the focus of this thesis. The idea is to simply point out on a high-level where and how our practical approach relates to the underlying abstractions and theories. This should outline possible directions for further research of a proper theory of pure functional agents. We believe that such work would be of fundamental value for ABS as a field as it should allow to investigate certain aspects of models more rigorously and might be of help in specification, validation and verification.
 
-\section{Continuations, Corecursion and Codata}
+\section{Continuations}
 The fundamental building blocks of our approach are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. \textit{Continuations} in turn, are functions which allow to encapsulate the execution state of a program by capturing local variables (known as closure) to pick up computation from that point later on by returning a new function.
 
 As an explanatory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value of the current step. First, we define the type of a general continuation which takes a polymorphic type \textit{i} as input and returns a polymorphic type \textit{o} as output together with a new continuation
@@ -52,22 +52,26 @@ This explanatory example should make it clear that we can encapsulate arbitrary 
 
 In fact, Yampas Signal Functions (SF) and Dunais Monadic Stream Functions (MSF) are nothing else than such continuations: SFs are pure, without a monadic context, as can be seen in the implementation of the supersampling in Chapter \ref{sub:timedriven_results}; MSFs have an additional monadic context, which makes it possible to execute effectful computations within the continuation as can be seen in the implementation of the simulation stepping MSF in Chapter \ref{sub:timedriven_thirdstep_impl}. 
 
-Building on top of continuations allowed us to implement pro-activity of agents, encapsulation of local agent state, a pro-active environment with shared mutable state and synchronous agent interactions based on an event-driven approach. With our case studies we have explored the structure of agent computation in a more practical / applied way and we have extracted and distilled the general concepts and abstractions behind agent computation and showed how pure ABS computation can be seen structurally. This should give the ABS field a deeper understanding of the structure of the computations behind ABS, which has so far always been more ad-hoc. As already mentioned in the introduction, this becomes possible through pure functional programming because it treats computations in a more structural way, where data structures and types defines the structure of various kinds of computation e.g. Monoids, Applicatives, Monads, Comonads, Arrows,...
+\section{Coalgebras}
+When looking closer at the example from above, it becomes clear that the continuation \textit{adder} is non-terminating and is a potentially infinite structure, possible through lazy evaluation of Haskell, where the function \textit{runCont} deconstructs / consumes / observes the output of this infinite structure step-by-step. This is related to the concepts of \textit{corecursion} which are an even deeper underlying theory to continuations in general and our approach in particular. Technically speaking, \textit{corecursion} is the dual to recursion where instead of starting with a data-structure and reducing its structure step-by-step until a base case is reached, corecursion starts with an initial value and iterates it ad infinity, producing an infinite data structure as output, enabled through lazy evaluation.
 
-\medskip
+Indeed, our agents produce infinite streams as output, potentially running for infinite time as it is implemented in the time-driven approach and to a lesser extent in the event-driven SIR. Now it is also easy to see why agents are not represented by pure functions: they have to change over time, which is precisely what pure functions cannot do as they can not rely on a context or history of a system.
 
-When looking closer at the example from above, it becomes clear that the continuation \textit{adder} is non-terminating and is a potentially infinite structure, possible through lazy evaluation of Haskell, where the function \textit{runCont} consumes or \textit{observes} the output of this infinite structure step-by-step. This is related to the concepts of \textit{corecursion} and \textit{codata} which are an even deeper underlying theory to continuations in general and our approach in particular. Technically speaking, \textit{corecursion} is the dual to recursion where instead of starting with a data-structure and reducing its structure step-by-step until a base case is reached, corecursion starts with an initial value and iterates it ad infinity, producing an infinite data structure as output, enabled through lazy evaluation.
+The fact that we represented pure functional agents as SFs and MSFs is thus no coincidence and did not fall from the sky: they are in fact representations of \textit{coalgebras}, which is the way to express dynamical systems in mathematics and in pure functional programming: \textit{"In general, dynamical systems with a hidden, black-box state space, to which a user only has limited access via specified (observer or mutator) operations, are coalgebras of various kinds"} \cite{jacobs_tutorial_1997}.
 
-Indeed, our agents produce infinite streams as output, potentially running infinite time as it is implemented in the time-driven approach and to a lesser extent in the event-driven SIR. Now it is also easy to see why agents are not represented by pure functions: they have to change over time, which is precisely what pure functions cannot do as they can not rely on a context or history of a system. The fact that we represented pure functional agents as SFs and MSFs are thus no coincidence and did not fall from the sky: they are in-fact representations of corecursion and codata, which is the way to express dynamical systems in mathematics and in pure functional programming \cite{ionescu_vulnerability_2009}.
+This sounds very much like agents and indeed, coalgebras have been used (amongst others) in process theory to model communicating processes, a topic closely related to Actors and ABS; and objects in object-oriented programming, which is the de-factor standard in ABS, serving as our initial motivation for finding a pure functional approach. It seems that we have found an underlying theory which connects both object-oriented programming and our pure functional ABS approach. This hints that it might be indeed the case that agents map naturally to objects, as we discuss below. We refer to \cite{jacobs_tutorial_1997, jacobs_introduction_2017} for a deeper discussion of coalgebras as it is beyond the scope of this thesis.
 
-TODO: codata is a related concept here: we extract components from a complex data-type through eliminators. this is conceptually closely related to object-oriented programming. \cite{downen_codata_2019}
+% ionescus thesis \cite{ionescu_vulnerability_2009} somewhere here? 
 
-\medskip
+\section{Codata}
+Another related abstraction here is the one o\textit{codata} \cite{downen_codata_2019}. Whereas in \textit{data}, we construct a complex (opaque) data type from primitive types (e.g. data definitions in Haskell), in \textit{codata} we extract components from a complex (opaque) data type through eliminators. Again, this is conceptually closely related to object-oriented programming \cite{downen_codata_2019}.
 
+% Codata 
 - https://www.javiercasas.com/articles/codata-in-action/
 
-% STEP 1: FRP as co-monads, co-algebras co-recursion, co-data
-- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
+\section{Comonads}
+
+%- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
 - what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. stopped at comonad section, continue from there. understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/ and https://chshersh.github.io/posts/2019-03-25-comonadic-builders
 - comonads https://fmapfixreturn.wordpress.com/2008/07/09/comonads-in-everyday-life/
 
@@ -82,15 +86,17 @@ TODO: codata is a related concept here: we extract components from a complex dat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %- FREE MONADS % http://www.haskellforall.com/2012/07/purify-code-using-free-monads.html http://comonad.com/reader/2011/free-monads-for-less/, https://stackoverflow.com/questions/13352205/what-are-free-monads
 
-We only scratched the surface here as the intention was simply to show that these relations and connections to an existing mathematical theory exist and for a deeper introduction and discussion of this topic we refer to various papers and introductions to co-algebras TODO: cite. A fully development of this into a proper theory of pure functional agents is obviously outside the focus of this thesis. We believe though that such work would be of fundamental value for ABS as a field as it should allow to investigate certain aspects of models more rigorously and might be of help in specification, validation and verification.
-
-\section{Agents as objects}
+\section{Agents as objects?}
 TODO: step-by-step show that our agents, especially the event-driven implementations, are closely related to objects
+
 %INSPIRATION: "And a closure is just a primitive form of object: the special case of an object with just one method." https://www.tedinski.com/2018/11/20/message-oriented-programming.html
-When following the concepts of corecursion and codata from above and the viewpoint that \textit{"... a closure is just a primitive form of object: the special case of an object with just one method."} \footnote{https://www.tedinski.com/2018/11/20/message-oriented-programming.html} then one way to look at an SF and MSF is to see them as very simple \textit{immutable} objects with a single method - the continuation - following a \textit{shared nothing} semantics.  This interpretation and the fact that we seem to achieve encapsulation of local agent state and interactions obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again!
+When following the concepts of corecursion and codata from above and the viewpoint that \textit{"... a closure is just a primitive form of object: the special case of an object with just one method."} \footnote{https://www.tedinski.com/2018/11/20/message-oriented-programming.html} then one way to look at an SF and MSF is to see them as very simple \textit{immutable} objects with a single method - the continuation - following a \textit{shared nothing} semantics. 
+
+TODO: repeat concepts of agent-identity, agent-interface, local agent state, global environment state, synchronous direct agent-interactions through tagless final, more abstractly with code examples
+
 
 % 2. it seems that agents map to objects, but what are objects?
-It seems that we indeed have to agree that agents do actually map naturally to objects. However, we argue we have to think objects in a much broader context than the one of existing object-oriented terminology as in the popular family of Java, C++ and Python. The fact that we can represent agents as objects also in a purely functional way, leads us to the question, what actually constitutes objects and we have to be careful not to confuse the \textit{concept} of objects with their \textit{implementation} within a language.
+This interpretation and the fact that we seem to achieve encapsulation of local agent state and interactions obviously raises the question if agents actually \textit{do} map naturally to objects - after all, despite being in a pure functional setting, we are talking about objects again! It seems that we indeed have to agree that agents do actually map naturally to objects. However, we argue we have to think objects in a much broader context than the one of existing object-oriented terminology as in the popular family of Java, C++ and Python. The fact that we can represent agents as objects also in a purely functional way, leads us to the question, what actually constitutes objects and we have to be careful not to confuse the \textit{concept} of objects with their \textit{implementation} within a language.
 
 \medskip
 
@@ -148,3 +154,6 @@ The question is then why not use toolkits like Matlab or R - after all they are 
 %- https://serokell.io/blog/2018/12/07/tagless-final
 %- https://jproyo.github.io/posts/2019-03-17-tagless-final-haskell.html
 %- The Expression Problem Revisited - Four new solutions using generics by Mads Torgersen
+
+%\section{Discussion}
+%Building on top of these concepts allowed us to implement pro-activity of agents, encapsulation of local agent state, a pro-active environment with shared mutable state and synchronous agent interactions based on an event-driven approach. With our case studies we have explored the structure of agent computation in a more practical / applied way and we have extracted and distilled the general concepts and abstractions behind agent computation and showed how pure ABS computation can be seen structurally. This should give the ABS field a deeper understanding of the structure of the computations behind ABS, which has so far always been more ad-hoc. %As already mentioned in the introduction, this becomes possible through pure functional programming because it treats computations in a more structural way, where data structures and types defines the structure of various kinds of computation e.g. Monoids, Applicatives, Monads, Comonads, Arrows,...

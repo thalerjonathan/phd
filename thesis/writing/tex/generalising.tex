@@ -88,6 +88,7 @@ Another related abstraction here is the one o\textit{codata} \cite{downen_codata
 
 \section{Agents as objects?}
 TODO: step-by-step show that our agents, especially the event-driven implementations, are closely related to objects
+like in coalgebras we have some internal state which can be altered through specified set of operations (events/inputs) and the actions can be observed through the output but nothing internally - this is particularly clear in the sugarscape model where agents have indeed a complex internal state, which changes only through events and is only observable through the output of data type \textit{SugAgentObservable} as a result of sending an event.
 
 %INSPIRATION: "And a closure is just a primitive form of object: the special case of an object with just one method." https://www.tedinski.com/2018/11/20/message-oriented-programming.html
 When following the concepts of corecursion and codata from above and the viewpoint that \textit{"... a closure is just a primitive form of object: the special case of an object with just one method."} \footnote{https://www.tedinski.com/2018/11/20/message-oriented-programming.html} then one way to look at an SF and MSF is to see them as very simple \textit{immutable} objects with a single method - the continuation - following a \textit{shared nothing} semantics. 

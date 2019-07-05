@@ -1,5 +1,7 @@
 \chapter{Introduction}
+\epigraph{The purpose of abstraction is not to be vague, but to create a new semantic level in which one can be absolutely precise.}{Dijkstra, EWD340}
 \label{ch:intro}
+
 % MOTIVATION and AIM
 The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented, due to the influence of the seminal Sugarscape model \cite{epstein_growing_1996}, in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007}, which still holds up today. %TODO can we cite any statistics about number of developed ABS models?
 
@@ -53,7 +55,7 @@ Throughout the course of the Ph.D. five (5) papers were written and attempted to
 	
 	\item A Tale Of Lock-Free Agents \cite{thaler_tale_2018}; submitted to the TOMACS Journal in October 2018 and rejected in March 2019- This paper is the first to discuss the use of Software Transactional Memory (STM) for implementing concurrent ABS both on a conceptual and on a technical level. It presents two case-studies, with the agent-based SIR model as the first and the famous SugarScape being the second one. In both case-studies it compares performance of STM and lock-based implementations in Haskell and object-oriented implementations of established languages. Although STM is now not unique to Haskell any more, this paper shows why Haskell is particularly well suited for the use of STM and is the only language which can overcome the central problem of how to prevent persistent side-effects in retry-semantics. Chapter \ref{ch:concurrent_abs} is based on the work of this paper with minor adjustments and extensions.
 
-	\item The Agents' New Cloths? Towards Pure Functional Agent-Based Simulation (TODO cite) submitted and rejected at the Summer Simulation Conference 2019 - This paper summarizes the main benefits of using pure functional programming as in Haskell to implement ABS and discusses on a conceptual level how to implement it and also what potential drawbacks are and where the use of a functional approach is not encouraged. It is written as a conceptual / review paper, which tries to "sell" pure functional programming to the agent-based community without too much technical detail and parlance where it refers to the important technical literature from where an interested reader can start. Chapter \ref{ch:structure_abs_computation} follows the ideas loosely. Further the introduction to FP in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
+	\item The Agents' New Cloths? Towards Pure Functional Agent-Based Simulation (TODO cite) submitted and rejected at the Summer Simulation Conference 2019 - This paper summarizes the main benefits of using pure functional programming as in Haskell to implement ABS and discusses on a conceptual level how to implement it and also what potential drawbacks are and where the use of a functional approach is not encouraged. It is written as a conceptual / review paper, which tries to "sell" pure functional programming to the agent-based community without too much technical detail and parlance where it refers to the important technical literature from where an interested reader can start. The introduction to FP in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
 	
 	\item Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation (TODO cite); submitted and accepted at the Summer Simulation Conference 2019 - This paper introduces property-based testing on a conceptual level to agent-based simulation using the agent-based SIR model and the Sugarscape model as two case-studies. Both Chapters 
 \ref{ch:agentspec} and \ref{ch:sir_invariants} of Part IV and the Appendix \ref{app:validating_sugarscape} are substantially expanded discussions of the ideas presented in this paper.
@@ -89,9 +91,9 @@ Chapter \ref{ch:timedriven} derives a time-driven ABS implementation for an agen
 
 Chapter \ref{ch:eventdriven} presents an event-driven approach to ABS using an event-driven agent-based SIR model the highly complex Sugarscape model. It takes up the concepts derive in the previous Chapter \ref{ch:timedriven}, generalises them and pushes them forward to a more generic solution. Further it also gives a brief outline how to transform the time-driven SIR implementation into an event-driven one.
 
-\medskip
+%\medskip
 
-Chapter \ref{ch:structure_abs_computation} takes a highly abstract look at the computational approach and structures, derived in quite an ad-hoc fashion in the previous two Chapters \ref{ch:timedriven}, \ref{ch:eventdriven}. It distils the essence of the SF and MSF constructs and shows that by looking at their building blocks of \textit{closures} and \textit{continuations}, SF and MSF can be regarded as very simple, immutable, pure functional objects. Further it looks at how they relate to existing computational structures like Monads, Comonads and Arrows.
+%Chapter \ref{ch:structure_abs_computation} takes a highly abstract look at the computational approach and structures, derived in quite an ad-hoc fashion in the previous two Chapters \ref{ch:timedriven}, \ref{ch:eventdriven}. It distils the essence of the SF and MSF constructs and shows that by looking at their building blocks of \textit{closures} and \textit{continuations}, SF and MSF can be regarded as very simple, immutable, pure functional objects. Further it looks at how they relate to existing computational structures like Monads, Comonads and Arrows.
 
 \medskip
 

@@ -54,5 +54,25 @@ We have already started to outline a few core principles in the Appendix \ref{ap
 \section{A theory of pure functional agents}
 The work in this thesis is quite applied, with a software-engineering heavy approach and in general does not follow a grand underlying formal theory of (pure functional) agents. The reason for that is, that to the best knowledge of the author, such a theory does not (yet) exist and this thesis rather practical and experimental approach of distilling out certain patterns and establishing certain recurring concepts of ABS computation, shows that.
 
-Still, after having investigated the underlying concepts behind SFs, MSFs, namely continuations in Chapter \ref{ch:structure_abs_computation}, it became clear, that the basic computational concepts of our pure functional approach is closely related to \textit{coalgebras}, \textit{codata} and \textit{comonads}. %It might have been obvious to certain people from the beginning, to the author is was not, which is why this thesis has this applied character instead of a rather formal, theoretical approach, as it is the case in the field of Mathematics or theoretical Computer Science.
-What is striking is that those concepts are conceptually closely related to object-oriented programming and have been used to model that paradigm, thus it seems that we have come around a full circle and found a potential link between our pure functional and the established object-oriented approach to ABS. This implies that there might lurk some programming paradigm agnostic, unified theory of agents as used in ABS somewhere behind these concepts. We believe that such a theory would help ABS to put itself on solid formal grounds, connect it to other areas of computation and other sciences and ultimately be of fundamental benefit in specifications, verification and validation.
+Still, after having investigated the underlying concepts behind SFs, MSFs, namely continuations in the discussions, it became clear, that the basic computational concepts of our pure functional approach is closely related to \textit{coalgebras}, \textit{codata} and \textit{comonads}. %It might have been obvious to certain people from the beginning, to the author is was not, which is why this thesis has this applied character instead of a rather formal, theoretical approach, as it is the case in the field of Mathematics or theoretical Computer Science.
+
+% Codata 
+%- https://www.javiercasas.com/articles/codata-in-action/
+
+%- Conal Elliott has examined a comonadic formulation of functional reactive programming http://conal.net/blog/posts/functional-interactive-behavior
+- what about comonads? read essence dataflow paper \cite{uustalu_essence_2006}: monads not capable of stream-based programming and arrows too general therefor comonads, we are using msfs for abs therefore streambased so maybe applicable to our approach/agents=comonads. comonads structure notions of context-dependent computation or streams, which ABS can be seen as of. this paper says that monads are not capable of doing stream functions, maybe this is the reason why i fail in my attempt of defining an ABS in idris because i always tried to implement a monad family. stopped at comonad section, continue from there. understand comonads: https://www.schoolofhaskell.com/user/edwardk/cellular-automata and https://kukuruku.co/post/cellular-automata-using-comonads/ and https://chshersh.github.io/posts/2019-03-25-comonadic-builders
+- comonads https://fmapfixreturn.wordpress.com/2008/07/09/comonads-in-everyday-life/
+
+% STEP 2: co-monads are objects,
+- comonads are objects very important and closely related http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html
+
+% STEP 3: agents are objects?
+- if conal elliott can make a comonadic formulatin of FRP and comonads are objects, then i guess i am very close to a pure functional representation of objects? pure functional objects?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% NOTES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%- FREE MONADS % http://www.haskellforall.com/2012/07/purify-code-using-free-monads.html http://comonad.com/reader/2011/free-monads-for-less/, https://stackoverflow.com/questions/13352205/what-are-free-monads
+
+
+What is striking is that those concepts are conceptually closely related to object-oriented programming and have been used to model that paradigm, thus it seems that we have come around a full circle and found a potential link between our pure functional and the established object-oriented approach to ABS. This implies that there might lurk some programming paradigm agnostic, unified theory of agents as used in ABS somewhere behind these concepts. We believe that such a theory would help ABS to put itself on solid formal grounds, connect it to other areas of computation and other sciences and ultimately be of a powerful tool to investigate certain aspects of models more rigorously and be of help in specification, validation and verification.

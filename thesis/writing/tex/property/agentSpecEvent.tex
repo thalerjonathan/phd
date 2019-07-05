@@ -1,4 +1,4 @@
-\section{Event-Driven specification}
+\section{Event-driven specification}
 In this section we present how QuickCheck can be used to test event-driven agents by expressing their \textit{specification} as property-tests in the case of the event-driven SIR implementation from chapter \ref{sec:eventdriven_basics}.
 
 In general, testing event-driven agents is fundamentally different and more complex than testing time-driven agents, as their interface surface is generally much larger: events form the input to the agents to which they react with new events - the dependencies between those can be quite complex and deep. Using property-based tests we can encode the invariants and end up with an actual specification of their behaviour, acting as documentation, regression test within a TDD and property tests.
@@ -13,9 +13,9 @@ We start by giving the full \textit{specification} of the susceptible, infected 
 \begin{enumerate}
 	\item \textit{MakeContact} - If the agent receives this event it will output $\beta$  \textit{Contact ai Susceptible} events, where ai is the agents self id. The events have to be scheduled immediately without delay, thus having the current time as scheduling time-stamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
 	
-	\item \textit{Contact \_ Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it won't change its state, stays \textit{Susceptible} and does not schedule any events.
+	\item \textit{Contact \_ Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it will not change its state, stays \textit{Susceptible} and does not schedule any events.
 	
-	\item \textit{Contact \_ \_} or \textit{Recover} - If the agent receives any of these (other) events it won't change its state, stays \textit{Susceptible} and does not schedule any events.
+	\item \textit{Contact \_ \_} or \textit{Recover} - If the agent receives any of these (other) events it will not change its state, stays \textit{Susceptible} and does not schedule any events.
 \end{enumerate}
 
 This specification implicitly covers that a susceptible agent can never transition from a \textit{Susceptible} to a \textit{Recovered} state within a single event - it can only make the transition to \textit{Infected} or stays \textit{Susceptible}. The infected agents are specified as follows:

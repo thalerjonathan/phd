@@ -13,9 +13,9 @@ Worse, concurrency does not compose. It is very difficult to write two functions
 STM promises to solve all these problems for a low cost by executing actions \textit{atomically}, where modifications made in such an action are invisible to other threads and changes by other threads are invisible as well until actions are committed - STM actions are atomic and isolated. When an STM action exits, either one of two outcomes happen: if no other thread has modified the same data as the thread running the STM action, then the modifications performed by the action will be committed and become visible to the other threads. If other threads have modified the data then the modifications will be discarded, the action rolled-back and automatically restarted.
 
 \subsection{STM in Haskell}
-The work of \cite{harris_composable_2005, harris_transactional_2006} added STM to Haskell, which was one of the first programming languages to incorporate STM with composable operations into its main core. There exist various implementations of STM in other languages as well (Python, Java, C\#, C/C++, etc) but we argue, that it is in Haskell with its type-system and the way how side-effects are treated where it truly shines.
+The work of \cite{harris_composable_2005, harris_transactional_2006} added STM to Haskell, which was one of the first programming languages to incorporate STM with composable operations into its main core. There exist various implementations of STM in other languages as well (Python, Java, C\#, C/C++, etc) but we argue, that it is in Haskell with its type system and the way how side effects are treated where it truly shines.
 
-In the Haskell implementation, STM actions run within the \textit{STM} Monad. This restricts the operations to only STM primitives as shown below, which allows to enforce that STM actions are always repeatable without persistent side-effects because such persistent side-effects (e.g. writing to a file, launching a missile) are not possible in the \textit{STM} Monad. This is also the fundamental difference to  \textit{IO}, where all bets are off because \textit{everything} is possible as there are basically no restrictions because \textit{IO} can run everything.
+In the Haskell implementation, STM actions run within the \textit{STM} Monad. This restricts the operations to only STM primitives as shown below, which allows to enforce that STM actions are always repeatable without persistent side effects because such persistent side effects (e.g. writing to a file, launching a missile) are not possible in the \textit{STM} Monad. This is also the fundamental difference to  \textit{IO}, where all bets are off because \textit{everything} is possible as there are basically no restrictions because \textit{IO} can run everything.
 
 Thus the ability to \textit{restart} an action without any visible effects is only possible due to the nature of Haskells type system: by restricting the effects to \textit{STM} only, ensures that only controlled effects, which can be rolled back, occur.
 
@@ -36,7 +36,7 @@ Further STM also provides combinators to deal with blocking and composition:
 	\item \textit{orElse :: STM a $\rightarrow$ STM a $\rightarrow$ STM a} - Allows to combine two blocking actions where either one is executed but not both. The first actions is run and if it is successful its result is returned. If it retries, then the second is run and if that one is successful its result is returned. If the second one retries, the whole \textit{orElse} retries. This can be used to implement alternatives in blocking conditions, which can be obviously nested arbitrarily.
 \end{itemize}
 
-To run an \textit{STM} action the function \textit{atomically :: STM a $\rightarrow$ IO a} is provided, which performs a series of \textit{STM} actions atomically within the \textit{IO} Monad. It takes the \textit{STM} action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. Note that the \textit{IO} action can only be executed from within an \textit{IO} Monad, either within the main-thread or an explicitly forked thread.
+To run an \textit{STM} action the function \textit{atomically :: STM a $\rightarrow$ IO a} is provided, which performs a series of \textit{STM} actions atomically within the \textit{IO} Monad. It takes the \textit{STM} action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. Note that the \textit{IO} action can only be executed from within an \textit{IO} Monad, either within the main thread or an explicitly forked thread.
 
 STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not - it checks whether other threads have written to memory it has read and thus it can identify whether a roll-back is required or not. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
 
@@ -73,11 +73,11 @@ stmThread v = do
   -- atomically run the STM block
   (a, s') <- atomically ret
   
-  putStr ("final StateT state     = " ++ show s')
-  putStrLn (", STM computation result = " ++ show a)
+  putStrLn("final StateT state     = " ++ show s' ++
+           ", STM computation result = " ++ show a)
 \end{HaskellCode}
 
-The thread simply runs the \textit{StateT} transformer layer with the initial value of 0 and then the \textit{STM} computation through \textit{atomically} and prints the result to the console. Note that \textit{a} is the result of \textit{stmAction} and \textit{s'} is the final state of the \textit{StateT} computation. To actually run this example we need the main-thread to updated the \textit{TVar} until the condition is met within \textit{stmAction}:
+The thread simply runs the \textit{StateT} transformer layer with the initial value of 0 and then the \textit{STM} computation through \textit{atomically} and prints the result to the console. Note that \textit{a} is the result of \textit{stmAction} and \textit{s'} is the final state of the \textit{StateT} computation. To actually run this example we need the main thread to updated the \textit{TVar} until the condition is met within \textit{stmAction}:
 
 \begin{HaskellCode}
 main :: IO ()
@@ -94,4 +94,4 @@ main = do
     atomically (writeTVar v i))
 \end{HaskellCode}
 
-If we run this program, we will see "increment!" printed 43 times, followed by "final StateT state = 1, STM computation result = 42". This clearly demonstrates the retry semantics: \textit{stmAction} is retried 42 times and thus prints "increment" 43 times to the console. The \textit{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data-structure: simply throw away the new value and retry with the original value. This example also demonstrates that any \textit{IO} actions which happen within an \textit{STM} action are persistent and can obviously not be rolled back - Debug.trace is an \textit{IO} action masked as pure using \textit{unsafePerformIO}.
+If we run this program, we will see \texttt{'increment!'} printed 43 times, followed by \texttt{'final StateT state = 1, STM computation result = 42'}. This clearly demonstrates the retry semantics: \textit{stmAction} is retried 42 times and thus prints \texttt{'increment!'} 43 times to the console. The \textit{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data-structure: simply throw away the new value and retry with the original value. This example also demonstrates that any \textit{IO} actions which happen within an \textit{STM} action are persistent and can obviously not be rolled back - Debug.trace is an \textit{IO} action masked as pure using \textit{unsafePerformIO}.

@@ -1,4 +1,4 @@
-\section{Event-Driven SIR}
+\section{Event-driven SIR}
 \label{sec:eventdriven_sir}
 This short section shows how to implement the SIR model, as introduced in Chapter \ref{sec:sir_model}, with an event-driven approach. This is in stark contrast to the time-driven implementation in Chapter \ref{sec:timedriven_firststep}. The solutions are quantitatively equal as they produce the same class of dynamics. Qualitatively they fundamentally differ though in terms of expressivity and performance as we will see below.
 
@@ -29,7 +29,7 @@ sirAgent Recovered _ = do
 
 In the next sections we have a quick look at how we translate the time-driven susceptible, infected and recovered behaviours of into event-driven behaviours.
 
-\subsection{Susceptible Agent}
+\subsection{Susceptible agent}
 We use the same switch mechanism of making the transition from a susceptible to an infected agent in case of an infection but how a susceptible agent gets infected works now different:
 
 \begin{itemize}
@@ -38,7 +38,7 @@ We use the same switch mechanism of making the transition from a susceptible to 
 	\item When the agent receives a \textit{Contact} event, it checks if it is from an infected agent. If the event is not from an infected agent, it ignores it. Otherwise it becomes infected with a given probability. In case of infection the agent decrements the number of susceptible and increments the number of infected agents.
 \end{itemize}
 
-\subsection{Infected Agent}
+\subsection{Infected agent}
 We use the same switch mechanism of making the transition from an infected to a recovered agent after the illness duration. The main difference is that agents send \textit{Contact} events to each other to indicate that contacts have happened. Thus susceptible and infected agents need to react to incoming \textit{Contact} events.
 
 \begin{itemize}
@@ -46,7 +46,7 @@ We use the same switch mechanism of making the transition from an infected to a 
 	\item When the agent receives a \textit{Contact} event, it checks if it is from a susceptible agent. If the event is not from a susceptible agent, it ignores it. Otherwise it simply replies to this susceptible agent with a \textit{Contact} event with $\Delta t = 0$.
 \end{itemize}
 
-\subsection{Recovered Agent}
+\subsection{Recovered agent}
 The recovered agent does not change any more, reacts to no incoming events and schedules no events - it stays constant forever and thus outputs the empty tuple forever.
 
 \subsection{Reflections}

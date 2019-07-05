@@ -1,4 +1,4 @@
-\section{Second Step: Going Monadic}
+\section{Second step: going monadic}
 \label{sec:timedriven_monadic}
 
 A part of the library Dunai is BearRiver, a wrapper re-implementing Yampa on top of Dunai, which allows us to easily replace Yampa with MSFs. This will enable us to run arbitrary monadic computations in a signal function, solving the problem of correlated random numbers through the use of the \textit{Rand} Monad.
@@ -19,7 +19,7 @@ type SIRMonad g = Rand g
 type SIRAgent g = SF (SIRMonad g) [SIRState] SIRState
 \end{HaskellCode}
 
-To access the \textit{Rand} Monad functionality within the MSF context, overloaded functions are used. For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a \textit{MonadRandom} type-class. Because we are now running within a \textit{MonadRandom} instance we simply replace \textit{occasionally} with \textit{occasionallyM}. 
+To access the \textit{Rand} Monad functionality within the MSF context, overloaded functions are used. For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a \textit{MonadRandom} type class. Because we are now running within a \textit{MonadRandom} instance we simply replace \textit{occasionally} with \textit{occasionallyM}. 
 
 \begin{HaskellCode}
 occasionallyM :: MonadRandom m => Time -> b -> SF m a (Event b)
@@ -30,4 +30,4 @@ drawRandomElemSF :: MonadRandom m => SF m [a] a
 \end{HaskellCode}
 
 \subsection{Discussion} 
-Running in the Random Monad elegantly solves the problem of correlated random numbers and guarantees that we won't have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of an explicit discrete 2D environment.
+Running in the Random Monad elegantly solves the problem of correlated random numbers and guarantees that we will not have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of an explicit discrete 2D environment.

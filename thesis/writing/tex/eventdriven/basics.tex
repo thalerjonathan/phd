@@ -43,7 +43,7 @@ It is easy to see that this behaviour emulates the time-driven one and indeed in
 	\label{fig:sir_eventdriven_dynamics}
 \end{figure}
 
-\subsection{Events, Agent Identity and Scheduling}
+\subsection{Events, agent identity and scheduling}
 We can now start to discuss the concepts from an implementation perspective. First, we need to make the concept of an event explicit: they are of a given type, have a receiver and a time-stamp in \textit{absolute} simulation time when they shall be scheduled. We keep the event-type polymorphic and represent the receiver by an \textit{AgentId} which is a simple \textit{Int}. For efficient scheduling, the events are kept in a priority-queue \footnote{We are using the \textit{Data.PQueue.Min} implementation from the \textit{pqueue} package.}, sorted ascending by the time-stamp. Thus we define the following:
 
 \begin{HaskellCode}

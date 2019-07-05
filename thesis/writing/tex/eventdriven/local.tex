@@ -41,7 +41,7 @@ type SugarScapeAgent g
        = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 \end{HaskellCode}
 
-Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \textit{IO} monadic context anywhere in our type definitions and we can also guarantee that it won't get sneaked in. The transformer stack of the agents MSF is terminated through the \textit{Rand} Monad thus it is simply not possible to add other layers. 
+Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \textit{IO} monadic context anywhere in our type definitions and we can also guarantee that it will not get sneaked in. The transformer stack of the agents MSF is terminated through the \textit{Rand} Monad thus it is simply not possible to add other layers. 
 
 An agent is fully represented by a top level \textit{SugarScapeAgent} function, which encapsulates the whole agent behaviour. We next look at how to define agent-local behaviour, which is hidden behind the \textit{SugarScapeAgent} function type: whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
 
@@ -55,7 +55,7 @@ sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do ... )
 
 Before we can move on to write a function handling incoming events, we need to define the \textit{agent-local} Monad stack. The event handler must be able to manipulate the agent-local state we just encapsulated through \textit{feedback}, support reading the unique agent id and model scenario and scheduling of events.
 
-Providing the local, mutable agent state is done using a \textit{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \textit{Reader} Monad. Implementing event scheduling, the same mechanism as in the event-driven SIR is used by a \textit{Writer} Monad. As the \textit{Monoid} instance to the \textit{WriterT}, the \textit{AgentOut} is used: all fields of its data definition are \textit{Monoid} instances, making \textit{AgentOut} a \textit{Monoid} as well - writing a type class instance for it is trivial. Now it is also clear why \textit{AgentOut} contains the list of events. Further, this also allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour as both are also part of \textit{AgentOut}.
+Providing the local, mutable agent state is done using a \textit{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \textit{Reader} Monad. Implementing event scheduling, the same mechanism as in the event-driven SIR is used by a \textit{Writer} Monad. As the \textit{Monoid} instance to the \textit{WriterT}, the \textit{AgentOut} is used: all fields of its data definition are \textit{Monoid} instances, making \textit{AgentOut} a \textit{Monoid} as well - writing a typeclass instance for it is trivial. Now it is also clear why \textit{AgentOut} contains the list of events. Further, this also allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour as both are also part of \textit{AgentOut}.
 
 We thus define the following Monad which is local to the agent and is only used \textit{within} \textit{AgentMSF}.
 
@@ -72,7 +72,7 @@ type AgentLocalMonad g = WriterT (SugAgentOut g)
 --          (Rand g)))))
 \end{HaskellCode}
 
-Now we can define the MSF which handles an event. It has the \textit{AgentLocalMonad} monadic context, takes an \textit{ABSEvent} parametrised over \textit{SugEvent} (thus it has also to handle \textit{Tick}). What might come as a surprise is that it returns unit type, implying that the results of handling an event are only visible as side-effects in the monad stack. This is intended. We could pass all arguments explicitly as input and/or output but that would complicate the handling code substantially, thus we opted for a monadic, imperative style handling of events.
+Now we can define the MSF which handles an event. It has the \textit{AgentLocalMonad} monadic context, takes an \textit{ABSEvent} parametrised over \textit{SugEvent} (thus it has also to handle \textit{Tick}). What might come as a surprise is that it returns unit type, implying that the results of handling an event are only visible as side effects in the monad stack. This is intended. We could pass all arguments explicitly as input and/or output but that would complicate the handling code substantially, thus we opted for a monadic, imperative style handling of events.
 
 \begin{HaskellCode}
 type EventHandler g = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
@@ -95,7 +95,7 @@ generalEventHandler :: RandomGen g => EventHandler g
 
 Now it is also clear why the output of an agent is a tuple of \textit{AgentOut} and the polymorphic type \textit{o}: the latter one is parametrised to \textit{SugAgentObservable}, which is not constructed through the use of \textit{WriterT} but simply a projection of the agent state through \textit{sugObservableFromState}. In the next section we explain the details of \textit{generalEventHandler}, which implements the main event handling mechanisms of an agent.
 
-\subsubsection{Handling and sending of Events}
+\subsubsection{Handling and sending of events}
 Now we are ready to implement handling of events on an agent-local level: we receive the events from the simulation kernel as input and run within a 6-layered Monad transformer stack which is part global (controlled by the simulation kernel) and part local to the agent (controlled by the agent itself). The layers are the following (inner to outer):
 
 \begin{enumerate}

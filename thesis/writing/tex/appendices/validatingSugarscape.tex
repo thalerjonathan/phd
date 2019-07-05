@@ -7,7 +7,7 @@ The answer lies in the very nature of exploratory models: they exist to explore 
 
 We show how to use property-testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our implementation \footnote{The code can be accessed freely from \url{https://github.com/thalerjonathan/phd/tree/master/public/towards/SugarScape/sequential}} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}, Note that lending didn't properly work in their NetLogo code and that they didn't implement Combat}. 
 
-\section{Property-Based Hypothesis Testing}
+\section{Property-based hypothesis testing}
 The property we test for is whether \textit{the emergent property / hypothesis under test is stable under replicated runs} or not. To put it more technical, we use QuickCheck to run multiple replications with the same configuration but with different random-number streams and require that all tests pass. During the verification process we have derived and implemented property-tests for the following hypotheses:
 
 \begin{enumerate}
@@ -152,7 +152,7 @@ In this section we briefly describe the process of validating our Sugarscape imp
 \subsection{Terracing}
 Our implementation reproduces the terracing phenomenon as described in the book and as can be seen in the NetLogo implementation as well. We implemented a property-test in which we measure the closeness of agents to the ridge: counting the number of same-level sugars cells around them and if there is at least one lower then they are at the edge. If a certain percentage is at the edge then we accept terracing. The question is just how much, which we estimated from tests and resulted in 45\%. Also, in the terracing animation the agents actually never move which is because sugar immediately grows back thus there is no incentive for an agent to actually move after it has moved to the nearest largest cite in can see. Therefore we test that the coordinates of the agents after 50 steps are the same for the remaining steps.
 
-\subsection{Carrying Capacity}
+\subsection{Carrying capacity}
 Our simulation reached a steady state (variance $<$ 4 after 100 steps) with a mean around ~182. Epstein reported a carrying capacity of 224 (page 30) and the NetLogo implementations' \cite{weaver_replicating_2009} carrying capacity fluctuates around 205 which both are significantly higher than ours. Something was definitely wrong - the carrying capacity has to be around 200 (we trust in this case the NetLogo implementation and deem 224 an outlier).
 
 After inspection of the NetLogo model we realised that we implicitly assumed that the metabolism range is \textit{continuously} uniformly randomized between 1 and 4 but this seemed not what the original authors intended: in the NetLogo model there were a few agents surviving on sugar level 1 which was never the case in ours as the probability of drawing a metabolism of exactly 1 is practically zero when drawing from a continuous range. We thus changed our implementation to draw a discrete value as the metabolism. %Note that this actually makes sense as massive floating-point number calculations were quite expensive in the mid 90s (e.g. computer games ran still on CPU only and exploited various  clever tricks to avoid the need of floating point calculations whenever possible) when SugarScape was implemented which might have been a reason for the authors to assume it implicitly.
@@ -163,15 +163,15 @@ For regression-tests we implemented a property-test which tests that the carryin
 
 One lesson learned is that even such seemingly minor things like continuous vs. discrete or order of actions an agent makes, can have substantial impact on the dynamics of a simulation.
 
-\subsection{Wealth Distribution}
+\subsection{Wealth distribution}
 By visual comparison we validated that the wealth distribution (page 32-37) becomes strongly skewed with a histogram showing a fat tail, power-law distribution where very few agents are very rich and most of the agents are quite poor. We compute the skewness and kurtosis of the distribution which is around a skewness of 1.5, clearly indicating a right skewed distribution and a kurtosis which is around 2.0 which clearly indicates the 1st histogram of Animation II-3 on page 34. Also we compute the Gini coefficient and it varies between 0.47 and 0.5 - this is accordance with Animation II-4 on page 38 which shows a gini-coefficient which stabilises around 0.5 after. 
 We implemented a regression-test testing skewness, kurtosis and gini-coefficients of 100 runs to be within a 95\% confidence interval of a two-sided t-test using an expected skewness of 1.5, kurtosis of 2.0 and gini-coefficient of 0.48.
 
 \subsection{Migration}
-With the information provided by \cite{weaver_replicating_2009} we could replicate the waves as visible in the NetLogo implementation as well. Also we propose that a vision of 10 is not enough yet and shall be increased to 15 which makes the waves very prominent and keeps them up for much longer - agent waves are travelling back and forth between both Sugarscape peaks. We haven't implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
+With the information provided by \cite{weaver_replicating_2009} we could replicate the waves as visible in the NetLogo implementation as well. Also we propose that a vision of 10 is not enough yet and shall be increased to 15 which makes the waves very prominent and keeps them up for much longer - agent waves are travelling back and forth between both Sugarscape peaks. We have not implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
 
-\subsection{Pollution and Diffusion}
-With the information provided by \cite{weaver_replicating_2009} we could replicate the pollution behaviour as visible in the NetLogo implementation as well. We haven't implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
+\subsection{Pollution and diffusion}
+With the information provided by \cite{weaver_replicating_2009} we could replicate the pollution behaviour as visible in the NetLogo implementation as well. We have not implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
 
 %Note that we spent quite a lot of time of getting this and the terracing properties right because they form the very basics of the other ones which follow so we had to be sure that those were correct otherwise validating would have been much more difficult.
 
@@ -181,7 +181,7 @@ With the information provided by \cite{weaver_replicating_2009} we could replica
 \subsection{Mating}
 We could not replicate Figure III-1 - our dynamics first raised and then plunged to about 100 agents and go then on to recover and fluctuate around 300. This findings are in accordance with \cite{weaver_replicating_2009}, where they report similar findings - also when running their NetLogo code we find the dynamics to be qualitatively the same.
 
-Also at first we weren't able to reproduce the cycles of population sizes. Then we realised that our agent-behaviour was not correct: agents which died from age or metabolism could still engage in mating before actually dying - fixing this to the behaviour, that agents which died from age or metabolism won't engage in mating solved that and produces the same swings as in \cite{weaver_replicating_2009}. Although our bug might be obvious, the lack of specification of the order of the application of the rules is an issue in the SugarScape book.
+Also at first we weren't able to reproduce the cycles of population sizes. Then we realised that our agent-behaviour was not correct: agents which died from age or metabolism could still engage in mating before actually dying - fixing this to the behaviour, that agents which died from age or metabolism will not engage in mating solved that and produces the same swings as in \cite{weaver_replicating_2009}. Although our bug might be obvious, the lack of specification of the order of the application of the rules is an issue in the SugarScape book.
 
 \subsection{Inheritance}
 We couldn't replicate the findings of the Sugarscape book regarding the Gini coefficient with inheritance. The authors report that they reach a gini coefficient of 0.7 and above in Animation III-4. Our Gini coefficient fluctuated around 0.35. Compared to the same configuration but without inheritance (Animation III-1) which reached a Gini coefficient of about 0.21, this is indeed a substantial increase - also with inheritance we reach a larger number of agents of around 1,000 as compared to around 300 without inheritance.
@@ -189,7 +189,7 @@ The Sugarscape book compares this to chapter II, Animation II-4 for which they r
 
 The baseline is that this shows that inheritance indeed has an influence on the inequality in a population. Thus we deemed that our results are qualitatively the same as the make the same point. Still there must be some mechanisms going on behind the scenes which are unspecified in the original Sugarscape.
 
-\subsection{Cultural Dynamics}
+\subsection{Cultural dynamics}
 We could replicate the cultural dynamics of AnimationIII-6 / Figure III-8: after 2700 steps either one culture (red / blue) dominates both hills or each hill is dominated by a different ulture. We wrote a test for it in which we run the simulation for 2.700 steps and then check if either culture dominates with a ratio of 95\% or if they are equal dominant with 45\%. Because always a few agents stay stationary on sugarlevel 1 (they have a metabolism of 1 and cant see far enough to move towards the hills, thus stay always on same spot because no improvement and grow back to 1 after 1 step), there are a few agents which never participate in the cultural process and thus no complete convergence can happen. This is accordance with \cite{weaver_replicating_2009}.
 
 \subsection{Combat}
@@ -213,7 +213,7 @@ According to the book, Carrying Capacity (Animation II-2) is increased by Trade 
 
 According to the book, increasing the agent vision leads to a faster convergence towards the (near) equilibrium price (page 117/118/119, Figure IV-8 and Figure IV-9). We could replicate this behaviour as well.
 
-According to the book, when enabling R rule and giving agents a finite life span between 60 and 100 this will lead to price dispersion: the trading prices won't converge around the equilibrium and the standard deviation will fluctuate wildly (page 120, Figure IV-10 and Figure IV-11). We could replicate this behaviour as well.
+According to the book, when enabling R rule and giving agents a finite life span between 60 and 100 this will lead to price dispersion: the trading prices will not converge around the equilibrium and the standard deviation will fluctuate wildly (page 120, Figure IV-10 and Figure IV-11). We could replicate this behaviour as well.
 
 The Gini coefficient should be higher when trading is enabled (page 122, Figure IV-13) - We could replicate this behaviour.
 

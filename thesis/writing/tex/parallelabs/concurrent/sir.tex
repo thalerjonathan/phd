@@ -1,4 +1,4 @@
-\section{Case Study I: SIR}
+\section{Case study I: SIR}
 \label{sec:concurrent_sir}
 Our first case study is the SIR model as introduced in Chapter \ref{sec:sir_model}. The aim of this case study is to investigate the potential speed up a concurrent \textit{STM} implementation gains over a sequential one under varying number of CPU cores and agents. The behaviour of the agents is quite simple and the interactions are happening indirectly through the environment, where reads from the environment outnumber the writes to it by far. Further, a comparison to a lock-based implementation with the \textit{IO} Monad is done to understand that \textit{STM} is also able to outperform traditional concurrency, \textit{in a pure functional ABS setting} while still retaining its greater static guarantees than \textit{IO} \footnote{The code of all three implementations is available at \url{https://github.com/thalerjonathan/phd/tree/master/public/stmabs/code/SIR}}.
 
@@ -25,7 +25,7 @@ In the experiments we varied the number of agents (grid size) as well as the num
 	\label{tab:machine_specs}
 \end{table}
 
-\subsection{Constant Grid Size, Varying Cores}
+\subsection{Constant grid size, varying cores}
 In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and varied the cores. The results are reported in Table \ref{tab:constgrid_varyingcores}.
 
 \begin{table}
@@ -71,7 +71,7 @@ Comparing the performance and scaling to multiple cores shows that the \textit{S
 	\label{fig:core_duration_stm_io}
 \end{figure}
 
-\subsection{Varying Grid Size, Constant Cores}
+\subsection{Varying grid size, constant cores}
 In this experiment we varied the grid size and used always 4 cores. The results are reported in Table \ref{tab:varyinggrid_constcores} and plotted in Figure \ref{fig:varyinggrid_constcores}.
 
 \begin{table}
@@ -118,7 +118,7 @@ Of very much interest when using STM is the retry-ratio, which obviously depends
 
 Independent of the number of agents we always have a retry-ratio of 0.0. This indicates that this model is \textit{very} well suited to STM, which is also directly reflected in the much better performance over the \textit{Lock-Based} implementation. Obviously this ratio stems from the fact that in our implementation we have \textit{very} few writes, which happen only in case when an agent changes from Susceptible to Infected or from Infected to Recovered. On the other hand, there are a very large number of reads due to indirect agent interaction. For \textit{STM} this is no problem because no lock is taken but the \textit{Lock-Based} approach is forced to conservatively take the lock to ensure mutual exclusive access to the critical section across all agents.
 
-\subsection{Going Large-Scale}
+\subsection{Going large scale}
 To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{STM} cases, we ran two experiments, 51x51 and 251x251, on Amazon EC2 instances with a larger number of cores than our local machinery, starting with 16 and 32 to see if we are running into decreasing returns. The results are reported in Table \ref{tab:sir_varying_cores_amazon}.
 
 \begin{table}

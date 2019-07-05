@@ -1,4 +1,4 @@
-\section*{Property-Based Testing}
+\section*{Property-based testing}
 \label{sec:proptesting}
 
 Property-based testing allows to formulate \textit{functional specifications} in code which then a property-based testing library tries to falsify by \textit{automatically} generating test-data, covering as much cases as possible. When a case is found for which the property fails, the library then reduces the test-data to its simplest form for which the test still fails e.g. shrinking a list to a smaller size. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and exploratory nature of ABS. Further, the automatic test-generation can make testing of large scenarios in ABS feasible because it does not require the programmer to specify all test-cases by hand, as is required in e.g. traditional unit tests.
@@ -52,7 +52,7 @@ We see that QuickCheck generates 100 test-cases for each property-test and it do
 QuickCheck generates 100 test-cases by default and requires all to pass - if there is a test-case which fails, the overall property-test fails and QuickCheck shrinks the input to a minimal size which still fails and reports it as a counter example. This is the case in the last property-test \textit{reverse\_distributive} which is wrong as \textit{xs} and \textit{ys} need to be swapped on the right-hand side. In this run, QuickCheck found a counter-example to the property after 5 tests and applied 6 shrinks to find the minimal failing example of \textit{xs = [0]} and \textit{ys = [1]}. If we swap \textit{xs} and \textit{ys}, the property-test passes 100 test-cases just like the other two did. Note that it is possible to configure QuickCheck to generate more or less random test-cases, which can be used to increase the coverage if the sampling space is quite large - this will become useful later.
 
 \subsubsection*{Generators}
-QuickCheck comes with a lot of data-generators for existing types like \textit{Strings, Int, Double, Lists},... but in case one wants to randomize custom data-types one has to write custom data-generators. There are two ways to do this: fix them at compile-time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data type can then be used as random argument to a function as in the examples above.
+QuickCheck comes with a lot of data-generators for existing types like \textit{Strings, Int, Double, Lists},... but in case one wants to randomize custom data-types one has to write custom data-generators. There are two ways to do this: fix them at compile time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data type can then be used as random argument to a function as in the examples above.
 
 Lets implement a custom data-generator for the \textit{SIRState} for both cases. We start with the run-time option, running in the \textit{Gen} Monad:
 
@@ -170,7 +170,7 @@ When we run the example from above but now with \textit{checkCoverage} we get th
 
 We see that after QuickCheck has run 12,800 tests it came to the statistically robust conclusion that indeed at least 15\% of the test-cases have a random-list with at least 50 elements. 
 
-\subsubsection*{Emulating Failure}
+\subsubsection*{Emulating failure}
 As already mentioned, \textit{all} test-cases have to pass for the whole property-test to succeed. If just a single test-case fails, the whole property-test fails. This is sometimes too strong, especially when we are dealing with stochastic systems like ABS models.
 
 The function \textit{cover} can be used to emulate failure of test-cases and get a measure of failure. Instead of computing the \textit{True/False} property in the last \textit{prop} argument, we set the last argument always to \textit{True} and compute the \textit{True/False} property in the second \textit{Bool} argument, indicating whether the test-case belongs to the class of passed tests or not. This has the effect that \textit{all} test-cases are successful but that we get a distribution of failed/successful ones. In combination with \textit{checkCoverage}, this is a particularly powerful pattern for testing ABS which allows us to test hypotheses and statistical tests on distributions as will be shown in the following chapters.

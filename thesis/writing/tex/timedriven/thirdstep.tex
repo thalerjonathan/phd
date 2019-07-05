@@ -1,4 +1,4 @@
-\section{Third Step: Adding an environment}
+\section{Third step: adding an environment}
 \label{sec:adding_env}
 So far we have implicitly assumed a fully connected network amongst agents, where each agent can see and knows every other agent. This is a valid environment and in accordance with the System Dynamics inspired implementation of the SIR model but does not show the real advantage of ABS to situate agents within arbitrary environments. Often, agents are situated within a discrete 2D environment \cite{epstein_growing_1996} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants.
 
@@ -39,13 +39,13 @@ type SIREnv      = Array Disc2dCoord SIRState
 type SIRAgent g  = SF (Rand g) SIREnv SIRState
 \end{HaskellCode}
 
-Note that the environment is not returned as output because the agents do not directly manipulate the environment but only read from it. Again, this enforces the semantics of the \textit{parallel} update-strategy through the types where the agents can only see the previous state of the environment and see the actions of other agents reflected in the environment only in the next step.
+Note that the environment is not returned as output because the agents do not directly manipulate the environment but only read from it. Again, this enforces the semantics of the \textit{parallel} update strategy through the types where the agents can only see the previous state of the environment and see the actions of other agents reflected in the environment only in the next step.
 
 Note that we could have chosen to use a \textit{StateT} transformer with the \textit{SIREnv} as state, instead of passing it as input, with the agents then able to arbitrarily read/write, but this would have violated the semantics of our model because actions of agents would have become visible within the same time-step.
 
 The implementation of the susceptible, infected and recovered agents are almost the same with only the neighbour querying now slightly different. 
 
-Stepping the simulation needs a new approach because in each step we need to collect the agent outputs and update the environment for the next step. For this we implemented a separate MSF, which receives the coordinates for every agent to be able to update the state in the environment after the agent was run. Note that we need use \textit{mapM} to run the agents because we are running now in the context of the \textit{Rand} Monad. This has the consequence that the agents are in fact run sequentially one after the other but because they cannot see the other agents actions nor observe changes in the shared read-only environment, it is \textit{conceptually} a \textit{parallel} update-strategy where agents run in lock-step, isolated from each other at conceptually the same time.
+Stepping the simulation needs a new approach because in each step we need to collect the agent outputs and update the environment for the next step. For this we implemented a separate MSF, which receives the coordinates for every agent to be able to update the state in the environment after the agent was run. Note that we need use \textit{mapM} to run the agents because we are running now in the context of the \textit{Rand} Monad. This has the consequence that the agents are in fact run sequentially one after the other but because they cannot see the other agents actions nor observe changes in the shared read-only environment, it is \textit{conceptually} a \textit{parallel} update strategy where agents run in lock-step, isolated from each other at conceptually the same time.
   
 \begin{HaskellCode}
 simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)]

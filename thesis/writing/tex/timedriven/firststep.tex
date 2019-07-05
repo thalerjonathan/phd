@@ -6,7 +6,7 @@ As already pointed out, agents need to perceive time, which means that the conce
 
 According to the model, every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents, thus we model this by generating a random event on average every $\frac{1}{\beta}$ time units. We need to sample from an exponential distribution because the rate is proportional to the size of the population \cite{borshchev_system_2004}. Note that an agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. This mechanism is an implementation detail, which we will derive in our implementation steps. For now we only assume that agents can make contact with each other somehow.
 
-The \textit{parallel} strategy matches the semantics of the agent-based SIR model due to the underlying roots in the System Dynamics approach. As discussed already in Chapter \ref{sub:par_strategy}, in the parallel update-strategy, the agents act conceptually all at the same time in lock-step. This implies that they observe the same system state during a time-step and actions of an agent are only visible in the next time-step - they are isolated from each other. As will become apparent, FP can be used to enforce the correct application of this strategy through the strong static type-system, at compile-time.
+The \textit{parallel} strategy matches the semantics of the agent-based SIR model due to the underlying roots in the System Dynamics approach. As discussed already in Chapter \ref{sub:par_strategy}, in the parallel update strategy, the agents act conceptually all at the same time in lock-step. This implies that they observe the same system state during a time-step and actions of an agent are only visible in the next time-step - they are isolated from each other. As will become apparent, functional programming can be used to enforce the correct application of this strategy through the strong static type system, at compile time.
 
 We start by defining the SIR states as Algebraic Data Type (ADT) and our agents as signal functions (SF), which receive the SIR states of all agents form the previous step as input and outputs the current SIR state of the agent. This definition, and the fact that Yampa is not monadic, guarantees already at compile, that the agents are isolated from each other, enforcing the \textit{parallel} lock-step semantics of the model.
 
@@ -203,13 +203,13 @@ By following the FRP approach we assume a continuous flow of time, which means t
 
 For tackling this issue we have three options. The first one is to use a smaller $\Delta t$ as can be seen in \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The second option is to step the simulation with $\Delta t = 1$ and in each step, instead of using \textit{occasionally}, to make a number of contacts drawn from the exponential distribution. Note that if we follow this option, we abandon the time-driven approach altogether because we don't abstract away from $\Delta t$ and violate the fundamental abstraction of FRP, which assumes that time is continuous and signal functions are running conceptually infinitely fast and infinitely often \cite{winograd-cort_wormholes:_2012}. This leaves us with the third option to implement super-sampling and apply it to \textit{occasionally}, which allows us then to run the whole simulation with $\Delta t = 1.0$ and only sample the \textit{occasionally} function with a much higher frequency.
 
-The function \textit{embed}, which allows to run a given signal function with provided $\Delta t$, does not help here because it does not return a signal function. What we need is a signal function which takes the number of super-samples \textit{n}, the signal-function \textit{sf} to sample and returns a new signal function, which performs super-sampling on it. We provide a full implementation of such a function, which also gives an insight into how signal functions are implemented in Yampa, and how the $\Delta t$ is hidden:
+The function \textit{embed}, which allows to run a given signal function with provided $\Delta t$, does not help here because it does not return a signal function. What we need is a signal function which takes the number of super-samples \textit{n}, the signal function \textit{sf} to sample and returns a new signal function, which performs super-sampling on it. We provide a full implementation of such a function, which also gives an insight into how signal functions are implemented in Yampa, and how the $\Delta t$ is hidden:
 
 \begin{HaskellCode}
 import FRP.Yampa.InternalCore
 
--- SF is the signal-function defined for time t = 0 and returns
--- a continuation of type SF' which is the signal-function 
+-- SF is the signal function defined for time t = 0 and returns
+-- a continuation of type SF' which is the signal function 
 -- defined for t > 0: it receives an additional time-delta
 -- data SF a b  = SF { sfTF :: a -> (SF' a b, b) }
 -- data SF' a b = DTime -> a -> (SF' a b, b)
@@ -254,12 +254,12 @@ It evaluates the \textit{SF} argument for \textit{n} times, each with $\Delta t 
 We can conclude that our first step already introduced most of the fundamental concepts of ABS:
 \begin{itemize}
 	\item Time - the simulation occurs over virtual time which is modelled explicitly, divided into \textit{fixed} $\Delta t$, where at each step all agents are executed.
-	\item Agents - each agent is implemented as an individual, with the behaviour depending on its state. It is clear to see that agents behave as signals: when the system is sampled with $\Delta t = 0$ then their behaviour will stay constant and won't change because it is completely determined by the flow of time. 
+	\item Agents - each agent is implemented as an individual, with the behaviour depending on its state. It is clear to see that agents behave as signals: when the system is sampled with $\Delta t = 0$ then their behaviour will stay constant and will not change because it is completely determined by the flow of time. 
 	\item Feedback - the output state of the agent in the current time-step $t$ is the input state for the next time-step $t + \Delta t$.
 	\item Environment - as environment we implicitly assume a fully-connected network (complete graph) where every agent 'knows' every other agent, including itself and thus can make contact with all of them.
 	\item Stochasticity - it is an inherently stochastic simulation, which is indicated by the random-number generator and the usage of \textit{occasionally}, \textit{randomBoolSF} and \textit{drawRandomElemSF}.
 	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs \textit{not} in the IO Monad. This guarantees that no external, uncontrollable sources of non-determinism can interfere with the simulation.
-	\item Parallel, lock-step semantics - the simulation implements a \textit{parallel} update-strategy where in each step the agents are run isolated in parallel and don't see the actions of the others until the next step.
+	\item Parallel, lock-step semantics - the simulation implements a \textit{parallel} update strategy where in each step the agents are run isolated in parallel and don't see the actions of the others until the next step.
 \end{itemize}
 
 Using FRP in Yampa results in a clear, expressive and robust implementation. State is implicitly encoded, depending on which signal function is active. By using explicit time-semantics with \textit{occasionally} we can achieve extremely fine grained stochastics by sampling the system with small $\Delta t$: we are treating it as a truly continuous time-driven agent-based system.

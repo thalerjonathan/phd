@@ -3,7 +3,7 @@ In this chapter we briefly explored how to apply parallelism to our pure functio
 
 Although we showed how to apply the techniques, unfortunately the case studies showed that performance improvement was only possible in the case of the non-monadic SIR as introduced in Chapter \ref{sec:timedriven_firststep}. The speed up stemmed from the fact that the agents ran indeed in parallel as our original goal was, thus resulting in a significant speed up factor of over 4. 
 
-Unfortunately all attempts in parallelising the monadic SIR and Sugarscape implementations failed, which was expected. As soon as we switch to monadic agents, evaluation parallelism is out of the window, as agents can't be run in parallel any more because side-effects require to impose a sequential ordering (which is exactly what the idea behind a Monad is).
+Unfortunately all attempts in parallelising the monadic SIR and Sugarscape implementations failed, which was expected. As soon as we switch to monadic agents, evaluation parallelism is out of the window, as agents can't be run in parallel any more because side effects require to impose a sequential ordering (which is exactly what the idea behind a Monad is).
 
 We further showed how to apply parallelism \textit{within} a SIR agent and for updating the environment of the Sugarscape in parallel using the \textit{Par} Monad. It didn't show any speed up as well but this was not the primary objective: we rather explored conceptually to demonstrate how it can be used - other models might benefit massively from such an approach as they might contain much more potential for data-flow parallelism.
 

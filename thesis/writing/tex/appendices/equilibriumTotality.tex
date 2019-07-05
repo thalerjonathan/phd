@@ -1,4 +1,4 @@
-\chapter{The Equilibrium-Totality Correspondence}
+\chapter{The equilibrium-totality correspondence}
 \label{app:equilibrium_totality}
 
 In the property-tests of Chapter \ref{sec:prop_invariants_dynamics} and \ref{sec:timedriven_specification} we limited the time an individual simulation is run to a random range between 0 and 50. In this context, the decision to do so was for practical reasons to guarantee termination as both the event- and time-driven implementations would run forever if no time- and/or event-limit is specified \footnote{Note that the event-driven implementation would terminate if the event-queue is empty but in the case of the SIR this will never be the case due to susceptible agents keep scheduling \textit{MakeContact}, resulting in an infinite stream of events.}.
@@ -32,7 +32,7 @@ One solution is to abandon the power of general recursion and Turing-completenes
 	
 	\item Types are first-class citizen - In dependently typed languages, types can depend on any \textit{values}, and can be \textit{computed} at compile time, which makes them first-class citizen. This allows to compute the return type of a function depending on its input values. Note that this requires totality, otherwise type-checking would be not decidable and potentially non-terminating.
 	
-	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs, which must terminate. This means a well-typed program, which in itself is a proof, is always terminating, which in turn means that it must consist out of total functions.
+	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile time, they can be used as constructive proofs, which must terminate. This means a well-typed program, which in itself is a proof, is always terminating, which in turn means that it must consist out of total functions.
 \end{enumerate}
 
 Thus it should become clear that there exists a strong relation between property-based tests and dependent types: in property-based testing we express specifications / properties / laws in code and test their invariance at run-time by random sampling the space. In dependent-types it is possible to express such properties already statically in types. So far no research using dependent types in agent-based simulation exists at all. We hypothesise that dependent types allow to push the correctness of ABS to a new, unprecedented level by narrowing the gap between model specification and implementation even further.
@@ -54,7 +54,7 @@ This short section only touched on the very basics and omitted dependently typed
 
 %All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
 
-\section{Dependent Types in ABS}
+\section{Dependent types in ABS}
 \label{sec:dep_vav_deptypes}
 ABS as \textit{constructive and exploratory} science \cite{epstein_chapter_2006, epstein_generative_2012}, follows the Popperian approach of falsification: the aim is to construct a model which explains a real-world (empirical) phenomenon. If validation shows that the generated dynamics match the ones of the real-world sufficiently enough, we can say that we have found \textit{a} hypothesis, the model, with emergent properties explaining the real-world phenomenon sufficiently enough. %This is not a proof but only one possible explanation which holds for now and might be falsified in the future.
 Epstein describes this process with \cite{epstein_chapter_2006}: \textit{"If you can't grow it, you can't explain it"}. Thus, an agent-based model and the simulated dynamics can be understood as a constructive proof which explain a real-world phenomenon sufficiently enough. Although Epstein certainly was not talking about a constructive proof in any mathematical sense in this context (he was using the word \textit{generative}), dependent types \textit{might} be a perfect match and correspondence between the constructive nature of ABS and programs as proofs.

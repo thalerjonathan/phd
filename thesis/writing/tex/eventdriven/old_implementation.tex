@@ -1,4 +1,4 @@
-\section{Implementation Concepts}
+\section{Implementation concepts}
 \label{sec:eventdriven_implementation}
 
 TODO REFINE / REWORK / REWRITE CHAPTER
@@ -17,7 +17,7 @@ This is also a bit the case in the previous chapter on time-driven ABS where the
 
 In the next sections we derive implementation concepts of pure functional event-driven ABS. Due to the complexity of the Sugarscape model we don't provide a full implementation but only present concepts derived from our implementation and present small parts of the Sugarscape implementation when necessary.
 
-\subsection{Agent Representation}
+\subsection{Agent representation}
 We follow the same approach as in the time-driven approach of Chapter \ref{sec:timedriven_monadic} and use an MSF to define our agent due to the following requirements:
 
 \begin{itemize}
@@ -121,7 +121,7 @@ type SugarScapeAgent g = SugarScapeScenario -> AgentId -> SugAgentState -> SugAg
 
 Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \textit{IO} monadic context anywhere in our type-definitions and we can also guarantee that it won't get sneaked in: the transformer-stack of the agents MSF is terminated through the \textit{Rand} monad - it is simply not possible to add other layers. In the next step we look at how the agent handles and send events - that is we are looking at an implementation of a \textit{SugarScapeAgent} function.
 
-\subsubsection{Agent-Local abstractions}
+\subsubsection{Agent-local abstractions}
 The top-level \textit{SugarScapeAgent} function encapsulates the whole agent-behaviour, which is completely driven by events, passed in as input. We now look at how to define agent-local behaviour, which is hidden behind the \textit{SugarScapeAgent} function-type: whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which is locally encapsulated and hidden from the simulation kernel. We want to achieve the following functionality, local to the agent: encapsulation of the agents' state which should still be read/writeable, sending of events and read-only access to the agents unique id and the model configuration.
 
 To implement the local encapsulation of the agents' state is straight forward with MSFs as they are continuations, which allow to capture local data using closures. Fortunately we don't need to implement the low-level plumbing, as dunai provides us with the a feedback function: \textit{feedback :: Monad m $\Rightarrow$ c $\rightarrow$ MSF m (a, c) (b, c) $\rightarrow$ MSF m a b}. It takes an initial value of type \textit{c} and an MSF which takes in addition to its input \textit{a} also the given type \textit{c} and outputs in addition to type \textit{b} also the type \textit{c}, which clearly indicates the read/write property of type \textit{c}. The function returns a new MSF which only operates on \textit{a} as input and returns \textit{b} as output by running the provided MSF and feeding back the \textit{c} (with the initial \textit{c} at the first call).
@@ -174,7 +174,7 @@ generalEventHandler :: RandomGen g => EventHandler g
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 \end{HaskellCode}
 
-\subsubsection{Handling and sending of Events}
+\subsubsection{Handling and sending of events}
 Now we can handle events on an agent-local level: we receive the events from the simulation kernel as input and run within a 6-layered monad transformer stack which is part global to the agent (controlled by the simulation kernel) and part local to the agent (controlled by the agent itself). The layers are the following (outer to inner):
 
 \begin{enumerate}
@@ -242,7 +242,7 @@ handleMatingRequest sender otherGender = do
 
 Next we look at how synchronous agent-interactions work - that is we look closer at the mating-mechanism which requires multiple synchronous interaction steps, which need to happen within the same simulation tick and both agents must not engage with other agents.
 
-\subsubsection{Synchronous Agent-Interactions}
+\subsubsection{Synchronous agent interactions}
 With the concepts introduced so far we can achieve already a lot in terms of agent-interactions: agents can react to incoming events, which are either the Tick-event advancing simulation time by one step or a message sent by another agent (or the agent itself). This is enough to implement simple one-directional asynchronous agent-interactions where one agent sends a message to another agent but does not await an answer within the same tick. This one-directional asynchronous interactions is used in the model to implement the passing of diseases, the paying back of debt, passing on wealth to children upon death - the agent simply sends a message and forgets about it.
 
 Unfortunately this mechanism is not enough to implement the other agent-interactions in the Sugarscape model, which are structurally richer: they need to be synchronous. In the use-cases of mating, trading and lending two agents need to come to an agreement over multiple interactions steps within the same tick which need to be exclusive and synchronous.  This means that an agent A initiates such a multi-step conversation with another agent B by sending an initial message to which agent B has to react by a reply to agent A who upon reception of the message, will pick up computation from that point and reply with a new message and so on. Both agents must not interact with other agents during this conversation to guarantee resource constraints, otherwise it would become quite difficult and cumbersome to ensure that agents don't spend more than they have when trading with multiple other agents at the same time. Also the initiating agent A must be able to pick up processing of its Tick event from the point where it started the conversation with agent B because sending a message always requires the handling of the current event to exit and hand the control back to the simulation kernel. See Figure \ref{fig:syncagentinteractions} for a visualisation of the sequence of actions.
@@ -305,10 +305,10 @@ defaultCont :: RandomGen g => AgentLocalMonad g (Maybe (EventHandler g))
 defaultCont = return (Just generalEventHandler)
 \end{HaskellCode}
 
-\subsection{Environment Representation}
+\subsection{Environment representation}
 Environment representation is quite simple, after we have solved the problem of how the agent can access it by using StateT. It is only a matter of selecting the right data-structure and writing domain-specific functions of the corresponding model to mutate the environment. Initially we used an indexed array from the \textit{array} package. This data-structure has excellent read performance but in performance tests it was shown that it has serious performance and memory leak issues with updates, leading to allocation of about 40 MByte / second on our machine. Clearly this is unacceptable for simulation purposes, which often requires software to run for hours, and thus needs a constant memory consumption and must prevent even slowly linearly increasing memory usage under all costs. The solution was to switch to \textit{IntMap} from the \textit{containers} package as an underlying data-structure. We used the discrete 2d-coordinates to map the environment cells to a unique index. This solved both the performance and memory leak issues completely.
 
-\subsubsection{Environment Behaviour}
+\subsubsection{Environment behaviour}
 We must make a clear distinction between the environments data-structure and how agents access it and the environments behaviour. In the Sugarscape model, the behaviour of the environment is quite trivial: it simply regrows resources over time and diffuses pollution in case pollution is turned on. This behaviour is achieved by providing a pure function without any monadic context or MSF. This is not necessary because the environment how we implement it, does not encapsulate local state and it does not interact with agents through messages and vice versa. Thus a pure function which maps the environment to the environment is enough: \textit{Time $\rightarrow$ SugEnvironment $\rightarrow$ SugEnvironment}. Further it also takes the current simulation time so it can implement seasons, where the speed of regrowth of resources is different in different regions and swaps after some time. This function is called in the simulation kernel after every Tick (see below).
 
 Generally, one can distinguish between four different types of environments in ABS:

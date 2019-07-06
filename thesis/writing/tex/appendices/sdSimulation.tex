@@ -4,7 +4,7 @@
 In this appendix we develop a correct-by-construction implementation of the SIR System Dynamics simulation. Note that the constant parameters \textit{populationSize, infectedCount, contactRate, infectivity, illnessDuration} are defined globally and omitted for clarity.
 
 \section{Deriving the implementation}
-Computing the dynamics of a SD model happens by taking the integrals as shown in Chapter \ref{sec:prop_sirspecs} and integrating over time. So conceptually we treat our SD model as a continuous function which is defined over time between 0 and infinity which outputs the values of each stock at each point in time. In the case of the SIR model we have 3 stocks: Susceptible, Infected and Recovered. Thus we start our implementation by defining the output of the SD function: for each time-step we have the values of the 3 stocks:
+Computing the dynamics of a SD model happens by taking the integrals as shown in Chapter \ref{sec:prop_sirspecs} and integrating over time. So conceptually we treat our SD model as a continuous function which is defined over time between 0 and infinity which outputs the values of each stock at each point in time. In the case of the SIR model we have 3 stocks: Susceptible, Infected and Recovered. Thus we start our implementation by defining the output of the SD function: for each time step we have the values of the 3 stocks:
 
 \begin{HaskellCode}
 type SIRStep = (Time, Double, Double, Double)

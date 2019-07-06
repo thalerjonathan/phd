@@ -91,7 +91,7 @@ prop_gini repls confidence = property (do
 %  return (giniCoeff agentWealths)
 
 \subsection{Running the tests}
-As already pointed out in Part \ref{ch:property}, QuickCheck by default runs up to 100 test-cases of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first test-case which evaluates to \textit{False} and marks the whole property-test as failed, no matter how many test-cases got through already. For this reason we have used \textit{cover} with an expected percentage of 100, meaning that we expect all tests to fall into the coverage class. This allows us to emulate failure with QuickCheck reporting the actual percentage of passed test-cases.
+As already pointed out in Part \ref{ch:property}, QuickCheck by default runs up to 100 test cases of a property and if all evaluate to \textit{True} the property-test succeeds. On the other hand, QuickCheck will stop at the first test case which evaluates to \textit{False} and marks the whole property-test as failed, no matter how many test cases got through already. For this reason we have used \textit{cover} with an expected percentage of 100, meaning that we expect all tests to fall into the coverage class. This allows us to emulate failure with QuickCheck reporting the actual percentage of passed test cases.
 
 Due to the duration even 1,000 ticks can take to compute, to get a first estimate of our hypotheses tests within reasonable time, we reduce the number of maximum successful replications required to 10 and when doing t-tests 10 replications are run there as well. 
 
@@ -144,7 +144,7 @@ How to deal with the failure of hypotheses is obviously highly model specific. A
 
 With the exception of the Gini Coefficient, we accept the failure rate of the hypotheses we presented here and deem them sufficiently valid for the task at hand. In case of the Gini Coefficient, none of the replication was successful, which makes it obvious that it does \textit{not} average at 0.7. Thus the hypothesis as stated in the book does not hold and is invalid. One way to deal with it would be to simply delete it. Another, more constructive approach, is to keep it but require all replications to fail by marking it with \textit{expectFailure} instead of \textit{property}. In this way an invalid hypothesis is marked explicitly and acts as documentation and also as regression test.
 
-\section{Hypotheses and test-cases}
+\section{Hypotheses and test cases}
 \label{sec:hypotheses_testcases}
 
 In this section we briefly describe the process of validating our Sugarscape implementation against the specification of the Sugarscape book \cite{epstein_growing_1996} and the work of \cite{weaver_replicating_2009}.
@@ -168,10 +168,10 @@ By visual comparison we validated that the wealth distribution (page 32-37) beco
 We implemented a regression-test testing skewness, kurtosis and gini-coefficients of 100 runs to be within a 95\% confidence interval of a two-sided t-test using an expected skewness of 1.5, kurtosis of 2.0 and gini-coefficient of 0.48.
 
 \subsection{Migration}
-With the information provided by \cite{weaver_replicating_2009} we could replicate the waves as visible in the NetLogo implementation as well. Also we propose that a vision of 10 is not enough yet and shall be increased to 15 which makes the waves very prominent and keeps them up for much longer - agent waves are travelling back and forth between both Sugarscape peaks. We have not implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
+With the information provided by \cite{weaver_replicating_2009} we could replicate the waves as visible in the NetLogo implementation as well. Also we propose that a vision of 10 is not enough yet and shall be increased to 15 which makes the waves very prominent and keeps them up for much longer - agent waves are travelling back and forth between both Sugarscape peaks. We have not implemented a regression-test for this property as we couldn't come up with a reasonable straightforward approach to implement it.
 
 \subsection{Pollution and diffusion}
-With the information provided by \cite{weaver_replicating_2009} we could replicate the pollution behaviour as visible in the NetLogo implementation as well. We have not implemented a regression-test for this property as we couldn't come up with a reasonable straight forward approach to implement it.
+With the information provided by \cite{weaver_replicating_2009} we could replicate the pollution behaviour as visible in the NetLogo implementation as well. We have not implemented a regression-test for this property as we couldn't come up with a reasonable straightforward approach to implement it.
 
 %Note that we spent quite a lot of time of getting this and the terracing properties right because they form the very basics of the other ones which follow so we had to be sure that those were correct otherwise validating would have been much more difficult.
 

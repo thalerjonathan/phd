@@ -11,7 +11,7 @@ With event-driven ABS a good starting point in specifying and then testing the s
 We start by giving the full \textit{specification} of the susceptible, infected and recovered agent by stating the input-to-output event relations. The susceptible agent is specified as follows:
 
 \begin{enumerate}
-	\item \textit{MakeContact} - If the agent receives this event it will output $\beta$  \textit{Contact ai Susceptible} events, where ai is the agents self id. The events have to be scheduled immediately without delay, thus having the current time as scheduling time-stamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
+	\item \textit{MakeContact} - If the agent receives this event it will output $\beta$  \textit{Contact ai Susceptible} events, where ai is the agents self id. The events have to be scheduled immediately without delay, thus having the current time as scheduling timestamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
 	
 	\item \textit{Contact \_ Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it will not change its state, stays \textit{Susceptible} and does not schedule any events.
 	
@@ -23,7 +23,7 @@ This specification implicitly covers that a susceptible agent can never transiti
 \begin{enumerate}
 	\item \textit{Recover} - If the agent receives this, it will not schedule any events and make the transition to the \textit{Recovered} state.
 	
-	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to \textit{sender}, where \textit{ai} is the infected agents' id and the scheduling time-stamp is the current time. It will not schedule any events and stays \textit{Infected}.
+	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to \textit{sender}, where \textit{ai} is the infected agents' id and the scheduling timestamp is the current time. It will not schedule any events and stays \textit{Infected}.
 	
 	\item In case of any other event, the agent will not schedule any events and stays \textit{Infected}.
 \end{enumerate}
@@ -61,7 +61,7 @@ susceptibleProps (Contact _ Infected) Susceptible es _ = null es
 -- received Contact _ Infected AND got infected, check events
 susceptibleProps (Contact _ Infected) Infected es ai
   = checkInfectedInvariants ai es
--- all other cases are invalid and result in a failed test-case
+-- all other cases are invalid and result in a failed test case
 susceptibleProps _ _ _ _ = False
 \end{HaskellCode}
 
@@ -131,7 +131,7 @@ prop_susceptible_invariants
   return $ property $ susceptibleProps evt ao es ai
 \end{HaskellCode}
 
-When running this property-test all 100 test-cases pass. Due to the large random sampling space with 5 parameters, we increase the number of test-cases to generate to 100,000 - still all test-cases pass.
+When running this property-test all 100 test cases pass. Due to the large random sampling space with 5 parameters, we increase the number of test cases to generate to 100,000 - still all test cases pass.
 
 \subsection{Encoding transition probabilities}
 In the specifications above there are probabilistic state-transitions, for example an infected agent \textit{will} recover after a given time, which is randomly distributed with the exponential distribution. The susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \textit{cover} and \textit{checkCoverage} feature of QuickCheck.
@@ -149,7 +149,7 @@ case evt of
 ...
 \end{HaskellCode}
 
-Note the usage pattern of \textit{cover}: we always include the test-case into the coverage class and all test-cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have use randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable.
+Note the usage pattern of \textit{cover}: we always include the test case into the coverage class and all test cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have use randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable.
 
 %\begin{HaskellCode}
 %prop_susceptible_proabilities :: Positive Double      -- ^ Current simulation time
@@ -221,7 +221,7 @@ When running the property-test we get the following output:
 \end{verbatim}
 \end{footnotesize}
 
-After 819,200 (!) test-cases QuickCheck comes to the conclusion that the distributions generated by the test-cases reflect the expected distributions and passes the property-test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing QuickCheck is able to conclude that the coverage are statistically equal.
+After 819,200 (!) test cases QuickCheck comes to the conclusion that the distributions generated by the test cases reflect the expected distributions and passes the property-test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing QuickCheck is able to conclude that the coverage are statistically equal.
 
 \subsubsection{Infected agent}
 We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute the expected probability for agents having an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. The question is how to get the infected illness duration. This is simply achieved by infecting a susceptible agent and taking the scheduling time of the \textit{Recover} event. We have written a custom data-generator for this:
@@ -239,7 +239,7 @@ getInfectedAgentDuration ild = do
     recoveryTime _ = 0
 \end{HaskellCode}
 
-Encoding the probability check into a property-test is straight-forward:
+Encoding the probability check into a property-test is straightforward:
 
 \begin{HaskellCode}
 prop_infected_duration :: Property
@@ -270,4 +270,4 @@ When running the property-test we get the following output.
 \end{verbatim}
 \end{footnotesize}
 
-QuickCheck is able to determine after only 3,200 test-cases that the expected coverage is met and passes the property-test.
+QuickCheck is able to determine after only 3,200 test cases that the expected coverage is met and passes the property-test.

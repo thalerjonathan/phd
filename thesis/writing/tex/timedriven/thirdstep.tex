@@ -30,7 +30,7 @@ We also implemented this spatial approach in Java using the well known ABS libra
 
 \subsection{Implementation}
 \label{sub:timedriven_thirdstep_impl}
-We start by defining the discrete 2D environment for which we use an indexed two dimensional array. Each cell stores the agent state of the last time-step, thus we use the \textit{SIRState} as type for our array data. Also, we re-define the agent signal function to take the structured environment \textit{SIREnv} as input instead of the list of all agents as in our previous approach. As output we keep the \textit{SIRState}, which is the state the agent is currently in. Also we run in the \textit{Rand} Monad as introduced before to avoid the random number correlation. 
+We start by defining the discrete 2D environment for which we use an indexed two dimensional array. Each cell stores the agent state of the last time step, thus we use the \textit{SIRState} as type for our array data. Also, we re-define the agent signal function to take the structured environment \textit{SIREnv} as input instead of the list of all agents as in our previous approach. As output we keep the \textit{SIRState}, which is the state the agent is currently in. Also we run in the \textit{Rand} Monad as introduced before to avoid the random number correlation. 
 
 \begin{HaskellCode}
 type Disc2dCoord = (Int, Int)
@@ -41,7 +41,7 @@ type SIRAgent g  = SF (Rand g) SIREnv SIRState
 
 Note that the environment is not returned as output because the agents do not directly manipulate the environment but only read from it. Again, this enforces the semantics of the \textit{parallel} update strategy through the types where the agents can only see the previous state of the environment and see the actions of other agents reflected in the environment only in the next step.
 
-Note that we could have chosen to use a \textit{StateT} transformer with the \textit{SIREnv} as state, instead of passing it as input, with the agents then able to arbitrarily read/write, but this would have violated the semantics of our model because actions of agents would have become visible within the same time-step.
+Note that we could have chosen to use a \textit{StateT} transformer with the \textit{SIREnv} as state, instead of passing it as input, with the agents then able to arbitrarily read/write, but this would have violated the semantics of our model because actions of agents would have become visible within the same time step.
 
 The implementation of the susceptible, infected and recovered agents are almost the same with only the neighbour querying now slightly different. 
 

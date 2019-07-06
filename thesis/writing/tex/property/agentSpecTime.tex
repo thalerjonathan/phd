@@ -45,7 +45,7 @@ susceptibleInvariants aos infInPop
     recIdx = fromJust recIdxMay
 \end{HaskellCode}
 
-Putting this into a property-test is also straightforward. We generate a random population, run a random susceptible agent with a sampling rate of $\Delta t = 0.01$ and check the invariants on its output stream. These invariants all have to hold independently from the (positive) duration we run the random susceptible agent for, thus we run it for a random amount of time units. The invariants also have to hold for arbitrary positive beta (contact rate), gamma (infectivity) and delta (illness duration). At the same time, we want to get an idea of the percentage of agents which stayed susceptible, became infected or made the transition to recovered, thus we \textit{label} all our test-cases accordingly.
+Putting this into a property-test is also straightforward. We generate a random population, run a random susceptible agent with a sampling rate of $\Delta t = 0.01$ and check the invariants on its output stream. These invariants all have to hold independently from the (positive) duration we run the random susceptible agent for, thus we run it for a random amount of time units. The invariants also have to hold for arbitrary positive beta (contact rate), gamma (infectivity) and delta (illness duration). At the same time, we want to get an idea of the percentage of agents which stayed susceptible, became infected or made the transition to recovered, thus we \textit{label} all our test cases accordingly.
 
 \begin{HaskellCode}
 prop_susceptible_invariants :: Positive Double  -- ^ beta, contact rate
@@ -64,7 +64,7 @@ prop_susceptible_invariants
     aos <- genSusceptible cor inf ild as t 0.01
 
     return 
-        -- label all test-cases
+        -- label all test cases
         label (labelTestCase aos) 
         -- check invariants on output stream
         (property (susceptibleInvariants aos infInPop))
@@ -132,14 +132,14 @@ To put this into a property-test, we follow a similar approach as in the event-d
 %             " or less, expected " ++ show prob) (isJust dur)
 %\end{HaskellCode}
 
-When running the test we get the following output, indicating that QuickCheck finds the coverage satisfied after 3,200 test-cases:
+When running the test we get the following output, indicating that QuickCheck finds the coverage satisfied after 3,200 test cases:
 
 \begin{verbatim}
 +++ OK, passed 3200 tests (62.28% infected agents have an illness 
     duration of 15.0 or less, expected 63.21).
 \end{verbatim}
 
-The fact that we run the random infected agent without time-limit explicitly expresses the invariant that an infected agent \textit{will} recover in \textit{finite} time-steps: a correct implementation will produce a stream which contains an index after which all elements are \textit{Infected}, thus resulting in \textit{Just} recovery time. This is also a direct expression of the fact that the CDF of the exponential distribution reaches 1.0 at infinity. An approach which would guarantee the termination would be to limit the time to run the infected agent to \textit{illnessDuration} and evaluate the property always to True. This approach guarantees termination but removes an important part of the specification - we decided to follow the initial approach to make the specification really clear, and in practice it has turned out to terminate within a very short time (see below).
+The fact that we run the random infected agent without time-limit explicitly expresses the invariant that an infected agent \textit{will} recover in \textit{finite} time steps: a correct implementation will produce a stream which contains an index after which all elements are \textit{Infected}, thus resulting in \textit{Just} recovery time. This is also a direct expression of the fact that the CDF of the exponential distribution reaches 1.0 at infinity. An approach which would guarantee the termination would be to limit the time to run the infected agent to \textit{illnessDuration} and evaluate the property always to True. This approach guarantees termination but removes an important part of the specification - we decided to follow the initial approach to make the specification really clear, and in practice it has turned out to terminate within a very short time (see below).
 
 \subsection{The non-computability of the recovered agent test}
 The property-test for the recovered agent is trivial: we run a random recovered agent for a random number of time-units with $\Delta t = 0.01$ and require that all elements in the output stream are \textit{Recovered}. Of course this is no proof that the recovered agent stays recovered \textit{forever} as this would take \textit{forever} to test and is thus not computable.  Here we are hitting the limits of what is possible with random black-box testing: without looking at the actual implementation it is not possible to prove that the recovered agent is really behaving as specified. We made this fact very clear at the beginning of this part: property-based testing is not a proof for the correctness but is only a support for raising the confidence in the correctness by constructing cases which show that the behaviour is not incorrect.

@@ -42,7 +42,7 @@ infected = proc _ -> do
     else returnA -< (Infected, NoEvent)
 \end{HaskellCode}
 
-The agent thread is straight forward: it takes \textit{MVar} synchronisation primitives to synchronise with the main thread and simply runs the agent behaviour each time it receives the next \textit{DTime}:
+The agent thread is straightforward: it takes \textit{MVar} synchronisation primitives to synchronise with the main thread and simply runs the agent behaviour each time it receives the next \textit{DTime}:
 
 \begin{HaskellCode}
 agentThread :: RandomGen g 
@@ -74,10 +74,10 @@ agentThread n sf rng retVar dtVar = do
 Computing a simulation step is now trivial within the main thread: all agent threads \textit{MVars} are signalled to unblock followed by an immediate block on the \textit{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \textit{TVar} which the agent threads have updated.
 
 \begin{HaskellCode}
-simulationStep :: TVar SIREnv
-               -> [MVar DTime]
-               -> [MVar SIRState]
-               -> DTime
+simulationStep :: TVar SIREnv     -- ^ environment 
+               -> [MVar DTime]    -- ^ sync dt to threads
+               -> [MVar SIRState] -- ^ sync output from threads
+               -> DTime           -- ^ time-delta
                -> IO SIREnv
 simulationStep env dtVars retVars dt = do
   -- tell all threads to continue with the corresponding DTime

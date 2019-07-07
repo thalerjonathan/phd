@@ -41,12 +41,13 @@
 
 \begin{titlepage}
 	\centering
-	\includegraphics[width=0.60\textwidth]{./logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	%\includegraphics[width=0.60\textwidth]{./logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	\includegraphics[width=0.60\textwidth]{./logo/coat_of_arms.jpg}\par\vspace{1cm}
 	{\scshape\Large PhD Thesis\par}
 	\vspace{1.5cm}
 	%{\huge\bfseries Foundations Of Pure Functional \\ Agent-Based Simulation \par}
-%	{\huge\bfseries Pure Functional Programming \\ In Agent-Based Simulation \par}
-	{\huge\bfseries The Pure Functional Programming Paradigm \\ in Agent-Based Simulation \par}
+	{\huge\bfseries Pure Functional Programming \\ In Agent-Based Simulation \par}
+	%{\huge\bfseries The Pure Functional Programming Paradigm \\ in Agent-Based Simulation \par}
 	\vspace{2cm}
 	{\Large Jonathan Thaler (4276122) \\ \itshape jonathan.thaler@nottingham.ac.uk \par}
 	\vfill
@@ -71,8 +72,14 @@ First, the thesis explore \textit{how} to implement ABS pure functionally, discu
 
 TODO first version for others to read: until 18th July (before going to SummerSim conference)
 \begin{enumerate}
-	\item go through all references and extract them in separate file into the thesis folder. add hyperlinks using howpublished in case it is a blog or website (e.g. stephen diel what i wish...)
+	\item polish references
+	\begin{itemize}
+		\item check for each if it makes sense and hand-tweak them if not ok	, DOI?	
+		\item add hyperlinks using howpublished in case it is a blog or website (e.g. stephen diel what i wish...)
+	\end{itemize}
 	
+	\item move links from footnote into references and put full implementations of existing models from phd repo in separate gitrepso. e.g. sugarscape, SIR event and time as and reconcile all code into thesis code folder?
+		
 	\item Refine Discussion part, structure is average: Agent-interactions in discussion chapter is not coherent and comes across as strange, refine it; Actor based ABS in conclusion chapter is not coherent and comes across as strange, refine it
 
 	\item write abstract
@@ -98,10 +105,6 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 	\begin{itemize}
 		\item s vs 's vs. s' e.g. Agents vs. Agents's vs. Agents'
 	\end{itemize}
-	
-	\item extract all references of the thesis in separate file and manually fine-tune them so that they are perfect: including DOI, include link to webpage in case of a blog,...
-	
-	\item put full implementations of existing models from phd repo in separate gitrepso. e.g. sugarscape, SIR event and time as and reconcile all code into thesis code folder?
 \end{enumerate}
 
 %TODO: from the 2nd annual review i got the feedback that i need to come up with a more coherent thesis structure which tells a story: i need to make myself clear what story i want to tell with my phd and what research and publications i still need to do for that (identify chapters and to which extent they are already finished). Also I need to come up with a precise publication plan, focusing on writing papers early than doing research for a too long time and starting an early thesis writing. This is because any unpublished research is lost and every published research is a contribution to knowledge. "A good PhD is asking more questions than it answers."
@@ -155,7 +158,7 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 % BIB
 \renewcommand\bibname{References}
 \bibliographystyle{acm} %apalike
-\bibliography{../../writing/references/phdReferences}
+\bibliography{bibliography}
 
 % PART VI: Appendix
 \epigraphhead[450]{}

@@ -43,14 +43,20 @@
 	\centering
 	%\includegraphics[width=0.60\textwidth]{./logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
 	\includegraphics[width=0.60\textwidth]{./logo/coat_of_arms.jpg}\par\vspace{1cm}
-	{\scshape\Large PhD Thesis\par}
+	%{\scshape\Large Ph.D. Thesis\par}
 	\vspace{1.5cm}
 	%{\huge\bfseries Foundations Of Pure Functional \\ Agent-Based Simulation \par}
-	{\huge\bfseries Pure Functional Programming \\ In Agent-Based Simulation \par}
+	{\huge\bfseries Pure Functional Programming \\ in Agent-Based Simulation \par}
 	%{\huge\bfseries The Pure Functional Programming Paradigm \\ in Agent-Based Simulation \par}
 	\vspace{2cm}
-	{\Large Jonathan Thaler (4276122) \\ \itshape jonathan.thaler@nottingham.ac.uk \par}
+	%{\Large Jonathan Thaler (4276122) \\ \itshape jonathan.thaler@nottingham.ac.uk \par}
+	{\Large by Jonathan Thaler \par}
 	\vfill
+	Thesis submitted to the University of Nottingham \par
+	for the degree of Doctor of Philosophy \par
+	
+	\vfill
+	
 	supervised by\par
 	Dr. Peer-Olaf \textsc{Siebers} \\
 	Dr. Thorsten \textsc{Altenkirch}
@@ -63,6 +69,14 @@
 \cleardoublepage
 %\doublespacing
 
+% TOC comes after title page according to UoN thesis guidelines
+\clearpage
+\tableofcontents
+
+\newpage
+
+\thispagestyle{plain}
+
 \section*{Abstract}
 This thesis systematically investigates the use of the \textit{pure} functional programming paradigm for implementing Agent-Based Simulations (ABS) and provides in-depth discussions on the benefits and drawbacks when doing so. As language of choice, Haskell is used due to its modern, \textit{pure} nature and increasing use in real-world applications.
 
@@ -72,12 +86,13 @@ First, the thesis explore \textit{how} to implement ABS pure functionally, discu
 
 TODO first version for others to read: until 18th July (before going to SummerSim conference)
 \begin{enumerate}
-	\item Refine Discussion part, structure is average: Agent-interactions in discussion chapter is not coherent and comes across as strange, refine it; Actor based ABS in conclusion chapter is not coherent and comes across as strange, refine it
-
 	\item write abstract
+	
+	\item Refine Discussion part, structure is average: Agent-interactions in discussion chapter is not coherent and comes across as strange, refine it; Actor based ABS in conclusion chapter is not coherent and comes across as strange, refine it
 
 	\item PRINT OUT full proof reading by me but this time back-to-front, focus on:
 	\begin{itemize}
+		\item measure margins and check if they conform to the guidelines https://www.nottingham.ac.uk/physics/currentstudents/pg-submissionguide.aspx
 		\item when citing multiple references, make sure they are in ascending order of their reference number	
 		\item the usage of we if it indicates scientific nature, using we for personal matters if its only me, this is not ok	
 		\item types / function names / monad names ITALIC!?	
@@ -100,13 +115,9 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 	\begin{itemize}
 		\item s vs 's vs. s' e.g. Agents vs. Agents's vs. Agents'
 	\end{itemize}
+	
+	\item check for any violation of the guidelines https://www.nottingham.ac.uk/physics/currentstudents/pg-submissionguide.aspx
 \end{enumerate}
-
-%TODO: from the 2nd annual review i got the feedback that i need to come up with a more coherent thesis structure which tells a story: i need to make myself clear what story i want to tell with my phd and what research and publications i still need to do for that (identify chapters and to which extent they are already finished). Also I need to come up with a precise publication plan, focusing on writing papers early than doing research for a too long time and starting an early thesis writing. This is because any unpublished research is lost and every published research is a contribution to knowledge. "A good PhD is asking more questions than it answers."
-
-% TOC
-\clearpage
-\tableofcontents
 
 % DEDICATION
 \clearpage
@@ -128,9 +139,9 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 \input{./tex/background.tex}
 \input{./tex/implAbs.tex}
 
-% PART II: Towards
+% PART II: Towards pure functional ABS
 \epigraphhead[450]{}
-\part{Towards pure functional ABS}
+\part{Implementation techniques}
 \input{./tex/timedriven.tex}
 \input{./tex/eventdriven.tex}
 
@@ -141,7 +152,7 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 
 % PART IV: Why 2: Property-Based Testing
 \epigraphhead[450]{}
-\part{Property-Based testing}
+\part{Property-based testing}
 \input{./tex/property.tex}
 
 % PART V: Discussion
@@ -156,8 +167,8 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 \bibliography{bibliography}
 
 % PART VI: Appendix
-\epigraphhead[450]{}
-\part{Appendices}
+%\epigraphhead[450]{}
+%\part{Appendices}
 \input{./tex/appendix.tex}
 
 \end{document}

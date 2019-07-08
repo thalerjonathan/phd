@@ -217,6 +217,7 @@ randomElemM :: MonadRandom m => [e] -> m e
 The infected and recovered behaviours are conceptually equivalent and thus left as a trivial exercise to the reader. 
 
 \subsection{Tagless Final}
+\label{sec:tagless_final}
 At this point, the basics of event-driven ABS should be clear: how events are represented and processed using an event queue, how agents are represented with an \textit{MSF} and the idea behind the underlying polymorphic Monad transformer stack. Further, by parametrising the polymorphic concepts to the SIR model, we showed how to instantiate the generic concepts into a concrete model to arrive at a robust, maintainable and solid solution which is very likely to be correct up to the initial informal specification.
 
 \medskip

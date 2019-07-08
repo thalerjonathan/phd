@@ -84,17 +84,13 @@ This thesis systematically investigates the use of the \textit{pure} functional 
 
 TODO first version for others to read: until 18th July (before going to SummerSim conference)
 \begin{enumerate}
-
-	\item Refine Discussion part, structure is average: Agent-interactions in discussion chapter is not coherent and comes across as strange, refine it; Actor based ABS in conclusion chapter is not coherent and comes across as strange, refine it
-	
-	\item write abstract
-	
 	\item PRINT OUT full proof reading by me but this time back-to-front, focus on:
 	\begin{itemize}
 		\item measure margins and check if they conform to the guidelines https://www.nottingham.ac.uk/physics/currentstudents/pg-submissionguide.aspx
 		\item when citing multiple references, make sure they are in ascending order of their reference number	
 		\item the usage of we if it indicates scientific nature, using we for personal matters if its only me, this is not ok	
 		\item types / function names / monad names ITALIC!?	
+		\item be consistent about hyphens and rather avoid them
 		\item be consistent about italics: use it for types, functions and emphasising certain word
 		\item move links from footnote into references and put full implementations of existing models from phd repo in separate gitrepso. e.g. sugarscape, SIR event and time as and reconcile all code into thesis code folder?
 		\item check for each reference if it makes sense and hand-tweak them if not ok	, DOI?	
@@ -134,6 +130,7 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 % PART I: Preliminaries
 \epigraphhead[450]{}
 \part{Preliminaries}
+\label{part:preliminaries}
 \input{./tex/introduction.tex}
 \input{./tex/background.tex}
 \input{./tex/implAbs.tex}
@@ -141,22 +138,26 @@ TODO "cleaning up / polishing" milestone until end of August 2019
 % PART II: Towards pure functional ABS
 \epigraphhead[450]{}
 \part{Implementation techniques}
+\label{part:implementation}
 \input{./tex/timedriven.tex}
 \input{./tex/eventdriven.tex}
 
 % PART III: Why 1: Parallel Computation
 \epigraphhead[450]{}
 \part{Parallel computation}
+\label{part:parallel}
 \input{./tex/parallelabs.tex}
 
 % PART IV: Why 2: Property-Based Testing
 \epigraphhead[450]{}
 \part{Property-based testing}
+\label{part:property}
 \input{./tex/property.tex}
 
 % PART V: Discussion
 \epigraphhead[450]{}
 \part{Discussion and Conclusion}
+\label{part:discussion}
 \input{./tex/discussion.tex}
 \input{./tex/conclusion.tex}
 

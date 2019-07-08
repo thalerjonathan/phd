@@ -10,7 +10,7 @@ This thesis challenges this metaphor and explores ways of approaching ABS throug
 % SCOPE
 Further, this thesis claims that the ABS community needs functional programming because of its \textit{scientific computing} nature, where results need to be reproducible and correct while simulations should be able to massively scale-up as well. Due to the primarily computational character of most ABS models, not requiring non-deterministic, asynchronous input/output (IO) or direct user-interaction, a pure functional approach should be able to directly deliver these non-functional requirements. The established object-oriented approach needs considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing as they lack strong static typing, use mutable shared state and have implicit side effects. 
 
-Further, we regard the functional approach as a way to think and explore ABS in a deeper way - especially to develop a deeper and more complete understanding on the computational structure underlying ABS. It is well known, that functional programming helps in structuring computation in a very clear and precise way, leading to a deeper understanding about problems. So we also see it as a tool for developing abstractions which give us a a deeper understanding of the computational structures involved in ABS. By implementing use-cases, reflecting on them and generalising, we extract implicit knowledge and make it explicit. We hope that this undertaking is to the whole benefit of the ABS discipline and will also feed back into the traditional object-oriented implementation techniques.
+Further, we regard the functional approach as a way to think and explore ABS in a deeper way - especially to develop a deeper and more complete understanding on the computational structure underlying ABS. It is well known, that functional programming helps in structuring computation in a very clear and precise way, leading to a deeper understanding about problems. So we also see it as a tool for developing abstractions which give us a a deeper understanding of the computational structures involved in ABS. By implementing use cases, reflecting on them and generalising, we extract implicit knowledge and make it explicit. We hope that this undertaking is to the whole benefit of the ABS discipline and will also feed back into the traditional object-oriented implementation techniques.
 
 \bigskip
 
@@ -38,7 +38,7 @@ Note that this thesis is \textit{not} about comparing the object-oriented and pu
 \begin{enumerate}
 	\item To the best knowledge of the author, this thesis is the first to \textit{systematically} investigate the use of the functional programming paradigm, as in Haskell, to ABS, laying out in-depth technical foundations and identifying its benefits and drawbacks. Due to the increased interest in functional concepts added to object-oriented languages in recent years (lambdas and map,filter,reduce in Java 8, rise of functional frameworks in JavaScript, Pythons functional features,...), because of its established benefits in concurrent programming, testing and software-development in general, presenting such foundational research gives this thesis significant impact. Further, the use of functional programming, which focuses on explicit data-flow representation, is a strong match to scientific computing, which is data-centric as well.
 	
-	\item To the best of the knowledge of the author, this thesis is the first to show the use of Software Transactional Memory (STM) to implement concurrent ABS and its potential benefit over lock-based approaches. STM is particularly strong in pure functional programming because it can be guaranteed  at compile time that retry-semantics exclude non-repeatable persistent side effects. By showing how to employ STM it is possible to implement a simulation which allows massively large-scale ABS but without the low level difficulties of concurrent programming, making it easier and quicker to develop working and correct concurrent ABS models. The use of STM allows to approach concurrency still as a data-flow approach, without cluttering model code with concurrency semantics. This and the fact that we can sell retain certain guarantees about reproducibility when using STM, makes it a highly attractive approach to scientific computing. Further, due to the increasing need for massively large-scale ABS in recent years \cite{lysenko_framework_2008}, making this possible within a purely functional approach as well, gives this thesis substantial impact.
+	\item To the best of the knowledge of the author, this thesis is the first to show the use of Software Transactional Memory (STM) to implement concurrent ABS and its potential benefit over lock-based approaches. STM is particularly strong in pure functional programming because it can be guaranteed  at compile time that retry semantics exclude non-repeatable persistent side effects. By showing how to employ STM it is possible to implement a simulation which allows massively large-scale ABS but without the low level difficulties of concurrent programming, making it easier and quicker to develop working and correct concurrent ABS models. The use of STM allows to approach concurrency still as a data-flow approach, without cluttering model code with concurrency semantics. This and the fact that we can sell retain certain guarantees about reproducibility when using STM, makes it a highly attractive approach to scientific computing. Further, due to the increasing need for massively large-scale ABS in recent years \cite{lysenko_framework_2008}, making this possible within a purely functional approach as well, gives this thesis substantial impact.
 	
 	\item To the best of the authors knowledge, this thesis is the first to present the use of property-based testing in ABS, which allows declarative specification-testing of the implemented ABS directly in code with \textit{automated} random test case generation. This is an addition to the established Test Driven Development process and a complementary approach to unit testing, ultimately giving the developers an additional, powerful tool to test the implementation on a more conceptual level. This should lead to simulation software which is more likely to be correct, thus making this a significant contribution with valuable impact.
 
@@ -53,11 +53,11 @@ Throughout the course of the Ph.D. five (5) papers were written and attempted to
 	
 	\item Pure Functional Epidemics \cite{thaler_pure_2018}; submitted and accepted at the IFL Conference 2018 - Using an agent-based SIR model, this paper establishes in technical detail \textit{how} to implement time-driven ABS in Haskell using non-monadic FRP with Yampa and monadic FRP with Dunai. It outlines benefits and drawbacks and also touches on important points which were out of scope and lack of space in this paper but which will be addressed in more detail in this thesis. Chapter \ref{ch:timedriven} is basically an identical copy of this paper, with minor extensions and restructuring. Further the introduction to FRP in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
 	
-	\item A Tale Of Lock-Free Agents \cite{thaler_tale_2018}; submitted to the TOMACS Journal in October 2018 and rejected in March 2019- This paper is the first to discuss the use of Software Transactional Memory (STM) for implementing concurrent ABS both on a conceptual and on a technical level. It presents two case-studies, with the agent-based SIR model as the first and the famous SugarScape being the second one. In both case-studies it compares performance of STM and lock-based implementations in Haskell and object-oriented implementations of established languages. Although STM is now not unique to Haskell any more, this paper shows why Haskell is particularly well suited for the use of STM and is the only language which can overcome the central problem of how to prevent persistent side effects in retry-semantics. Chapter \ref{ch:concurrent_abs} is based on the work of this paper with minor adjustments and extensions.
+	\item A Tale Of Lock-Free Agents \cite{thaler_tale_2018}; submitted to the TOMACS Journal in October 2018 and rejected in March 2019- This paper is the first to discuss the use of Software Transactional Memory (STM) for implementing concurrent ABS both on a conceptual and on a technical level. It presents two case studies, with the agent-based SIR model as the first and the famous SugarScape being the second one. In both case studies it compares performance of STM and lock-based implementations in Haskell and object-oriented implementations of established languages. Although STM is now not unique to Haskell any more, this paper shows why Haskell is particularly well suited for the use of STM and is the only language which can overcome the central problem of how to prevent persistent side effects in retry semantics. Chapter \ref{ch:concurrent_abs} is based on the work of this paper with minor adjustments and extensions.
 
 	\item The Agents' New Cloths? Towards Pure Functional Agent-Based Simulation (TODO cite) submitted and rejected at the Summer Simulation Conference 2019 - This paper summarizes the main benefits of using pure functional programming as in Haskell to implement ABS and discusses on a conceptual level how to implement it and also what potential drawbacks are and where the use of a functional approach is not encouraged. It is written as a conceptual / review paper, which tries to "sell" pure functional programming to the agent-based community without too much technical detail and parlance where it refers to the important technical literature from where an interested reader can start. The introduction to functional programming in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
 	
-	\item Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation (TODO cite); submitted and accepted at the Summer Simulation Conference 2019 - This paper introduces property-based testing on a conceptual level to agent-based simulation using the agent-based SIR model and the Sugarscape model as two case-studies. Both Chapters 
+	\item Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation (TODO cite); submitted and accepted at the Summer Simulation Conference 2019 - This paper introduces property-based testing on a conceptual level to agent-based simulation using the agent-based SIR model and the Sugarscape model as two case studies. Both Chapters 
 \ref{ch:agentspec} and \ref{ch:sir_invariants} of Part IV and the Appendix \ref{app:validating_sugarscape} are substantially expanded discussions of the ideas presented in this paper.
 \end{enumerate}
 
@@ -67,7 +67,7 @@ Throughout the course of the Ph.D. five (5) papers were written and attempted to
 
 The thesis is divided into 5 parts which act as the thematic narrative throughout the text followed by an Appendix . 
 
-\paragraph{Part I} opens the thesis by laying out the necessary prerequisites necessary to understand the ideas and motivation in the rest of the thesis.
+\paragraph{Part \ref{part:preliminaries}} opens the thesis by laying out the necessary prerequisites necessary to understand the ideas and motivation in the rest of the thesis.
 \medskip
 
 Chapter \ref{ch:intro} introduces the problem and presents the motivation, aim and hypotheses.
@@ -82,7 +82,7 @@ Chapter \ref{ch:impl_abs} discusses an architectural categorisation on how to im
 
 \medskip
 
-\paragraph{Part II} presents \textit{how} to do ABS in pure functional programming. 
+\paragraph{Part \ref{part:implementation}} presents \textit{how} to do ABS in pure functional programming. 
 \medskip
 
 Chapter \ref{ch:timedriven} derives a time-driven ABS implementation for an agent-based SIR model. Because it is the first chapter discussing how to implement ABS pure functionally, it goes quite into detail to lay out the basic concepts.
@@ -97,7 +97,7 @@ Chapter \ref{ch:eventdriven} presents an event-driven approach to ABS using an e
 
 \medskip
 
-\paragraph{Part III} presents parallel computation in ABS as the first of two parts of \textit{why} pure functional ABS is of benefit.
+\paragraph{Part \ref{part:parallel}} presents parallel computation in ABS as the first of two parts of \textit{why} pure functional ABS is of benefit.
 \medskip
 
 Chapter \ref{ch:parallelism_ABS} shows rather briefly how to achieve deterministic and pure parallelism in pure functional ABS. 
@@ -108,7 +108,7 @@ Chapter \ref{ch:concurrent_abs} presents an in-depth discussion on how to implem
 
 \medskip
 
-\paragraph{Part IV} presents property-based testing in ABS as the second of two parts of \textit{why} pure functional ABS is of benefit.
+\paragraph{Part \ref{part:property}} presents property-based testing in ABS as the second of two parts of \textit{why} pure functional ABS is of benefit.
 \medskip
 
 Chapter \ref{ch:agentspec} shows how to use property-based testing to implement a full agent-specification test of the event- and time-driven SIR model in code and run it as property-tests.
@@ -119,7 +119,7 @@ Chapter \ref{ch:sir_invariants} shows how to derive and encode invariants, the d
 
 \medskip
 
-\paragraph{Part V} is the closing part which looks at the thesis as a whole, discusses and concludes.
+\paragraph{Part \ref{part:discussion}} is the closing part which looks at the thesis as a whole, discusses and concludes.
 \medskip
 
 %Chapter \ref{ch:gintis_case} presents the case of an agent-based model which results lead to high hopes in the field of computational economics, only to be found out that it had several bugs, weakening the results. In this chapter we ask whether a pure functional approach would have been of benefit in this case; more specifically, could those bugs have been prevented with a pure functional approach?

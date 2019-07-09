@@ -71,7 +71,7 @@ defaultCont = return (Just generalEventHandler)
 \subsubsection{Tagless final}
 Although the indirect, continuation based approach to synchronous agent interactions as shown before works, it is quite cumbersome, fragile and it is easy to get something wrong. What would be more desirable is to have a truly synchronous approach, where the reply to an event happens directly as a result of the \textit{sendEventTo} function: when calling \textit{sendEventTo}, behind the scenes the receiving agent is executed and the result is returned directly to the caller, without any indirections. With the \textit{tagless final} approach as introduced in the event-driven SIR above, this becomes possible in an elegant and robust way. We have developed this concept for the event-driven SIR only. Still, it should be equally applicable for the Sugarscape but we leave that for further research.
 
-We start by extending the API by defining a \textit{new} typeclass \textit{MonadAgentSync}:
+We start by extending the API by defining a \textit{new} type class \textit{MonadAgentSync}:
 
 \begin{HaskellCode}
 class Monad m => MonadAgentSync e m | m -> e where
@@ -123,7 +123,7 @@ makeContact n ai ais = do
         else makeContact (n-1) ai ais
 \end{HaskellCode}
 
-Finally we can use \textit{sendSync} to directly send events to a receiving agent, which replies with a list of events to the sender. Note that we needed to add the new \textit{MonadAgentSync} typeclass to the overloaded function, to make the \textit{sendSync} method available.
+Finally we can use \textit{sendSync} to directly send events to a receiving agent, which replies with a list of events to the sender. Note that we needed to add the new \textit{MonadAgentSync} type class to the overloaded function, to make the \textit{sendSync} method available.
 
 \begin{HaskellCode}
 makeContactWith :: (MonadAgent SIREvent m, MonadAgentSync SIREvent m) 

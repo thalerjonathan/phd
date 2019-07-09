@@ -47,14 +47,14 @@ When we run the tests using \textit{main}, we get the following output:
 [1]
 \end{verbatim}
 
-We see that QuickCheck generates 100 test cases for each property-test and it does this by generating random data for the input arguments. Note that we have not specified any data for our input arguments; QuickCheck is able to provide a suitable data-generator through type-inference: for lists and all the existing Haskell types there exist custom data-generators already. Note that we have to use a monomorphic list, in our case \textit{Int}, and cannot use polymorphic lists because QuickCheck would not know how to generate data for a polymorphic type. Still, by appealing to genericity and polymorphism, we get the guarantee that the test case is the same for all types of a lists.
+We see that QuickCheck generates 100 test cases for each property-test and it does this by generating random data for the input arguments. Note that we have not specified any data for our input arguments; QuickCheck is able to provide a suitable data generator through type inference: for lists and all the existing Haskell types there exist custom data generators already. Note that we have to use a monomorphic list, in our case \textit{Int}, and cannot use polymorphic lists because QuickCheck would not know how to generate data for a polymorphic type. Still, by appealing to genericity and polymorphism, we get the guarantee that the test case is the same for all types of a lists.
 
 QuickCheck generates 100 test cases by default and requires all to pass - if there is a test case which fails, the overall property-test fails and QuickCheck shrinks the input to a minimal size which still fails and reports it as a counter example. This is the case in the last property-test \textit{reverse\_distributive} which is wrong as \textit{xs} and \textit{ys} need to be swapped on the right-hand side. In this run, QuickCheck found a counter-example to the property after 5 tests and applied 6 shrinks to find the minimal failing example of \textit{xs = [0]} and \textit{ys = [1]}. If we swap \textit{xs} and \textit{ys}, the property-test passes 100 test cases just like the other two did. Note that it is possible to configure QuickCheck to generate more or less random test cases, which can be used to increase the coverage if the sampling space is quite large - this will become useful later.
 
 \subsubsection*{Generators}
-QuickCheck comes with a lot of data-generators for existing types like \textit{Strings, Int, Double, Lists},... but in case one wants to randomize custom data-types one has to write custom data-generators. There are two ways to do this: fix them at compile time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data type can then be used as random argument to a function as in the examples above.
+QuickCheck comes with a lot of data generators for existing types like \textit{Strings, Int, Double, Lists},... but in case one wants to randomize custom data types one has to write custom data generators. There are two ways to do this: fix them at compile time by writing an \textit{Arbitrary} instance or write a run-time generator running in the \textit{Gen} Monad. The advantage of having an \textit{Arbitrary} instance is that the custom data type can then be used as random argument to a function as in the examples above.
 
-Lets implement a custom data-generator for the \textit{SIRState} for both cases. We start with the run-time option, running in the \textit{Gen} Monad:
+Lets implement a custom data generator for the \textit{SIRState} for both cases. We start with the run-time option, running in the \textit{Gen} Monad:
 
 \begin{HaskellCode}
 genSIRState :: Gen SIRState
@@ -101,7 +101,7 @@ instance Arbitrary StdGen where
 \end{HaskellCode}
 %$
 
-This generator then can be used to write another custom data-generator which generates simulation runs. Here we give an example for the time-driven SIR:
+This generator then can be used to write another custom data generator which generates simulation runs. Here we give an example for the time-driven SIR:
 
 \begin{HaskellCode}
 genTimeSIR :: [SIRState]  -- ^ Population

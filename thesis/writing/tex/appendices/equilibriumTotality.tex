@@ -30,7 +30,7 @@ One solution is to abandon the power of general recursion and Turing-completenes
 \begin{enumerate}
 	\item Totality and termination - A total function terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time \cite{brady_type-driven_2017}. In dependently typed languages, which abandon Turing completeness, this can be checked at compile time under certain circumstances.
 	
-	\item Types are first-class citizen - In dependently typed languages, types can depend on any \textit{values}, and can be \textit{computed} at compile time, which makes them first-class citizen. This allows to compute the return type of a function depending on its input values. Note that this requires totality, otherwise type-checking would be not decidable and potentially non-terminating.
+	\item Types are first-class citizen - In dependently typed languages, types can depend on any \textit{values}, and can be \textit{computed} at compile time, which makes them first-class citizen. This allows to compute the return type of a function depending on its input values. Note that this requires totality, otherwise type checking would be not decidable and potentially non-terminating.
 	
 	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile time, they can be used as constructive proofs, which must terminate. This means a well-typed program, which in itself is a proof, is always terminating, which in turn means that it must consist out of total functions.
 \end{enumerate}

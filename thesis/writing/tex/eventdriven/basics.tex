@@ -222,7 +222,7 @@ At this point, the basics of event-driven ABS should be clear: how events are re
 
 \medskip
 
-In this section we briefly want to show how the so-called \textit{tagless final} approach \cite{kiselyov_typed_2012} can be used to arrive at a cleaner and more extensible interface of our implementation, which is also open to different \textit{interpretations}. The idea behind \textit{tagless final} is simple: specify the interface of operations in a typeclass and then write one or multiple interpreters for it, which simply means writing an instance implementation for the given typeclass. We start by defining the typeclass \textit{MonadAgent} with all the necessary methods, making up the effectful API of our agents. Note that we need to enable two language extensions: \textit{MultiParamTypeClasses} because we want to have more than a single type parameter in the typeclass - besides the Monad \textit{m}, we also want to parametrise over the event type \textit{e}; \textit{FunctionalDependencies} because the event type \textit{e} is determined by the Monad type \textit{m}.
+In this section we briefly want to show how the so-called \textit{tagless final} approach \cite{kiselyov_typed_2012} can be used to arrive at a cleaner and more extensible interface of our implementation, which is also open to different \textit{interpretations}. The idea behind \textit{tagless final} is simple: specify the interface of operations in a type class and then write one or multiple interpreters for it, which simply means writing an instance implementation for the given type class. We start by defining the type class \textit{MonadAgent} with all the necessary methods, making up the effectful API of our agents. Note that we need to enable two language extensions: \textit{MultiParamTypeClasses} because we want to have more than a single type parameter in the type class - besides the Monad \textit{m}, we also want to parametrise over the event type \textit{e}; \textit{FunctionalDependencies} because the event type \textit{e} is determined by the Monad type \textit{m}.
 
 \begin{HaskellCode}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -238,10 +238,10 @@ class Monad m => MonadAgent e m | m -> e where
   schedEvent  :: e -> AgentId -> Double -> m ()
 \end{HaskellCode}
 
-The methods are self explaining. This typeclass is now used to replace the Monad stack by an overloaded type definition in the respective functions. Thus, the implementation of the agent constructing function and the agent behaviours are the same, with only the types changing slightly, lifts becoming obsolete and calls to function replaced by calls to methods of the typeclass. We don't give the full implementation again but only the type of the agent construction function as example, the types of the agent behaviours follow a similar pattern: 
+The methods are self explaining. This type class is now used to replace the Monad stack by an overloaded type definition in the respective functions. Thus, the implementation of the agent constructing function and the agent behaviours are the same, with only the types changing slightly, lifts becoming obsolete and calls to function replaced by calls to methods of the type class. We don't give the full implementation again but only the type of the agent construction function as example, the types of the agent behaviours follow a similar pattern: 
 
 \begin{HaskellCode}
-sirAgent :: MonadAgent SIREvent m  -- CHANGED: overloaded with typeclass
+sirAgent :: MonadAgent SIREvent m  -- CHANGED: overloaded with type class
          => Int         -- ^ contact rate (beta)
          -> Double      -- ^ infectivity (gamma)
          -> Double      -- ^ illness duration (delta)
@@ -262,7 +262,7 @@ scheduleRecovery delta = do
   schedEvent Recover ai dt
 \end{HaskellCode}
 
-What we are missing is a \textit{pure} interpreter for the agent implementation and the \textit{MonadAgent} typeclass. We start by defining a \textit{newtype}, which basically is a conceptually similar Monad stack as in the original implementation without the \textit{tagless final} approach. We let Haskell automatically derive monadic typeclasses, Functor, Applicative and Monad instances which saves a lot of boiler plate code, for which the \textit{GeneralizedNewtypeDeriving} language extension is required. Instead of the \textit{Rand} Monad, a \textit{StateT SimState} is used, which carries the random-number generator and other data  for synchronous agent interactions as will be discussed in the respective sections.
+What we are missing is a \textit{pure} interpreter for the agent implementation and the \textit{MonadAgent} type class. We start by defining a \textit{newtype}, which basically is a conceptually similar Monad stack as in the original implementation without the \textit{tagless final} approach. We let Haskell automatically derive monadic type classes, Functor, Applicative and Monad instances which saves a lot of boiler plate code, for which the \textit{GeneralizedNewtypeDeriving} language extension is required. Instead of the \textit{Rand} Monad, a \textit{StateT SimState} is used, which carries the random-number generator and other data  for synchronous agent interactions as will be discussed in the respective sections.
 
 \begin{HaskellCode}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}

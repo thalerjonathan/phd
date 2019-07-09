@@ -55,7 +55,7 @@ sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do ... )
 
 Before we can move on to write a function handling incoming events, we need to define the \textit{agent-local} Monad stack. The event handler must be able to manipulate the agent-local state we just encapsulated through \textit{feedback}, support reading the unique agent id and model scenario and scheduling of events.
 
-Providing the local, mutable agent state is done using a \textit{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \textit{Reader} Monad. Implementing event scheduling, the same mechanism as in the event-driven SIR is used by a \textit{Writer} Monad. As the \textit{Monoid} instance to the \textit{WriterT}, the \textit{AgentOut} is used: all fields of its data definition are \textit{Monoid} instances, making \textit{AgentOut} a \textit{Monoid} as well - writing a typeclass instance for it is trivial. Now it is also clear why \textit{AgentOut} contains the list of events. Further, this also allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour as both are also part of \textit{AgentOut}.
+Providing the local, mutable agent state is done using a \textit{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \textit{Reader} Monad. Implementing event scheduling, the same mechanism as in the event-driven SIR is used by a \textit{Writer} Monad. As the \textit{Monoid} instance to the \textit{WriterT}, the \textit{AgentOut} is used: all fields of its data definition are \textit{Monoid} instances, making \textit{AgentOut} a \textit{Monoid} as well - writing a type class instance for it is trivial. Now it is also clear why \textit{AgentOut} contains the list of events. Further, this also allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour as both are also part of \textit{AgentOut}.
 
 We thus define the following Monad which is local to the agent and is only used \textit{within} \textit{AgentMSF}.
 
@@ -166,7 +166,7 @@ handleMatingRequest sender otherGender = do
 Finally we have a look at how to actually run an agents' MSF using the function \textit{runAgentMSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in 5 arguments and get a 6-tuple as result but this is the price we have to pay for pure functional programming: everything is explicit, with all its benefits and drawbacks.
 
 \begin{HaskellCode}
-runAgentMSF :: RandomGen g        -- ^ RandomGen typeclass, g is a random-number generator
+runAgentMSF :: RandomGen g        -- ^ RandomGen type class, g is a random-number generator
             => SugAgentMSF g      -- ^ The agents MSF to run.
             -> ABSEvent SugEvent  -- ^ The event it receives.
             -> ABSState           -- ^ The ABSState (next agent id and current time)

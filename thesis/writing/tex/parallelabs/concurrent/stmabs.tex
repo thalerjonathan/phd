@@ -1,4 +1,4 @@
-\section{STM in ABS}
+\section{Software Transactional Memory in ABS}
 \label{sec:stm_abs}
 In this section we give a short overview of how we apply STM to pure functional ABS. In both case studies we fundamentally follow a time-driven, parallel approach as introduced in Chapter \ref{sub:par_strategy}, where the simulation is advanced by a given $\Delta t$ and in each step all agents are executed. To employ parallelism, each agent runs within its own thread and agents are executed in lock-step, synchronising between each $\Delta t$, which is controlled by the main thread. See Figure \ref{fig:stm_abs_structure} for a visualisation of our concurrent, time-driven lock-step approach.
 

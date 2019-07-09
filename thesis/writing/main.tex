@@ -14,6 +14,8 @@
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage{mathtools}
+\usepackage{afterpage}
+
 
 % UNUSED
 %\usepackage[english]{babel}
@@ -27,7 +29,13 @@
 
 % define HaskellCode command for nice formatting of Haskell Code
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
-
+% needed for clearing page after title page
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}
+    
 \makeatletter
 \titleformat{\part}[display]
   {\Huge\scshape\filright}
@@ -67,6 +75,7 @@
 \end{titlepage}
 
 \cleardoublepage
+\afterpage{\blankpage}
 %\doublespacing
 
 % TOC comes after title page according to UoN thesis guidelines
@@ -78,7 +87,7 @@
 \thispagestyle{plain}
 
 \section*{Abstract}
-This thesis systematically investigates the use of the \textit{pure} functional programming paradigm for implementing Agent-Based Simulations (ABS) and the benefits and drawbacks when doing so. As language of choice, Haskell is used due to its modern, \textit{pure} nature and increasing use in real-world applications. First, the thesis explore \textit{how} to implement ABS pure functionally, discussing both a time- and event-driven approach. In each case arrowized Functional Reactive Programming plays a fundamental role to derive fundamental abstractions and concepts. As use cases the well known explanatory agent-based SIR and the exploratory Sugarscape model are used. Then the thesis explores \textit{why} it is of benefit to implement ABS pure functionally, where it focuses on parallelism and concurrency and property-based testing. In the parallelism part, the main focus is on how to speedup the simulation but keeping it still pure, whereas in the concurrency part, Software Transactional Memory is used at the price of sacrificing purity. Property-based testing is used to show how to encode full agent specifications, model invariants and do verification of the explanatory model directly in code. Further, hypothesis testing for the exploratory Sugarscape model is shown.
+This thesis systematically investigates the use of the \textit{pure} functional programming paradigm for implementing Agent-Based Simulations (ABS) and the benefits and drawbacks when doing so. As language of choice, Haskell is used due to its modern, \textit{pure} nature and increasing use in real-world applications. First, the thesis explore \textit{how} to implement ABS pure functionally, discussing both a time- and event-driven approach. In each case arrowized Functional Reactive Programming plays a fundamental role to derive fundamental abstractions and concepts. As use cases the well known explanatory agent-based SIR and the exploratory Sugarscape model are used. Then the thesis explores \textit{why} it is of benefit to implement ABS pure functionally, where it focuses on parallelism and concurrency and property-based testing. In the parallelism part, the main focus is on how to speedup the simulation but keeping it still pure, whereas in the concurrency part, Software Transactional Memory is used at the price of purity. Property-based testing is used to show how to encode full agent specifications, model invariants and do verification of the explanatory model directly in code. Further, hypothesis testing for the exploratory Sugarscape model is shown.
 
 \clearpage
 
@@ -86,16 +95,18 @@ TODO first version for others to read: until 18th July (before going to SummerSi
 \begin{enumerate}
 	\item PRINT OUT full proof reading by me but this time back-to-front, focus on:
 	\begin{itemize}
-		\item measure margins and check if they conform to the guidelines https://www.nottingham.ac.uk/physics/currentstudents/pg-submissionguide.aspx
 		\item when citing multiple references, make sure they are in ascending order of their reference number	
 		\item the usage of we if it indicates scientific nature, using we for personal matters if its only me, this is not ok	
 		\item types / function names / monad names ITALIC!?	
 		\item be consistent about hyphens and rather avoid them
 		\item be consistent about italics: use it for types, functions and emphasising certain word
 		\item move links from footnote into references and put full implementations of existing models from phd repo in separate gitrepso. e.g. sugarscape, SIR event and time as and reconcile all code into thesis code folder?
-		\item check for each reference if it makes sense and hand-tweak them if not ok	, DOI?	
 		\item for references add hyperlinks using howpublished in case it is a blog or website (e.g. stephen diel what i wish...)	
 	\end{itemize}
+	
+	\item write a GOOD and STRONG abstract, the current one sucks
+	
+	\item epigraphs for all chapters?
 \end{enumerate}
 
 TODO "cleaning up / polishing" milestone until end of August 2019

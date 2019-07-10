@@ -106,7 +106,7 @@ checkMakeContactInvariants sender es contactRate
     checkMakeContactInvariantsAux 
         (QueueItem MakeContact receiver t') (b, mkb, n) 
       = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
-           && t' == t + 1          -- the MakeContact event is scheduled 1 time-unit into the future
+           && t' == t + 1          -- the MakeContact event is scheduled 1 time unit into the future
            &&  not mkb, True, n)   -- there can only be one MakeContact event
     checkMakeContactInvariantsAux _ (_, _, _) 
       = (False, False, 0)          -- other patterns are invalid

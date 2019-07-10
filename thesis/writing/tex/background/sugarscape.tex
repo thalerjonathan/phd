@@ -5,15 +5,15 @@ The seminal Sugarscape model was one of the first models in ABS, developed by Ep
 
 The reasons for choosing the Sugarscape model as use case in this thesis are: it is quite well known in the ABS community; it was highly influential in sparking the interest in ABS; it is quite complex with non-trivial agent-interactions; the original implementation was done in Object Pascal and C with about 20.000 lines of code which includes GUI, graphs and plotting, where the authors used Object Pascal for programming the agents and C for low-level graphics \cite{axtell_aligning_1996}; the authors explicitly advocate object-oriented programming as a good fit to ABS which begged the question whether and how well a pure functional implementation is possible. 
 
-In the ABS classification of \cite{macal_everything_2016}, the Sugarscape can be seen as an \textit{Adaptive ABMS}: agents are individual heterogeneous agents with diverse set characteristics; they have autonomic, dynamic, endogenously defined behaviour; interactions happen between other agents and the environment through observed states and behaviours of other agents and the state of the environment; agents can change their behaviour during the simulation through observing their own state, learning and populations can adjust their composition.
+In the ABS classification of \cite{macal_everything_2016}, the Sugarscape can be seen as an \textit{Adaptive ABMS}: agents are individual heterogeneous agents with diverse set characteristics; they have autonomic, dynamic, endogenously defined behaviour; interactions happen between other agents and the environment through observed states, behaviours of other agents and the state of the environment; agents can change their behaviour during the simulation through observing their own state and learning; populations can adjust their composition.
 
 The full specification of the Sugarscape model itself fills a small book \cite{epstein_growing_1996} of about 200 pages, so we will only give a very brief overview of the model in terms of actions which happen. Generally, the model is stepped in discrete, natural number time steps, also called ticks, where in each tick the following actions happens:
 
 \begin{enumerate}
-	\item Shuffle all agents and process them sequentially. The reason why the agents are shuffled is to even-out the odds of being scheduled at a specific position - it is equally probable of being scheduled in any position. The semantics of the model require to step the agents sequentially but ideally one wants to avoid any biases in ordering and pretend that agents act conceptually or statistically at the same time in parallel - the shuffling allows to do this by \textit{running the agents sequentially which makes their behaviour appear statistically in parallel}. Every agent executes the following actions, where agents executed after the agent in the same tick, can already see the changes and interactions of preceding agents:
+	\item Shuffle all agents and process them sequentially. The reason why the agents are shuffled is to even-out the odds of being scheduled at a specific position - it is equally probable of being scheduled in any position. The semantics of the model follow the sequential update strategy (see Chapter \ref{ch:impl_abs}) require to step the agents sequentially but ideally one wants to avoid any biases in ordering and pretend that agents act conceptually or statistically at the same time in parallel - the shuffling allows to do this by \textit{running the agents sequentially which makes their behaviour appear statistically in parallel}. Every agent executes the following actions, where agents executed after the agent in the same tick, can already see the changes and interactions of preceding agents
 	
 	\begin{enumerate}
-		\item The agent ages by 1 tick. An agent might have a maximum age and when reached will result in the removal of the agent (see below).
+		\item The agent ages by 1 tick. An agent might have a maximum age, when reached will result in the removal of the agent from the simulation (see below).
 	
 		\item Move to the nearest unoccupied site in sight with highest resource. In case of combat also sites occupied with agents from a different tribe are potential targets. Harvest all the resources on the site and in case of combat also reap the enemies resources or gather some combat reward. This is one of the primary reasons why the Sugarscape model needs to be stepped sequentially: because only one agent can occupy a site at a time, it would lead to conflicts when agents actually act at the same time.
 
@@ -23,26 +23,26 @@ The full specification of the Sugarscape model itself fills a small book \cite{e
 		
 		\item Check if the agent has died from age or starved to death, in case it removes itself from the simulation and does not execute the next steps (the previous steps are executed independently from the age of the agent). Note that depending on the model configuration this could also lead to the re-spawning of a new agent which replaces the died agent.
 		
-		\item Engage with other neighbours in mating, which involves multiple synchronous interaction-steps happening in the same tick: exchange of information and both agents agreeing on the mating action. If both agents agree to mate, the initiating agent spawns a new agent, with characteristics inherited from both parents. See Figure \ref{fig:sugarscape_visualisation_trading_mating}.
+		\item Engage with other neighbours in mating, which involves multiple synchronous interaction steps happening in the same tick: exchange of information and both agents agreeing on the mating action. If both agents agree to mate, the initiating agent spawns a new agent, with characteristics inherited from both parents. See Figure \ref{fig:sugarscape_visualisation_trading_mating}.
 		
 		\item Engage in the cultural process, where cultural tags are picked up from other agents and passed on to other agents. This action is a one-way interaction where the neighbours do not reply synchronously.
 		
 		\item Engage in trading with neighbours where the initiating agent offers a given resource (sugar) in exchange for another resource (spice). The agent asks every neighbour and a trade will transact if it makes both agents better off. This action involves multiple synchronous interaction-steps within the same tick because of exchange of information and agreeing on the final transaction. See Figure \ref{fig:sugarscape_visualisation_trading_mating}.
 		
-		\item Engage in lending and borrowing, where the agent offers loans to neighbours. This action also involves multiple synchronous interaction-steps within the same tick because of exchange of information and agreeing on the final transaction.
+		\item Engage in lending and borrowing, where the agent offers loans to neighbours. This action also involves multiple synchronous interaction steps within the same tick because of exchange of information and agreeing on the final transaction.
 		
 		\item Engage in disease processes, where the agent passes on diseases it has to other neighbour agents. This action is a one-way interaction where the neighbours do not reply synchronously.
 	\end{enumerate}
 		
 	\item Run the environment which consists of an NxN discrete grid
 		\begin{enumerate}
-			\item Regrow resources on each site according to the model configuration: either with a given rate per tick as seen in Figure \ref{fig:sugarscape_visualisation_normal}, or immediately. Depending on whether seasons are enabled, see Figure \ref{fig:sugarscape_visualisation_seasons}, the regrowing rate varies in different regions of the environment.
+			\item Regrow resources on each site according to the model configuration: either with a given rate per tick as seen in Figure \ref{fig:sugarscape_visualisation_normal}, or immediately. Depending on whether seasons are enabled (see Figure \ref{fig:sugarscape_visualisation_seasons}) the regrowing rate varies in different regions of the environment.
 			
 			\item Apply diffusion of pollution where the pollution generated by the agents spreads out slowly across the whole environment, see Figure \ref{fig:sugarscape_visualisation_pollution}.
 		\end{enumerate}
 \end{enumerate}
 
-In Figure \ref{fig:sugarscape_visualisation} screenshots from the Sugarscape implementation as discussed in Chapter \ref{sec:advanced_eventdriven_ABS} are shown.
+In Figure \ref{fig:sugarscape_visualisation} visualisations of our Sugarscape implementation as discussed in Chapter \ref{sec:advanced_eventdriven_ABS} are shown.
 
 %Note that depending on the configuration of the simulation, some actions of an agent might be skipped as nearly all actions can be turned on or off e.g. pollution, dying from age, mating, trading, lending, diseases. 
 
@@ -85,7 +85,7 @@ In Figure \ref{fig:sugarscape_visualisation} screenshots from the Sugarscape imp
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Visualisation of the Sugarscape implementation (see Chapter \ref{sec:advanced_eventdriven_ABS}). The naming of the respective \textit{Animation} and \textit{Figure} is taken from \cite{epstein_growing_1996}.} 
+	\caption{Visualisation of our Sugarscape implementation (see Chapter \ref{sec:advanced_eventdriven_ABS}). The naming of the respective \textit{Animation} and \textit{Figure} is taken from \cite{epstein_growing_1996}.} 
 	\label{fig:sugarscape_visualisation}
 \end{center}
 \end{figure}

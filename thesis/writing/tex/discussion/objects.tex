@@ -5,13 +5,13 @@ One of the initial motivation of this thesis was the claim of North et al. \cite
 
 To give a satisfactory answer, we first need to re-examine the abstractions used in our pure functional approach, where the fundamental building blocks are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. \textit{Continuations} in turn, are functions which allow to encapsulate the execution state of a program by capturing local variables (known as closure) to pick up computation from that point later on by returning a new function.
 
-As an explanatory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value of the current step. First, we define the type of a general continuation, which takes a polymorphic type \textit{i} as input and returns a polymorphic type \textit{o} as output together with a new continuation
+As an explanatory example, we implement a continuation in Haskell which sums up integers and stores the sum locally as well as returning it as return value of the current step. First, we define the type of a general continuation, which takes a polymorphic type \texttt{i} as input and returns a polymorphic type \texttt{o} as output together with a new continuation
 
 \begin{HaskellCode}
 newtype Cont i o = C (i -> (o, Cont i o))
 \end{HaskellCode}
 
-Then we implement an actual instance of a continuation with input and output types fixed to \textit{Int}. It takes an initial value \textit{x} and sums up the values passed to it. It returns \textit{adder} with the new sum recursively as the new continuation.
+Then we implement an actual instance of a continuation with input and output types fixed to \texttt{Int}. It takes an initial value \texttt{x} and sums up the values passed to it. It returns \texttt{adder} with the new sum recursively as the new continuation.
 
 \begin{HaskellCode}
 adder :: Int -> Cont Int Int
@@ -19,7 +19,7 @@ adder x = C (\x' -> let s = x + x' in
                     (s, adder s))
 \end{HaskellCode}
 
-To run a continuation, we implement a function which runs a given continuation for a given number of steps and always passes \textit{x} as input and prints the continuations output.
+To run a continuation, we implement a function which runs a given continuation for a given number of steps and always passes \texttt{x} as input and prints the continuations output.
 
 \begin{HaskellCode}
 runCont :: Int -> Int -> Cont Int Int -> IO ()
@@ -31,7 +31,7 @@ runCont n x (C cont) = do
   runCont (n-1) x cont' 
 \end{HaskellCode}
 
-When actually running the continuation \textit{adder} with an initial value of -1 for 10 steps and increments of 2, we get the following output:
+When actually running the continuation \texttt{adder} with an initial value of -1 for 10 steps and increments of 2, we get the following output:
 
 \begin{HaskellCode}
 > runCont 100 2 (adder (-1))
@@ -44,14 +44,14 @@ When actually running the continuation \textit{adder} with an initial value of -
 
 This explanatory example should make it clear that we can encapsulate arbitrary complex state, which is only visible and accessible from within the continuation. Further, with a continuation it becomes possible to switch behaviour dynamically, like switching from one mode of behaviour to another as in a state machine, simply by returning new functions which encapsulate the new behaviour. If no change in behaviour should occur, the continuation simply recursively returns itself with the new state captured as seen in the example above.
 
-In fact, Yampas Signal Functions (SF) and Dunais Monadic Stream Functions (MSF) are nothing else than such continuations: SF are pure, without a monadic context, as can be seen in the implementation of the supersampling in Chapter \ref{sub:timedriven_results}; MSFs have an additional monadic context, which makes it possible to execute effectful computations within the continuation as can be seen in the implementation of the simulation stepping MSF in Chapter \ref{sub:timedriven_thirdstep_impl}. 
+In fact, Yampas signal functions (SF) and Dunais Monadic Stream Functions (MSF) are nothing else than such continuations: SF are pure, without a monadic context, as can be seen in the implementation of the supersampling in Chapter \ref{sub:timedriven_results}; MSFs have an additional monadic context, which makes it possible to execute effectful computations within the continuation as can be seen in the implementation of the simulation stepping MSF in Chapter \ref{sub:timedriven_thirdstep_impl}. 
 
 \medskip
 
-When looking closer at the example from above, it becomes clear that the continuation \textit{adder} is non-terminating and is a potentially infinite structure, possible through lazy evaluation of Haskell, where the function \textit{runCont} deconstructs / consumes / observes the output of this infinite structure step-by-step. This is related to the concepts of \textit{corecursion} which are an even deeper underlying theory to continuations in general and our approach in particular. Technically speaking, \textit{corecursion} is the dual to recursion where instead of starting with a data structure and reducing it stepwise until a base case is reached, corecursion starts with an initial value and iterates it ad infinity, producing an infinite data structure as output, enabled through lazy evaluation. 
+When looking closer at the example from above, it becomes clear that the continuation \texttt{adder} is non-terminating and is a potentially infinite structure, possible through lazy evaluation of Haskell, where the function \texttt{runCont} deconstructs / consumes / observes the output of this infinite structure step-by-step. This is related to the concepts of \textit{corecursion} which are an even deeper underlying theory to continuations in general and our approach in particular. Technically speaking, corecursion is the dual to recursion where instead of starting with a data structure and reducing it stepwise until a base case is reached, corecursion starts with an initial value and iterates it ad infinity, producing an infinite data structure as output, enabled through lazy evaluation. 
 Indeed, our agents produce infinite streams as output, potentially running for infinite time as it is implemented in the time-driven approach and to a lesser extent in the event-driven SIR. Now it is also easy to see why agents are not represented by pure functions: they have to change over time, which is precisely what pure functions cannot do as they can not rely on a context or history of a system.
 
-The fact that we represented pure functional agents as SF and MSF is thus no coincidence and did not fall from the sky: they are in fact representations of \textit{coalgebras}, which is the way to express dynamical systems in mathematics and in pure functional programming: \textit{"In general, dynamical systems with a hidden, black-box state space, to which a user only has limited access via specified (observer or mutator) operations, are coalgebras of various kinds"} \cite{jacobs_tutorial_1997}. Informally speaking a coalgebra is of the form $S \xrightarrow[\text{}]{c} $ \fbox{... S ...}, with a state space \textit{S}, a function \textit{c} and a structured output (the box), which also contains the original domain \textit{S} \cite{jacobs_introduction_2017}. This is precisely what we see in the recursive type definition of \textit{Cont} above.
+The fact that we represented pure functional agents as SF and MSF is thus no coincidence and did not fall from the sky: they are in fact representations of \textit{coalgebras}, which is the way to express dynamical systems in mathematics and in pure functional programming: \textit{"In general, dynamical systems with a hidden, black-box state space, to which a user only has limited access via specified (observer or mutator) operations, are coalgebras of various kinds"} \cite{jacobs_tutorial_1997}. Informally speaking a coalgebra is of the form $S \xrightarrow[\text{}]{c} $ \fbox{... S ...}, with a state space \textit{S}, a function \textit{c} and a structured output (the box), which also contains the original domain \textit{S} \cite{jacobs_introduction_2017}. This is precisely what we see in the recursive type definition of \texttt{Cont} above.
 
 This sounds very much like agents and indeed, coalgebras have been used (amongst others) in Process Theory to model communicating processes, a topic closely related to Actors and ABS; and objects in object-oriented programming \cite{jacobs_coalgebras_2003}. It seems that we have found an underlying theory which connects both object-oriented programming and our pure functional ABS approach. This hints that it might be indeed the case that agents map naturally to objects, as we discuss below. We refer to \cite{jacobs_introduction_2017, jacobs_tutorial_1997} for a proper, formal introduction and discussion of coalgebras as it is beyond the scope of this thesis.
 

@@ -1,5 +1,5 @@
 \subsection{Agent-local abstractions}
-After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \textit{AgentMSF} we need to define model specific data definitions for the event type \textit{e} and the output type \textit{o}. Thus, we define the event type \textit{SugEvent}, which defines all event types of Sugarscape and the output type \textit{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation or exporting purposes. 
+After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \texttt{AgentMSF} we need to define model-specific data definitions for the event type \texttt{e} and the output type \texttt{o}. Thus, we define the event type \texttt{SugEvent}, which defines all event types of Sugarscape and the output type \texttt{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation or exporting purposes. 
 
 \begin{HaskellCode}
 data SugEvent = MatingRequest AgentGender
@@ -8,14 +8,14 @@ data SugEvent = MatingRequest AgentGender
               ...
 
 data SugAgentObservable = SugAgentObservable
-  { sugObsSugMetab :: Int
-  , sugObsSugLvl   :: Double
-  , sugObsAge      :: Int
+  { sugObsSugMetab :: Int     -- metabolism
+  , sugObsSugLvl   :: Double  -- sugar wealth
+  , sugObsAge      :: Int     -- current age
   ...  
   }
 \end{HaskellCode}
 
-We can now parametrise the \textit{AgentMSF} with the right types for the Sugarscape model.
+We can now parametrise the \texttt{AgentMSF} with the right types for the Sugarscape model.
 
 \begin{HaskellCode}
 type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
@@ -31,9 +31,9 @@ data SugarScapeScenario = SugarScapeScenario
   }
 
 data SugAgentState = SugAgentState
-  { sugAgSugarMetab :: Int
-  , sugAgVision     :: Int
-  , sugAgSugarLevel :: Double
+  { sugAgSugarMetab :: Int     -- metabolism
+  , sugAgVision     :: Int     -- vision in all four directions
+  , sugAgSugarLevel :: Double  -- sugar wealth
   , ...
   }
   
@@ -41,23 +41,21 @@ type SugarScapeAgent g
        = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 \end{HaskellCode}
 
-Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \textit{IO} monadic context anywhere in our type definitions and we can also guarantee that it will not get sneaked in. The transformer stack of the agents MSF is terminated through the \textit{Rand} Monad thus it is simply not possible to add other layers. 
+Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \texttt{IO} monadic context anywhere in our type definitions and we can also guarantee that it will not get sneaked in. The transformer stack of the agents \texttt{MSF} is terminated through the \texttt{Rand} Monad thus it is simply not possible to add other layers. 
 
-An agent is fully represented by a top level \textit{SugarScapeAgent} function, which encapsulates the whole agent behaviour. We next look at how to define agent-local behaviour, which is hidden behind the \textit{SugarScapeAgent} function type: whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
+An agent is fully represented by a top level \texttt{SugarScapeAgent} function, which encapsulates the whole agent behaviour. We next look at how to define agent-local behaviour, which is hidden behind the \texttt{SugarScapeAgent} function type. Whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
 
 \subsubsection{Agent-local state}
-To implement the local encapsulation of the agents' state is straightforward with MSFs as they are continuations, allowing them to capture local data using closures. Fortunately we do not need to implement the low-level plumbing, as Dunai provides us with a suitable function: \textit{feedback :: Monad m $\Rightarrow$ c $\rightarrow$ MSF m (a, c) (b, c) $\rightarrow$ MSF m a b}. It takes an initial value of type \textit{c} and an MSF which takes in addition to its input \textit{a} also the given type \textit{c} and outputs in addition to type \textit{b} also the type \textit{c}, which clearly indicates the read/write property of type \textit{c}. The function returns a new MSF which only operates on \textit{a} as input and returns \textit{b} as output by running the provided MSF and feeding back the \textit{c} (with the initial \textit{c} at the first call).
+To implement the local encapsulation of the agents' state is straightforward with MSFs as they are continuations, allowing them to capture local data using closures. Fortunately we do not need to implement the low-level plumbing, as Dunai provides us with the suitable function \texttt{feedback :: Monad m $\Rightarrow$ c $\rightarrow$ MSF m (a, c) (b, c) $\rightarrow$ MSF m a b}. It takes an initial value of type \texttt{c} and an \texttt{MSF} which takes in addition to its input \texttt{a} also the given type \texttt{c} and outputs in addition to type \texttt{b} also the type \texttt{c}, which clearly indicates the read and write property of type \texttt{c}. The function returns a new \texttt{MSF} which only operates on \texttt{a} as input and returns \texttt{b} as output by running the provided \texttt{MSF} and feeding back the \texttt{c} (with the initial \texttt{c} at the first call).
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g
 sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do ... )
 \end{HaskellCode}
 
-Before we can move on to write a function handling incoming events, we need to define the \textit{agent-local} Monad stack. The event handler must be able to manipulate the agent-local state we just encapsulated through \textit{feedback}, support reading the unique agent id and model scenario and scheduling of events.
+Before we can move on to write a function handling incoming events, we need to define the \textit{agent-local} Monad stack. The event handler must be able to manipulate the agent-local state we just encapsulated through \texttt{feedback}, support reading the unique agent id and model scenario and scheduling of events.
 
-Providing the local, mutable agent state is done using a \textit{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \textit{Reader} Monad. Implementing event scheduling, the same mechanism as in the event-driven SIR is used by a \textit{Writer} Monad. As the \textit{Monoid} instance to the \textit{WriterT}, the \textit{AgentOut} is used: all fields of its data definition are \textit{Monoid} instances, making \textit{AgentOut} a \textit{Monoid} as well - writing a type class instance for it is trivial. Now it is also clear why \textit{AgentOut} contains the list of events. Further, this also allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour as both are also part of \textit{AgentOut}.
-
-We thus define the following Monad which is local to the agent and is only used \textit{within} \textit{AgentMSF}.
+Providing the local, mutable agent state is done using a \texttt{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \texttt{Reader} Monad. For implementing event scheduling, a \texttt{Writer} Monad is used, which is the same mechanism as in the event-driven SIR. As the Monoid type for \texttt{WriterT}, the \texttt{AgentOut} is used. All fields of its data definition are Monoid instances, making \texttt{AgentOut} a Monoid as well, thus writing a type class instance for it is trivial. This approach allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour. Further, it should be clear now why \texttt{AgentOut} contains the list of events, as discussed in the previous section \ref{sec:dynamic_creationremoval}. Having established this, we define the agent local Monad which is only used \textit{within} \texttt{AgentMSF}.
 
 \begin{HaskellCode}
 type AgentLocalMonad g = WriterT (SugAgentOut g) 
@@ -72,13 +70,13 @@ type AgentLocalMonad g = WriterT (SugAgentOut g)
 --          (Rand g)))))
 \end{HaskellCode}
 
-Now we can define the MSF which handles an event. It has the \textit{AgentLocalMonad} monadic context, takes an \textit{ABSEvent} parametrised over \textit{SugEvent} (thus it has also to handle \textit{Tick}). What might come as a surprise is that it returns unit type, implying that the results of handling an event are only visible as side effects in the monad stack. This is intended. We could pass all arguments explicitly as input and/or output but that would complicate the handling code substantially, thus we opted for a monadic, imperative style handling of events.
+Now we can define the \texttt{MSF} which handles an event. It has the \texttt{AgentLocalMonad} monadic context, takes an \texttt{ABSEvent} parametrised over \texttt{SugEvent} (it has also to handle \texttt{Tick}). What might come as a surprise is that it returns unit type, implying that the results of handling an event are only visible as side effects in the Monad stack. This is intended. We could pass all arguments explicitly as input and output but that would complicate the handling code substantially, thus we opted for a monadic, imperative style handling of events.
 
 \begin{HaskellCode}
 type EventHandler g = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
 \end{HaskellCode}
 
-To run the handler, which has an extended monadic context within the \textit{SugarScapeAgent} we make use of Dunais functionality which provides functions to run MSFs with additional monadic layers within MSFs. We use \textit{runStateS}, \textit{runReaderS} and \textit{runWriterS} (\textit{S} indicates the stream character) to run the \textit{generalEventHandler}, providing the initial values for the respective Monads: \textit{s} for the \textit{StateT}, \textit{(params, aid)} for the \textit{ReaderT} and the \textit{evt} as the input to the event handler. Note that \textit{WriterT} does not need an initial value, it will be provided through the Monoid instance of \textit{AgentOut}.
+To run the handler within the \texttt{SugarScapeAgent}, we make use of Dunai's functionality which provides functions to run MSFs with additional monadic layers within MSFs. We use \texttt{runStateS}, \texttt{runReaderS} and \texttt{runWriterS} (\texttt{S} indicates the stream character) to run the \texttt{generalEventHandler}, providing the initial values for the respective Monads, \texttt{s} for the \texttt{StateT}, \texttt{(params, aid)} for the \texttt{ReaderT} and the \texttt{evt} as the input to the event handler. Note that \texttt{WriterT} does not need an initial value, it will be provided through the Monoid instance of \texttt{AgentOut}.
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g
@@ -93,26 +91,26 @@ sugObservableFromState :: SugAgentState -> SugAgentObservable
 generalEventHandler :: RandomGen g => EventHandler g
 \end{HaskellCode}
 
-Now it is also clear why the output of an agent is a tuple of \textit{AgentOut} and the polymorphic type \textit{o}: the latter one is parametrised to \textit{SugAgentObservable}, which is not constructed through the use of \textit{WriterT} but simply a projection of the agent state through \textit{sugObservableFromState}. In the next section we explain the details of \textit{generalEventHandler}, which implements the main event handling mechanisms of an agent.
+Now it is also clear why the output of an agent is a tuple of \texttt{AgentOut} and the polymorphic type \texttt{o}: the latter one is parametrised to \texttt{SugAgentObservable}, which is not constructed through the use of \texttt{WriterT} but simply a projection of the agent state through \texttt{sugObservableFromState}. In the next section we explain the details of \texttt{generalEventHandler}, which implements the main event handling mechanisms of an agent.
 
 \subsubsection{Handling and sending of events}
-Now we are ready to implement handling of events on an agent-local level: we receive the events from the simulation kernel as input and run within a 6-layered Monad transformer stack which is part global (controlled by the simulation kernel) and part local to the agent (controlled by the agent itself). The layers are the following (inner to outer):
+Now we are ready to implement handling of events on an agent-local level: we receive the events from the simulation kernel as input and run within a six-layered Monad Transformer stack which is partly global, controlled by the simulation kernel, and partly local to the agent, controlled by the agent itself. The layers are the following (inner to outer):
 
 \begin{enumerate}
-	\item \textit{WriterT (SugAgentOut g)}: agent-local, provides write-only functionality for constructing the agent output for the simulation kernel which indicates whether to kill the agent, a list of new agents to create and a list of events to send to receiving agents.
+	\item \texttt{WriterT (SugAgentOut g)} - local; provides write-only functionality for constructing the agent output for the simulation kernel communicating whether to kill the agent, a list of new agents to create and a list of events to send to receiving agents.
 	
-	\item \textit{ReaderT (SugarScapeScenario, AgentId)}: agent-local, provides the read only model configuration and unique agent id.
+	\item \texttt{ReaderT (SugarScapeScenario, AgentId)} - local; provides the read-only model configuration and unique agent id.
 
-	\item \textit{StateT SugAgentState}: agent-local, provides the local mutable agent state.
+	\item \texttt{StateT SugAgentState} - local; provides the local mutable agent state.
 
-	\item \textit{StateT ABSState}: global, provides unique agent-ids for new agents. %and the current simulation time. The usage of a \textit{StateT} is slightly flawed here because it provides too much power: the current simulation time should be read-only to the agent. Drawing the next agent-id involves reading the current id and writing the incremented value, thus technically it is a \textit{StateT} but ideally we would like to hide the writing operation and only provide a \textit{read-current-and-increment} operation. A possible solution would be to provide the current simulation time through a \textit{ReaderT} and the new agent-id through a new monad which uses the \textit{StateT} under the hood, like the \textit{Rand} monad.
+	\item \texttt{StateT ABSState} - global; provides unique agent ids for new agents. %and the current simulation time. The usage of a \textit{StateT} is slightly flawed here because it provides too much power: the current simulation time should be read-only to the agent. Drawing the next agent-id involves reading the current id and writing the incremented value, thus technically it is a \textit{StateT} but ideally we would like to hide the writing operation and only provide a \textit{read-current-and-increment} operation. A possible solution would be to provide the current simulation time through a \textit{ReaderT} and the new agent-id through a new monad which uses the \textit{StateT} under the hood, like the \textit{Rand} monad.
 
-	\item \textit{StateT SugEnvironment}: global, provides the sugarscape environment which the agents can read and write.
+	\item \texttt{StateT SugEnvironment} - global; provides the Sugarscape environment which the agents can read and write.
 
-	\item \textit{Rand g}: global, provides the random-number stream for all agents.
+	\item \texttt{Rand g} - global; provides the random-number stream for all agents.
 \end{enumerate}
 
-Finally we can implement the event handler \textit{generalEventHandler}, which simply matches on the incoming events, extracts data and dispatches to respective handlers. What is crucial here to understand is that only the top level \textit{sugarscapeAgent} and the \textit{EventHandler} function are MSFs which simply dispatch to monadic functions, implementing the functionality in an imperative programming style. The main benefit of the MSFs are their continuation character, which allows to encapsulate local state. Further the Dunai library adds a lot of additional functionality of composing MSFs and running different monadic context on top of each other. It even provides exception handling through MSFs with the \textit{Maybe} type, thus programming with exceptions in ABS models can be done as well. Note that we didn't make use of it, as the Sugarscape model simply does not specify any exception handling on the model level and there was also no opportunity to use exceptions from which to recover on a technical level - there are exceptions on a technical level but they are non-recoverable and should never occur at runtime, thus \textit{error} is used, which terminates the simulation with an error message.
+Finally we can implement the event handler \texttt{generalEventHandler}, which simply matches on the incoming events, extracts data and dispatches to respective handlers. What is crucial here to understand is that only the top level \texttt{sugarscapeAgent} and the \texttt{EventHandler} function are MSFs which simply dispatch to monadic functions, implementing the functionality in an imperative programming style. The main benefit of the MSFs are their continuation character, which allows to encapsulate local state. An additional benefit of MSFs is that the  Dunai library adds a lot of additional functionality of composing MSFs and running different monadic context on top of each other. It even provides exception handling through MSFs with the \texttt{Maybe} type, thus programming with exceptions in ABS models can be done as well. We didn't make use of exceptions, as the Sugarscape model simply does not specify any exception handling on the model level and there was also no opportunity to use exceptions from which to recover on a technical level \footnote{There are exceptions on a technical level but they are non-recoverable and should never occur at runtime, thus the function \texttt{error} is used, which terminates the simulation with an error message.}.
 
 \begin{HaskellCode}              
 generalEventHandler :: RandomGen g => EventHandler g
@@ -133,9 +131,9 @@ handleTick :: RandomGen g => DTime -> AgentLocalMonad g (Maybe (EventHandler g))
 handleMatingRequest :: AgentId -> AgentGender -> AgentLocalMonad g ()
 \end{HaskellCode}
 
-Note the use of \textit{continueWithAfter}, which is a customised version of the already known \textit{switch} combinator. It allows to swap out the event-handler for a different one, which is the foundation for the synchronous agent interactions, as discussed in the sections below.
+The use of \texttt{continueWithAfter} is a customised version of the already known \texttt{switch} combinator. It allows to swap out the event-handler for a different one, which is the foundation for the synchronous agent interactions, as discussed in the next section.
 
-To see how an event handler works, we provide the implementation of \textit{handleMatingRequest}. It is sent by an agent to its neighbours to request whether they want to mate with this agent. The handler receives the sender and the other agents gender and replies with \textit{sendEventTo} which sends a \textit{MatingReply} event back to the sender. The function \textit{sendEventTo} operates on the \textit{WriterT} to append (using \textit{tell}) an event to the list of events this agent sends when handling this event. Note the use of \textit{agentProperty}, which reads the value of a given field of the local agent state. 
+To see how an event handler works, we provide the implementation of \\ \texttt{handleMatingRequest}. It is sent by an agent to its neighbours to request whether they want to mate with this agent. The handler receives the sender and the other agents gender and replies with \texttt{sendEventTo} which sends a \texttt{MatingReply} event back to the sender. The function \texttt{sendEventTo} operates on the \texttt{WriterT} to append (using \texttt{tell}) an event to the list of events this agent sends when handling this event. The use of \texttt{agentProperty} reads the value of a given field of the local agent state. 
 
 \begin{HaskellCode}
 handleMatingRequest :: AgentId
@@ -145,7 +143,6 @@ handleMatingRequest sender otherGender = do
   -- check if the agent is able to accept the mating request: 
   -- fertile + wealthy enough + different gender
   accept <- acceptMatingRequest otherGender
-
   -- each parent provides half of its sugar-endowment for the new-born child
   acc <- if not accept
       -- can't mate, simply send Nothing in MatingReply
@@ -159,20 +156,21 @@ handleMatingRequest sender otherGender = do
         imSysGe <- agentProperty sugAgImSysGeno -- immune system genotype
         -- able to mate, send Just share in MatingReply
         return Just (sugLvl / 2, spiLvl / 2, metab, vision, culTag, imSysGe)
-
+  -- reply to sender with MatingReply
   sendEventTo sender (MatingReply acc)
 \end{HaskellCode}
 
-Finally we have a look at how to actually run an agents' MSF using the function \textit{runAgentMSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in 5 arguments and get a 6-tuple as result but this is the price we have to pay for pure functional programming: everything is explicit, with all its benefits and drawbacks.
+Finally, we have a look at how to actually run an agents' \texttt{MSF} using the function \texttt{runAgentMSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in five arguments and get a six-tuple as result but this is the price we have to pay for pure functional programming where everything is explicit, with all its benefits and drawbacks.
 
 \begin{HaskellCode}
-runAgentMSF :: RandomGen g        -- ^ RandomGen type class, g is a random-number generator
-            => SugAgentMSF g      -- ^ The agents MSF to run.
-            -> ABSEvent SugEvent  -- ^ The event it receives.
-            -> ABSState           -- ^ The ABSState (next agent id and current time)
-            -> SugEnvironment     -- ^ The environment state
-            -> g                  -- ^ The random-number generator
-            -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, ABSState, SugEnvironment, g)
+runAgentMSF :: RandomGen g        -- ^ RandomGen type class for g
+            => SugAgentMSF g      -- ^ agents MSF to run.
+            -> ABSEvent SugEvent  -- ^ event it receives.
+            -> ABSState           -- ^ ABSState (next agent id and current time)
+            -> SugEnvironment     -- ^ environment state
+            -> g                  -- ^ random-number generator
+            -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, 
+                ABSState, SugEnvironment, g)
 runAgentMSF msf evt absState env g = (ao, obs, msf', absState', env', g') 
   where
     -- extract the monadic function to run
@@ -180,9 +178,9 @@ runAgentMSF msf evt absState env g = (ao, obs, msf', absState', env', g')
     -- peel away one State layer: ABSState
     msfEnvState = runStateT msfAbsState absState
     -- peel away the second State layer: SugEnvironment
-    msfRand     = runStateT msfEnvState env
+    msfRand = runStateT msfEnvState env
     -- peel away the 3rd and last layer: Rand Monad
     (((((ao, obs), msf'), absState'), env'), g') = runRand msfRand g
 \end{HaskellCode}
 
-Note that we run only the 3 \textit{global} monadic layers in here, the 3 \textit{local} layers are indeed completely local to the agent itself as shown above.
+We run only the three \textit{global} monadic layers in here, the three \textit{local} layers are indeed completely local to the agent itself as shown above.

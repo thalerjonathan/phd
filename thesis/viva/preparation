@@ -4,8 +4,12 @@ Theoretical preparation:
 - completely understand monads (read / do all about monads): be able to derive and explain them
 - completely understand continuations: be able to derive and explain them
  completely understand arrows: be able to derive and explain them, read Hughes papers: "Programming with Arrows" and "Generalising Monads to Arrows", and "Arrows, Robots and Functional Reactive Programming" by Hudak et al.
+
 - be able to produce the proof of non computable as given in the book on computation (because i often mention it)	
+
 - completely understand monad-transformers: what is executed in which order? what about commutativity? e.g. STM is innermost monad, will be evaluated last to get an IO but this in fact leads then to the evaluation of all the monads before because STM is able to re-run
+
 - come up with technical and knowledge-based questions the examiners can ask: explain Monads; explain Monad Transformers; why don't Monads compose? What are shared-nothing semantics (in messaging)? 
+
 - come up with tricky questions about my methodology, narrative and methods, pointing out weaknesses of my approach and of my thesis:
 

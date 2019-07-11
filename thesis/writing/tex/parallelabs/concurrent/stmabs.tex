@@ -77,7 +77,7 @@ Computing a simulation step is now trivial within the main thread: all agent thr
 simulationStep :: TVar SIREnv     -- ^ environment 
                -> [MVar DTime]    -- ^ sync dt to threads
                -> [MVar SIRState] -- ^ sync output from threads
-               -> DTime           -- ^ time-delta
+               -> DTime           -- ^ time delta
                -> IO SIREnv
 simulationStep env dtVars retVars dt = do
   -- tell all threads to continue with the corresponding DTime

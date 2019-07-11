@@ -215,7 +215,7 @@ To run the \texttt{fallingMassMSF} function until it hits the floor we proceed a
 runMSF :: RandomGen g => g -> FallingMassMSF g -> IO ()
 runMSF g s msf = do
   let msfReaderT = unMSF msf ()
-      msfStateT  = runReaderT msfReaderT 0.1 -- sampling with time-delta of 0.1
+      msfStateT  = runReaderT msfReaderT 0.1 -- sampling with time delta of 0.1
       msfRand    = runStateT msfStateT s
       msfIO      = runRandT msfRand g
   (((p, msf'), s'), g') <- msfIO

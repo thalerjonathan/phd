@@ -18,10 +18,10 @@ As will be described in subsequent sections, central to both case studies is an 
 \subsection{Adding STM to agents}
 We briefly discuss how to add STM to agents on a technical level and also show how to run them within their own threads. We use the SIR implementation as example - applying it to the Sugarscape implementation works exactly the same way and is left as a trivial exercise to the reader.
 
-The first step is to simply add the \textit{STM} Monad as the \textit{outermost} level to the already the existing transformer stack. Further, the environment is now passed as a transactional data primitive to the agent at \textit{construction time}. Thus the agent does not receive the \textit{SIREnv} as input any more but receives it through currying when constructing its initial MSF. Further, the agent modifies the \textit{SIREnv} directly through the \textit{TVar}, as demonstrated in the case of the infected agent.
+The first step is to simply add the \texttt{STM} Monad as the outermost level to the already the existing Transformer stack. Further, the environment is now passed as a transactional data primitive to the agent at \textit{construction time}. Thus, the agent does not receive the \texttt{SIREnv} as input any more but receives it through currying when constructing its initial \texttt{MSF}. Further, the agent modifies the \texttt{SIREnv} directly through the \texttt{TVar}, as demonstrated in the case of the infected agent.
 
 \begin{HaskellCode}
--- Make Rand a transformer to be able to add STM as innermost monad
+-- Make Rand a transformer to be able to add STM as outermost monad
 type SIRMonad g = RandT g STM
 -- Input to agent is now an empty tuple instead of the Environment
 type SIRAgent g = SF (SIRMonad g) () SIRState
@@ -42,7 +42,7 @@ infected = proc _ -> do
     else returnA -< (Infected, NoEvent)
 \end{HaskellCode}
 
-The agent thread is straightforward: it takes \textit{MVar} synchronisation primitives to synchronise with the main thread and simply runs the agent behaviour each time it receives the next \textit{DTime}:
+The agent thread is straightforward. It takes \texttt{MVar} synchronisation primitives to synchronise with the main thread and simply runs the agent behaviour each time it receives the next \textit{DTime}:
 
 \begin{HaskellCode}
 agentThread :: RandomGen g 
@@ -67,11 +67,11 @@ agentThread n sf rng retVar dtVar = do
   -- post result to main thread
   putMVar retVar ret
   
-  -- tail-recursion to next step 
+  -- tail recursion to next step 
   agentThread (n - 1) sf' rng retVar dtVar
 \end{HaskellCode}
 
-Computing a simulation step is now trivial within the main thread: all agent threads \textit{MVars} are signalled to unblock followed by an immediate block on the \textit{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \textit{TVar} which the agent threads have updated.
+Computing a simulation step is now trivial within the main thread. All agent threads \texttt{MVars} are signalled to unblock followed by an immediate block on the \texttt{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \texttt{TVar} which the agent threads have updated.
 
 \begin{HaskellCode}
 simulationStep :: TVar SIREnv     -- ^ environment 
@@ -88,4 +88,4 @@ simulationStep env dtVars retVars dt = do
   readTVarIO env
 \end{HaskellCode}
 
-The difference to an implementation which uses \textit{IO} are minor but far reaching. Instead of using \textit{STM} as outermost Monad, we use \textit{IO}, thus running the whole agent behaviour within the \textit{IO} Monad. Instead of receiving the environment through a \textit{TVar}, the agent receives it through an \textit{IORef}. It also receives an \textit{MVar} which is the synchronisation primitive to synchronise the access to the environment in the \textit{IORef} amongst all agents. Agents grab and release the synchronisation lock of the \textit{MVar} when they enter and leave a critical section in which they operate on the environment stored in the \textit{IORef}.
+The difference to an implementation which uses \texttt{IO} are minor but far reaching. Instead of using \texttt{STM} as outermost Monad, we use \texttt{IO}, thus running the whole agent behaviour within the \texttt{IO} Monad. Instead of receiving the environment through a \texttt{TVar}, the agent receives it through an \texttt{IORef}. It also receives an \texttt{MVar} which is the synchronisation primitive to synchronise the access to the environment in the \texttt{IORef} amongst all agents. Agents grab and release the synchronisation lock of the \texttt{MVar} when they enter and leave a critical section in which they operate on the environment stored in the \texttt{IORef}.

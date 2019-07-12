@@ -1,6 +1,6 @@
 \section{Time-driven specification}
 \label{sec:timedriven_specification}
-The time-driven SIR agents have a very small interface: they only receive the agent population from the previous step and output their state in the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas arrowized FRP. Thus a specification in time-driven approach is given in terms of probabilities and timeouts, rather than in events as in the event-driven testing as presented before.
+The time-driven SIR agents have a very small interface as they only receive the agent population from the previous step and output their state in the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas arrowized FRP. Thus, a specification of a time-driven approach is given in terms of probabilities and timeouts, rather than in events as in the event-driven testing as presented before.
 
 \begin{itemize}
 	\item Susceptible agent - makes \textit{on average} contact with $\beta$ (contact rate) agents per time unit. The distribution follows the exponential distribution with $\lambda = \frac{1}{\beta}$. If a susceptible agent gets into contact with an infected agent, it will become infected with a uniform probability of $\gamma$ (infectivity).
@@ -11,14 +11,14 @@ The time-driven SIR agents have a very small interface: they only receive the ag
 \end{itemize}
 
 \subsection{Specifications of the susceptible agent}
-We cannot directly observe that a susceptible agent makes contact with other agents like we can in the event-driven approach but only indirectly through its change of state: a susceptible agent \textit{might} become infected if there are infected agents in the population.
-Thus when we run a susceptible agent for some time, we have 3 possible outcomes of the agents output stream: 1. the agent did not get infected and thus all elements of the stream are \textit{Susceptible}; 2. the agent got infected thus up to a given index in the stream all elements are \textit{Susceptible} and change to \textit{Infected} after; 3. the agent got \textit{Infected} and then \textit{Recovered} thus the stream is the same as in infected but there is a second index after which all elements change to \textit{Recovered}. Encoding them in code is straightforward:
+We cannot directly observe that a susceptible agent makes contact with other agents like we can in the event-driven approach but only indirectly through its change of state which says that a susceptible agent \textit{might} become infected if there are infected agents in the population.
+Thus when we run a susceptible agent for some time, we have three possible outcomes of the agents output stream: 1. the agent did not get infected and thus all elements of the stream are \texttt{Susceptible}; 2. the agent got infected thus up to a given index in the stream all elements are \texttt{Susceptible} and change to \texttt{Infected} after; 3. the agent got \texttt{Infected} and then \texttt{Recovered} thus the stream is the same as in infected but there is a second index after which all elements change to \texttt{Recovered}. Encoding them in code is straightforward:
 
 \begin{HaskellCode}
-susceptibleInvariants :: [SIRState] -- ^ The output stream of the susceptible agent 
-                      -> Bool       -- ^ The population contains an infected agent
-                      -> Bool       -- ^ True in case the invariant holds
-susceptibleInvariants aos infInPop
+susceptibleInv :: [SIRState] -- ^ output stream of the susceptible agent 
+               -> Bool       -- ^ population contains an infected agent
+               -> Bool       -- ^ True in case the invariant holds
+susceptibleInv aos infInPop
     -- Susceptible became Infected and then Recovered
     | isJust recIdxMay 
       = infIdx < recIdx &&  -- agent has to become infected before recovering
@@ -40,34 +40,33 @@ susceptibleInvariants aos infInPop
     infIdxMay = elemIndex Infected aos
     -- look for the first element when agent became Recovered
     recIdxMay = elemIndex Recovered aos
-
+    -- extract index
     infIdx = fromJust infIdxMay
     recIdx = fromJust recIdxMay
 \end{HaskellCode}
 
-Putting this into a property-test is also straightforward. We generate a random population, run a random susceptible agent with a sampling rate of $\Delta t = 0.01$ and check the invariants on its output stream. These invariants all have to hold independently from the (positive) duration we run the random susceptible agent for, thus we run it for a random amount of time units. The invariants also have to hold for arbitrary positive beta (contact rate), gamma (infectivity) and delta (illness duration). At the same time, we want to get an idea of the percentage of agents which stayed susceptible, became infected or made the transition to recovered, thus we \textit{label} all our test cases accordingly.
+Putting this into a property test is also straightforward. We generate a random population, run a random susceptible agent with a sampling rate of $\Delta t = 0.01$ and check the invariants on its output stream. These invariants all have to hold independently of the positive duration we run the random susceptible agent for, thus we run it for a random amount of time units. The invariants also have to hold for arbitrary positive beta (contact rate), gamma (infectivity) and delta (illness duration). At the same time, we want to get an idea of the percentage of agents which stayed susceptible, became infected or made the transition to recovered, thus we \texttt{label} all our test cases accordingly.
 
 \begin{HaskellCode}
-prop_susceptible_invariants :: Positive Double  -- ^ beta, contact rate
-                            -> Probability      -- ^ gamma, infectivity within (0,1) range
-                            -> Positive Double  -- ^ delta, illness duration
-                            -> TimeRange        -- ^ simulation duration, within (0,50) range
-                            -> [SIRState]       -- ^ random population
-                            -> Property
-prop_susceptible_invariants
-      (Positive cor) (P inf) (Positive ild) (T t) as = property (do  
+prop_susceptible_inv :: Positive Double -- ^ beta, contact rate
+                     -> Probability     -- ^ gamma, infectivity within (0,1)
+                     -> Positive Double -- ^ delta, illness duration
+                     -> TimeRange       -- ^ simulation duration, within (0,50)
+                     -> [SIRState]      -- ^ random population
+                     -> Property
+prop_susceptible_inv
+      (Positive beta) (P gamma) (Positive delta) (T t) as = property (do  
     -- population contains an infected agent True/False
     let infInPop = Infected `elem` as
-
     -- run a random susceptible agent for random time units with 
     -- sampling rate dt 0.01 and return its stream of output
-    aos <- genSusceptible cor inf ild as t 0.01
-
+    aos <- genSusceptible beta gamma delta as t 0.01
+    -- construct property
     return 
         -- label all test cases
         label (labelTestCase aos) 
         -- check invariants on output stream
-        (property (susceptibleInvariants aos infInPop))
+        (property (susceptibleInv aos infInPop))
   where
     labelTestCase :: [SIRState] -> String
     labelTestCase aos
@@ -76,7 +75,7 @@ prop_susceptible_invariants
       | otherwise            = "Susceptible"
 \end{HaskellCode}
 
-Due to the high dimensionality of the random sampling space, we run 10,000 tests - all succeed as expected.
+Due to the high dimensionality of the random sampling space, we run 10,000 tests. All succeed as expected.
 
 \begin{verbatim}
 SIR Agent Specifications Tests
@@ -87,15 +86,15 @@ SIR Agent Specifications Tests
      7.03% Susceptible
 \end{verbatim}
 
-This test so far did not state anything about the probability of a susceptible agent getting infected. The probability for it is bimodal (see next Chapter) due to the combined probabilities of the exponential distribution of the contact rate and the uniform distribution of the infectivity. Unfortunately, the bimodality makes it not possible to compute a coverage percentage of infected in this case, as we did in the event-driven test because the bimodal distribution can only be described in terms of a distribution and not a single probability. This was possible in the even-driven approach because we decoupled the production of the \textit{Contact \_ Infected} event from the infection: both were uniform distributed, thus we could compute a coverage percentage. Thus we see that different approaches also allow different explicitness of testing.
+This test so far did not state anything about the probability of a susceptible agent getting infected. The probability for it is bimodal (see next chapter) due to the combined probabilities of the exponential distribution of the contact rate $\beta$ and the uniform distribution of the infectivity $\gamma$. Unfortunately, the bimodality makes it not possible to compute a coverage percentage of infected in this case, as we did in the event-driven test because the bimodal distribution can only be described in terms of a distribution and not a single probability. This was possible in the even-driven approach because we decoupled the production of the \texttt{Contact \_ Infected} event from the infection. Both were uniform distributed, thus we could compute a coverage percentage. Thus we see that different approaches also allow different explicitness of testing.
 
 \subsection{Probabilities of the infected agent}
-An infected agent \textit{will} recover after \textit{finite} time, thus we assume that there exists an index in the output stream, where the elements will change to \textit{Recovered}. From the index we can compute the time of recovery, knowing the fixed sampling rate $\Delta t$.
+An infected agent \textit{will} recover after \textit{finite} time, thus we assume that there exists an index in the output stream, where the elements will change to \texttt{Recovered}. From the index we can compute the time of recovery, knowing the fixed sampling rate $\Delta t$.
 
 \begin{HaskellCode}
-infectedInvariant :: [SIRState]     -- ^ The stream of outputs from the infected agent
-                  -> Double         -- ^ Sampling rate dt
-                  -> Maybe Double   -- ^ Just recovery time, or Nothing if not recovered
+infectedInvariant :: [SIRState]   -- ^ stream of outputs from infected agent
+                  -> Double       -- ^ Sampling rate dt
+                  -> Maybe Double -- ^ Just recovery time, Nothing if no recovery
 infectedInvariant aos dt  = do
   -- search for the index of the first Recovery element
   recIdx <- elemIndex Recovered aos
@@ -106,7 +105,7 @@ infectedInvariant aos dt  = do
     else Nothing
 \end{HaskellCode}
 
-To put this into a property-test, we follow a similar approach as in the event-driven case of the infected agents invariants. We employ the CDF of the exponential distribution to get the probability of an agent recovering within $\delta$ (illness duration) time steps. We then run a random infected agent for an \textit{unlimited} time with a sampling rate o f $\Delta t = 0.01$ and search in its potentially infinite output stream for the first occurrence of an \textit{Infected} element to compute the recovery time, as shown in the invariant above. The code is conceptually exactly the same as in the event-driven case, so we do not repeat the property-test here.
+To put this into a property test, we follow a similar approach as in the event-driven case of the infected agents invariants. We employ the CDF of the exponential distribution to get the probability of an agent recovering within $\delta$ (illness duration) time steps. We then run a random infected agent for an \textit{unlimited} time with a sampling rate o f $\Delta t = 0.01$ and search in its potentially infinite output stream for the first occurrence of an \texttt{Infected} element to compute the recovery time, as shown in the invariant above. The code is conceptually exactly the same as in the event-driven case, so we do not repeat the property test here.
 
 %\begin{HaskellCode}
 %prop_infected_invariants :: [SIRState] -> Property
@@ -132,17 +131,17 @@ To put this into a property-test, we follow a similar approach as in the event-d
 %             " or less, expected " ++ show prob) (isJust dur)
 %\end{HaskellCode}
 
-When running the test we get the following output, indicating that QuickCheck finds the coverage satisfied after 3,200 test cases:
+When running the test we get the following output, indicating that QuickCheck finds the coverage to be satisfied after 3,200 test cases:
 
 \begin{verbatim}
 +++ OK, passed 3200 tests (62.28% infected agents have an illness 
     duration of 15.0 or less, expected 63.21).
 \end{verbatim}
 
-The fact that we run the random infected agent without time-limit explicitly expresses the invariant that an infected agent \textit{will} recover in \textit{finite} time steps: a correct implementation will produce a stream which contains an index after which all elements are \textit{Infected}, thus resulting in \textit{Just} recovery time. This is also a direct expression of the fact that the CDF of the exponential distribution reaches 1.0 at infinity. An approach which would guarantee the termination would be to limit the time to run the infected agent to \textit{illnessDuration} and evaluate the property always to True. This approach guarantees termination but removes an important part of the specification - we decided to follow the initial approach to make the specification really clear, and in practice it has turned out to terminate within a very short time (see below).
+The fact that we run the random infected agent explicitly without time limit expresses the invariant that an infected agent \textit{will} recover in \textit{finite} time steps. A correct implementation will produce a stream which contains an index after which all elements are \texttt{Infected}, thus resulting in \texttt{Just} recovery time. This is also a direct expression of the fact that the CDF of the exponential distribution reaches 1 at infinity. An approach which would guarantee the termination would be to limit the time to run the infected agent to $\delta$ (illness duration) and evaluate the property always to \texttt{True}. This approach guarantees termination but removes an important part of the specification. We decided to stick to the initial approach to make the specification really clear, and in practice it has turned out to terminate within a very short time (see below).
 
 \subsection{The non-computability of the recovered agent test}
-The property-test for the recovered agent is trivial: we run a random recovered agent for a random number of time units with $\Delta t = 0.01$ and require that all elements in the output stream are \textit{Recovered}. Of course this is no proof that the recovered agent stays recovered \textit{forever} as this would take \textit{forever} to test and is thus not computable.  Here we are hitting the limits of what is possible with random black-box testing: without looking at the actual implementation it is not possible to prove that the recovered agent is really behaving as specified. We made this fact very clear at the beginning of this part: property-based testing is not a proof for the correctness but is only a support for raising the confidence in the correctness by constructing cases which show that the behaviour is not incorrect.
+The property test for the recovered agent is trivial. We run a random recovered agent for a random number of time units with $\Delta t = 0.01$ and require that all elements in the output stream are \texttt{Recovered}. Of course this is no proof that the recovered agent stays recovered \textit{forever} as this would take \textit{forever} to test and is thus not computable. Here we are hitting the limits of what is possible with random black-box testing. Without looking at the actual implementation it is not possible to prove that the recovered agent is really behaving as specified. We made this fact very clear at the beginning of this Part that property-based testing is not a proof for correctness but is only a support for raising the confidence in correctness by constructing cases which show that the behaviour is not incorrect.
 
 To be really sure that the recovered agent behaves as specified we need to employ white-box verification and look at the actual implementation. It is immediately obvious that the implementation follows the specification and actually \textit{is} the specification, and we can even regard it as a very concise proof that it will stay recovered \textit{forever}:
 
@@ -151,4 +150,4 @@ recoveredAgent :: SIRAgent
 recoveredAgent = constant Recovered
 \end{HaskellCode}
 
-The signal function \textit{constant} is the \textit{const} function lifted into an arrow: \textit{constant b = arr (const b)}. This should be proof enough that a recovered agent will stay recovered \textit{forever}. We discuss the topic of computability in pure functional ABS in a slightly different context in Appendix \ref{app:equilibrium_totality}.
+The signal function \texttt{constant} is the \texttt{const} function lifted into an arrow: \texttt{constant b = arr (const b)}. This should be proof enough that a recovered agent will stay recovered \textit{forever}. We discuss the topic of computability in pure functional ABS in a slightly different context in Appendix \ref{app:equilibrium_totality}.

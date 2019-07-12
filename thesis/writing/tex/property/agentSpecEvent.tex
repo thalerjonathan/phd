@@ -1,45 +1,45 @@
 \section{Event-driven specification}
-In this section we present how QuickCheck can be used to test event-driven agents by expressing their \textit{specification} as property-tests in the case of the event-driven SIR implementation from chapter \ref{sec:eventdriven_basics}.
+In this section we present how QuickCheck can be used to test event-driven agents by expressing their \textit{specification} as property tests in the case of the event-driven SIR implementation from chapter \ref{sec:eventdriven_basics}.
 
-In general, testing event-driven agents is fundamentally different and more complex than testing time-driven agents, as their interface surface is generally much larger: events form the input to the agents to which they react with new events - the dependencies between those can be quite complex and deep. Using property-based tests we can encode the invariants and end up with an actual specification of their behaviour, acting as documentation, regression test within a TDD and property tests.
+In general, testing event-driven agents is fundamentally different and more complex than testing time-driven agents, as their interface surface is generally much larger. Events form the input to the agents to which they react with new events where the dependencies between those can be quite complex and deep. Using property-based testing we can encode the invariants and end up with an actual specification of their behaviour, acting as documentation, regression test within a TDD and property tests.
 
-Note that the concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details - after all we are interested in deriving concepts, not dealing with specific technicalities.
+Note that the concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details. % - after all we are interested in deriving concepts, not dealing with specific technicalities.
 
-With event-driven ABS a good starting point in specifying and then testing the system is simply relating the input events to expected output events. In the SIR implementation we have only three events, making it feasible to give a full formal specification - note that the Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation. 
+With event-driven ABS, a good starting point in specifying and testing the system, is simply relating the input events to expected output events. In the SIR implementation we have only three events, making it feasible to give a full formal specification. The Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation for explanatory purposes.
 
 \subsection{Deriving the specification}
 We start by giving the full \textit{specification} of the susceptible, infected and recovered agent by stating the input-to-output event relations. The susceptible agent is specified as follows:
 
 \begin{enumerate}
-	\item \textit{MakeContact} - If the agent receives this event it will output $\beta$  \textit{Contact ai Susceptible} events, where ai is the agents self id. The events have to be scheduled immediately without delay, thus having the current time as scheduling timestamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \textit{Susceptible} and does not schedule any other events than the ones mentioned.
+	\item \texttt{MakeContact} - if the agent receives this event it will output $\beta$ \texttt{Contact ai Susceptible} events, where \texttt{ai} is the agents own id. The events have to be scheduled immediately without delay, thus having the current time as scheduling timestamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \texttt{Susceptible} and does not schedule any other events than the ones mentioned.
 	
-	\item \textit{Contact \_ Infected} - If the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \textit{Infected}. If this happens, the agent will schedule a \textit{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it will not change its state, stays \textit{Susceptible} and does not schedule any events.
+	\item \texttt{Contact \_ Infected} - if the agent receives this event there is a chance of uniform probability $\gamma$ (infectivity) that the agent becomes \texttt{Infected}. If this happens, the agent will schedule a \texttt{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$ (illness duration). If the agent does not become infected, it will not change its state, stays \texttt{Susceptible} and does not schedule any events.
 	
-	\item \textit{Contact \_ \_} or \textit{Recover} - If the agent receives any of these (other) events it will not change its state, stays \textit{Susceptible} and does not schedule any events.
+	\item \texttt{Contact \_ \_} or \texttt{Recover} - if the agent receives any of these other events it will not change its state, stays \texttt{Susceptible} and does not schedule any events.
 \end{enumerate}
 
-This specification implicitly covers that a susceptible agent can never transition from a \textit{Susceptible} to a \textit{Recovered} state within a single event - it can only make the transition to \textit{Infected} or stays \textit{Susceptible}. The infected agents are specified as follows:
+This specification implicitly covers that a susceptible agent can never transition from a \texttt{Susceptible} to a \texttt{Recovered} state within a single event as it can only make the transition to \texttt{Infected} or stay \texttt{Susceptible}. The infected agent is specified as follows:
 
 \begin{enumerate}
-	\item \textit{Recover} - If the agent receives this, it will not schedule any events and make the transition to the \textit{Recovered} state.
+	\item \texttt{Recover} - if the agent receives this, it will not schedule any events and make the transition to the \texttt{Recovered} state.
 	
-	\item \textit{Contact sender Susceptible} - If the agent receives this, it will reply immediately with \textit{Contact ai Infected} to \textit{sender}, where \textit{ai} is the infected agents' id and the scheduling timestamp is the current time. It will not schedule any events and stays \textit{Infected}.
+	\item \texttt{Contact sender Susceptible} - if the agent receives this, it will reply immediately with \texttt{Contact ai Infected} to \textit{sender}, where \texttt{ai} is the infected agents' id and the scheduling timestamp is the current time. It will not schedule any events and stays \texttt{Infected}.
 	
-	\item In case of any other event, the agent will not schedule any events and stays \textit{Infected}.
+	\item In case of any other event, the agent will not schedule any events and stays \texttt{Infected}.
 \end{enumerate}
 
-This specification implicitly covers that an infected agent never goes back to the \textit{Susceptible} state - it can only make the transition to \textit{Recovered} or stay \textit{Infected}. From the specification of the susceptible agent it becomes clear that a susceptible agent who became infected, will always recover as the transition to \textit{Infected} includes the scheduling of \textit{Recovered} to itself. 
+This specification implicitly covers that an infected agent never goes back to the \texttt{Susceptible} state as it can only make the transition to \texttt{Recovered} or stay \texttt{Infected}. From the specification of the susceptible agent it becomes clear that a susceptible agent who became infected, will always recover as the transition to \texttt{Infected} includes the scheduling of \texttt{Recovered} to itself. 
 
 \medskip
 
-The \textit{recovered} agents specification is very simple. It stays \textit{Recovered} forever and does not schedule any events.
+The \textit{recovered} agent specification is very simple. It stays \texttt{Recovered} forever and does not schedule any events.
 
 \medskip
 
-The question is now how to put these into a property-test with QuickCheck. We focus on the susceptible agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. % In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property-tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property-tests.
+The question is now how to put these into a property test with QuickCheck. We focus on the susceptible agent, as it it the most complex one, which concepts can then be easily applied to the other two. Generally speaking, we create a random \textit{susceptible} agent and a random event, feed it to the agent to get the output and check the invariants accordingly to input and output. % In the specification there are stated three probabilities regarding $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration). We will only check one, $\gamma$ (infectivity) using the coverage features of QuickCheck and write additional property tests for the other two. The reason for that is, that checking $\gamma$ is natural with the invariant checking whereas the others need a slightly different approach and are more obviously stated in separate property tests.
 
 \subsection{Encoding invariants}
-We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \textit{Bool} indicating whether the invariants hold or not. The encoding is straightforward when using pattern matching and it nearly reads like a formal specification due to the declarative nature of functional programming.
+We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \texttt{Bool} indicating whether the invariants hold or not. The encoding is straightforward when using pattern matching and it nearly reads like a formal specification due to the declarative nature of functional programming.
 
 \begin{HaskellCode}
 susceptibleProps :: SIREvent              -- ^ Random event sent to agent
@@ -65,7 +65,7 @@ susceptibleProps (Contact _ Infected) Infected es ai
 susceptibleProps _ _ _ _ = False
 \end{HaskellCode}
 
-Next, we give the implementation for the \textit{checkMakeContactInvariants} and \textit{checkInfectedInvariants} functions. The function \textit{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \textit{MakeContact} event. The \textit{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent got \textit{Infected}. Both implementations read like a formal specification, again thanks to the declarative nature of functional programming and pattern matching:
+Next, we give the implementation for the \texttt{checkMakeContactInvariants} and \texttt{checkInfectedInvariants} functions. The function \texttt{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{MakeContact} event. The \texttt{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent got \texttt{Infected}. Both implementations read like a formal specification, again thanks to the declarative nature of functional programming and pattern matching:
 
 \begin{HaskellCode}
 checkInfectedInvariants :: AgentId              -- ^ Agent id of the agent 
@@ -80,7 +80,7 @@ checkInfectedInvariants sender
 checkInfectedInvariants _ _ = False
 \end{HaskellCode}
 
-The \textit{checkMakeContactInvariants} is a bit more complex but reads as a formal specification as well:
+The \texttt{checkMakeContactInvariants} is a bit more complex but reads as a formal specification as well:
 
 \begin{HaskellCode}
 checkMakeContactInvariants :: AgentId              -- ^ Agent id of the agent 
@@ -100,45 +100,45 @@ checkMakeContactInvariants sender es contactRate
                                   -> (Bool, Bool, Int)
     checkMakeContactInvariantsAux 
         (QueueItem (Contact sender' Susceptible) receiver t') (b, mkb, n)
-      = (b && sender == sender'    -- the sender in Contact must be the Susceptible agent
-           && receiver `elem` ais  -- the receiver of Contact must be in the agent ids
-           && t == t', mkb, n+1)   -- the Contact event is scheduled immediately
+      = (b && sender == sender'   -- sender in Contact must be self
+           && receiver `elem` ais -- receiver of Contact must be in agent ids
+           && t == t', mkb, n+1)  -- Contact event is scheduled immediately
     checkMakeContactInvariantsAux 
         (QueueItem MakeContact receiver t') (b, mkb, n) 
-      = (b && receiver == sender   -- the receiver of MakeContact is the Susceptible agent itself
-           && t' == t + 1          -- the MakeContact event is scheduled 1 time unit into the future
-           &&  not mkb, True, n)   -- there can only be one MakeContact event
+      = (b && receiver == sender  -- receiver of MakeContact is agent itself
+           && t' == t + 1         -- MakeContact scheduled 1 timeunit into future
+           &&  not mkb, True, n)  -- there can only be one MakeContact event
     checkMakeContactInvariantsAux _ (_, _, _) 
-      = (False, False, 0)          -- other patterns are invalid
+      = (False, False, 0)         -- other patterns are invalid
 \end{HaskellCode}
 
-What is left is to actually write a property-test using QuickCheck. We are making heavy use of random parameters to express that the properties have to hold invariant of the model parameters. We make use of additional data generator modifiers: \textit{Positive} ensures that the value generated is positive; \textit{NonEmptyList} ensures that the randomly generated list is non-empty.
+What is left is to actually write a property test using QuickCheck. We are making heavy use of random parameters to express that the properties have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that the value generated is positive; \texttt{NonEmptyList} ensures that the randomly generated list is not empty.
 
 \begin{HaskellCode}
-prop_susceptible_invariants :: Positive Int         -- ^ Contact rate
-                            -> Probability          -- ^ Infectivity
-                            -> Positive Double      -- ^ Illness duration
+prop_susceptible_invariants :: Positive Int         -- ^ Contact rate (beta)
+                            -> Probability          -- ^ Infectivity (gamma)
+                            -> Positive Double      -- ^ Illness duration (delta)
                             -> Positive Double      -- ^ Current simulation time
-                            -> NonEmptyList AgentId -- ^ Agent ids of the population
+                            -> NonEmptyList AgentId -- ^ population agent ids
                             -> Gen Property
 prop_susceptible_invariants 
-  (Positive cor) (P inf) (Positive ild) (Positive t) (NonEmpty ais) = do
+  (Positive beta) (P gamma) (Positive delta) (Positive t) (NonEmpty ais) = do
   -- generate random event, requires the population agent ids
   evt <- genEvent ais
   -- run susceptible random agent with given parameters
-  (ai, ao, es) <- genRunSusceptibleAgent cor inf ild t ais evt
+  (ai, ao, es) <- genRunSusceptibleAgent beta gamma delta t ais evt
   -- check properties
   return $ property $ susceptibleProps evt ao es ai
 \end{HaskellCode}
 
-When running this property-test all 100 test cases pass. Due to the large random sampling space with 5 parameters, we increase the number of test cases to generate to 100,000 - still all test cases pass.
+When running this property test all 100 test cases pass. Due to the large random sampling space with 5 parameters, we increase the number of test cases to generate to 100,000 - still all test cases pass.
 
 \subsection{Encoding transition probabilities}
-In the specifications above there are probabilistic state transitions, for example an infected agent \textit{will} recover after a given time, which is randomly distributed with the exponential distribution. The susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \textit{cover} and \textit{checkCoverage} feature of QuickCheck.
+In the specifications above there are probabilistic state transitions, for example an infected agent \textit{will} recover after a given time, which is randomly distributed with the exponential distribution. The susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \texttt{cover} and \texttt{checkCoverage} feature of QuickCheck.
 
 \subsubsection{Susceptible agent}
-We follow the same approach as in encoding the invariants of the susceptible agent but instead of checking the invariants, we compute the probability for each case. Note that in this property-test we cannot randomise the model parameters because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here - still, the model parameters can be adjusted arbitrarily and the property (must) still hold. %Note that we do not provide the details of computing the probabilities of each input-to-output case as it is quite technical and of not much importance - it is only a matter of multiplication and divisions amongst the event-frequencies and model parameters.
-We make use of the \textit{cover} function together with \textit{checkCoverage}, which ensures that we get a statistical robust estimate whether the expected percentages can be reached or not. Implementing this property-test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output.
+We follow the same approach as in encoding the invariants of the susceptible agent but instead of checking the invariants, we compute the probability for each case. In this property test we cannot randomise the model parameters because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the model parameters can be adjusted arbitrarily and the property must hold. %Note that we do not provide the details of computing the probabilities of each input-to-output case as it is quite technical and of not much importance - it is only a matter of multiplication and divisions amongst the event-frequencies and model parameters.
+We make use of the \texttt{cover} function together with \texttt{checkCoverage}, which ensures that we get a statistical robust estimate whether the expected percentages can be reached or not. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output.
 
 \begin{HaskellCode}
 ...
@@ -149,7 +149,7 @@ case evt of
 ...
 \end{HaskellCode}
 
-Note the usage pattern of \textit{cover}: we always include the test case into the coverage class and all test cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have use randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable.
+Note the usage pattern of \texttt{cover} where we unconditionally include the test case into the coverage class so all test cases pass. The reason for this is that we are just interested in testing the coverage, which is in fact the property we want to test. We could have combined this test into the previous one but then we couldn't have used randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable.
 
 %\begin{HaskellCode}
 %prop_susceptible_proabilities :: Positive Double      -- ^ Current simulation time
@@ -207,7 +207,7 @@ Note the usage pattern of \textit{cover}: we always include the test case into t
 %            cover 0 True "Impossible Case, expected 0" True
 %\end{HaskellCode}
 
-When running the property-test we get the following output:
+When running the property test we get the following output:
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -221,10 +221,10 @@ When running the property-test we get the following output:
 \end{verbatim}
 \end{footnotesize}
 
-After 819,200 (!) test cases QuickCheck comes to the conclusion that the distributions generated by the test cases reflect the expected distributions and passes the property-test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing QuickCheck is able to conclude that the coverage are statistically equal.
+After 819,200 (!) test cases QuickCheck comes to the conclusion that the distributions generated by the test cases reflect the expected distributions and passes the property test. We see that the values do not match exactly in some cases but by using sequential statistical hypothesis testing, QuickCheck is able to conclude that the coverage are statistically equal.
 
 \subsubsection{Infected agent}
-We want to write a property-test which checks whether the transition from \textit{Infected} to \textit{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute the expected probability for agents having an illness duration of less or equal $\delta$. This probability is given by the cumulative density function (CDF) of the exponential distribution. The question is how to get the infected illness duration. This is simply achieved by infecting a susceptible agent and taking the scheduling time of the \textit{Recover} event. We have written a custom data generator for this:
+We want to write a property test which checks whether the transition from \texttt{Infected} to \texttt{Recovered} actually follows the exponential distribution with a fixed $\delta$ (illness duration). The idea is to compute the expected probability for agents having an illness duration of less or equal $\delta$. This probability is given by the Cumulative Density Function (CDF) of the exponential distribution. The question is how to get the infected illness duration. This is simply achieved by infecting a susceptible agent and taking the scheduling time of the \texttt{Recover} event. We have written a custom data generator for this:
 
 \begin{HaskellCode}
 getInfectedAgentDuration :: Double -> Gen (SIRState, Double)
@@ -239,7 +239,7 @@ getInfectedAgentDuration ild = do
     recoveryTime _ = 0
 \end{HaskellCode}
 
-Encoding the probability check into a property-test is straightforward:
+Encoding the probability check into a property test is straightforward:
 
 \begin{HaskellCode}
 prop_infected_duration :: Property
@@ -260,7 +260,7 @@ prop_infected_duration = checkCoverage (do
             (ao == Infected)) -- final state has to Infected
 \end{HaskellCode}
 
-When running the property-test we get the following output.
+When running the property test we get the following output.
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -270,4 +270,4 @@ When running the property-test we get the following output.
 \end{verbatim}
 \end{footnotesize}
 
-QuickCheck is able to determine after only 3,200 test cases that the expected coverage is met and passes the property-test.
+QuickCheck is able to determine after only 3,200 test cases that the expected coverage is met and passes the property test.

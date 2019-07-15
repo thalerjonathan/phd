@@ -71,9 +71,9 @@ prop_sir_invariants :: Positive Int    -- ^ beta, contact rate
 prop_sir_invariants 
     (Positive beta) (P gamma) (Positive delta) (T t) as  = property (do
   -- total agent count
-  let n = length ss
+  let n = length as
   -- run the SIR simulation with a new RNG 
-  ret <- genSimulationSIR ss beta gamma delta t
+  ret <- genSimulationSIR as beta gamma delta t
   -- check invariants and return result
   return (sirInvariants n ret)
 \end{HaskellCode}

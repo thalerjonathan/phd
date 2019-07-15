@@ -29,7 +29,7 @@
 % Author, Title, etc.
 \title[Show me your properties! The potential of property-based testing in Agent-Based Simulation] 
 {%
-  Show me your properties! \\ The potential of property-based testing in Agent-Based Simulation
+  Show me your properties! \\ \tiny{The potential of property-based testing in Agent-Based Simulation}
 }
 
 \author[Thaler]
@@ -54,25 +54,26 @@
 \end{frame}
 
 \section{Introduction}
-\begin{frame}{Testing in ABS?}
+\begin{frame}{Code testing in ABS?}
 \begin{itemize}
-	\item not existent, 1 paper focusing on it completely, very neglected but important. 
-  	\item unit testing not very suitable for ABS in general?
-  	\item lacking 
+	\item Very neglected but important!
+	\item One paper \footnote{Collier, N., and Ozik, J. Test-driven agent-based simulation development. In 2013 Winter Simulations Conference (WSC) (Dec. 2013),pp. 1551 - 1559.} focusing on TDD with unit testing
+  	\item Unit testing not very suitable for ABS
+  	\item How deal with ABS stochastic nature?
 \end{itemize}
 
-\begin{block}{}
-Stochastic ABS + Randomised Property-Based Testing = $\heartsuit \heartsuit \heartsuit$
+\begin{block}{Solution}
+Stochastic ABS + random property-based testing = $\heartsuit \heartsuit \heartsuit$
 \end{block}
 \end{frame}
 
 \section{Property-Based Testing}
-\begin{frame}{}
+\begin{frame}{Property-Based Testing}
   \begin{itemize}
-    \item Express specifications directly in code.
-    \item QuickCheck library generates random test cases.
-    \item Developer can express expected coverage.
-    \item Part of the discovery and hypothesis process.
+    \item Express specifications directly in code
+    \item \textit{QuickCheck} library generates random test cases
+    \item Developer can express expected coverage
+    \item Integrate into discovery and hypotheses process
   \end{itemize}
 \end{frame}
 
@@ -149,37 +150,66 @@ reverse_reverse_cover xs  = checkCoverage
 \end{frame}
 
 \section{Property-Based Testing in ABS}
-\begin{frame}
+\begin{frame}{Property-Based Testing in ABS}
 \begin{block}{Randomised Property-Based Testing}
-Matches the constructive and exploratory nature of ABS.
+Matches the constructive and exploratory nature of ABS
 \end{block}
 
   \begin{itemize}
-    \item Exploratory models: hypothesis tests about dynamics.
-    \item Explanatory models: validate against formal specification.
-    \item Test agent specification.
-    \item Test simulation invariants.
+    \item Exploratory models: hypothesis tests about dynamics
+    \item Explanatory models: validate against formal specification
+    \item Test simulation and model invariants
+    \item Test agent specification
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Property-Based Testing in ABS}
 \begin{block}{Randomised Property-Based Testing}
-Matches the constructive and exploratory nature of ABS.
+Matches the constructive and exploratory nature of ABS
 \end{block}
 
   \begin{itemize}
-    \item Exploratory models: hypothesis tests about dynamics.
-    \item Explanatory models: validate against formal specification.
-    \item \textbf{Test agent specification.}
-    \item \textbf{Test simulation invariants.}
+    \item Exploratory models: hypothesis tests about dynamics
+    \item Explanatory models: validate against formal specification
+    \item Test simulation and model invariants
+    \item \textbf{Test agent specification}
   \end{itemize}
 \end{frame}
-  
-\begin{frame}{Agent-Based SIR Model}
+
+\begin{frame}{Test agent specification}
+\begin{block}{Code / Implementation Testing}
+Follow formal model specification or informal description
+\end{block}
+
+\begin{block}{}
+  \begin{itemize}
+  	\item Express invariants of output given random inputs
+  	\item Probabilities of transitions and timeouts use \texttt{coverage}
+    \item Event-driven ABS: relate input events to output events 
+    \item Time-driven ABS: specify output stream
+  \end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Test agent specification}
+\begin{block}{Code / Implementation Testing}
+Follow formal model specification or informal description
+\end{block}
+
+\begin{block}{}
+  \begin{itemize}
+  	\item Express invariants of output given random inputs
+  	\item Probabilities of transitions and timeouts use \texttt{coverage}
+    \item Event-driven ABS: relate input events to output events 
+    \item \textbf{Time-driven ABS: specify output stream}
+  \end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Example: Agent-Based SIR Model}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{./fig/SIR_transitions.png}
 \end{center}
-  
   \begin{itemize}
     \item Population size $N = 1,000$
  	\item Contact rate $\beta = 5$
@@ -189,112 +219,110 @@ Matches the constructive and exploratory nature of ABS.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Agent-Based SIR Dynamics}
+\begin{frame}{Dynamics of Agent-Based SIR Model}
 \begin{center}
-  \includegraphics[width=0.7\textwidth]{./fig/SIR_Yampa_dt001.png}
+\includegraphics[width=0.7\textwidth]{./fig/SIR_Yampa_dt001.png}
 \end{center}
 \end{frame}
 
-\begin{frame}{Test agent specification}
-\begin{block}{Code / Implementation Testing}
-Follow (formal) model specification / description.
-\end{block}
-
-\begin{block}{Examples}
-  \begin{itemize}
-    \item event-based: relate input to output events and perform random sampling
-    \item time-based: encode invariants of output stream given random inputs
-    \item use coverage to encode probabilities of e.g. transitions, timeouts,...
-  \end{itemize}
-\end{block}
-\end{frame}
-
-% TODO: go into detail of event-based and time-based
-
-\begin{frame}{Agent-Based SIR Dynamics}
-  \includegraphics[width=0.7\textwidth]{./fig/SIR_Yampa_dt001.png}
-\end{frame}
-
-\begin{frame}{Test simulation invariants}
-\begin{block}{Any Models}
-Invariants have been established, fix them as test, used for regression testing.
-\end{block}
-\begin{block}{Example: agent-based SIR}
-\begin{itemize}
-	\item Time is monotonic decreasing
-	\item Number of susceptible agents $S$ is monotonic decreasing.
-	\item Number of recovered agents $R$ is monotonic increasing.
-	\item Number of agents $N$ stays constant: N = S + I + R.
-	\item Number of infected agents follows: I = N - (S + R).
-\end{itemize}
-\end{block}
-
+\begin{frame}[fragile]{Susceptible Agent Specification}
 \begin{block}{}
-Property has to hold under random model parameters for all test cases, therefore no statistical testing.
-\end{block}
-\end{frame}
-
-\begin{frame}[fragile]{Example: SIR invariants}
 \begin{minted}[fontsize=\footnotesize]{haskell}
-prop_sir_invariants :: Positive Int    -- ^ contact rate
-                    -> Probability     -- ^ infectivity (0,1)
-                    -> Positive Double -- ^ illness duration
-                    -> TimeRange       -- ^ duration
-                    -> [SIRState]      -- ^ population
-                    -> Property
-prop_sir_invariants 
-    (Positive beta) (P gamma) (Positive delta) (T t) as  
-  = property (do
-    -- total agent count
-    let n = length as
-    -- run the SIR simulation with a new RNG 
-    ret <- genSimulationSIR as beta gamma delta t
-    -- check invariants and return result
-    return (sirInvariants n ret)
+susceptibleAgent :: SF [SIRState] SIRState
+
+data SIRState = Susceptible | Infected | Recovered
+\end{minted}
+\end{block}
+
+\begin{center}
+\includegraphics[width=0.9\textwidth]{./fig/property_susceptible_output.png}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Susceptible invariants}
+\begin{minted}[fontsize=\tiny]{haskell}
+susceptibleInv :: [SIRState] -- ^ output stream of the susceptible agent 
+               -> Bool       -- ^ population contains an infected agent
+               -> Bool       -- ^ True in case the invariant holds
+susceptibleInv aos infInPop
+    -- Susceptible became Infected and then Recovered
+    | isJust recIdxMay 
+      = infIdx < recIdx &&  -- agent has to become infected before recovering
+        all (==Susceptible) (take infIdx aos) && 
+        all (==Infected)    (take (recIdx - infIdx) (drop infIdx aos)) && 
+        all (==Recovered)   (drop recIdx aos) &&
+        infInPop  -- can only happen if there are infected in the population
+
+    -- Susceptible became Infected
+    | isJust infIdxMay 
+      = all (==Susceptible) (take infIdx aos) &&
+        all (==Infected)    (drop infIdx aos) &&
+        infInPop -- can only happen if there are infected in the population
+
+    -- Susceptible stayed Susceptible
+    | otherwise = all (==Susceptible) aos
+  where
+    infIdxMay = elemIndex Infected aos
+    recIdxMay = elemIndex Recovered aos
+    infIdx    = fromJust infIdxMay
+    recIdx    = fromJust recIdxMay
 \end{minted}
 \end{frame}
 
-\begin{frame}[fragile]{Example: SIR invariants}
+\begin{frame}[fragile]{Susceptible property test}
 \begin{minted}[fontsize=\tiny]{haskell}
-sirInvariants :: Int                    -- ^ N total number of agents
-              -> [(Time,(Int,Int,Int))] -- ^ output each step: (Time, (S,I,R))
-              -> Bool
-sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
+prop_susceptible :: Positive Double -- ^ contact rate
+                 -> Probability     -- ^ infectivity within (0,1)
+                 -> Positive Double -- ^ illness duration
+                 -> TimeRange       -- ^ simulation duration
+                 -> [SIRState]      -- ^ population
+                 -> Property
+prop_susceptible
+      (Positive beta) (P gamma) (Positive delta) (T t) as = property (do  
+    -- check if population contains an infected agent
+    let infInPop = Infected `elem` as
+    aos <- genSusceptible beta gamma delta as t
+    return 
+        -- label all test cases
+        label (labelTestCase aos) 
+        -- check invariants on output stream
+        (property (susceptibleInv aos infInPop))
   where
-    (ts, sirs)  = unzip aos
-    (ss, _, rs) = unzip3 sirs
-
-    -- 1. time is monotonic increasing
-    timeInc = allPairs (<=) ts
-    -- 2. number of agents N stays constant in each step
-    aConst = all agentCountInv sirs
-    -- 3. number of susceptible S is monotonic decreasing
-    susDec = allPairs (>=) ss
-    -- 4. number of recovered R is monotonic increasing
-    recInc = allPairs (<=) rs
-    -- 5. number of infected I = N - (S + R)
-    infInv = all infectedInv sirs
-
-    agentCountInv :: (Int,Int,Int) -> Bool
-    agentCountInv (s,i,r) = s + i + r == n
-
-    infectedInv :: (Int,Int,Int) -> Bool
-    infectedInv (s,i,r) = i == n - (s + r)
-
-    allPairs :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
-    allPairs f xs = all (uncurry f) (pairs xs)
-
-    pairs :: [a] -> [(a,a)]
-    pairs xs = zip xs (tail xs)
+    labelTestCase :: [SIRState] -> String
+    labelTestCase aos
+      | Recovered `elem` aos  = "Susceptible -> Infected -> Recovered"
+      | Infected  `elem` aos  = "Susceptible -> Infected"
+      | otherwise             = "Susceptible"
 \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Checking the property}
+\begin{block}{Running 10,000 test cases}
+\begin{footnotesize}
+\begin{verbatim}
+> let args = stdArgs { maxSuccess = 10000 }
+> quickCheckWith args prop_susceptible
+
+> +++ OK, passed 10000 tests:
+   55.78% Susceptible -> Infected -> Recovered
+   37.19% Susceptible -> Infected
+    7.03% Susceptible
+\end{verbatim}
+\end{footnotesize}
+\end{block}
 \end{frame}
 
 \section{Conclusions}
 \begin{frame}{Conclusion}
 	\begin{itemize}
-		\item drawback: time consuming, sufficient coverage?
-		\item deterministic: SmallCheck, enumerate test cases up to some given depth
+		\item Property-Based Testing + ABS match naturally.
+		\item Sufficient coverage is main difficulty.
+		\item \textit{SmallCheck} enumerates test cases deterministically.
 	\end{itemize}
+	
+\begin{block}{}
+Hopefully code testing will become more common in ABS.
+\end{block}
 \end{frame}
 
 \begin{frame}{}

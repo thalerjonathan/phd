@@ -12,7 +12,7 @@ In this model, people in a population of size $N$ can be in either one of the th
 	\label{fig:sir_transitions}
 \end{figure}
 
-This model was also formalized using System Dynamics (SD) \cite{porter_industrial_1962}. In SD a system is modelled through differential equations, which allow expressing continuous systems, changing over time. They are solved by numerically integrating over time, which gives rise to the respective dynamics. The SIR model is modelled using the following equation, with the dynamics shown in Figure \ref{fig:sir_sd_dynamics} .
+This model was also formalized using System Dynamics \cite{porter_industrial_1962}. In System Dynamics a system is modelled through differential equations, which allow expressing continuous systems, changing over time. They are solved by numerically integrating over time, which gives rise to the respective dynamics. The SIR model is modelled using the following equation, with the dynamics shown in Figure \ref{fig:sir_sd_dynamics} .
 
 \begin{equation}
 \begin{aligned}
@@ -36,6 +36,6 @@ recoveryRate = \frac{I}{\delta}
 	\label{fig:sir_sd_dynamics}
 \end{figure}
 
-The approach of mapping the SIR model to an ABS is to discretise the population and model each person in the population as an individual agent. The transitions between the states are happening due to discrete events caused both by interactions amongst the agents and timeouts. The major advantage of ABS over SD is that it allows to incorporate spatiality and simulate heterogeneity of population, for example with different sex and age. This is not directly possible with other simulation methods of SD or DES \cite{zeigler_theory_2000}.
+The approach of mapping the SIR model to an ABS is to discretise the population and model each person in the population as an individual agent. The transitions between the states are happening due to discrete events caused both by interactions amongst the agents and timeouts. The major advantage of ABS over System Dynamics is that it allows to incorporate spatiality and simulate heterogeneity of population, for example with different sex and age. This is not directly possible with other simulation methods of System Dynamics or Discrete Event Simulation \cite{zeigler_theory_2000}.
 
 In the ABS classification of \cite{macal_everything_2016}, this model can be seen as an \textit{Interactive ABMS}: agents are individual heterogeneous agents with diverse set characteristics; they have autonomic, dynamic, endogenously defined behaviour; interactions happen between other agents and the environment through observed states, behaviours of other agents and the state of the environment.

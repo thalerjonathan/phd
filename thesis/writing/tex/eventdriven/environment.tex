@@ -9,7 +9,7 @@ type Discrete2dCell c = (Discrete2dCoord, c)
 type Discrete2d c     = Map.IntMap (Discrete2dCell c)
 \end{HaskellCode}
 
-Having introduced the \texttt{AgentMSF} and fixed the \texttt{AgentMonad} with the \texttt{StateT ABSState} as innermost Monad, adding a globally shared, mutable environment is straightforward. The solution is to simply add another \texttt{StateT} Transformer with the given environment as type. Below, we give the parametrised definition as in the Sugarscape implementation. Sugarscape closes the Monad stack with the \texttt{Rand} Monad as stochastics play an important role in the Sugarscape model as well. Therefore, a full expansion of the Monad stack used in Sugarscape is \texttt{StateT ABState (StateT SugEnvironment (Rand g))}.
+Having introduced the \texttt{AgentMSF} and fixed the \texttt{AgentMonad} with the \texttt{StateT ABSState} as outermost Monad, adding a globally shared, mutable environment is straightforward. The solution is to simply add another \texttt{StateT} Transformer with the given environment as type. Below, we give the parametrised definition as in the Sugarscape implementation. Sugarscape closes the Monad stack with the \texttt{Rand} Monad as stochastics play an important role in the Sugarscape model as well. Therefore, a full expansion of the Monad stack used in Sugarscape is \texttt{StateT ABState (StateT SugEnvironment (Rand g))}.
 
 \begin{HaskellCode}
 data SugEnvSite = SugEnvSite 

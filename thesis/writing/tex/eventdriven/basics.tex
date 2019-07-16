@@ -65,7 +65,7 @@ type ABSMonad m e   = ReaderT Time (WriterT [QueueItem e] (ReaderT [AgentId] m))
 type AgentMSF m e o = MSF (ABSMonad m e) e o
 \end{HaskellCode}
 
-BearRivers \texttt{SF} has also a \texttt{ReaderT Double} as the innermost Monad but we deliberately avoided its use because the intended semantics of an \texttt{SF} are different. The value in the \texttt{ReaderT} of the \texttt{SF} represents the sampling time delta and not the absolute time, as in the event-driven case.
+BearRivers \texttt{SF} has also a \texttt{ReaderT Double} as the outermost Monad but we deliberately avoided its use because the intended semantics of an \texttt{SF} are different. The value in the \texttt{ReaderT} of the \texttt{SF} represents the sampling time delta and not the absolute time, as in the event-driven case.
 
 We can already implement a few polymorphic functions, operating on the given Monad stack. First, we implement a function \texttt{allAgentIds} which simply returns the \texttt{AgentId} of all agents, the contents of the \texttt{ReaderT [AgentId]}. Second, we implement a function \texttt{scheduleEvent} which allows to schedule a given event to a given receiver into the future given a specific time delay, relative to the current simulation time.
  

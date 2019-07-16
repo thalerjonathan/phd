@@ -28,7 +28,7 @@ Further, the simulation must provide a \textit{global} mechanism to create new, 
 data ABSState = ABSState { absNextId :: AgentId }
 \end{HaskellCode}
 
-To make it \textit{globally} available to all agents a \texttt{StateT ABSState} Monad transformer is used, which is also the innermost Monad of the Monad stack of Sugarscape \footnote{In the Sugarscape implementation, \texttt{ABSState} also holds the current simulation time, which is omitted here for clarity reasons.}.
+To make it \textit{globally} available to all agents a \texttt{StateT ABSState} Monad transformer is used, which is also the outermost Monad of the Monad stack of Sugarscape \footnote{In the Sugarscape implementation, \texttt{ABSState} also holds the current simulation time, which is omitted here for clarity reasons.}.
 
 \begin{HaskellCode}
 type AgentMonad m = StateT ABSState m

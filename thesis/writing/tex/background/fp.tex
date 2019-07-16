@@ -87,11 +87,12 @@ Although it might seem very restrictive at first, we get a number of benefits fr
 It is important to understand that the code fragments of effectful computations are in fact  made up of enclosing lambda expressions, with the \textit{do} notation being a syntactic sugared version. Thus functions which have an effect in their type can be seen as \textit{pure} functions, which are referentially transparent and return such a fragment. This fragment, also often called \textit{action}, results in an effect and a result when executed. We have to distinguish between the execution of pure effects like \texttt{Rand}, \texttt{Read}, \texttt{Write}, \texttt{State} and the impure effect of \texttt{IO}. Pure effects are executed using special runner functions. They take an action together with initial values defining the history or context of the effect, for example an initial value for the \texttt{State} or the read-only value of the \texttt{Reader}, and run the action returning their result value. Thus, these pure effects can be executed in a referential transparent and completely controlled way. The impure \texttt{IO} effect works different though. There exists no dedicated \texttt{IO} execution function but it can only be executed from within the root \texttt{IO} action, which emanates from the \texttt{main :: IO ()} function of each Haskell program. Thus \texttt{IO} actions can only be run within an enclosing \texttt{IO} action, with the main \texttt{IO} action ultimately being executed by the Haskell runtime which is linked against the executable. The reason for that is that if we would have a way of executing IO actions within pure code we would lose all guarantees about referential transparency. There exists indeed the function \texttt{unsafePerformIO :: IO a $\rightarrow$ a}, which allows to execute an \texttt{IO} action within a pure function but its use is very limited and highly discouraged. Throughout this thesis and in all our code we have avoided the use of this function under all costs and it is not used anywhere, as avoiding \texttt{IO} is the very meaning of \textit{purity} and \textit{pure} functional programming.
 
 \subsubsection{Stacking effects using Monad Transformers}
+\label{sec:back_transformers}
 Often it is necessary to have multiple effects available, for example we want to manipulate a global state, write to some logging mechanism and need to be able to draw random numbers. The way this is achieved in Haskell is by using Monad Transformers \cite{jones_functional_1995}, for which Haskell provides the two libraries \textit{mtl} and \textit{transformers}, which achieve the same things with slightly different philosophies. In our approach we primarily use \textit{mtl} as it allows to overload functions with monadic type classes as explained below.
 
-\medskip
+Although Monads share a common interface and properties, it is not possible to compose Monads in a general way as each Monad has different internals and semantics and thus it always depends on the Monad how to compose it into another arbitrary Monad \footnote{The technical details are quite involved and we don't go into them here but refer to the respective literature and tutorials on Monad Transformers.}. Thus, the \textit{mtl} library provides so called Transformer implementations of each of the standard Monads.
 
-Although Monads share a common interface and properties, it is not possible to compose Monads in a general way as each Monad has different internals and semantics and thus it always depends on the Monad how to compose it into another arbitrary Monad \footnote{The technical details are quite involved and we don't go into them here but refer to the respective literature and tutorials on Monad Transformers.}. Thus, the \textit{mtl} library provides so called Transformer implementations of each of the standard Monads. A Transformer has an additional type parameter in its type constructor which has to be a Monad or another Transformer. This allows to stack multiple Monads or Transformers on top of each other. The stack is closed by using a non-Transformer Monad. In \textit{mtl} all non-Transformer Monads are actually Transformers with the \texttt{Identity} Monad as type parameter, for example \texttt{State Int} is \texttt{StateT Int Identity}. Access to the various layers of the stack is achieved with the \texttt{lift :: Monad m $\Rightarrow$ m a $\rightarrow$ t m a} function. Lets look at how we can define the type of a function which has multiple effects available:
+A Transformer has an additional type parameter in its type constructor which has to be a Monad or another Transformer. This allows to stack multiple Monads or Transformers on top of each other. The stack is closed by using a non-Transformer Monad. In \textit{mtl} all non-Transformer Monads are actually Transformers with the \texttt{Identity} Monad as type parameter, for example \texttt{State Int} is \texttt{StateT Int Identity}. Access to the various layers of the stack is achieved with the \texttt{lift :: Monad m $\Rightarrow$ m a $\rightarrow$ t m a} function. Lets look at how we can define the type of a function which has multiple effects available:
 
 \begin{HaskellCode}
 data SimState = SimState { simStateAgents :: [SimAgent] ... }
@@ -107,7 +108,7 @@ simulationCore t = do
   -- here we need 1 lift 
   lift (tell ["Next step " ++ show t])
   -- shuffle agents by running the MonadRandom action using the
-  -- Rand Monad, need 2 lifts as it is the outermost monad
+  -- Rand Monad, need 2 lifts as it is the innermost monad
   asShuf <- lift $ lift $ randomShuffle as
   -- construct return value
   return (SimOut { ... })
@@ -115,7 +116,11 @@ simulationCore t = do
 randomShuffle :: MonadRandom m => [a] -> m [a]
 \end{HaskellCode}
 
-The Monad stack consists of three effects: the \texttt{StateT} with \texttt{SimState} as its internal state as the innermost Monad. Although in the types it is the outermost, in terms of the Transformer stack it is the innermost, requiring no \texttt{lift} to access. \texttt{WriterT} with \texttt{[String]} as the logging facility is a parameter to the \texttt{StateT} Transformer, making it the second effect in the stack, thus requiring one \texttt{lift}. The stack is closed using the \texttt{Rand} Monad, which is the outermost effect, requiring two \texttt{lifts} to access it.
+The Monad stack consists of three effects. The first, \textit{outermost} effect is \texttt{StateT} with \texttt{SimState} as internal state. As it is the outermost effect, no \texttt{lift} is required to access it. \texttt{WriterT} with \texttt{[String]} as the logging facility is a parameter to the \texttt{StateT} Transformer, making it the second effect in the stack, thus requiring one \texttt{lift}. The stack is closed using the \texttt{Rand} Monad, which is the \textit{innermost} effect, requiring two \texttt{lifts} to access it. Thus, in a Transformer stack one needs to \textit{lift into} the stack, which means that although it is constructed inside to outside (\texttt{Rand} $\rightarrow$ \texttt{WriterT} $\rightarrow$ \texttt{StateT}) it is lifted from outside to inside (\texttt{StateT} $\rightarrow$ \texttt{WriterT} $\rightarrow$ \texttt{Rand}).
+
+Executing a Monad Transformer stack works by using various monadic runner functions, which execute a Transformer layer with a given context as is shown in the example of section \ref{sec:back_msf} below. As with lifting, a Monad Transformer stack is evaluated from outside to inside (\texttt{StateT} $\rightarrow$ \texttt{WriterT} $\rightarrow$ \texttt{Rand}).
+
+A note on the commutativity of Monad Transformers: because we are stacking effects on top of each other, subsequent effects can change the final outcome, depending on their position within the stack - this is called commutativity of Monads. All the Monads in the example above commute, which means it does not matter where they are positioned in the stack, the outcome will be the same. An exception to this is the \texttt{MaybeT} transformer, which introduces failure as an effect within a stack, thus when failure occurs, subsequent effects will not be applied any more, making \texttt{MaybeT} non-commutative.
 
 The function \texttt{randomShuffle} is overloaded, having the \texttt{MonadRandom} type class in its type constraints. This indicates that it is a monadic action where \texttt{m} is of type \texttt{MonadRandom}, which supports the same functionality as \texttt{Rand}. This is the major benefit mtl provides, often resulting in much cleaner function types, not requiring to fix the order of the Monads in the stacks. Another benefit is that we do not need lifts any more; the drawback is that we cannot have multiple Monads of the same type which would be still possible in a fully qualified Monad stack. The benefits becomes particularly clear when more than one effect is required, for example we could have written the type of \texttt{simulationCore} as:
 
@@ -123,8 +128,6 @@ The function \texttt{randomShuffle} is overloaded, having the \texttt{MonadRando
 simulationCore :: (MonadState SimState m, MonadWriter [String] m, MonadRandom m) 
                => Time -> m SimOut
 \end{HaskellCode}
-
-A note on commutativity on Monad Transformers: because we are stacking effects on top of each other, subsequent effects can change the final outcome, depending on their position within the stack - this is called commutativity of Monads. All the Monads in the example above commute, which means it does not matter where they are positioned in the stack, the outcome will be the same. An exception to this is the \texttt{MaybeT} transformer, which introduces failure as an effect within a stack, thus when failure occurs, subsequent effects will not be applied any more, making \texttt{MaybeT} non-commutative. 
 
 \subsection{Functional Reactive Programming}
 \label{sec:back_frp}
@@ -183,7 +186,7 @@ An MSF is also an Arrow, which means we can apply arrowized programming with Pat
 
 To show how arrowized programming with MSFs works, we extend the falling mass example from above to incorporate effects. In this (artificial) example we assume that in each step we want to accelerate our velocity \texttt{v} not by the gravity constant any more but by a random number in the range of 0 to 9.81. Further we want to count the number of steps it takes us to hit the floor, that is when position \texttt{p} is less than 0. Also when hitting the floor we want to print a debug message to the console with the velocity by which the mass has hit the floor and how many steps it took.
 
-We define a corresponding Monad stack with \texttt{IO} as the outermost Monad, followed by a \texttt{RandT} Transformer for drawing random numbers and finally a \texttt{StateT} Transformer as innermost Monad, to count the number of steps we compute. We can access the monadic functions using \texttt{arrM} in case we need to pass an argument and \texttt{\_arrM} in case no argument to the monadic function is needed:
+We define a corresponding Monad stack with \texttt{IO} as the innermost Monad, followed by a \texttt{RandT} Transformer for drawing random numbers and finally a \texttt{StateT} Transformer as outermost Monad, to count the number of steps we compute. We can access the monadic functions using \texttt{arrM} in case we need to pass an argument and \texttt{\_arrM} in case no argument to the monadic function is needed:
 
 \begin{HaskellCode}
 type FallingMassStack g = StateT Int (RandT g IO)
@@ -216,10 +219,12 @@ runMSF :: RandomGen g => g -> FallingMassMSF g -> IO ()
 runMSF g s msf = do
   let msfReaderT = unMSF msf ()
       msfStateT  = runReaderT msfReaderT 0.1 -- sampling with time delta of 0.1
-      msfRand    = runStateT msfStateT s
-      msfIO      = runRandT msfRand g
+      msfRandT   = runStateT msfStateT s
+      msfIO      = runRandT msfRandT g
   (((p, msf'), s'), g') <- msfIO
   when (p > 0) (runMSF g' s' msf')
 \end{HaskellCode}
 
 Dunai does not know about time in MSF, which is exactly what BearRiver builds on top. It does so by adding a \texttt{ReaderT Double}, which carries the $\Delta t$. This is the reason why we need one extra lift for accessing \texttt{StateT} and \texttt{RandT}. Thus \texttt{unMSF} returns a computation in the \texttt{ReaderT Double} Monad, which we need to peel away using \texttt{runReaderT}. This then results in a \texttt{StateT Int} computation, which we evaluate by using \texttt{runStateT} and the current number of steps as state. This then results in another monadic computation of \texttt{RandT} Monad, which we evaluate using \texttt{runRandT}. This finally returns an \texttt{IO} computation, which we simply evaluate to arrive at the final result.
+
+As explained in the previous section \ref{sec:back_transformers}, this example shows how a Monad Transformer stack is lifted and evaluated evaluated from outside to inside (\texttt{ReaderT} $\rightarrow$ \texttt{StateT} $\rightarrow$ \texttt{RandT} $\rightarrow$ \texttt{IO}) but constructed inside to outside (\texttt{IO} $\rightarrow$ \texttt{RandT} $\rightarrow$ \texttt{StateT} $\rightarrow$ \texttt{ReaderT}).

@@ -93,7 +93,7 @@ handleEvent MakeContact = do
     -- got infected, signal event to switch
     then return (Just ())
     else do
-      -- not infected, re-schedule MakeContact
+      -- not infected, reschedule MakeContact
       scheduleMakeContact
       return Nothing
 \end{HaskellCode}

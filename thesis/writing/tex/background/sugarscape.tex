@@ -21,7 +21,7 @@ The full specification of the Sugarscape model itself fills a small book \cite{e
 		
 		\item Apply pollution of the environment through the agent. Depending on how much the agent has harvested during its movement and consumed in its metabolism process, it will leave a small fraction of pollution in the environment.
 		
-		\item Check if the agent has died from age or starved to death, in case it removes itself from the simulation and does not execute the next steps (the previous steps are executed independently from the age of the agent). Note that depending on the model configuration this could also lead to the re-spawning of a new agent which replaces the died agent.
+		\item Check if the agent has died from age or starved to death, in case it removes itself from the simulation and does not execute the next steps (the previous steps are executed independently from the age of the agent). Depending on the model configuration this could also lead to the respawning of a new agent which replaces the died agent.
 		
 		\item Engage with other neighbours in mating, which involves multiple synchronous interaction steps happening in the same tick: exchange of information and both agents agreeing on the mating action. If both agents agree to mate, the initiating agent spawns a new agent, with characteristics inherited from both parents. See Figure \ref{fig:sugarscape_visualisation_trading_mating}.
 		

@@ -76,7 +76,7 @@ Now we can define the \texttt{MSF} which handles an event. It has the \texttt{Ag
 type EventHandler g = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
 \end{HaskellCode}
 
-To run the handler within the \texttt{SugarScapeAgent}, we make use of Dunai's functionality which provides functions to run MSFs with additional monadic layers within MSFs. We use \texttt{runStateS}, \texttt{runReaderS} and \texttt{runWriterS} (\texttt{S} indicates the stream character) to run the \texttt{generalEventHandler}, providing the initial values for the respective Monads, \texttt{s} for the \texttt{StateT}, \texttt{(params, aid)} for the \texttt{ReaderT} and the \texttt{evt} as the input to the event handler. Note that \texttt{WriterT} does not need an initial value, it will be provided through the Monoid instance of \texttt{AgentOut}.
+To run the handler within the \texttt{SugarScapeAgent}, we make use of Dunai's functionality which provides functions to run MSFs with additional monadic layers within MSFs. We use \texttt{runStateS}, \texttt{runReaderS} and \texttt{runWriterS} (\texttt{S} indicates the stream character) to run the \texttt{generalEventHandler}, providing the initial values for the respective Monads, \texttt{s} for the \texttt{StateT}, \texttt{(params, aid)} for the \texttt{ReaderT} and the \texttt{evt} as the input to the event handler. \texttt{WriterT} does not need an initial value, it will be provided through the Monoid instance of \texttt{AgentOut}.
 
 \begin{HaskellCode}
 sugarscapeAgent :: RandomGen g => SugarScapeAgent g

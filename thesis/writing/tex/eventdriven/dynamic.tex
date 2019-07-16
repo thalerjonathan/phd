@@ -10,9 +10,9 @@ data AgentOut m e o = AgentOut
   }
 \end{HaskellCode}
 
-Note that \texttt{AgentOut} contains already the list of scheduled events, which makes it clear that scheduling of events in this approach is implemented different than in the event-driven SIR, where the agents Monad stack had a \texttt{WriterT} to write events to. The reason for that is that we treat agent-local abstractions different here because of the need to encapsulate local agent state as explained in subsequent sections.
+\texttt{AgentOut} contains already the list of scheduled events, which makes it clear that scheduling of events in this approach is implemented different than in the event-driven SIR, where the agents Monad stack had a \texttt{WriterT} to write events to. The reason for that is that we treat agent-local abstractions different here because of the need to encapsulate local agent state as explained in subsequent sections.
 
-If the agent wants to remove itself from the simulation, it simply sets \texttt{aoKill} to \texttt{True}. If it wants to create new agents it adds an agent definition \texttt{AgentDef} to the \texttt{aoCreate} list. The agent definition \texttt{AgentDef} holds the new id of the agent \footnote{Note that an agent-controlled id makes it possible to re-use ids in case an agent dies and in case ids have no other purposes than identifying event receivers in a model.}, the \texttt{MSF} of the agent to create and the initial output of the new agent, so it has a representation in the visual or textual output for the current step without the need to run the new agent.
+If the agent wants to remove itself from the simulation, it simply sets \texttt{aoKill} to \texttt{True}. If it wants to create new agents it adds an agent definition \texttt{AgentDef} to the \texttt{aoCreate} list. The agent definition \texttt{AgentDef} holds the new id of the agent \footnote{An agent-controlled id makes it possible to reuse ids in case an agent dies and in case ids have no other purposes than identifying event receivers in a model.}, the \texttt{MSF} of the agent to create and the initial output of the new agent, so it has a representation in the visual or textual output for the current step without the need to run the new agent.
 
 \begin{HaskellCode}
 data AgentDef m e o = AgentDef

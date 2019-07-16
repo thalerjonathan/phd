@@ -3,7 +3,7 @@ In this section we present how QuickCheck can be used to test event-driven agent
 
 In general, testing event-driven agents is fundamentally different and more complex than testing time-driven agents, as their interface surface is generally much larger. Events form the input to the agents to which they react with new events where the dependencies between those can be quite complex and deep. Using property-based testing we can encode the invariants and end up with an actual specification of their behaviour, acting as documentation, regression test within a TDD and property tests.
 
-Note that the concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details. % - after all we are interested in deriving concepts, not dealing with specific technicalities.
+The concepts presented here are applicable with slight adjustments to the Sugarscape implementation as well but we focused on the SIR one as its specification is shorter and does not require as much in-depth details. % - after all we are interested in deriving concepts, not dealing with specific technicalities.
 
 With event-driven ABS, a good starting point in specifying and testing the system, is simply relating the input events to expected output events. In the SIR implementation we have only three events, making it feasible to give a full formal specification. The Sugarscape implementation has more than 16 events, which makes it much harder to test it with sufficient coverage, giving a good reason to primarily focus on the SIR implementation for explanatory purposes.
 

@@ -93,7 +93,7 @@ We have run the simulation with varying $\Delta t$ to show what difference varyi
   \label{tab:delta_influence}
 \end{table}
 
-As additional validation we added the results of a System Dynamics simulation in AnyLogic Personal Learning Edition 8.3.1, which is reported in the last row in the Table \ref{tab:delta_influence}. Also we provided a visualisation of the AnyLogic simulation dynamics in Figure \ref{fig:sir_sd_anylogic}. By comparing the results in Table \ref{tab:delta_influence} and the dynamics in Figure \ref{fig:sir_sd_anylogic} to \ref{fig:sir_sd_haskell_dynamics} we can conclude that we arrive at the same dynamics, validating the correctness of our simulation also against an existing, well-known and established System Dynamics software package.
+As additional validation we added the results of a System Dynamics simulation in AnyLogic Personal Learning Edition 8.3.1, which is reported in the last row in the Table \ref{tab:delta_influence}. Also we provided a visualisation of the AnyLogic simulation dynamics in Figure \ref{fig:sir_sd_anylogic}. By comparing the results in Table \ref{tab:delta_influence} and the dynamics in Figure \ref{fig:sir_sd_anylogic} to \ref{fig:sir_sd_haskell_dynamics} we can conclude that we arrive at the same dynamics, validating the correctness of our simulation also against an existing, well-known and established System Dynamics simulation software.
 
 \begin{figure}
 \begin{center}
@@ -125,13 +125,13 @@ We claim that our implementation is correct-by-construction because the code \te
 
 %In this paper we have shown how to implement System Dynamics in a way that the resulting implementation is correct-by-construction, where the gap between the formal model specifications and the actual implementation in code is closed. We used the pure functional programming language Haskell for it and built on the Functional Reactive Programming concept to express our continuous-time simulation. The provided abstractions of Haskell and Functional Reactive Programming allowed to close the gap between the specification and implementation and further guarantee the absence of non-deterministic influences already at compile-time, making our correct-by-construction claims even stronger.
 
-Further, we showed the influence of different $\Delta t$ and validated our implementation against the industry-strength System Dynamics simulation package AnyLogic Personal Learning Edition 8.3.1 where we could match our results with the one of AnyLogic, proving the correctness of our system also on the dynamics level.
+Further, we showed the influence of different $\Delta t$ and validated our implementation against the industry-strength System Dynamics simulation software AnyLogic Personal Learning Edition 8.3.1 where we could match our results with the one of AnyLogic, proving the correctness of our system also on the dynamics level.
 
 Obviously the numerical behaviour depends on the integral function which uses the rectangle rule. We showed that for the SIR model and small enough $\Delta t$, the rectangle rule works well enough. Still it might be of benefit if we provide more sophisticated numerical integration like Runge-Kutta methods. We leave this for further research.
 
-The key strength of System Dynamic simulation packages is their visual representation which allows non-programmers to 'draw' System Dynamics models and simulate them. We believe that one can auto-generate Haskell code using our approach to implement System Dynamics from such diagrams but leave this for further research.
+The key strength of existing System Dynamic simulation software is their visual representation which allows non-programmers to 'draw' System Dynamics models and simulate them. We believe that one can auto-generate Haskell code using our approach to implement System Dynamics from such diagrams but leave this for further research.
 
-Also we are very well aware that due to the vast amount of visual simulation packages available for System Dynamics, there is no need for implementing such simulations directly in code. Still we hope that our pure functional approach with Functional Reactive Programming might spark an interest in approaching the implementation of System Dynamics from a new perspective, which might lead to pure functional backends of visual simulation packages, giving them more confidence in their correctness.
+Also we are very well aware that due to the vast amount of visual simulation software available for System Dynamics, there is no need for implementing such simulations directly in code. Still we hope that our pure functional approach with Functional Reactive Programming might spark an interest in approaching the implementation of System Dynamics from a new perspective, which might lead to pure functional backends of visual simulation software, giving them more confidence in their correctness.
 
 \newpage
 

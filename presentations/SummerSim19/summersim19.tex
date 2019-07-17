@@ -5,6 +5,13 @@
 \setbeamerfont*{frametitle}{size=\normalsize,series=\bfseries}
 \setbeamertemplate{navigation symbols}{}
 
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+
 % Standard packages
 
 \usepackage[english]{babel}
@@ -27,9 +34,9 @@
 
 
 % Author, Title, etc.
-\title[Show me your properties! The potential of property-based testing in Agent-Based Simulation] 
+\title[Show me your properties! Towards property-based testing in Agent-Based Simulation] 
 {%
-  Show me your properties! \\ \tiny{The potential of property-based testing in Agent-Based Simulation}
+  Show me your properties! \\ \tiny{Towards property-based testing in Agent-Based Simulation}
 }
 
 \author[Thaler]
@@ -47,23 +54,27 @@
 
 % The main document
 
-\begin{document}
+% TODO: don't mention that it is NOT used in industry because it is used and also i cannot substantiate the claim, stick to the 1 paper explanation
+% TODO: don't say that testing agent specifications is not in the paper, say "we have advanced the work since submission, which is what i gonna focus on today"
+% TODO: contrast 10,000 test cases to unit testing (explain how we could do the specification in unit testing), because this is the main selling point
+% TODO: more detail on functional programming when explaining
 
+\begin{document}
 \begin{frame}
-  \titlepage
+\titlepage
 \end{frame}
 
 \section{Introduction}
 \begin{frame}{Code testing in ABS?}
 \begin{itemize}
 	\item Very neglected but important!
-	\item One paper \footnote{Collier, N., and Ozik, J. Test-driven agent-based simulation development. In 2013 Winter Simulations Conference (WSC) (Dec. 2013),pp. 1551 - 1559.} focusing on TDD with unit testing
-  	\item Unit testing not very suitable for ABS
+	\item 1 paper \footnote{Collier, N., and Ozik, J. Test-driven agent-based simulation development. In 2013 Winter Simulations Conference (WSC) (Dec. 2013),pp. 1551 - 1559.} focusing on TDD with unit testing
+  	\item Unit testing not very suitable for ABS in general
   	\item How deal with ABS stochastic nature?
 \end{itemize}
 
-\begin{block}{Solution}
-Stochastic ABS + random property-based testing = $\heartsuit \heartsuit \heartsuit$
+\begin{block}{Solution (Aim \& Objective)}
+Use of random property-based testing
 \end{block}
 \end{frame}
 
@@ -130,24 +141,24 @@ reverse_reverse_label xs
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{QuickCheck cont'd}
-\begin{block}{Coverage}
-\begin{minted}[fontsize=\footnotesize]{haskell}
-reverse_reverse_cover xs  = checkCoverage 
-  cover 15 (length xs >= 50) "length of list at least 50"
-  (reverse (reverse xs) == xs)
-\end{minted}
-\end{block}
-
-\begin{block}{Running the tests...}
-\begin{footnotesize}
-\begin{verbatim}
-+++ OK, passed 12800 tests 
-    (15.445% length of list at least 50).
-\end{verbatim}
-\end{footnotesize}
-\end{block}
-\end{frame}
+%\begin{frame}[fragile]{QuickCheck cont'd}
+%\begin{block}{Coverage}
+%\begin{minted}[fontsize=\footnotesize]{haskell}
+%reverse_reverse_cover xs  = checkCoverage 
+%  cover 15 (length xs >= 50) "length of list at least 50"
+%  (reverse (reverse xs) == xs)
+%\end{minted}
+%\end{block}
+%
+%\begin{block}{Running the tests...}
+%\begin{footnotesize}
+%\begin{verbatim}
+%+++ OK, passed 12800 tests 
+%    (15.445% length of list at least 50).
+%\end{verbatim}
+%\end{footnotesize}
+%\end{block}
+%\end{frame}
 
 \section{Property-Based Testing in ABS}
 \begin{frame}{Property-Based Testing in ABS}
@@ -303,7 +314,7 @@ prop_susceptible
 > let args = stdArgs { maxSuccess = 10000 }
 > quickCheckWith args prop_susceptible
 
-> +++ OK, passed 10000 tests:
+> +++ OK, passed 10000 tests (12.86s):
    55.78% Susceptible -> Infected -> Recovered
    37.19% Susceptible -> Infected
     7.03% Susceptible
@@ -316,12 +327,12 @@ prop_susceptible
 \begin{frame}{Conclusion}
 	\begin{itemize}
 		\item Property-Based Testing + ABS match naturally
-		\item Sufficient coverage is main difficulty
-		\item \textit{SmallCheck} enumerates test cases deterministically
+		\item Drawback: sufficient coverage
+		\item Solution: \textit{SmallCheck} enumerates test cases deterministically
 	\end{itemize}
 	
 \begin{block}{}
-Hopefully code testing will become more common in ABS.
+Hopefully code testing will become more common in ABS
 \end{block}
 \end{frame}
 

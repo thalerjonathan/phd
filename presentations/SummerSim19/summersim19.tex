@@ -34,9 +34,9 @@
 
 
 % Author, Title, etc.
-\title[Show me your properties! Towards property-based testing in Agent-Based Simulation] 
+\title[Show me your properties! Towards property-based testing in agent-based simulation] 
 {%
-  Show me your properties! \\ \tiny{Towards property-based testing in Agent-Based Simulation}
+  Show me your properties! \\ \tiny{Towards property-based testing in agent-based simulation}
 }
 
 \author[Thaler]
@@ -44,9 +44,9 @@
   Jonathan~Thaler
 }
 
-\institute[University of Nottingham, Nottingham, United Kingdom]
+\institute[University of Nottingham, United Kingdom]
 {
-  University of Nottingham, Nottingham, United Kingdom
+  University of Nottingham, United Kingdom
 }
 
 \date[SummerSim'19, July 22-24, Berlin, Germany]
@@ -67,13 +67,13 @@
 \section{Introduction}
 \begin{frame}{Code testing in ABS?}
 \begin{itemize}
-	\item Very neglected but important!
+	\item Very neglected, but important!
 	\item 1 paper \footnote{Collier, N., and Ozik, J. Test-driven agent-based simulation development. In 2013 Winter Simulations Conference (WSC) (Dec. 2013),pp. 1551 - 1559.} focusing on TDD with unit testing
   	\item Unit testing not very suitable for ABS in general
   	\item How deal with ABS stochastic nature?
 \end{itemize}
 
-\begin{block}{Solution (Aim \& Objective)}
+\begin{block}{A solution}
 Use of random property-based testing
 \end{block}
 \end{frame}
@@ -89,7 +89,7 @@ Use of random property-based testing
 \end{frame}
 
 \begin{frame}[fragile]{QuickCheck}
-\begin{block}{List Properties}
+\begin{block}{List properties}
 \begin{minted}[fontsize=\footnotesize]{haskell}
 -- the reverse of a reversed list is the original list
 reverse_reverse xs = reverse (reverse xs) == xs
@@ -162,7 +162,7 @@ reverse_reverse_label xs
 
 \section{Property-Based Testing in ABS}
 \begin{frame}{Property-Based Testing in ABS}
-\begin{block}{Randomised Property-Based Testing}
+\begin{block}{Randomised property-based testing}
 Matches the constructive and exploratory nature of ABS
 \end{block}
 
@@ -175,7 +175,7 @@ Matches the constructive and exploratory nature of ABS
 \end{frame}
 
 \begin{frame}{Property-Based Testing in ABS}
-\begin{block}{Randomised Property-Based Testing}
+\begin{block}{Randomised property-based testing}
 Matches the constructive and exploratory nature of ABS
 \end{block}
 
@@ -187,23 +187,23 @@ Matches the constructive and exploratory nature of ABS
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Test agent specification}
-\begin{block}{Code / Implementation Testing}
+\begin{frame}{Test Agent Specification}
+\begin{block}{Code testing}
 Follow formal model specification or informal description
 \end{block}
 
 \begin{block}{}
   \begin{itemize}
   	\item Express invariants of output given random inputs
-  	\item Probabilities of transitions and timeouts use \texttt{cover}
+  	\item Probabilities of transitions and timeouts in \textit{QuickCheck}
     \item Event-driven ABS: relate input events to output events 
     \item Time-driven ABS: specify output stream
   \end{itemize}
 \end{block}
 \end{frame}
 
-\begin{frame}{Test agent specification}
-\begin{block}{Code / Implementation Testing}
+\begin{frame}{Test Agent Specification}
+\begin{block}{Code testing}
 Follow formal model specification or informal description
 \end{block}
 
@@ -239,7 +239,7 @@ Follow formal model specification or informal description
 \begin{frame}[fragile]{Susceptible Agent Specification}
 \begin{block}{}
 \begin{minted}[fontsize=\footnotesize]{haskell}
-susceptibleAgent :: SF [SIRState] SIRState
+susceptibleAgent :: [SIRState] -> SIRState
 
 data SIRState = Susceptible | Infected | Recovered
 \end{minted}
@@ -250,27 +250,27 @@ data SIRState = Susceptible | Infected | Recovered
 \end{center}
 \end{frame}
 
-\begin{frame}[fragile]{Susceptible invariants}
+\begin{frame}[fragile]{Susceptible Invariants}
 \begin{minted}[fontsize=\tiny]{haskell}
-susceptibleInv :: [SIRState] -- ^ output stream of the susceptible agent 
-               -> Bool       -- ^ population contains an infected agent
-               -> Bool       -- ^ True in case the invariant holds
+susceptibleInv :: [SIRState] 
+               -> Bool
+               -> Bool
 susceptibleInv aos infInPop
-    -- Susceptible became Infected and then Recovered
+    -- Susceptible -> Infected -> Recovered
     | isJust recIdxMay 
-      = infIdx < recIdx &&  -- agent has to become infected before recovering
+      = infIdx < recIdx &&  
         all (==Susceptible) (take infIdx aos) && 
         all (==Infected)    (take (recIdx - infIdx) (drop infIdx aos)) && 
         all (==Recovered)   (drop recIdx aos) &&
-        infInPop  -- can only happen if there are infected in the population
+        infInPop 
 
-    -- Susceptible became Infected
+    -- Susceptible -> Infected
     | isJust infIdxMay 
       = all (==Susceptible) (take infIdx aos) &&
         all (==Infected)    (drop infIdx aos) &&
-        infInPop -- can only happen if there are infected in the population
+        infInPop
 
-    -- Susceptible stayed Susceptible
+    -- Susceptible 
     | otherwise = all (==Susceptible) aos
   where
     infIdxMay = elemIndex Infected aos
@@ -280,7 +280,7 @@ susceptibleInv aos infInPop
 \end{minted}
 \end{frame}
 
-\begin{frame}[fragile]{Susceptible property test}
+\begin{frame}[fragile]{Susceptible Property Test}
 \begin{minted}[fontsize=\tiny]{haskell}
 prop_susceptible :: Positive Double -- ^ contact rate
                  -> Probability     -- ^ infectivity within (0,1)
@@ -288,15 +288,11 @@ prop_susceptible :: Positive Double -- ^ contact rate
                  -> TimeRange       -- ^ simulation duration
                  -> [SIRState]      -- ^ population
                  -> Property
-prop_susceptible
-      (Positive beta) (P gamma) (Positive delta) (T t) as = property (do  
-    -- check if population contains an infected agent
+prop_susceptible (Positive beta) (P gamma) (Positive delta) (T t) as = property (do  
     let infInPop = Infected `elem` as
     aos <- genSusceptible beta gamma delta as t
     return 
-        -- label all test cases
         label (labelTestCase aos) 
-        -- check invariants on output stream
         (property (susceptibleInv aos infInPop))
   where
     labelTestCase :: [SIRState] -> String
@@ -307,7 +303,7 @@ prop_susceptible
 \end{minted}
 \end{frame}
 
-\begin{frame}[fragile]{Checking the property}
+\begin{frame}[fragile]{Checking the Property}
 \begin{block}{Running 10,000 test cases}
 \begin{footnotesize}
 \begin{verbatim}

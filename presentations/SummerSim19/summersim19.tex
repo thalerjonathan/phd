@@ -210,7 +210,7 @@ Follow formal model specification or informal description
 \begin{block}{}
   \begin{itemize}
   	\item Express invariants of output given random inputs
-  	\item Probabilities of transitions and timeouts use \texttt{cover}
+  	\item Probabilities of transitions and timeouts in \textit{QuickCheck}
     \item Event-driven ABS: relate input events to output events 
     \item \textbf{Time-driven ABS: specify output stream}
   \end{itemize}
@@ -239,7 +239,7 @@ Follow formal model specification or informal description
 \begin{frame}[fragile]{Susceptible Agent Specification}
 \begin{block}{}
 \begin{minted}[fontsize=\footnotesize]{haskell}
-susceptibleAgent :: [SIRState] -> SIRState
+susceptibleAgent :: SF [SIRState] SIRState
 
 data SIRState = Susceptible | Infected | Recovered
 \end{minted}
@@ -252,9 +252,7 @@ data SIRState = Susceptible | Infected | Recovered
 
 \begin{frame}[fragile]{Susceptible Invariants}
 \begin{minted}[fontsize=\tiny]{haskell}
-susceptibleInv :: [SIRState] 
-               -> Bool
-               -> Bool
+susceptibleInv :: [SIRState] -> Bool -> Bool
 susceptibleInv aos infInPop
     -- Susceptible -> Infected -> Recovered
     | isJust recIdxMay 

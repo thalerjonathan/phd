@@ -3,15 +3,20 @@
 
 \documentclass[]{interact}
 
+\usepackage{minted} % for HaskellCode
 \usepackage{epstopdf}% To incorporate .eps illustrations using PDFLaTeX, etc.
 \usepackage[caption=false]{subfig}% Support for small, `sub' figures and tables
 %\usepackage[nolists,tablesfirst]{endfloat}% To `separate' figures and tables from text if required
 %\usepackage[doublespacing]{setspace}% To produce a `double spaced' document if required
 %\setlength\parindent{24pt}% To increase paragraph indentation when line spacing is doubled
 
+% UNCOMMENT WHEN USING BIBITEM
 \usepackage[longnamesfirst,sort]{natbib}% Citation support using natbib.sty
 \bibpunct[, ]{(}{)}{;}{a}{,}{,}% Citation support using natbib.sty
 \renewcommand\bibfont{\fontsize{10}{12}\selectfont}% To set the list of references in 10 point font using natbib.sty
+
+% define HaskellCode command for nice formatting of Haskell Code
+\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 %\usepackage[natbibapa,nodoi]{apacite}% Citation support using apacite.sty. Commands using natbib.sty MUST be deactivated first!
 %\setlength\bibhang{12pt}% To set the indentation in the list of references using apacite.sty. Commands using natbib.sty MUST be deactivated first!
@@ -50,12 +55,12 @@
 % 2. Should contain an unstructured abstract of 200 words. 
 % 3. You can opt to include a video abstract with your article. Find out how these can help your work reach a wider audience, and what to think about when filming.
 \begin{abstract}
-This paper shows how to apply random property-based testing on a technical level to encode and test specifications of agent-based simulations. It is shown that as opposed to unit testing, random property-based testing is a natural match to test stochastic agent-based simulation and is able to encode full agent and model specifications including probabilities. The outcome are specifications expressed directly in code, which relate whole classes of random input to expected classes of output. During test execution, random test data is generated automatically, potentially covering the equivalent of thousands of unit tests. The expressiveness and power of property-based testing is not limited to be part of a test driven development process where they act as specifications, verification and regression tests but can be integrated as a fundamental part of the model development process, supporting the hypothesis and discovery process, where the process of specifying the model is actually already the implementation process. This should result in high confidence that the model at hand is very likely to be correct, something of fundamental importance in ABS.
+This paper explores how to use random property-based testing on a technical level to encode and test specifications of agent-based simulations (ABS). The claim is that opposed to unit testing, random property-based testing is a much more natural fit to test ABS due to both stochastic nature. The paper shows how to test full agent- and model-specifications, in the case of an agents behaviour, its transition probabilities and model invariants. The outcome are specifications expressed directly in code, which relate whole classes of random input to expected classes of output. During test execution, random test data is generated automatically, potentially covering the equivalent of thousands of unit tests, run within seconds. The expressiveness and power of property-based testing is not only limited to be part of a test-driven development process where it acts as specification, verification and regression test but can be integrated as a fundamental part of the model development process, supporting the hypothesis and discovery making process. By incorporating this powerful technique into the simulation development process the confidence in the correctness of an implementation increases dramatically, something of fundamental importance for ABS in general and for ABS supporting far-reaching policy decisions in particular.
 \end{abstract}
 
 % 4. Between 3 and 6 keywords. Read making your article more discoverable, including information on choosing a title and search engine optimization.
 \begin{keywords}
-Testing; Test Driven Development;
+Testing; Test Driven Development; Model Specification;
 \end{keywords}
 
 % 5 Funding details - not required for this paper
@@ -76,15 +81,16 @@ Testing; Test Driven Development;
 % WORD LIMITS
 % Please include a word count for your paper. A typical article for this journal should be no more than 6000 words; this limit does not include the abstract, endnotes, tables, figures, figure captions and legends, or references. 
 
-\section{Introduction}
- aim of the paper is to build on the rather conceptual paper by me at summersim19 and show property-based testing in ABS on a much more technical level by the case studies of:
-	- encoding agent-specifications of time- and event-driven ABS SIR into property-based tests
-	- random event sampling
-	- compare two different implementations
- 	- and encode model invariants 
- 	
-hypothesise that a strong reason for why testing in ABS is not very widely used and adopted is that unit testing is not able to deal very well with the stochastic nature of ABS in general. random property-based testing is a remedy to that problem as it allows to relate whole classes of inputs to specific classes of output for which then randomised test cases are automatically generated, covering potentially thousands of unit tests.
+\input{tex/introduction.tex}
 
-TODO: it would be great if i can show how property-based testing found a bug in an implementation
+\input{tex/proptesting.tex}
+
+\input{tex/conclusions.tex}
+
+% TODO bibliography, only copy the references really cited in this paper, otherwise ALL will be included. then fix it
+\input{references_bibitem}
+%\bibliographystyle{acm}
+\bibliographystyle{apacite}
+\bibliography{references}
 
 \end{document}

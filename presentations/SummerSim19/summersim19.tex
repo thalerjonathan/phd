@@ -251,7 +251,7 @@ data SIRState = Susceptible | Infected | Recovered
 \end{frame}
 
 \begin{frame}[fragile]{Susceptible Invariants}
-\begin{minted}[fontsize=\tiny]{haskell}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
 susceptibleInv :: [SIRState] -> Bool -> Bool
 susceptibleInv aos infInPop
     -- Susceptible -> Infected -> Recovered
@@ -279,7 +279,7 @@ susceptibleInv aos infInPop
 \end{frame}
 
 \begin{frame}[fragile]{Susceptible Property Test}
-\begin{minted}[fontsize=\tiny]{haskell}
+\begin{minted}[fontsize=\tiny, linenos]{haskell}
 prop_susceptible :: Positive Double -- ^ contact rate
                  -> Probability     -- ^ infectivity within (0,1)
                  -> Positive Double -- ^ illness duration

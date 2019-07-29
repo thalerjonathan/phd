@@ -1,24 +1,13 @@
 \begin{thebibliography}{10}
 
-\bibitem{asta_investigation_2014}
-{\sc Asta, S., Özcan, E., and Siebers, P.-O.}
-\newblock An investigation on test driven discrete event simulation.
-\newblock In {\em Operational {Research} {Society} {Simulation} {Workshop} 2014
-  ({SW}14)\/} (Apr. 2014).
-
 \bibitem{balci_verification_1998}
-{\sc Balci, O.}
+{\scshape Balci, O.}
 \newblock Verification, {Validation}, and {Testing}.
 \newblock In {\em Handbook of {Simulation}}, J.~Banks, Ed. John Wiley \& Sons,
   Inc., 1998, pp.~335--393.
 
-\bibitem{beck_test_2002}
-{\sc Beck, K.}
-\newblock {\em Test {Driven} {Development}: {By} {Example}}, 01 edition~ed.
-\newblock Addison-Wesley Professional, Boston, Nov. 2002.
-
 \bibitem{claessen_quickcheck_2000}
-{\sc Claessen, K., and Hughes, J.}
+{\scshape Claessen, K., and Hughes, J.}
 \newblock {QuickCheck} - {A} {Lightweight} {Tool} for {Random} {Testing} of
   {Haskell} {Programs}.
 \newblock In {\em Proceedings of the {Fifth} {ACM} {SIGPLAN} {International}
@@ -26,84 +15,53 @@
   {ICFP} '00, ACM, pp.~268--279.
 
 \bibitem{claessen_testing_2002}
-{\sc Claessen, K., and Hughes, J.}
+{\scshape Claessen, K., and Hughes, J.}
 \newblock Testing {Monadic} {Code} with {QuickCheck}.
 \newblock {\em SIGPLAN Not. 37}, 12 (Dec. 2002), 47--59.
 
 \bibitem{collier_test-driven_2013}
-{\sc Collier, N., and Ozik, J.}
+{\scshape Collier, N., and Ozik, J.}
 \newblock Test-driven agent-based simulation development.
 \newblock In {\em 2013 {Winter} {Simulations} {Conference} ({WSC})\/} (Dec.
   2013), pp.~1551--1559.
 
-\bibitem{epstein_chapter_2006}
-{\sc Epstein, J.~M.}
-\newblock Chapter 34 {Remarks} on the {Foundations} of {Agent}-{Based}
-  {Generative} {Social} {Science}.
-\newblock In {\em Handbook of {Computational} {Economics}}, L.~T. a. K.~L.
-  Judd, Ed., vol.~2. Elsevier, 2006, pp.~1585--1604.
-
-\bibitem{galan_errors_2009}
-{\sc Galán, J.~M., Izquierdo, L.~R., Izquierdo, S.~S., Santos, J.~I., del
-  Olmo, R., López-Paredes, A., and Edmonds, B.}
-\newblock Errors and {Artefacts} in {Agent}-{Based} {Modelling}.
-\newblock {\em Journal of Artificial Societies and Social Simulation 12}, 1
-  (2009), 1.
-
 \bibitem{hughes_quickcheck_2007}
-{\sc Hughes, J.}
+{\scshape Hughes, J.}
 \newblock {QuickCheck} {Testing} for {Fun} and {Profit}.
 \newblock In {\em Proceedings of the 9th {International} {Conference} on
   {Practical} {Aspects} of {Declarative} {Languages}\/} (Berlin, Heidelberg,
   2007), {PADL}'07, Springer-Verlag, pp.~1--32.
 
+\bibitem{macal_agent-based_2010}
+{\scshape Macal, C.~M.}
+\newblock To {Agent}-based {Simulation} from {System} {Dynamics}.
+\newblock In {\em Proceedings of the {Winter} {Simulation} {Conference}\/}
+  (Baltimore, Maryland, 2010), {WSC} '10, Winter Simulation Conference,
+  pp.~371--382.
+
 \bibitem{north_complex_2013}
-{\sc North, M.~J., Collier, N.~T., Ozik, J., Tatara, E.~R., Macal, C.~M.,
+{\scshape North, M.~J., Collier, N.~T., Ozik, J., Tatara, E.~R., Macal, C.~M.,
   Bragen, M., and Sydelko, P.}
 \newblock Complex adaptive systems modeling with {Repast} {Simphony}.
 \newblock {\em Complex Adaptive Systems Modeling 1}, 1 (Mar. 2013), 3.
 
-\bibitem{onggo_test-driven_2016}
-{\sc Onggo, B. S.~S., and Karatas, M.}
-\newblock Test-driven simulation modelling: {A} case study using agent-based
-  maritime search-operation simulation.
-\newblock {\em European Journal of Operational Research 254\/} (2016),
-  517--531.
-
-\bibitem{ormerod_validation_2006}
-{\sc Ormerod, P., and Rosewell, B.}
-\newblock Validation and {Verification} of {Agent}-{Based} {Models} in the
-  {Social} {Sciences}.
-\newblock In {\em Epistemological {Aspects} of {Computer} {Simulation} in the
-  {Social} {Sciences}}, Lecture {Notes} in {Computer} {Science}. Springer,
-  Berlin, Heidelberg, Oct. 2006, pp.~130--140.
-
-\bibitem{polhill_ghost_2005}
-{\sc Polhill, J.~G., Izquierdo, L.~R., and Gotts, N.~M.}
-\newblock The {Ghost} in the {Model} (and {Other} {Effects} of {Floating}
-  {Point} {Arithmetic}).
-\newblock {\em Journal of Artificial Societies and Social Simulation 8}, 1
-  (2005), 1.
-
 \bibitem{robinson_simulation:_2014}
-{\sc Robinson, S.}
+{\scshape Robinson, S.}
 \newblock {\em Simulation: {The} {Practice} of {Model} {Development} and
   {Use}}.
 \newblock Macmillan Education UK, Sept. 2014.
 \newblock Google-Books-ID: Dtn0oAEACAAJ.
 
 \bibitem{runciman_smallcheck_2008}
-{\sc Runciman, C., Naylor, M., and Lindblad, F.}
+{\scshape Runciman, C., Naylor, M., and Lindblad, F.}
 \newblock Smallcheck and {Lazy} {Smallcheck}: {Automatic} {Exhaustive}
   {Testing} for {Small} {Values}.
 \newblock In {\em Proceedings of the {First} {ACM} {SIGPLAN} {Symposium} on
   {Haskell}\/} (New York, NY, USA, 2008), Haskell '08, ACM, pp.~37--48.
 
-\bibitem{wald_sequential_1992}
-{\sc Wald, A.}
-\newblock Sequential {Tests} of {Statistical} {Hypotheses}.
-\newblock In {\em Breakthroughs in {Statistics}: {Foundations} and {Basic}
-  {Theory}}, S.~Kotz and N.~L. Johnson, Eds., Springer {Series} in
-  {Statistics}. Springer New York, New York, NY, 1992, pp.~256--298.
+\bibitem{thaler_show_2019}
+{\scshape Thaler, J., and Siebers, P.-O.}
+\newblock Show {Me} {Your} {Properties}! {The} {Potential} {Of}
+  {Property}-{Based} {Testing} {In} {Agent}-{Based} {Simulation}.
 
 \end{thebibliography}

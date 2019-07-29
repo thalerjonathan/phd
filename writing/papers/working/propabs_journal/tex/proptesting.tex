@@ -2,7 +2,7 @@
 \label{sec:proptesting}
 Property-based testing allows to formulate \textit{functional specifications} in code which then a property-based testing library tries to falsify by \textit{automatically} generating test data, covering as much cases as possible. When a case is found for which the property fails, the library then reduces the test data to its simplest form for which the test still fails, for example shrinking a list to a smaller size. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and exploratory nature of ABS. Further, the automatic test generation can make testing of large scenarios in ABS feasible because it does not require the programmer to specify all test cases by hand, as is required in traditional unit tests.
 
-Property-based testing was introduced in \cite{claessen_quickcheck_2000,claessen_testing_2002} where the authors present the QuickCheck library in Haskell, which tries to falsify the specifications by \textit{randomly} sampling the test space. According to the authors of QuickCheck \textit{"The major limitation is that there is no measurement of test coverage."} \cite{claessen_quickcheck_2000}. Although QuickCheck provides help to report the distribution of test cases it is not able to measure the coverage of tests in general. This could lead to the case that test cases which would fail are never tested because of the stochastic nature of QuickCheck. Fortunately, the library provides mechanisms for the developer to measure coverage in specific test cases where the data and its expected distribution is known to the developer. This is a powerful tool for testing randomness in ABS as will be shown in the next chapters.
+Property-based testing was introduced in \cite{claessen_quickcheck_2000,claessen_testing_2002} where the authors present the QuickCheck library in Haskell, which tries to falsify the specifications by \textit{randomly} sampling the test space. According to the authors of QuickCheck \textit{"The major limitation is that there is no measurement of test coverage."} \cite{claessen_quickcheck_2000}. Although QuickCheck provides help to report the distribution of test cases it is not able to measure the coverage of tests in general. This could lead to the case that test cases which would fail are never tested because of the stochastic nature of QuickCheck. Fortunately, the library provides mechanisms for the developer to measure coverage in specific test cases where the data and its expected distribution is known to the developer.
 
 \medskip
 
@@ -18,20 +18,13 @@ reverse_reverse :: [Int] -> Bool
 reverse_reverse xs = reverse (reverse xs) == xs
 
 -- reverse is distributive over append (++)
--- This test fails for explanatory reasons, for a correct 
--- property xs and ys need to be swapped on the right-hand side!
+-- This test fails for explanatory reasons,
+-- for a correct property xs and ys need to be swapped on the right-hand side!
 reverse_distributive :: [Int] -> [Int] -> Bool
 reverse_distributive xs ys = reverse (xs ++ ys) == reverse xs ++ reverse ys
-
--- running the tests
-main :: IO ()
-main = do
-  quickCheck append_associative
-  quickCheck reverse_reverse
-  quickCheck reverse_distributive
 \end{HaskellCode}
 
-When we run the tests using \textit{main}, we get the following output:
+When running the tests, we get the following output:
 
 \begin{verbatim}
 +++ OK, passed 100 tests.

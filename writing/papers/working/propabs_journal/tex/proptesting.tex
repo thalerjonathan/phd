@@ -18,8 +18,6 @@ reverse_reverse :: [Int] -> Bool
 reverse_reverse xs = reverse (reverse xs) == xs
 
 -- reverse is distributive over append (++)
--- This test fails for explanatory reasons,
--- for a correct property xs and ys need to be swapped on the right-hand side!
 reverse_distributive :: [Int] -> [Int] -> Bool
 reverse_distributive xs ys = reverse (xs ++ ys) == reverse xs ++ reverse ys
 \end{HaskellCode}

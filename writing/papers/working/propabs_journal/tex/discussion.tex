@@ -2,3 +2,8 @@
 \label{sec:discussion}
 
 TODO: statistical sequential hypothesis testing can also be applied to exploratory models like the sugarscape as shown in the conceptual paper, comparing two different implementations of the same model for example compare the distributions of a time- and event-driven implementation, encode model invariants 
+
+\subsection{Emulating failure}
+As already mentioned, \textit{all} test cases have to pass for the whole property test to succeed. If just a single test case fails, the whole property test fails. This requirement is sometimes too strong, especially when we are dealing with stochastic systems like ABS.
+
+The function \texttt{cover} can be used to emulate failure of test cases and get a measure of failure. Instead of computing the \texttt{True/False} property in the last \texttt{prop} argument, we set the last argument always to \texttt{True} and compute the \texttt{True/False} property in the second \texttt{Bool} argument, indicating whether the test case belongs to the class of passed tests or not. This has the effect that \textit{all} test cases are successful but that we get a distribution of failed and successful ones. In combination with \texttt{checkCoverage}, this is a particularly powerful pattern for testing ABS, which allows us to test hypotheses and statistical tests on distributions as will be shown in the following chapters.

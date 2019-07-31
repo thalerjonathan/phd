@@ -10,3 +10,6 @@ benefits:
 drawbacks:
 - coverage but smallcheck could be a remedy
 As a remedy for the potential coverage problems of QuickCheck, there exists also a deterministic property-testing library called SmallCheck \cite{runciman_smallcheck_2008} which instead of randomly sampling the test space, enumerates test cases exhaustively up to some depth
+
+\subsection{Further Research}
+The transitions we implemented were only one-step transitions, feeding only a single event. Although we covered the full functionality by also testing the infected and recovered agent separately (which was not shown in the paper due to space limitations), we could also implement property tests which test the full transition from susceptible to recovered, which then would required multiple events and slightly different approach calculating the probabilities.

@@ -4,42 +4,6 @@
 %TODO: introduce concepts along writing the main body. focus on event-driven sir.
 %TODO: it would be great if i can show how property-based testing found a bug in an implementation
 
-In this section we show how to encode the full agent specification given in section \ref{sec:sirmodel} in Haskell code and write property tests for it. We conducted our research in Haskell as it is the language where property-based testing has its origins. Obviously we are aware that Haskell is not a mainstream programming language, so to make this paper sufficiently self contained, we introduce concepts step-by-step, which should allow readers, familiar with programming in general, understand the ideas behind what we are doing. Fortunately it is not necessary to go into detail of how agents are implemented as for our approach it is enough to understand the agents' inputs and outputs. For readers interested in the details of how to implement agents in Haskell, we refer to the work of \cite{thaler_pure_2018}. We first start by defining the states of the agents in the SIR model:
-
-\begin{HaskellCode}
--- enum of the states the agents can be in
-data SIRState = Susceptible | Infected | Recovered
-\end{HaskellCode}
-
-Now we define the events as specified in section \ref{sec:sirmodel}:
-
-\begin{HaskellCode}
--- agents are identified by a unique integer
-type AgentId = Int
--- enum of the events introduce in specification
-data SIREvent 
-  = MakeContact
-  | Contact AgentId SIRState
-  | Recover 
-\end{HaskellCode}
-
-Next, we define a new type for the events to be scheduled, which we termed \texttt{QueueItem} as it is put into the event queue. It contains the event to be scheduled, the id of the receiving agent and the scheduling time.
-
-\begin{HaskellCode}
-type Time      = Double
-data QueueItem = QueueItem SIREvent AgentId Time
-\end{HaskellCode}
-
-Finally, we define an agent. It is a function mapping an event to the current state of the agent with a list of scheduled events:
-
-\begin{HaskellCode}
--- an agent maps an incoming event to the agents current state and a list of scheduled events
-sirAgent :: SIREvent -> (SIRState, [QueueItem])
-\end{HaskellCode}
-
-We are now ready to discuss how to encode the invariants of the specification from the previous section.
-
-\subsection{Encoding the invariants}
 We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \texttt{Bool} indicating whether the invariants hold or not. The encoding is straightforward when using pattern matching and it nearly reads like a formal specification due to the declarative nature of functional programming.
 
 \begin{HaskellCode}

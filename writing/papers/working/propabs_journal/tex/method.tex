@@ -66,7 +66,7 @@ susceptibleProps (Contact _ Infected) Infected es ai
 susceptibleProps _ _ _ _ = False
 \end{HaskellCode}
 
-Next, we give the implementation for the \texttt{checkMakeContactInvariants} and \texttt{checkInfectedInvariants} functions. The function \texttt{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{MakeContact} event. The \texttt{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent got \texttt{Infected}. Both implementations read like a formal specification, again thanks to the declarative nature of functional programming and pattern matching:
+Next, we give the implementation for the \texttt{checkMakeContactInvariants} function. We omit a detailed implementation of \texttt{checkInfectedInvariants} as it works in a similar way and its details do not add anything conceptually new. The function \texttt{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{MakeContact} event:
 
 \begin{HaskellCode}
 checkInfectedInvariants :: AgentId              -- ^ Agent id of the agent 
@@ -81,37 +81,37 @@ checkInfectedInvariants sender
 checkInfectedInvariants _ _ = False
 \end{HaskellCode}
 
-The \texttt{checkMakeContactInvariants} is a bit more complex:
-
-\begin{HaskellCode}
-checkMakeContactInvariants :: AgentId              -- ^ Agent id of the agent 
-                           -> [QueueItem SIREvent] -- ^ Events the agent scheduled
-                           -> Int                  -- ^ Contact Rate
-                           -> Bool
-checkMakeContactInvariants sender es contactRate
-    -- make sure there has to be exactly one MakeContact event and
-    -- exactly contactRate Contact events
-    = invOK && hasMakeCont && numCont == contactRate
-  where
-    (invOK, hasMakeCont, numCont) 
-      = foldr checkMakeContactInvariantsAux (True, False, 0) es
-
-    checkMakeContactInvariantsAux :: QueueItem SIREvent 
-                                  -> (Bool, Bool, Int)
-                                  -> (Bool, Bool, Int)
-    checkMakeContactInvariantsAux 
-        (QueueItem (Contact sender' Susceptible) receiver t') (b, mkb, n)
-      = (b && sender == sender'   -- sender in Contact must be self
-           && receiver `elem` ais -- receiver of Contact must be in agent ids
-           && t == t', mkb, n+1)  -- Contact event is scheduled immediately
-    checkMakeContactInvariantsAux 
-        (QueueItem MakeContact receiver t') (b, mkb, n) 
-      = (b && receiver == sender  -- receiver of MakeContact is agent itself
-           && t' == t + 1         -- MakeContact scheduled 1 timeunit into future
-           &&  not mkb, True, n)  -- there can only be one MakeContact event
-    checkMakeContactInvariantsAux _ (_, _, _) 
-      = (False, False, 0)         -- other patterns are invalid
-\end{HaskellCode}
+%The \texttt{checkMakeContactInvariants} is a bit more complex:
+%
+%\begin{HaskellCode}
+%checkMakeContactInvariants :: AgentId              -- ^ Agent id of the agent 
+%                           -> [QueueItem SIREvent] -- ^ Events the agent scheduled
+%                           -> Int                  -- ^ Contact Rate
+%                           -> Bool
+%checkMakeContactInvariants sender es contactRate
+%    -- make sure there has to be exactly one MakeContact event and
+%    -- exactly contactRate Contact events
+%    = invOK && hasMakeCont && numCont == contactRate
+%  where
+%    (invOK, hasMakeCont, numCont) 
+%      = foldr checkMakeContactInvariantsAux (True, False, 0) es
+%
+%    checkMakeContactInvariantsAux :: QueueItem SIREvent 
+%                                  -> (Bool, Bool, Int)
+%                                  -> (Bool, Bool, Int)
+%    checkMakeContactInvariantsAux 
+%        (QueueItem (Contact sender' Susceptible) receiver t') (b, mkb, n)
+%      = (b && sender == sender'   -- sender in Contact must be self
+%           && receiver `elem` ais -- receiver of Contact must be in agent ids
+%           && t == t', mkb, n+1)  -- Contact event is scheduled immediately
+%    checkMakeContactInvariantsAux 
+%        (QueueItem MakeContact receiver t') (b, mkb, n) 
+%      = (b && receiver == sender  -- receiver of MakeContact is agent itself
+%           && t' == t + 1         -- MakeContact scheduled 1 timeunit into future
+%           &&  not mkb, True, n)  -- there can only be one MakeContact event
+%    checkMakeContactInvariantsAux _ (_, _, _) 
+%      = (False, False, 0)         -- other patterns are invalid
+%\end{HaskellCode}
 
 \subsection{Writing a property test}
 What is left is to actually write a property test using QuickCheck. We are making heavy use of random parameters to express that the properties have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that the value generated is positive; \texttt{NonEmptyList} ensures that the randomly generated list is not empty.

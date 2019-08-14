@@ -1,15 +1,10 @@
 \section{Conclusions}
 \label{sec:conclusions}
-hypothesise that a strong reason for why testing in ABS is not very widely used and adopted is that unit testing is not able to deal very well with the stochastic nature of ABS in general. random property-based testing is a remedy to that problem as it allows to relate whole classes of inputs to specific classes of output for which then randomised test cases are automatically generated, covering potentially thousands of unit tests.
+In this paper we have shown how to use property-based testing on a technical level to encode informal specifications of agent behaviour into formal specification directly in code. The benefits of a property-based approach in ABS over unit testing is manifold. First, it expresses specifications rather than individual test cases which makes it much more general than unit testing. It allows expressing probabilities of various types (hypotheses, transitions, outputs) and perform statistical robust testing by sequential hypothesis testing. It relates whole classes of inputs to whole classes of outputs, automatically generating thousands of tests if necessary, ran within seconds, depending on the complexity of the test. 
 
-benefits:
-- express specifications rather than individual test cases which makes it much more general than unit testing
-- expressing probabilities of various types (hypotheses, transitions, outputs) and perform statistical robust testing by sequential hypothesis testing
-- relates whole classes of inputs to whole classes of outputs, automatically generating thousands of tests if necessary, 
+The main drawback is to get the coverage of the tests right, which is not always obvious from the beginning. As a remedy for the potential coverage problems of QuickCheck, there exists also a \textit{deterministic} property-testing library called SmallCheck of \cite{runciman_smallcheck_2008}, which instead of randomly sampling the test space, enumerates test cases exhaustively up to some depth.
 
-drawbacks:
-- coverage but smallcheck could be a remedy
-As a remedy for the potential coverage problems of QuickCheck, there exists also a deterministic property-testing library called SmallCheck \cite{runciman_smallcheck_2008} which instead of randomly sampling the test space, enumerates test cases exhaustively up to some depth
+%It is thus that we hypothesise that a strong reason for why testing in ABS is not very widely used and adopted is that unit testing is not able to deal very well with the stochastic nature of ABS in general. random property-based testing is a remedy to that problem as it allows to relate whole classes of inputs to specific classes of output for which then randomised test cases are automatically generated, covering potentially thousands of unit tests.
 
 \subsection{Further Research}
-The transitions we implemented were only one-step transitions, feeding only a single event. Although we covered the full functionality by also testing the infected and recovered agent separately (which was not shown in the paper due to space limitations), we could also implement property tests which test the full transition from susceptible to recovered, which then would required multiple events and slightly different approach calculating the probabilities.
+The transitions we implemented were only one-step transitions, feeding only a single event. Although we covered the full functionality by also testing the infected and recovered agent separately (which was not shown in the paper due to space limitations), the next step is to implement property tests which test the full transition from susceptible to recovered, which then would required multiple events and slightly different approach calculating the probabilities.

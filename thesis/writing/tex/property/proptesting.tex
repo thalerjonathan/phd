@@ -60,7 +60,7 @@ genSIRState :: Gen SIRState
 genSIRState = elements [Susceptible, Infected, Recovered]
 \end{HaskellCode}
 
-This implementation makes use of the \texttt{elements :: [a] $\rightarrow$ Gen a} functions, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \texttt{frequency :: [(Int, Gen a)] $\rightarrow$ Gen a} function, where a frequency can be specified for each element. For example generating on average 80\% \texttt{Susceptible}, 15\% \texttt{Infected} and 5\% \texttt{Recovered} can be achieved using this function:
+This implementation makes use of the \texttt{elements :: [a] $\rightarrow$ Gen a} function, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \texttt{frequency :: [(Int, Gen a)] $\rightarrow$ Gen a} function, where a frequency can be specified for each element. For example generating on average 80\% \texttt{Susceptible}, 15\% \texttt{Infected} and 5\% \texttt{Recovered} can be achieved using this function:
 
 \begin{HaskellCode}
 genSIRState :: Gen SIRState

@@ -20,7 +20,7 @@ In this paper we follow \cite{macal_agent-based_2010} for translating the inform
 	\label{fig:sir_sd_dynamics}
 \end{figure}
 
-\subsection{Specification}
+\subsection{An informal specification}
 In this section we give the specification of the agent behaviour, relating the input to the output events. Before we can do that we first need to define the event types of the model, how they related to scheduling and how we can conceptually represent agents. We are using Haskell as notation and implementation as we conducted our research in that language because it originated property-based testing. Obviously we are aware that Haskell is not a mainstream programming language, so to make this paper sufficiently self contained, we introduce concepts step-by-step, which should allow readers, familiar with programming in general, understand the ideas behind what we are doing. Fortunately it is not necessary to go into detail of how agents are implemented as for our approach it is enough to understand the agents' inputs and outputs. For readers interested in the details of how to implement ABS in Haskell, we refer to the work of \cite{thaler_pure_2018}. 
 
 \begin{HaskellCode}

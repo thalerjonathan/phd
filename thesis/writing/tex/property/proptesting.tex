@@ -15,32 +15,28 @@ To give a good understanding of how property-based testing works with \\ QuickCh
 
 \begin{HaskellCode}
 -- append operator (++) is associative
-append_associative :: [Int] -> [Int] -> [Int] -> Bool
-append_associative xs ys zs = (xs ++ ys) ++ zs == xs ++ (ys ++ zs)
+prop_append_associative :: [Int] -> [Int] -> [Int] -> Bool
+prop_append_associative xs ys zs = (xs ++ ys) ++ zs == xs ++ (ys ++ zs)
 
 -- The reverse of a reversed list is the original list
-reverse_reverse :: [Int] -> Bool
-reverse_reverse xs = reverse (reverse xs) == xs
+prop_reverse_reverse :: [Int] -> Bool
+prop_reverse_reverse xs = reverse (reverse xs) == xs
 
 -- reverse is distributive over append (++)
 -- This test fails for explanatory reasons, for a correct 
 -- property xs and ys need to be swapped on the right-hand side!
-reverse_distributive :: [Int] -> [Int] -> Bool
-reverse_distributive xs ys = reverse (xs ++ ys) == reverse xs ++ reverse ys
-
--- running the tests
-main :: IO ()
-main = do
-  quickCheck append_associative
-  quickCheck reverse_reverse
-  quickCheck reverse_distributive
+prop_reverse_distributive :: [Int] -> [Int] -> Bool
+prop_reverse_distributive xs ys = reverse (xs ++ ys) == reverse xs ++ reverse ys
 \end{HaskellCode}
 
-When we run the tests using \textit{main}, we get the following output:
+When testing each property with QuickCheck, we get the following output:
 
 \begin{verbatim}
+> quickCheck prop_append_associative
 +++ OK, passed 100 tests.
+> quickCheck prop_reverse_reverse
 +++ OK, passed 100 tests.
+> quickCheck prop_reverse_distributive
 *** Failed! Falsifiable (after 5 tests and 6 shrinks):    
 [0]
 [1]
@@ -48,7 +44,7 @@ When we run the tests using \textit{main}, we get the following output:
 
 We see that QuickCheck generates 100 test cases for each property test and it does this by generating random data for the input arguments. We have not specified any data for our input arguments because QuickCheck is able to provide a suitable data generator through type inference. For lists and all the existing Haskell types there exist custom data generators already. We have to use a monomorphic list, in our case \texttt{Int}, and cannot use polymorphic lists because QuickCheck would not know how to generate data for a polymorphic type. Still, by appealing to genericity and polymorphism, we get the guarantee that the test case is the same for all types of a lists.
 
-QuickCheck generates 100 test cases by default and requires all of them to pass. If there is a test case which fails, the overall property test fails and QuickCheck shrinks the input to a minimal size, which still fails and reports it as a counter example. This is the case in the last property test \texttt{reverse\_distributive} which is wrong as \textit{xs} and \textit{ys} need to be swapped on the right-hand side. In this run, QuickCheck found a counter example to the property after 5 tests and applied 6 shrinks to find the minimal failing example of \texttt{xs = [0]} and \texttt{ys = [1]}. If we swap \texttt{xs} and \texttt{ys}, the property test passes 100 test cases just like the other two did. It is possible to configure QuickCheck to generate more or less random test cases, which can be used to increase the coverage if the sampling space is quite large - this will become useful later.
+QuickCheck generates 100 test cases by default and requires all of them to pass. If there is a test case which fails, the overall property test fails and QuickCheck shrinks the input to a minimal size, which still fails and reports it as a counter example. This is the case in the last property test \texttt{prop\_reverse\_distributive} which is wrong as \texttt{xs} and \texttt{ys} need to be swapped on the right-hand side. In this run, QuickCheck found a counter example to the property after 5 tests and applied 6 shrinks to find the minimal failing example of \texttt{xs = [0]} and \texttt{ys = [1]}. If we swap \texttt{xs} and \texttt{ys}, the property test passes 100 test cases just like the other two did. It is possible to configure QuickCheck to generate more or less random test cases, which can be used to increase the coverage if the sampling space is quite large - this will become useful later.
 
 \subsubsection*{Generators}
 QuickCheck comes with a lot of data generators for existing types like \texttt{String, Int, Double, []}, but in case one wants to randomize custom data types one has to write custom data generators. There are two ways to do this. Either fix them at compile time by writing an \texttt{Arbitrary} instance or write a run-time generator running in the \texttt{Gen} Monad. The advantage of having an \texttt{Arbitrary} instance is that the custom data type can then be used as random argument to a function as in the examples above.

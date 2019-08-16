@@ -14,9 +14,9 @@
 %
 \RequirePackage{fix-cm}
 %
-%\documentclass{svjour3}                     % onecolumn (standard format)
+\documentclass{svjour3}                     % onecolumn (standard format)
 %\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
-\documentclass[smallextended]{svjour3}       % onecolumn (second format)
+%\documentclass[smallextended]{svjour3}       % onecolumn (second format)
 %\documentclass[twocolumn]{svjour3}          % twocolumn
 %
 \smartqed  % flush right qed marks, e.g. at end of proof
@@ -73,30 +73,31 @@
 %              second address
 }
 
+%\date{Received: 16 Aug 2019 / Accepted: date}
 \date{Received: 16 Aug 2019 / Accepted: date}
 % The correct dates will be entered by the editor
 
 \maketitle
 
 \begin{abstract}
-This paper explores how to use property-based testing on a technical level to encode and test specifications of agent-based simulations (ABS). As use case the simple agent-based SIR model is used, where it is shown how to test agent behaviour including transition probabilities and invariants. The outcome are specifications expressed directly in code, which relate whole classes of random input to expected classes of output. During test execution, random test data is generated automatically, potentially covering the equivalent of thousands of unit tests, run within seconds. This makes property-based testing in the context of ABS strictly more powerful than unit testing, as it is a much more natural fit due to its stochastic nature. The expressiveness and power of property-based testing is not limited to be part of a test-driven development process where it acts as a method for specification, verification and regression tests but can be integrated as a fundamental part of the model development process, supporting hypothesis and discovery making processes. By incorporating this powerful technique into the simulation development process, confidence in the correctness of an implementation is likely to increase dramatically, something of fundamental importance for ABS in general and for models supporting far-reaching policy decision in particular.
+This paper explores how to use property-based testing on a technical level to encode and test specifications of agent-based simulations (ABS). As use case the simple agent-based SIR model is used, where it is shown how to test agent behaviour including transition probabilities. The outcome are specifications expressed directly in code, which relate whole classes of random input to expected classes of output. During test execution, random test data is generated automatically, potentially covering the equivalent of thousands of unit tests, run within seconds on modern hardware. This makes property-based testing in the context of ABS strictly more powerful than unit testing, as it is a much more natural fit due to its stochastic nature. The expressiveness and power of property-based testing is not limited to be part of a test-driven development process, where it acts as a method for specification, verification and regression tests but can be integrated as a fundamental part of the model development, supporting hypothesis and discovery making processes. By incorporating this powerful technique into simulation development, confidence in the correctness of an implementation is likely to increase dramatically, something of fundamental importance for ABS in general and for models supporting far-reaching policy decision in particular.
 
 \keywords{Agent-Based Simulation Testing \and Code Testing \and Test Driven Development \and Model Specification}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
 
-\input{tex/introduction.tex}
+\input{introduction.tex}
 
-\input{tex/proptesting.tex}
+\input{proptesting.tex}
 
-\input{tex/sirmodel.tex}
+\input{sirmodel.tex}
 
-\input{tex/method.tex}
+\input{method.tex}
 
-\input{tex/discussion.tex}
+\input{discussion.tex}
 
-\input{tex/conclusions.tex}
+\input{conclusions.tex}
 
 %\begin{acknowledgements}
 %If you'd like to thank anyone, place your comments here

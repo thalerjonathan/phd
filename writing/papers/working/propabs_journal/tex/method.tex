@@ -76,7 +76,7 @@ checkInfectedInvariants _ _ = False
 %\end{HaskellCode}
 
 \subsection{Writing a property test}
-After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing types like Strings, Integers, Double, List, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. Thus, the first step is to write custom data generators, which are suitable for our problem at hand.
+After having encoded the invariants into a function, we need to write a \\ QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing types like Strings, Integers, Double, List, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. Thus, the first step is to write custom data generators, which are suitable for our problem at hand.
 
 There are two ways to do this by either fixing them at compile time writing an \texttt{Arbitrary} instance or writing a run-time generator running in the \texttt{Gen} context. The advantage of having an \texttt{Arbitrary} instance is that the custom data type can then be used as an argument to a function, the advantage of writing a run-time generator is that it can depend on values computed during run time.
 
@@ -166,7 +166,7 @@ Encoding of the invariants and writing property tests for the infected agents fo
 \subsection{Encoding transition probabilities}
 In the specifications from the previous section there are probabilistic state transitions, for example the susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \texttt{cover} feature of QuickCheck.
 
-The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test cases belong to a given class. The first argument is the expected percentage; the second argument indicates whether the current test case belongs to the class or not; the third argument is a label for the coverage; the fourth argument is the property which needs to hold for the test case to succeed.
+The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ \\ Property} allows to explicitly specify that a given percentage of successful test cases belong to a given class. The first argument is the expected percentage; the second argument indicates whether the current test case belongs to the class or not; the third argument is a label for the coverage; the fourth argument is the property which needs to hold for the test case to succeed.
 
 An example would be to use it to check whether at least 15\% of all test cases of the \texttt{prop\_reverse\_reverse} property of section \ref{sec:proptesting} has a length of at least 50. This would be encoded in the following way:
 
@@ -174,7 +174,7 @@ An example would be to use it to check whether at least 15\% of all test cases o
 \begin{HaskellCode}
 prop_reverse_reverse_cover :: [Int] -> Property
 prop_reverse_reverse_cover xs  =  
-  cover 15 (length xs >= 50) "length of list at least 50" (reverse (reverse xs) == xs)
+  cover 15 (length xs >= 50) "length at least 50" (reverse (reverse xs) == xs)
 \end{HaskellCode}
 
 %When running it, the output indicates that although all tests passes, as the property is satisfied in all 100 test cases but the expected coverage differs from the actual one.
@@ -190,16 +190,16 @@ prop_reverse_reverse_cover xs  =
 For our case we follow a slightly different approach: we include all test cases into the expected coverage, setting the second parameter always to \texttt{True} and we also set the last argument to \texttt{True} as we are only interested in testing the coverage, which is in fact the property we want to test. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output. It is important to note that in this property test we cannot randomise the model parameters $\beta$, $\gamma$ and $\delta$ because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the model parameters can be adjusted arbitrarily and the property must still hold.
 
 \begin{HaskellCode}
-prop_susceptible_proabilities :: Positive Double      -- Current simulation time
-                              -> NonEmptyList AgentId -- Agent ids of the population
-                              -> Property
-prop_susceptible_proabilities (Positive t) (NonEmpty ais) = do
+prop_susceptible_proab :: Positive Double      -- Current simulation time
+                       -> NonEmptyList AgentId -- Agent ids of the population
+                       -> Property
+prop_susceptible_proab (Positive t) (NonEmpty ais) = do
   -- fixed model parameters, otherwise random coverage
   let cor = 5     -- contact rate (beta)
       inf = 0.05  -- infectivity (gamma)
       ild = 15.0  -- illness duration (delta)
-  -- compute distributions for all cases depending on event and SIRState frequencies
-  -- technical detail, omitted for clarity reasons
+  -- compute distributions for all cases depending on event and SIRState
+  -- frequencies; technical detail, omitted for clarity reasons
   let recoverPerc       = ...
       makeContPerc      = ...
       contactRecPerc    = ...
@@ -213,21 +213,21 @@ prop_susceptible_proabilities (Positive t) (NonEmpty ais) = do
   -- encode expected distributions
   return $ property $ case evt of 
     Recover -> 
-      cover recoverPerc True "Susceptible receives Recover" True
+      cover recoverPerc True "Susceptible recv Recover" True
     MakeContact -> 
-      cover makeContPerc True "Susceptible receives MakeContact" True
+      cover makeContPerc True "Susceptible recv MakeContact" True
     (Contact _ Recovered) -> 
-      cover contactRecPerc True "Susceptible receives Contact * Recovered" True
+      cover contactRecPerc True "Susceptible recv Contact * Recovered" True
     (Contact _ Susceptible) -> 
-      cover contactSusPerc True "Susceptible receives Contact * Susceptible" True
+      cover contactSusPerc True "Susceptible recv Contact * Susceptible" True
     (Contact _ Infected) -> 
       case ao of
         Susceptible ->
           cover contactInfSusPerc True 
-            "Susceptible receives Contact * Infected, stays Susceptible" True
+            "Susceptible recv Contact * Infected, stays Susceptible" True
         Infected ->
           cover contactInfInfPerc True 
-            "Susceptible receives Contact * Infected, becomes Infected" True
+            "Susceptible recv Contact * Infected, becomes Infected" True
         _ ->
           cover 0 True "INVALID" True
 \end{HaskellCode}
@@ -239,14 +239,14 @@ We have omitted the details of computing the respective distributions of the cas
 \begin{footnotesize}
 \begin{verbatim}
 +++ OK, passed 100 tests (0.01s):
-40% Susceptible receives MakeContact
-25% Susceptible receives Recover
-14% Susceptible receives Contact * Infected, stays Susceptible
-12% Susceptible receives Contact * Susceptible
- 9% Susceptible receives Contact * Recovered
+40% Susceptible recv MakeContact
+25% Susceptible recv Recover
+14% Susceptible recv Contact * Infected, stays Susceptible
+12% Susceptible recv Contact * Susceptible
+ 9% Susceptible recv Contact * Recovered
     
-Only 9% Susceptible receives Contact * Recovered, but expected 11%
-Only 25% Susceptible receives Recover, but expected 33%
+Only 9% Susceptible recv Contact * Recovered, but expected 11%
+Only 25% Susceptible recv Recover, but expected 33%
 \end{verbatim}
 \end{footnotesize}
 
@@ -257,12 +257,12 @@ Fortunately, as a remedy QuickCheck provides the function \texttt{checkCoverage 
 \begin{footnotesize}
 \begin{verbatim}
 +++ OK, passed 819200 tests (7.32s):
-33.3292% Susceptible receives Recover
-33.2697% Susceptible receives MakeContact
-11.1921% Susceptible receives Contact * Susceptible
-11.1213% Susceptible receives Contact * Recovered
-10.5356% Susceptible receives Contact * Infected, stays Susceptible
- 0.5520% Susceptible receives Contact * Infected, becomes Infected
+33.3292% Susceptible recv Recover
+33.2697% Susceptible recv MakeContact
+11.1921% Susceptible recv Contact * Susceptible
+11.1213% Susceptible recv Contact * Recovered
+10.5356% Susceptible recv Contact * Infected, stays Susceptible
+ 0.5520% Susceptible recv Contact * Infected, becomes Infected
 \end{verbatim}
 \end{footnotesize}
 

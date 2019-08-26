@@ -11,7 +11,9 @@ Property-based testing has its origins in the pure functional programming langua
 
 To give a good understanding of how property-based testing works with \\ QuickCheck, we give examples of properties of lists, which are directly expressed as functions in Haskell. Such functions can take arbitrary inputs, which random data are generated automatically by QuickCheck during testing. The return type of the function is a \texttt{Bool} indicating whether the property holds for the given random inputs or not.
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 -- list append (++) is associative
 prop_append_associative :: [Int] -> [Int] -> [Int] -> Bool
 prop_append_associative xs ys zs = (xs ++ ys) ++ zs == xs ++ (ys ++ zs)
@@ -24,10 +26,13 @@ prop_reverse_reverse xs = reverse (reverse xs) == xs
 prop_reverse_distributive :: [Int] -> [Int] -> Bool
 prop_reverse_distributive xs ys 
   = reverse (xs ++ ys) == reverse xs ++ reverse ys
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 When testing each property with QuickCheck, we get the following output:
 
+\begin{footnotesize}
 \begin{verbatim}
 > quickCheck prop_append_associative
 +++ OK, passed 100 tests.
@@ -38,6 +43,7 @@ When testing each property with QuickCheck, we get the following output:
 [0]
 [1]
 \end{verbatim}
+\end{footnotesize}
 
 QuickCheck generates 100 test cases for each property test by generating random data for the input arguments. We have not specified any data for our input arguments because QuickCheck is able to provide a suitable data generator through type inference. For lists as used in these examples and all the existing Haskell types there exist custom data generators already. %We have to use a monomorphic list, in our case \texttt{Int}, and cannot use polymorphic lists because QuickCheck would not know how to generate data for a polymorphic type. Still, by appealing to genericity and polymorphism, we get the guarantee that the test case is the same for all types of a lists.
 

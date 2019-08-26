@@ -27,34 +27,50 @@ We are using Haskell as notation and implementation as we conducted our research
 
 We start by defining the states the agents can be in:
 
-\begin{HaskellCode}
+%\begin{haskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 -- enumeration of the states the agents can be in
 data SIRState = Susceptible | Infected | Recovered
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{haskellCode}
 
 The model uses three types of events. First, \texttt{MakeContact} is used by a susceptible agent to proactively make contact with $\beta$ other agents per time unit by scheduling it to itself. Second, \texttt{Contact} is used by susceptible and infected agents to contact other agents, revealing their id and their state to the receiver. Third, \texttt{Recover} is used by an infected agent to proactively make the transition to recovered after $\delta$ time units.
 
-\begin{HaskellCode}
+%\begin{haskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 -- agents are identified by a unique integer
 type AgentId = Int
 -- enumeration of the three events
 data SIREvent = MakeContact | Contact AgentId SIRState | Recover 
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{haskellCode}
 
 As events are scheduled we need a new type to hold them which we termed \texttt{QueueItem} as it is put into the event queue. It contains the event to be scheduled, the id of the receiving agent and the scheduling time.
 
-\begin{HaskellCode}
+%\begin{haskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 type Time      = Double
 data QueueItem = QueueItem SIREvent AgentId Time
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{haskellCode}
 
 Finally, we define an agent: it is a function, mapping an event to the current state of the agent with a list of scheduled events. This is a simplified view on how agents are actually implemented in Haskell but it suffices for our purpose.
 
-\begin{HaskellCode}
+%\begin{haskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 -- an agent maps an incoming event to the agents current state 
 -- and a list of scheduled events
 sirAgent :: SIREvent -> (SIRState, [QueueItem])
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{haskellCode}
 
 % TODO is there some diagram form (BPNL or other process language, e.g. UML), with which we can express the SIR agents event behaviour? would be more concise than only describing it in word
 

@@ -2,7 +2,9 @@
 \label{sec:method}
 We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \texttt{Bool} indicating whether the invariants hold or not. The encoding is straightforward when using pattern matching and it nearly reads like a formal specification due to the declarative nature of functional programming.
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 susceptibleProps :: SIREvent              -- random event sent to agent
                  -> SIRState              -- output state of the agent
                  -> [QueueItem SIREvent]  -- list of events the agent scheduled
@@ -24,11 +26,15 @@ susceptibleProps MakeContact Susceptible es ai
   = checkMakeContactInvariants ai es cor
 -- all other cases are invalid and result in a failed test case
 susceptibleProps _ _ _ _ = False
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 Next, we give the implementation for the \texttt{checkInfectedInvariants} function. We omit a detailed implementation of \texttt{checkMakeContactInvariants} as it works in a similar way and its details do not add anything conceptually new. The function \texttt{checkInfectedInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{(Contact \_ Infected)} event from an infected agent and becomes infected:
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 checkInfectedInvariants :: AgentId               -- agent id of the agent 
                         -> [QueueItem SIREvent]  -- list of scheduled events
                         -> Bool
@@ -39,11 +45,13 @@ checkInfectedInvariants sender
   = sender == receiver && t' >= t 
 -- all other cases are invalid
 checkInfectedInvariants _ _ = False
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 %The \texttt{checkMakeContactInvariants} is a bit more complex:
 %
-%\begin{HaskellCode}
+%%%\begin{HaskellCode}
 %checkMakeContactInvariants :: AgentId              -- ^ Agent id of the agent 
 %                           -> [QueueItem SIREvent] -- ^ Events the agent scheduled
 %                           -> Int                  -- ^ Contact Rate
@@ -71,7 +79,7 @@ checkInfectedInvariants _ _ = False
 %           &&  not mkb, True, n)  -- there can only be one MakeContact event
 %    checkMakeContactInvariantsAux _ (_, _, _) 
 %      = (False, False, 0)         -- other patterns are invalid
-%\end{HaskellCode}
+%%\end{HaskellCode}
 
 \subsection{Writing a property test}
 After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing types like Strings, Integers, Double, List, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. Thus, the first step is to write custom data generators, which are suitable for our problem at hand.
@@ -80,24 +88,34 @@ There are two ways to do this by either fixing them at compile time writing an \
 
 First, we write an \texttt{Arbitrary} instance for the \texttt{SIRState}. When writing an \texttt{Arbitrary} instance one needs to provide an implementation for the \texttt{arbitrary} method, which returns a value of the given type for which the instance was implemented for - in our case it is \texttt{SIRState}. This implementation makes use of the \texttt{elements} function, which picks a random element from a non-empty list with uniform probability.
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 instance Arbitrary SIRState where
   arbitrary = elements [Susceptible, Infected, Recovered]
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 Next we write a custom generator to capture the concept of probabilities. This is necessary because if using a \texttt{Double} as input to a function it would cover the whole range of the type but we want to restrict its random range to $(0,1)$ reflecting a probability. We achieve this by introducing a new type and writing an \texttt{Arbitrary} instance for it. This implementation makes use of the \texttt{choose} function, which returns a random value within the given bounds.
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 -- define a new type, representing a probability
 newtype Probability = P Double
 instance Arbitrary Probability where
   arbitrary = P <$> choose (0, 1)
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 %$
 
 What is left is to write a custom generator for generating random events. In this case we want to be able to control the distribution of events generated. Instead of using \texttt{elements}, which picks uniformly, if a skewed distribution is needed, one can use the \texttt{frequency} function, where a frequency can be specified for each element. Due to the fact, that event generation is parametrised by frequencies and requires the population ids to pick from in the \texttt{Contact} event, it needs to be a run-time generator, thus running in \texttt{Gen} context. The function takes the frequencies for all three types of events, the frequencies of the \texttt{SIRState} in the \texttt{Contact} event and the agent population to pick the sender id from in the \texttt{Contact} event.
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 genEventFreq :: Int             -- MakeContact frequency
              -> Int             -- Contact frequency
              -> Int             -- Recover frequency
@@ -120,11 +138,15 @@ genEventFreq mf cf rf (s,i,r) ais
 -- helper function with uniform frequencies for all events and SIRState
 genEvent :: [AgentId] -> Gen SIREvent
 genEvent = genEventFreq 1 1 1 (1,1,1) 
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 We are now equipped with all functionality to implement the property test. All parameters to the property test are generated randomly, which expresses that the properties encoded in the previous section have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that a value generated is positive; \texttt{NonEmptyList} ensures that a randomly generated list is not empty. Further, we use the function \texttt{label}, which can be used to generate labels for a test case, counting occurrences of same labels, generating a histogram. This is useful to get an insight into the distribution of the property test data and we use it to get an understanding for the distribution of the transitions. The case where the agents output state is \texttt{Recovered} is marked as "INVALID" as it must never occur, otherwise the test will fail, due to the invariants encoded in the previous section.
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 prop_susceptible :: Positive Int         -- beta (contact rate)
                  -> Probability          -- gamma (infectivity)
                  -> Positive Double      -- delta (illness duration)
@@ -144,18 +166,22 @@ prop_susceptible
     labelTestCase Infected    = "Susceptible -> Infected"
     labelTestCase Susceptible = "Susceptible"
     labelTestCase Recovered   = "INVALID"
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 We have omitted the implementation of \texttt{genRunSusceptibleAgent} as it would require the discussion of implementation details of the agent. Conceptually speaking, it executes the agent with the respective arguments with a fresh random-number generator and returns the agent id, its state and scheduled events it has output.
 
 Finally we can run the test using QuickCheck. Due to the large random sampling space with 5 parameters, we increase the number of test cases to generate to 100,000.
 
+\begin{footnotesize}
 \begin{verbatim}
 > quickCheckWith (stdArgs {maxSuccess=100000}) prop_susceptible
 +++ OK, passed 100000 tests (6.77s):
 94.522% Susceptible
  5.478% Susceptible -> Infected
 \end{verbatim}
+\end{footnotesize}
 
 All 100,000 test cases pass, taking 6.7 seconds to run on our machine. The distribution of the transitions shows that we indeed cover both cases a susceptible agent can exhibit within one event. It either stays susceptible or makes the transition to infection. The fact that there is no transition to recovered shows that the implementation is correct - for a transition to recovered we would need to send an additional, second event to the agent.
 
@@ -169,11 +195,15 @@ The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\r
 An example would be to use it to check whether at least 15\% of all test cases of the \texttt{prop\_reverse\_reverse} property of section \ref{sec:proptesting} has a length of at least 50. This would be encoded in the following way:
 
 % stack ghci --package QuickCheck
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 prop_reverse_reverse_cover :: [Int] -> Property
 prop_reverse_reverse_cover xs  =  
   cover 15 (length xs >= 50) "length at least 50" (reverse (reverse xs) == xs)
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 %When running it, the output indicates that although all tests passes, as the property is satisfied in all 100 test cases but the expected coverage differs from the actual one.
 %
@@ -187,7 +217,9 @@ prop_reverse_reverse_cover xs  =
 
 For our case we follow a slightly different approach: we include all test cases into the expected coverage, setting the second parameter always to \texttt{True} and we also set the last argument to \texttt{True} as we are only interested in testing the coverage, which is in fact the property we want to test. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output. It is important to note that in this property test we cannot randomise the model parameters $\beta$, $\gamma$ and $\delta$ because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the fixed model parameters can be adjusted arbitrarily and the property must still hold. We could have combined this test into the previous one but then we couldn't have used randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable. 
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 prop_susceptible_prob :: Positive Double       -- current simulation time
                       -> NonEmptyList AgentId  -- population agent ids 
                       -> Property
@@ -229,7 +261,9 @@ prop_susceptible_prob (Positive t) (NonEmpty ais) = do
             "Susceptible recv Contact * Infected, becomes Infected" True
         _ ->
           cover 0 True "INVALID" True
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 We have omitted the details of computing the respective distributions of the cases, which depend on the frequencies of the events and the occurrences of \texttt{SIRState} within the \texttt{Contact} event. By varying different distributions in the \texttt{genEvent} function, we can change the distribution of the test cases, leading to a more general test than just using uniform distributed events. When running the property test we get the following output:
 

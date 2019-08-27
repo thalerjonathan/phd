@@ -1,0 +1,13 @@
+Thomas Schwarz
+- Du schreibst 3 Arbeiten gleichzeitig.
+	-> Functional ABS technical PoC
+	-> Advantages of functional programming in the domain of ABS
+	-> ABS for finance and how functional programming may improve quality of modelling
+- Die Struktur der Arbeit ist mir unklar. Welche der obigen Fragestellungen liefert den roten Faden. Aktuell sind es all und keine
+- Je nachdem welche Arbeit du schreiben wolltest bist du entweder zu technisch (functional) oder zu simulatorisch. Beides zu sein ist extrem anstreng zu lesen
+- Der Property Teil hat sich mir nicht erschlossen. Hast du da nur verifiziert, dass deine Software korrekt ist? Was ist daran wissenschaftlich neu, wo liegt dein Beitrag?
+- Die Conclusion ist für mich zu beladen mit neuen Ansätzen, welche ich in den vorherigen Kapiteln nicht erkannt habe. Meine Regel ist, dass in der Conclusion nichts neues mehr vorgebracht wird, es wird zusammengefasst und in Kontext gesetzt.
+
+My Retrospective
+My thesis is not really about ABS, it is rather about "software engineering in ABS with pure functional programming". it is not really interested in the modelling aspect of ABS but solely discusses implementation of ABS. It covers the three big areas of: 1. implementation techniques and concepts; 2. parallelism and concurrency concepts; 3. testing. It does NOT deal with "how to model ABS from a pure functional perspective", therefore it is indeed a purely software engineering centric thesis. This is ok, as obviously it falls into computer science - the question is, whether my narrative, my arguments and my claims are presented and structured in a way that it comes across as a software engineering thesis rather than an ABS (modelling) one. The feedback from Thomas suggest that this is not the case and I should rather rework it into an "obvious" software engineering thesis and not one that is in disguise, as it is at the moment.
+What needs to be changed? Certainly the title needs a slight change to hint at the different viewpoint TODO title. Then obviously the introduction needs to develop its argument and presentation slightly different by actually MENTIONING software engineering and introducing the thesis and the problems it discusses from a software engineering viewpoint. The actual content is good but the narrative in the respective chapters would need some minor changes by putting it into a software engineering context, by (again) mentioning it. Some claims need to be little bit more substantiated as Thomas has added in the respective comments. Also he suggested to contrast it with "how it would be done in Java/OOP" but I am very reluctant to go into this direction as it is beyond the scope of this thesis. 

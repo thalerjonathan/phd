@@ -1,5 +1,13 @@
-\chapter{Introduction}
-\label{ch:intro}
+\chapter{Motivation}
+\label{ch:motivation}
+
+%You should start with your motivation for doing this research (give a brief overview of the research background), identify the current problem, and then state your aims and objectives, before talking about the contributions. In the introduction you provide the context.
+
+% Introduction: noch ein wenig besser verkaufen
+% Introduction, discussion and conclusion müssen extrem sitzen: es muss ganz ganz klar sein warum, motivation, wissenslücke, was die contribution ist
+
+%TODO add iot reference from summersim conference as support
+%TODO emphasise on distributed MAS systems
 
 % MOTIVATION and AIM
 The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented, due to the influence of the seminal Sugarscape model \cite{epstein_growing_1996}, in which the authors claim \textit{"[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]"} (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007}, which still holds up today. %TODO can we cite any statistics about number of developed ABS models?
@@ -40,24 +48,6 @@ This thesis is \textit{not} about comparing the object-oriented and pure functio
 
 	%\item To the best of the authors knowledge, this thesis is the first to outline the potential use of \textit{dependent types} to Agent-Based Simulation on a \textit{conceptual level} to investigate its usefulness for increasing the correctness of a simulation. Dependent types can help to narrow the gap between the model specification and its implementation, reducing the potential for conceptual errors in model-to-code translation. This immediately leads to fewer number of tests required due to guarantees being expressed already at compile time. Ultimately dependent types lead to higher confidence in correctness due to formal guarantees in code, making this a unique contribution with high impact.
 \end{enumerate}
-
-\section{Publications}
-Throughout the course of the Ph.D. six (6) papers were written and attempted to publish, out of which three (3) were accepted and published and one (1) is currently under review:
-
-\begin{enumerate}
-	\item \textit{The Art Of Iterating - Update Strategies in Agent-Based Simulation} \cite{thaler_art_2017}; submitted and accepted at the Social Simulation Conference 2017 - This paper derives four different update strategies and their properties possible in time-driven ABS and discusses them from a programming-paradigm agnostic point of view. It is the first paper which makes the very basics of update semantics clear on a conceptual level and is necessary to understand the options one has when implementing time- and event-driven ABS purely functional. Chapter \ref{ch:impl_abs} builds heavily on the contents of this paper. Further the introduction to ABS in Chapter \ref{sec:method_abs} is covered to a large extent already in this paper.
-	
-	\item \textit{Pure Functional Epidemics} \cite{thaler_pure_2018}; submitted and accepted at the IFL Conference 2018 - Using an agent-based SIR model, this paper establishes in technical detail \textit{how} to implement time-driven ABS in Haskell using non-monadic Functional Reactive Programming with Yampa and monadic Functional Reactive Programming with Dunai. It outlines benefits and drawbacks and also touches on important points which were out of scope and lack of space in this paper but which will be addressed in more detail in this thesis. Chapter \ref{ch:timedriven} is basically an identical copy of this paper, with minor extensions and restructuring. Further the introduction to Functional Reactive Programming in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
-	
-	\item \textit{A Tale Of Lock-Free Agents} \cite{thaler_tale_2018}; submitted to the TOMACS Journal in October 2018 and rejected in March 2019 - This paper is the first to discuss the use of Software Transactional Memory for implementing concurrent ABS both on a conceptual and on a technical level. It presents two case studies, with the agent-based SIR model as the first and the Sugarscape being the second one. In both case studies it compares performance of Software Transactional Memory and lock-based implementations in Haskell and object-oriented implementations of established languages. Although Software Transactional Memory is now not unique to Haskell any more, this paper shows why Haskell is particularly well suited for the use of Software Transactional Memory and is the only language which can overcome the central problem of how to prevent persistent side effects in retry semantics. Chapter \ref{ch:concurrent_abs} is based on the work of this paper with minor adjustments and extensions.
-
-	\item \textit{The Agents' New Cloths? Towards Pure Functional Agent-Based Simulation} \cite{thaler_agents_2019}; submitted and rejected at the Summer Simulation Conference 2019 - This paper summarizes the main benefits of using pure functional programming as in Haskell to implement ABS and discusses on a conceptual level how to implement it and also what potential drawbacks are and where the use of a functional approach is not encouraged. It is written as a conceptual review paper, which tries to 'sell' pure functional programming to the agent-based community without too much technical detail and parlance where it refers to the important technical literature from where an interested reader can start. The introduction to functional programming in Chapter \ref{sec:background_fp} is covered to a large extent already in this paper.
-	
-	\item \textit{Show Me Your Properties! The Potential Of Property-Based Testing In Agent-Based Simulation} \cite{thaler_show_2019}; submitted and accepted at the Summer Simulation Conference 2019 - This paper introduces property-based testing on a conceptual level to ABS using the agent-based SIR model and the Sugarscape model as two case studies. Both Chapters \ref{ch:agentspec} and \ref{ch:sir_invariants} of Part \ref{part:property} and the Appendix \ref{app:validating_sugarscape} are substantially expanded discussions of the ideas presented in this paper.
-	
-	\item \textit{Specification Testing of Agent-Based Simulation using Property-Based Testing.} \cite{thaler_specification_2019}; submitted to the JAAMAS Journal in August 2019, currently under review - This paper introduces property-based testing on a technical level to ABS using the agent-based SIR model model as case study. It builds on the previous, conceptual paper and discusses the topic in much more technical detail and also shows the use of statistically robust hypothesis testing with property-based testing. Both Chapters \ref{ch:agentspec} and \ref{ch:sir_invariants} of Part \ref{part:property} and the Appendix \ref{app:validating_sugarscape} are substantially expanded discussions of the ideas presented in this paper.
-\end{enumerate}
-
 
 \section{Thesis structure}
 %This thesis focuses on a strong narrative which tells the story of \textit{how} to do ABS with pure functional programming, \textit{why} one would do so and when one should \textit{avoid} this paradigm in ABS.

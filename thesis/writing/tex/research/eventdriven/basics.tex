@@ -222,9 +222,6 @@ At this point, the basics of event-driven ABS should be clear: how events are re
 In this section we briefly want to show how the so-called \textit{tagless final} approach \cite{kiselyov_typed_2012} can be used to arrive at a cleaner and more extensible interface of our implementation, which is also open to different \textit{interpretations}. The idea behind tagless final is simple: specify the interface of operations in a type class and then write one or multiple interpreters for it, which simply means writing an instance implementation for the given type class. We start by defining the type class \texttt{MonadAgent} with all the necessary methods, making up the effectful API of our agents. We need to enable two language extensions: \texttt{MultiParamTypeClasses} because we want to have more than a single type parameter in the type class - besides the Monad \texttt{m}, we also want to parametrise over the event type \texttt{e}; \texttt{FunctionalDependencies} because the event type \texttt{e} is determined by the Monad type \texttt{m}.
 
 \begin{HaskellCode}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE FunctionalDependencies #-}
-
 class Monad m => MonadAgent e m | m -> e where
   randomBool  :: Double -> m Bool
   randomExp   :: Double -> m Double
@@ -262,8 +259,6 @@ scheduleRecovery delta = do
 What we are missing is a \textit{pure} interpreter for the agent implementation and the \texttt{MonadAgent} type class. We start by defining a \texttt{newtype}, which basically is a conceptually similar Monad stack as in the original implementation without the tagless final approach. We let Haskell automatically derive monadic type classes, Functor, Applicative and Monad instances which saves a lot of boiler plate code, for which the \texttt{GeneralizedNewtypeDeriving} language extension is required. Instead of the \texttt{Rand} Monad, a \texttt{StateT SimState} is used, which carries the random-number generator and other data  for synchronous agent interactions as will be discussed in the sections on advanced features.
 
 \begin{HaskellCode}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 newtype SIRAgentPure a = SIRAgentPure 
   { unSirAgentPure :: ReaderT (Time, AgentId, [AgentId]) -- combined into one
                         (WriterT [QueueItem SIREvent]
@@ -277,9 +272,6 @@ newtype SIRAgentPure a = SIRAgentPure
 Having this \texttt{newtype} we can now write a \textit{pure} interpreter for the \texttt{MonadAgent}. The implementations are straightforward and should be self explanatory. To run the existing \texttt{Rand} Monad actions, the function \texttt{runRandWithSimState} is used, which extracts the random-number generator from \texttt{SimState}, runs the action and puts the changed random-number generator back into the \texttt{SimState}.
 
 \begin{HaskellCode}   
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-      
 instance MonadAgent SIREvent SIRAgentPure where
   randomBool = runRandWithSimState . randomBoolM
   randomElem = runRandWithSimState . randomElemM

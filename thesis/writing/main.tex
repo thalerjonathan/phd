@@ -15,7 +15,7 @@
 \usepackage{setspace}
 \usepackage{mathtools}
 \usepackage{afterpage}
-
+\usepackage[nottoc]{tocbibind}
 
 % UNUSED
 %\usepackage[english]{babel}
@@ -53,9 +53,8 @@
 	\includegraphics[width=0.60\textwidth]{./logo/coat_of_arms.jpg}\par\vspace{1cm}
 	%{\scshape\Large Ph.D. Thesis\par}
 	\vspace{1.5cm}
-	%{\huge\bfseries Foundations Of Pure Functional \\ Agent-Based Simulation \par}
-	{\huge\bfseries Pure Functional Programming \\ in Agent-Based Simulation \par}
-	%{\huge\bfseries The Pure Functional Programming Paradigm \\ in Agent-Based Simulation \par}
+	%{\huge\bfseries Pure Functional Programming \\ in Agent-Based Simulation \par}
+	{\huge\bfseries Investigating the use of \\ Pure Functional Programming \\ for Agent-Based Simulation \par}
 	\vspace{2cm}
 	%{\Large Jonathan Thaler (4276122) \\ \itshape jonathan.thaler@nottingham.ac.uk \par}
 	{\Large by Jonathan Thaler \par}
@@ -95,43 +94,24 @@ The derived concepts in this thesis show at length that \textit{pure} functional
 
 \clearpage
 
-% FEEDBACK from supervisors
-% Publications after abstract, make clear that i am main author, dont say that the papers were rejected, declare them as work in progress, DONT use the word reject.
-% Structure only 3 main parts: introducation, research, discussion
-% Introduction: noch ein wenig besser verkaufen
-% APPENDIX: correct by construction SD appendix passt nicht rein, auf arxiv tun
-% APPENDIX: equilibrium, raus
-% Introduction, discussion and conclusion müssen extrem sitzen: es muss ganz ganz klar sein warum, motivation, wissenslücke, was die contribution ist
-% Event driven: language pragmas im code entfernen und kurz am anfang klar machen dass ein paar notwendig sind aber die zwecks dem fluss und conceptual nicht gelistet werden.
+\input{./tex/publications.tex}
 
-% SIZE OF THE THESIS
-% WORD COUNT LIMIT IS 100.000, atm the thesis is around 96.000, use this command to count the words 'find . -name '*.tex' | xargs wc'
-% MAYBE PARALLELISM CHAPTER CAN BE SCRAPPED
+%TODO put correct by construction on arxive
 
 %TODO "cleaning up / polishing" milestone until beginning of September 2019
 %\begin{enumerate}
-%	\item read by my supervisors
-%
 %   \item pro-active (currently) vs. pro active vs. proactive
-%
-%	\item read FP part by martin handley
-%
-%	\item read by james hey
-%	
-%	\item read by thomas schwarz for content
 %		
 %	\item move links from footnote into references and put full implementations of existing models from phd repo in separate gitrepso. e.g. sugarscape, SIR event and time as and reconcile all code into thesis code folder?
 %
 %	\item for references add hyperlinks using howpublished in case it is a blog or website (e.g. stephen diel what i wish...)	
-%		
+%
 %	\item copy the xml definitions of the diagrams into the thesis folder
 %
 %	\item check for any violation of the guidelines https://www.nottingham.ac.uk/physics/currentstudents/pg-submissionguide.aspx
 %	
 %	\item weaken the statement “Unfortunately the established programming languages in the field, Python, Java, and C++, are not very well suited to tackle the complexities of parallel programming”. For instances, Java (starting from version 5) offers a lot of data structures for dealing with parallel and distributed programs. If authors think the sentence is valid, it requires to be strongly motivated and contextualized. 
 %
-%	\item epigraphs for all chapters?
-%	\epigraph{The purpose of abstraction is not to be vague, but to create a new semantic level in which one can be absolutely precise.}{Dijkstra, EWD340}
 %	
 %	\item careful read of PRINT OUT
 %	\begin{itemize}
@@ -150,6 +130,18 @@ The derived concepts in this thesis show at length that \textit{pure} functional
 %	\end{itemize}
 %\end{enumerate}
 
+%TODO 
+% REWRITE ABSTRACT
+% refine the introduction
+% refine the discussion and conclusions
+% read the whole thing
+
+%TODO when sending back to my supervisors
+% - how do i really sell the publications when you say 'dont say that the papers were rejected, declare them as work in progress, DONT use the word reject.'?
+
+% SIZE OF THE THESIS
+% WORD COUNT LIMIT IS 100.000, atm the thesis is around 96.000, use this command to count the words 'find . -name '*.tex' | xargs wc'
+
 % DEDICATION
 \clearpage
 \begin{center}
@@ -163,48 +155,37 @@ The derived concepts in this thesis show at length that \textit{pure} functional
 \clearpage
 \input{./tex/acknowledgements.tex}
 
-% PART I: Preliminaries
+% PART I: Introduction
 \epigraphhead[450]{}
-\part{Preliminaries}
-\label{part:preliminaries}
-\input{./tex/introduction.tex}
-\input{./tex/background.tex}
-\input{./tex/implAbs.tex}
+\part{Introduction}
+\label{part:introduction}
+\input{./tex/introduction/motivation.tex}
+\input{./tex/introduction/background.tex}
+\input{./tex/introduction/methodology.tex}
 
-% PART II: Towards pure functional ABS
+% PART II: Research
 \epigraphhead[450]{}
-\part{Implementation techniques}
-\label{part:implementation}
-\input{./tex/timedriven.tex}
-\input{./tex/eventdriven.tex}
+\part{Research}
+\label{part:research}
+\input{./tex/research/timedriven.tex}
+\input{./tex/research/eventdriven.tex}
+\input{./tex/research/parallelabs.tex}
+\input{./tex/research/property.tex}
 
-% PART III: Why 1: Parallel Computation
-\epigraphhead[450]{}
-\part{Parallel computation}
-\label{part:parallel}
-\input{./tex/parallelabs.tex}
-
-% PART IV: Why 2: Property-Based Testing
-\epigraphhead[450]{}
-\part{Property-based testing}
-\label{part:property}
-\input{./tex/property.tex}
-
-% PART V: Discussion
+% PART III: Discussion and conclusion
 \epigraphhead[450]{}
 \part{Discussion and Conclusion}
 \label{part:discussion}
-\input{./tex/discussion.tex}
-\input{./tex/conclusion.tex}
+\input{./tex/discussion/discussion.tex}
+\input{./tex/discussion/conclusion.tex}
 
 % BIB
+
 \renewcommand\bibname{References}
 \bibliographystyle{acm} %apalike
 \bibliography{bibliography}
 
-% PART VI: Appendix
-%\epigraphhead[450]{}
-%\part{Appendices}
+% Appendix
 \input{./tex/appendix.tex}
 
 \end{document}

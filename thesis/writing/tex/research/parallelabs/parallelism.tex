@@ -4,9 +4,9 @@ The promise of parallelism in Haskell is compelling: speeding up the execution b
 
 Generally, parallelism can be applied whenever the execution of code is order-independent, that is referential transparent, and has no implicit or explicit side effects. In this section we introduce the two most important parallelism concepts of Haskell, \textit{evaluation} and \textit{data-flow} parallelism, and discuss their potential use in pure functional ABS in general. We follow \cite{marlow_parallel_2013} and refer to it for an in-depth discussion. Further, we show how these concepts can be added to our previously discussed use cases of Chapters \ref{sec:timedriven_firststep}, \ref{sec:adding_env} and Sugarscape and compare their performance over the original sequential approaches.
 
-\input{./tex/parallelabs/parallelism/evaluation.tex}
+\input{./tex/research/parallelabs/parallelism/evaluation.tex}
 
-\input{./tex/parallelabs/parallelism/dataflow.tex}
+\input{./tex/research/parallelabs/parallelism/dataflow.tex}
 
 % IGNORE FOR NOW
 %\subsection{Data-structure parallelism}
@@ -15,8 +15,8 @@ Generally, parallelism can be applied whenever the execution of code is order-in
 %%https://learning.oreilly.com/library/view/parallel-and-concurrent/9781449335939/ch05.html
 %
 %general solution we opt for is  to run agents in parallel in our approaches. in other abs models we could apply data-structure parallelism and/or data-flow parallelism with huge Performance potential but thats always highly model dependent thus we dont go in depth here
-\input{./tex/parallelabs/parallelism/casestudies.tex}
+\input{./tex/research/parallelabs/parallelism/casestudies.tex}
 
-\input{./tex/parallelabs/parallelism/parallelruns.tex}
+\input{./tex/research/parallelabs/parallelism/parallelruns.tex}
 
-\input{./tex/parallelabs/parallelism/discussion.tex}
+\input{./tex/research/parallelabs/parallelism/discussion.tex}

@@ -20,6 +20,6 @@ The focus here is primarily on the conceptual nature of how to apply parallelism
 
 Besides performance improvement, we are generally interested in the implications of the way Haskell deals with parallelism and concurrency in its types. In particular we ask about the ability of keeping deterministic guarantees about the reproducibility of our simulations. We hypothesise that parallelism will allow us to retain \textit{all} static guarantees about reproducibility \textit{and} gives us a noticeable speedup. Further, we hypothesise, that in concurrency we might see a bigger speedup but sacrifice the very guarantee about reproducibility. However, we assume that by using Haskell's unique approach to Software Transactional Memory, we don't lose this guarantee completely, but it will get weakened by guaranteeing that the non-deterministic influence is through concurrency only \textit{and nothing else}.
 
-\input{./tex/parallelabs/parallelism.tex}
+\input{./tex/research/parallelabs/parallelism.tex}
 
-\input{./tex/parallelabs/concurrent.tex}
+\input{./tex/research/parallelabs/concurrent.tex}

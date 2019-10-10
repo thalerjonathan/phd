@@ -3,9 +3,9 @@
 
 In this chapter we are showing how to use QuickCheck to encode full agent specifications directly in code as property tests of both time- and event-driven implementations of the agent-based SIR model. These properties serve as formal specification and tests at the same time which is a fundamental strength of property-based testing, not possible with unit testing in this strong expressive form. Besides the high expressivity, QuickCheck also allows us to state statistical coverage for certain cases, which allows to express statistical properties of the agents behaviour, something also not directly possible with unit testing. This is a very strong indication that property-based testing is a natural fit to test ABS.
 
-\input{./tex/property/agentSpecEvent.tex}
+\input{./tex/research/property/agentSpecEvent.tex}
 
-\input{./tex/property/agentSpecTime.tex}
+\input{./tex/research/property/agentSpecTime.tex}
 
 \section{Discussion}
 In this section we have shown how to express the specifications of both the event- and time-driven agent behaviour directly in code as properties and how to implement property tests in QuickCheck for them. The approach to event-driven properties was to establish a correspondence between an input event the current agent state and the output events and the new agents state. In case of the time-driven agent, the properties are expressed in terms of a potentially infinite stream of agent output states. Although both implementations follow the same underlying model, the technical details of the properties differ substantially. The reason for this is that although property-based testing is a black-box verification technique, the implementation often requires substantial knowledge of the internal details as can be seen especially in the event-driven case.

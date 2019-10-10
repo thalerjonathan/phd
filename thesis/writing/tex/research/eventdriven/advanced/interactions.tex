@@ -82,7 +82,7 @@ The semantics behind the \texttt{sendSync} method shall be that it allows to sen
 
 The only place which has to be changed is the susceptible agent but due to the different semantics, parts of its behaviour needs to be rewritten. The receiving agents are left unchanged as at the moment a receiver has no means to distinguish between asynchronous and synchronous events and is not forced to reply to the sender in case of a synchronous event. It would be useful to have some mechanism that in case of a synchronous event, the receiver can only reply to the sender. We leave that issue for further research.
 
-Handling an incoming \texttt{Contact} from an \texttt{Infected} is no longer necessary as it will not happen, because the interactions go directly through \texttt{sendSync} and infected agents don't make contact pro-actively. Thus, the \texttt{MakeContact} handler has to be changed to take into account that the infection can happen directly there:
+Handling an incoming \texttt{Contact} from an \texttt{Infected} is no longer necessary as it will not happen, because the interactions go directly through \texttt{sendSync} and infected agents don't make contact proactively. Thus, the \texttt{MakeContact} handler has to be changed to take into account that the infection can happen directly there:
 
 \begin{HaskellCode}
 handleEvent MakeContact = do

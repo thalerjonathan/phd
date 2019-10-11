@@ -1,6 +1,6 @@
 \section{Case study I: SIR}
 \label{sec:concurrent_sir}
-Our first case study is the SIR model as introduced in Chapter \ref{sec:sir_model}. The aim of this case study is to investigate the potential speedup a concurrent STM implementation gains over a sequential one under varying number of CPU cores and agent populations. The behaviour of the agents is quite simple and the interactions are happening indirectly through the environment, where reads from the environment outnumber the writes to it by far. Further, a comparison to a lock-based implementation with the \texttt{IO} Monad is done to show that STM outperforms traditional lock-based concurrency \textit{in a functional ABS implementation} while still retaining some static guarantees \footnote{The code of all three implementations is available at \url{https://github.com/thalerjonathan/phd/tree/master/public/stmabs/code/SIR}}.
+Our first case study is the SIR model as introduced in Chapter \ref{sec:sir_model}. The aim of this case study is to investigate the potential speedup a concurrent STM implementation gains over a sequential one under varying number of CPU cores and agent populations. The behaviour of the agents is quite simple and the interactions are happening indirectly through the environment, where reads from the environment outnumber the writes to it by far. Further, a comparison to a lock-based implementation with the \texttt{IO} Monad is done to show that STM outperforms traditional lock-based concurrency \textit{in a functional ABS implementation} while still retaining some static guarantees. The code of all implementations can be accessed freely from the \href{https://github.com/thalerjonathan/haskell-stm-sir}{repository}~\cite{thaler_stm_sir_repository}.
 
 \begin{enumerate}
 	\item \textit{Sequential} - this is the original implementation as discussed in Chapter \ref{sec:adding_env}, where the discrete 2D environment is shared amongst all agents as read-only data and the agents are executed sequentially within the main thread without any concurrency.
@@ -99,7 +99,7 @@ It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Ba
 \end{figure}
 
 \subsection{Retries}
-Of very much interest when using STM is the retry ratio, which obviously depends highly on the read-write patterns of the respective model. We used the stm-stats \footnote{\url{http://hackage.haskell.org/package/stm-stats}} library to record statistics of commits, retries and the ratio. The results are reported in Table \ref{tab:retries_stm}.
+Of very much interest when using STM is the retry ratio, which obviously depends highly on the read-write patterns of the respective model. We used the \href{http://hackage.haskell.org/package/stm-stats}{stm-stats library}~\cite{stm_stats_library} to record statistics of commits, retries and the ratio. The results are reported in Table \ref{tab:retries_stm}.
 
 \begin{table}
 	\centering

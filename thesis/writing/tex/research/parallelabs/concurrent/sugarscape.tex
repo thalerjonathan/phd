@@ -15,7 +15,7 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 
 In this implementation (as in the full Chapter II of the book), no direct and no synchronous agent interactions as we implemented them in Chapter \ref{ch:eventdriven} are happening. As in the SIR example, all agents interact with each other indirectly through the shared environment. This allows us to regard the implementation as a time-driven, parallel one wherein each step agents act conceptually at the same time.
 
-We compare four different implementations \footnote{The code is freely available at \url{https://github.com/thalerjonathan/phd/tree/master/public/stmabs/code/SugarScape}}:
+We compare four different implementations with the code freely accessible from the \href{https://github.com/thalerjonathan/haskell-stm-sugarscape}{repository}~\cite{thaler_stm_sugarscape_repository}:
 
 \begin{enumerate}
 	\item \textit{Sequential} - all agents are run after another, including the environment, where the environment is shared amongst the agents using a \texttt{StateT} Transformer.

@@ -1145,9 +1145,13 @@ References},
 }
 
 @misc{sorokin_aivika_2015,
-	title = {Aivika 3: {Creating} a {Simulation} {Library} based on {Functional} {Programming}},
+	title = {Aivika 3: {C}reating a {S}imulation {L}ibrary based on {F}unctional {P}rogramming},
+	url = {https://pdfs.semanticscholar.org/8dbd/cd2f4423dad78a37e6896496f7c6f95f929d.pdf},
+	howpublished = {\url{https://pdfs.semanticscholar.org/8dbd/cd2f4423dad78a37e6896496f7c6f95f929d.pdf}},
+	language = {English},
 	author = {Sorokin, David},
-	year = {2015}
+	year = {2015},
+	note = {Last Access October 11, 2019}
 }
 
 @article{farmer_economy_2009,
@@ -1400,21 +1404,15 @@ are used in a compiler for Haskell that is written in Haskell.},
 	year = {2014}
 }
 
-@misc{de_vries_-depth_2019,
+@misc{de_vries_quickcheckstatemachine,
 	title = {An in-depth look at quickcheck-state-machine},
 	url = {http://www.well-typed.com/blog/2019/01/qsm-in-depth/},
-	abstract = {Stateful APIs are everywhere: file systems, databases, widget libraries, the list goes on. Automated testing of such APIs requires generating sequences of API calls, and when we find a failing test, ideally shrinking such a sequence to a minimal test case. Neither the generation nor the shrinking of such sequences is trivial. After all, it is the very nature of stateful systems that later calls may depend on earlier calls: we can only add rows to a database table after we create it, we can only write to a file after we open it, etc. Such dependencies need to be tracked carefully. Moreover, in order to verify the responses we get back from the system, the test needs to maintain some kind of internal representation of what it thinks the internal state of the system is: when we read from a file, we need to know what was in the file in order to be able to verify if the response was correct or not.
-
-In this blog post we will take an in-depth look at quickcheck-state-machine, a library for testing stateful code. Our running example will be the development of a simple mock file system that should behave identically to a real file system. Although simple, the example will be large enough to give us an opportunity to discuss how we can verify that our generator is producing all test cases we need, and how we can inspect whether the shrinker is doing a good job; in both cases, test case labelling will turn out to be essential. Throughout we will also discuss design patterns for quickcheck-state-machine tests which improve separation of concerns and reduce duplication. It should probably be pointed out that this is an opinionated piece: there are other ways to set things up than we present here.
-
-We will not show the full development in this blog post, and instead focus on explaining the underlying concepts. If you want to follow along, the code is
-available for download. We will assume version 0.6 of quickcheck-state-machine, which was recently released. If you are using an older version, it is recommended to upgrade, since the newer version includes some important bug fixes, especially in the shrinker.},
+	howpublished = {\url{http://www.well-typed.com/blog/2019/01/qsm-in-depth/}},
 	language = {English},
-	urldate = {2019-02-24},
-	journal = {Well-Typed},
-	author = {De Vries, Edsko},
-	month = jan,
-	year = {2019}
+	author = {De Vries, E.},
+	month = Jan,
+	year = {2019},
+	note = {Last Access October 11, 2019}
 }
 
 @article{bernardy_linear_2017,
@@ -1438,8 +1436,9 @@ available for download. We will assume version 0.6 of quickcheck-state-machine, 
 }
 
 @misc{weaver_replicating_2009,
-	title = {Replicating {Sugarscape} in {NetLogo}},
+	title = {Replicating {S}ugarscape in {N}et{L}ogo},
 	url = {https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape},
+	howpublished = {\url{https://www2.le.ac.uk/departments/interdisciplinary-science/research/replicating-sugarscape}},
 	abstract = {Sugarscape is a model artificially intelligent agent-based social simulation following some or all rules presented by Joshua M. Epstein \& Robert Axtell in their book Growing Artificial Societies.
 
 The simulation was translated into the Netlogo language by Iain Weaver as a summer internship project and is available from the Netlogo library on the Netlogo web site.},
@@ -1448,7 +1447,8 @@ The simulation was translated into the Netlogo language by Iain Weaver as a summ
 	journal = {Replicating Sugarscape in NetLogo},
 	author = {Weaver, Iain},
 	month = oct,
-	year = {2009}
+	year = {2009},
+	note = {Last Access October 11, 2019}
 }
 
 @book{beck_test_2002,
@@ -2152,11 +2152,15 @@ sockets, asynchronous programming with threads, and a high level network applica
 	year = {2017}
 }
 
-@misc{diehl_what_nodate,
-	title = {{WHAT} {I} {WISH} {I} {KNEW} {WHEN} {LEARNING} {HASKELL}},
+@misc{diehl_wishknewhaskell,
+	title = {What {I} {W}ish {I} {K}new {W}hen {L}earning {H}askell},
 	url = {http://dev.stephendiehl.com/hask/},
-	urldate = {2019-02-05},
-	author = {Diehl, Stephen}
+	howpublished = {\url{http://dev.stephendiehl.com/hask/}},
+	language = {English},
+	author = {Diehl, S.},
+	month = March,
+	year = {2016},
+	note = {Last Access October 11, 2019}
 }
 
 @inproceedings{hanenberg_experiment_2010,
@@ -2278,46 +2282,49 @@ sockets, asynchronous programming with threads, and a high level network applica
 	file = {Citeseer - Full Text PDF:/home/jonathan/Zotero/storage/2XVT2RTS/Coutts et al. - 2007 - Stream Fusion. From Lists to Streams to Nothing at.pdf:application/pdf;Citeseer - Snapshot:/home/jonathan/Zotero/storage/F2DUI8T4/summary.html:text/html}
 }
 
-@inproceedings{mainland_haskell_2013,
-	title = {Haskell {Beats} {C} {Using} {Generalized} {Stream} {Fusion}},
-	abstract = {Stream fusion [3] is a powerful technique for automatically transforming high-level sequence-processing functions into efficient implementations. It has been used to great effect in Haskell libraries for manipulating byte arrays, Unicode text, and unboxed vectors. However, some operations, like vector append, still do not perform well within the standard stream fusion framework. Others, like SIMD computation using the SSE and AVX instructions available on modern x86 chips, do not seem to fit in the framework at all. In this paper we introduce generalized stream fusion, which solves these issues. The key insight is to bundle together multiple stream representations, each tuned for a particular class of stream consumer. We also describe a stream representation suited for efficient computation with SSE instructions. Our ideas are implemented in modified versions of the GHC compiler and vector library. Benchmarks show that high-level Haskell code written using our compiler and libraries can produce code that is competitive with hand-tuned assembly.},
-	urldate = {2019-05-14},
+@misc{mainland_haskell_2013,
+	title = {Haskell Beats C Using Generalized Stream Fusion},
+		title = {On {Competing} with {C} {Using} {Haskell}},
+	url = {https://www.semanticscholar.org/paper/Haskell-Beats-C-Using-Generalized-Stream-Fusion-Mainland/0ccaa4e306398ef7225e49b01cc5e0c16c94aac7},
+	howpublished = {\url{https://www.semanticscholar.org/paper/Haskell-Beats-C-Using-Generalized-Stream-Fusion-Mainland/0ccaa4e306398ef7225e49b01cc5e0c16c94aac7}},
+	language = {English},
 	author = {Mainland, Geoffrey},
 	year = {2013},
-	keywords = {Advanced Vector Extensions, Append, Benchmark (computing), Byte, Compiler, Computation, First-class function, High- and low-level, HL7PublishingSubSection {\textless}operations{\textgreater}, Libraries, Programmer, Standard streams, Stream processing, Streaming SIMD Extensions, The Glorious Glasgow Haskell Compilation System, Unicode, Version, X86},
-	file = {Full Text PDF:/home/jonathan/Zotero/storage/CYLXD2JS/Mainland - 2013 - Haskell Beats C Using Generalized Stream Fusion.pdf:application/pdf}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{stolarek_haskell_2013,
 	title = {Haskell as fast as {C}: {A} case study},
 	url = {http://lambda.jstolarek.com/2013/04/haskell-as-fast-as-c-a-case-study/},
-	abstract = {Once in a while someone, most likely new to Haskell, asks how does Haskell performance compare with C. In fact, when I was beginning with Haskell, I asked exactly the same question. During last couple of days I’ve been playing a bit with squeezing out some performance from a very simple piece of Haskell code. Turned out that the results I got are comparable with C so I thought I might share this. This will be a short case study, so I don’t intend to cover the whole subject of Haskell vs. C performance. There was a lot written on this already so I encourage to search through the Haskell-cafe archives as well as some other blogs. Most of all I suggest reading this and this post on Don Stewart’s blog.},
-	urldate = {2019-05-14},
-	journal = {Yet Another Lambda Blog},
-	author = {Stolarek, Jan},
+	howpublished = {\url{http://lambda.jstolarek.com/2013/04/haskell-as-fast-as-c-a-case-study/}},
+	language = {English},
+	author = {Stolarek, J.},
 	month = apr,
-	year = {2013}
+	year = {2013},
+	note = {Last Access October 11, 2019}
 }
 
 @misc{kqr_competing_2017,
-	title = {On {Competing} with {C} {Using} {Haskell}},
+	title = {On {C}ompeting with {C} {U}sing {H}askell},
 	url = {https://two-wrongs.com/on-competing-with-c-using-haskell},
-	abstract = {Mark Karpov wrote in his article on Migrating text metrics to pure Haskell how he originally did foreign calls out to C for many of the functions in his text metric package, but now ported them to Haskell when he learned that Haskell can give you performance comparable to C.},
-	journal = {Two Wrongs},
+	howpublished = {\url{https://two-wrongs.com/on-competing-with-c-using-haskell}},
+	language = {English},
 	author = {kqr, Chris},
 	month = jun,
-	year = {2017}
+	year = {2017},
+	note = {Last Access October 11, 2019}
 }
 
 @misc{stewart_haskell_2008,
 	title = {Haskell as fast as {C}: working at a high altitude for low level performance},
 	url = {https://donsbot.wordpress.com/2008/06/04/haskell-as-fast-as-c-working-at-a-high-altitude-for-low-level-performance/},
-	urldate = {2019-05-14},
-	journal = {Control.Monad.Writer},
-	author = {Stewart, Don},
+	howpublished = {\url{https://donsbot.wordpress.com/2008/06/04/haskell-as-fast-as-c-working-at-a-high-altitude-for-low-level-performance/}},
+	author = {Stewart, D.},
 	month = apr,
-	year = {2008}
+	year = {2008},
+	note = {Last Access October 11, 2019}
 }
+
 
 @article{gill_worker/wrapper_2009,
 	title = {The {Worker}/{Wrapper} {Transformation}},
@@ -2462,35 +2469,36 @@ Early Smalltalk was the first complete realization of these new points of view a
 	pages = {21}
 }
 
-@misc{thaler_repository_2019,
-	title = {Repository of {Sugarscape} implementation in {Haskell}},
+@misc{thaler_sugarscape_repository,
+	title = {Repository of {S}ugarscape implementation in {H}askell},
 	url = {https://github.com/thalerjonathan/haskell-sugarscape},
+	howpublished = {\url{https://github.com/thalerjonathan/haskell-sugarscape}},
 	language = {English},
 	author = {Thaler, J.},
-	month = may,
+	month = May,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{thaler_sir_repository,
-	title = {Repository of Agent-Based SIR implementation in Haskell},
+	title = {Repository of Agent-Based {SIR} implementation in {H}askell},
 	url = {https://github.com/thalerjonathan/haskell-sir},
 	howpublished = {\url{https://github.com/thalerjonathan/haskell-sir}},
 	language = {English},
 	author = {Thaler, J.},
 	month = May,
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{gintis_herbert_website,
-	title = {Herbert Gintis Website},
+	title = {Herbert {G}intis {W}ebsite},
 	url = {https://people.umass.edu/gintis/},
 	howpublished = {\url{https://people.umass.edu/gintis/}},
 	language = {English},
 	author = {Gintis, H.},
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @inproceedings{harris_transactional_2006,
@@ -2504,13 +2512,13 @@ Early Smalltalk was the first complete realization of these new points of view a
 }
 
 @misc{haskell_applications,
-	title = {Haskell Applications and Libraries},
+	title = {Haskell {A}pplications and {L}ibraries},
 	url = {https://wiki.haskell.org/Applications_and_libraries},
 	howpublished = {\url{https://wiki.haskell.org/Applications_and_libraries}},
 	language = {English},
 	author = {HaskellWiki},
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{gloss_library,
@@ -2520,7 +2528,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	language = {English},
 	author = {Lippmeier, B.},
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{pqueue_library,
@@ -2530,7 +2538,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	language = {English},
 	author = {Wasserman, L.},
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{array_library,
@@ -2540,7 +2548,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	language = {English},
 	author = {libraries@haskell.org},
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{containers_library,
@@ -2550,115 +2558,125 @@ Early Smalltalk was the first complete realization of these new points of view a
 	language = {English},
 	author = {libraries@haskell.org},
 	year = {2019},
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
 @misc{gamasutra_carmack_fp,
-	title = {In-depth: Functional programming in {C}++},
+	title = {In-depth: {F}unctional programming in {C}++},
 	url = {https://www.gamasutra.com/view/news/169296/Indepth_Functional_programming_in_C.php},
 	howpublished = {\url{https://www.gamasutra.com/view/news/169296/Indepth_Functional_programming_in_C.php}},
 	language = {English},
 	author = {Carmack, J},
 	year = {2012},
 	month= April,
-	note = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{thaler_repository_2019-2,
-	title = {Repository of {STM} implementations of the agent-based {SIR} model in {Haskell}},
+@misc{thaler_stm_sir_repository,
+	title = {Repository of {STM} implementations of the agent-based {SIR} model in {H}askell},
 	url = {https://github.com/thalerjonathan/haskell-stm-sir},
+	howpublished = {\url{https://github.com/thalerjonathan/haskell-stm-sir}},
 	language = {English},
 	author = {Thaler, J.},
-	month = oct,
+	month = Oct,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{breitner_stm-stats_2019,
+@misc{stm_stats_library,
 	title = {stm-stats library},
 	url = {http://hackage.haskell.org/package/stm-stats},
+	howpublished = {\url{http://hackage.haskell.org/package/stm-stats}},
 	language = {English},
 	author = {Breitner, J.},
-	month = oct,
+	month = Oct,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{thaler_repository_2019-3,
-	title = {Repository of {STM} implementations of the {Sugarscape} model in {Haskell}},
+@misc{thaler_stm_sugarscape_repository,
+	title = {Repository of {STM} implementations of the {S}ugarscape model in {H}askell},
 	url = {https://github.com/thalerjonathan/haskell-stm-sugarscape},
+	howpublished = {\url{https://github.com/thalerjonathan/haskell-stm-sugarscape}},
 	language = {English},
 	author = {Thaler, J.},
-	month = oct,
+	month = Oct,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{thaler_repository_2019-4,
-	title = {Repository of the {Gode} and {Sunder} {Zero} {Intelligence} traders in {Haskell}},
+@misc{thaler_zerointelligence_repository,
+	title = {Repository of the {G}ode and {S}under {Z}ero {I}ntelligence traders in {H}askell},
 	url = {https://github.com/thalerjonathan/zerointelligence},
+	howpublished = {\url{https://github.com/thalerjonathan/zerointelligence}},
 	language = {English},
 	author = {Thaler, J.},
-	month = mar,
+	month = March,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{lebaron_zero_2016,
-	title = {Zero {Intelligence} {Traders}: {Gode} and {Sunder}},
-	url = {http://people.brandeis.edu/ blebaron/classes/agentfin/GodeSunder.html},
+@misc{lebaron_zerointelligence,
+	title = {Zero {I}ntelligence {T}raders: {G}ode and {S}under},
+	url = {http://people.brandeis.edu/~blebaron/classes/agentfin/GodeSunder.html},
+	howpublished = {\url{http://people.brandeis.edu/~blebaron/classes/agentfin/GodeSunder.html}},
 	language = {English},
 	author = {LeBaron, B.},
 	year = {2016},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{kaminski_what_2018,
+@misc{kaminski_messageoriented,
 	title = {What would a message-oriented programming language look like?},
 	url = {https://www.tedinski.com/2018/11/20/message-oriented-programming.html},
+	howpublished = {\url{https://www.tedinski.com/2018/11/20/message-oriented-programming.html}},
 	language = {English},
 	author = {Kaminski, T.},
-	month = nov,
+	month = November,
 	year = {2018},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{wiki_definitions_2014,
-	title = {Definitions {For} {Oo}},
+@misc{definitionsforoo,
+	title = {Definitions {F}or {O}o},
 	url = {http://wiki.c2.com/?DefinitionsForOo},
+	howpublished = {\url{http://wiki.c2.com/?DefinitionsForOo}},
 	language = {English},
 	author = {wiki, c2},
-	month = nov,
+	month = November,
 	year = {2014},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{maguire_freer_2019,
-	title = {Freer {Monads}, {More} {Better} {Programs}},
+@misc{maguire_freermonads_better,
+	title = {Freer {M}onads, {M}ore {B}etter {P}rograms},
 	url = {https://reasonablypolymorphic.com/blog/freer-monads/},
+	howpublished = {\url{https://reasonablypolymorphic.com/blog/freer-monads/}},
 	language = {English},
 	author = {Maguire, S.},
-	month = feb,
+	month = Feb,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{maguire_freer_2019-1,
-	title = {Freer {Monads}: {Too} {Fast}, {Too} {Free}},
+@misc{maguire_freermonads_fast,
+	title = {Freer {M}onads: {T}oo {F}ast, {T}oo {F}ree},
 	url = {https://reasonablypolymorphic.com/blog/too-fast-too-free/},
+	howpublished = {\url{https://reasonablypolymorphic.com/blog/too-fast-too-free/}},
 	language = {English},
 	author = {Maguire, S.},
-	month = feb,
+	month = Feb,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }
 
-@misc{maguire_freer_2019-2,
-	title = {Freer, yet {Too} {Costly} {Higher}-order {Effects}},
+@misc{maguire_higherorder_effects,
+	title = {Freer, yet too costly {H}igher-order {E}ffects},
 	url = {https://reasonablypolymorphic.com/blog/freer-yet-too-costly/},
+	howpublished = {\url{https://reasonablypolymorphic.com/blog/freer-yet-too-costly/}},
 	language = {English},
 	author = {Maguire, S.},
-	month = mar,
+	month = March,
 	year = {2019},
-	annote = {Accessed October 11, 2019}
+	note = {Last Access October 11, 2019}
 }

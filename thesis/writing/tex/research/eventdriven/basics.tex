@@ -43,7 +43,7 @@ It is easy to see that this behaviour emulates the time-driven one and indeed in
 \end{figure}
 
 \subsection{Events, agent identity and scheduling}
-We can now start to discuss the concepts from an implementation perspective. First, we need to make the concept of an event explicit. An event is of a given type, has a receiver and a timestamp in \textit{absolute} simulation time when it shall be scheduled. We keep the event type polymorphic and represent the receiver by an \texttt{AgentId} which is a simple \texttt{Int}. For efficient scheduling, the events are kept in a priority queue \footnote{We are using the \textit{Data.PQueue.Min} implementation from the \textit{pqueue} library \url{http://hackage.haskell.org/package/pqueue}.}, sorted ascending by the timestamp. Thus we define the following:
+We can now start to discuss the concepts from an implementation perspective. First, we need to make the concept of an event explicit. An event is of a given type, has a receiver and a timestamp in \textit{absolute} simulation time when it shall be scheduled. We keep the event type polymorphic and represent the receiver by an \texttt{AgentId} which is a simple \texttt{Int}. For efficient scheduling, the events are kept in a priority queue \href{http://hackage.haskell.org/package/pqueue}{Data.PQueue.Min}~\cite{pqueue_library}, sorted ascending by the timestamp. Thus we define the following:
 
 \begin{HaskellCode}
 type Time        = Double

@@ -81,14 +81,6 @@
 \clearpage
 \thispagestyle{plain}
 
-\input{./tex/abstract.tex}
-
-\newpage
-
-%\clearpage
-
-\input{./tex/publications.tex}
-
 % DEDICATION
 \clearpage
 \begin{center}
@@ -98,13 +90,17 @@
     \vspace*{\fill}
 \end{center}
 
-% ACKNOWLEDGEMENTS
-\clearpage
+\newpage
+
+\input{./tex/abstract.tex}
+\newpage
+\input{./tex/publications.tex}
+\newpage
 \input{./tex/acknowledgements.tex}
 
 \tableofcontents
 \listoffigures
- \listoftables
+\listoftables
 
 %TODO 
 % rewrite abstract

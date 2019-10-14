@@ -73,14 +73,14 @@ In a first approach we compare the performance of all implementations on varying
 		\multicolumn{1}{ |c| }{4} & \textbf{84.4} & 0.05   \\ \hline \hline 
 	\end{tabular}  	
   	
-  	\caption{Steps per second (higher is better) and retries ratio (lower is better) on 50x50 grid with 500 initial agents on varying cores.}
+  	\caption[Comparison of steps per seconds and retries of various Sugarscape implementations with constant agent numbers]{Comparison of steps per seconds (higher is better) and retries (lower is better) of various Sugarscape implementations with constant agent numbers. Using 50x50 grid with 500 initial agents on varying cores.}
 	\label{tab:varying_cores}
 \end{table}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\textwidth, angle=0]{./fig/concurrentabs/sugarscape/varying_cores.png}
-	\caption{Steps per second (higher is better) and retries on 50x50 grid and 500 initial agents on varying cores.}
+	\caption[Comparison of steps per seconds and retries of various Sugarscape implementations with constant agent numbers]{Comparison of steps per seconds (higher is better) and retries of various Sugarscape implementations with constant agent numbers. Using a 50x50 grid and 500 initial agents on varying cores.}
 	\label{fig:varying_cores}
 \end{figure}
 
@@ -108,14 +108,14 @@ Except for the \textit{Sequential} approach we ran all experiments with 4 cores 
    		2,500   & 5.3        & 5.4 		  & 9.2            & 8.9			& \textbf{33.3}    \\ \hline \hline
    	\end{tabular}
   	
-  	\caption{Steps per second (higher is better) on 50x50 grid with varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
+  	\caption[Steps per second of various Sugarscape implementations with varying agent numbers]{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid with varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
 	\label{tab:state_results_agentsscale_time}
 \end{table}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=1.0\textwidth, angle=0]{./fig/concurrentabs/sugarscape/varying_agents.png}
-	\caption{Steps per second (higher is better) on 50x50 grid and varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
+	\caption[Steps per second of various Sugarscape implementations with varying agent numbers]{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid and varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
 	\label{fig:state_results_agentsscale_time}
 \end{figure}
 
@@ -155,7 +155,7 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 		\multicolumn{1}{ |c| }{32} & 109.8 (0.41)      & 31.3 (0.18)      \\ \hline \hline 
 	\end{tabular}  	
   	
-  	\caption{Steps per second (higher is better) on 16 and 32 cores on Amazon EC2.}
+  	\caption[Steps per second of Sugarscape \textit{STM} on 16 and 32 cores on Amazon EC2]{Steps per second (higher is better) of Sugarscape \textit{STM} on 16 and 32 cores on Amazon EC2.}
 	\label{tab:sug_varying_cores_amazon}
 \end{table}
 

@@ -6,7 +6,7 @@ Unfortunately, this mechanism is not enough to implement the other agent interac
 \begin{figure}
 	\centering
 	\includegraphics[width=1.0\textwidth, angle=0]{./fig/eventdriven/syncagentinteractions.png}
-	\caption{Sequence diagram of synchronous agent interaction in the trading use case. Upon the handling of the \texttt{Tick} event, agent A looks for trading partners and finds agent B within its neighbourhood and sends a \texttt{TradeOffer} message. Agent B replies to this message with \texttt{TradeReply} and agent A continues with the trading algorithm by picking up where it has left the execution when sending the message to agent B. After agent A has finished the trading with agent B, it turns to agent C, where the same procedure follows.}
+	\caption[Sequence diagram of synchronous agent interaction in the trading use case]{Sequence diagram of synchronous agent interaction in the trading use case. Upon the handling of the \texttt{Tick} event, agent A looks for trading partners and finds agent B within its neighbourhood and sends a \texttt{TradeOffer} message. Agent B replies to this message with \texttt{TradeReply} and agent A continues with the trading algorithm by picking up where it has left the execution when sending the message to agent B. After agent A has finished the trading with agent B, it turns to agent C, where the same procedure follows.}
 	\label{fig:syncagentinteractions}
 \end{figure}
 

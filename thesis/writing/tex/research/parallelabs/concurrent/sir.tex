@@ -21,7 +21,7 @@ In the experiments we varied the number of agents (grid size) as well as the num
 		Haskell & GHC 8.2.2
 	\end{tabular}
 	
-	\caption{Machine and Software specs for all experiments}
+	\caption{Machine and Software specs for concurrency experiments}
 	\label{tab:machine_specs}
 \end{table}
 
@@ -56,7 +56,7 @@ In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and 
 		\multicolumn{1}{ |c| }{4} & \textbf{20.8}    \\ \hline \hline 
 	\end{tabular}
   	
-  	\caption{Experiments on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better).}
+  	\caption[SIR performance comparisons on 51x51 grid with varying number of cores]{SIR performance comparisons on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better).}
 	\label{tab:constgrid_varyingcores}
 \end{table}
 
@@ -67,7 +67,7 @@ Comparing the performance and scaling to multiple cores shows that the \textit{S
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth, angle=0]{./fig/concurrentabs/sir/core_duration_stm_io.png}
-	\caption{Comparison of performance and scaling on multiple cores of the \textit{STM} and \textit{Lock-Based} implementations. The \textit{Lock-Based} implementation seems to perform slightly worse on 4 than on 3 cores probably due to lock contention.}
+	\caption[Comparison of performance and scaling on multiple cores of the \textit{STM} and \textit{Lock-Based} SIR implementations]{Comparison of performance and scaling on multiple cores of the \textit{STM} and \textit{Lock-Based} SIR implementations. The \textit{Lock-Based} implementation seems to perform slightly worse on 4 than on 3 cores probably due to lock contention.}
 	\label{fig:core_duration_stm_io}
 \end{figure}
 
@@ -85,7 +85,7 @@ In this experiment we varied the grid size and used always 4 cores. The results 
    		251 x 251 (63,001) & \textbf{495.7}   & 1,027.3      & 2.1 \\ \hline \hline
   	\end{tabular}
 
-  	\caption{Performance on varying grid sizes. Timings in seconds (lower is better). Ratio compares \textit{STM} to \textit{Lock-Based} (higher is better).}
+  	\caption[Performance comparison of \textit{STM} and \textit{Lock-Based} SIR implementations on varying grid sizes]{Performance comparison of \textit{STM} and \textit{Lock-Based} SIR implementations on varying grid sizes. Timings in seconds (lower is better). Ratio compares \textit{STM} to \textit{Lock-Based} (higher is better).}
 	\label{tab:varyinggrid_constcores}
 \end{table}
 
@@ -94,7 +94,7 @@ It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Ba
 \begin{figure}
 	\centering
 	\includegraphics[width=1\textwidth, angle=0]{./fig/concurrentabs/sir/stm_io_varyinggrid_performance.png}
-	\caption{Performance on varying grid sizes.}
+	\caption[Performance comparison of \textit{STM} and \textit{Lock-Based} SIR implementations on varying grid sizes]{Performance comparison of \textit{STM} and \textit{Lock-Based} SIR implementations on varying grid sizes.}
 	\label{fig:varyinggrid_constcores}
 \end{figure}
 
@@ -112,7 +112,7 @@ Of very much interest when using STM is the retry ratio, which obviously depends
    		251 x 251 (63,001) & 63,001,000 & 21217.0 & 0.0 \\ \hline \hline
   	\end{tabular}
   	
-  	\caption{Retry ratios on varying grid sizes on 4 cores.}
+  	\caption[]Retry ratios of SIR \textit{STM} implementation on varying grid sizes on 4 cores]{Retry ratios of SIR \textit{STM} implementation on varying grid sizes on 4 cores.}
 	\label{tab:retries_stm}
 \end{table}
 
@@ -138,7 +138,7 @@ To test how far we can scale up the number of cores in both the \textit{Lock-Bas
 		\multicolumn{1}{ |c| }{32} & 12.0    & 248.7      \\ \hline \hline 
 	\end{tabular}
 
-  	\caption{Performance with 16 and 32 cores on Amazon EC2. Timings in seconds (lower is better).}
+  	\caption[SIR \textit{STM} performance on 16 and 32 cores on Amazon EC2]{SIR \textit{STM} performance on 16 and 32 cores on Amazon EC2. Timings in seconds (lower is better).}
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 

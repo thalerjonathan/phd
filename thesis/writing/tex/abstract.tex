@@ -1,12 +1,10 @@
 \section*{Abstract}
-%You need to provide a little bit of motivation/background in your abstract (to start with). Why is this a relevant topic; what are current issues/shortcomings?
-% setting the scene
 Implementations of Agent-Based Simulations (ABS) primarily use object- \\ oriented programming techniques, as in Python, Java and C++, due to the established opinion that \textit{agents map naturally to objects}. These techniques have seen tremendous success throughout the last two decades in general and were able to provide the ABS community with useful simulation tools in particular.
 
 % problem 1: oop has uncontrolled side effects, which comes with a ton of protential problems
 However, the verification process of ensuring the correctness of the implementation up to some specification, has never been an easy task with the established object-oriented techniques, due to their inherent use of unrestricted side effects.
 % problem 2: parallelisation (and concurrency) is difficult due to unrestricted side effects
-Further, with the shift towards multicore CPUs in recent years, it became clear that the unrestricted side effects of the established object-oriented techniques pose serious difficulties in arriving at a correct parallel or concurrent solution. %, and more robust techniques to overcome the difficulties of parallel and concurrent programming are needed to fully exploit the full potential of this new technology. 
+Further, with the shift towards multicore CPUs in recent years, it became clear that the unrestricted side effects of the established object-oriented techniques pose serious difficulties in arriving at a correct parallel or concurrent solution.
 
 % why is this a problem: because ABS are scientific computations which need to be correct as they support scientific theories and policy decisions influencing peoples lives
 As ABS is almost always used in the context of scientific computation, to test hypotheses, explore dynamics, support scientific theories and also to make informed decisions about policies, potentially influencing many peoples lives, these difficulties are a serious issue because results of ABS thus need to be free of bugs, reproducible given same initial starting conditions and comprehensible by other researchers.
@@ -16,40 +14,25 @@ As ABS is almost always used in the context of scientific computation, to test h
 % what we do in this thesis: a potential solution. also define purity
 This thesis investigates pure functional programming with the language Haskell as a potential solution to overcome these difficulties. The central theme permeating this thesis is the one of \textit{purity}, which identifies the \textit{lack of unrestricted side effects} and \textit{referential transparency} where fundamentally a computation does not depend on its context within the system but will produce the same result when run repeatedly with similar inputs. This thesis explores if and how purity and the resulting concepts help overcoming the issues of the established object-oriented techniques, ensuring the confidence in the correctness of an implementation, by answering the following questions:
 
-%From the abstract it seems like the body of your thesis should be subdivided into two rather than three main sections. If you want to keep three sections, consider the following:
-%
-%II How can we do it? (approach)
-%    Implementation techniques
-%III Why should we do it? (benefits)
-%   Parallel computing
-%   Property based testing
-%IV How certain can we be? (confidence)
-%
-%If you want to keep three sections, you should come up with a third question. These could then be the three questions you are aiming to answer with your PhD studies
-%You could list them all together initially in your abstract, before referring to them individually one after one. 
-
 \begin{enumerate}
 	\item How can ABS be implemented pure functionally and what are the benefits and drawbacks in doing so?
 	\item How can pure functional programming be used for robust parallel and concurrent programming? 
 	\item How can pure functional programming be used for testing ABS implementations?
 \end{enumerate}
 
-% Then you say what you did.
-Thematically, the research of the thesis is split into two parts with the first one dealing with the the \textit{approach} to a pure functional ABS, and the second one with exploring additional \textit{benefits} enabled through pure functional programming.
-First, the thesis explores \textit{how} to implement ABS pure functionally, discussing both a time- and event-driven approach. In each case arrowized Functional Reactive Programming is used to derive fundamental abstractions and concepts. As use cases the well known explanatory agent-based SIR and the exploratory Sugarscape model are used. Then the thesis focuses on \textit{why} it is of benefit to implement ABS pure functionally. It explores robust parallel and concurrent programming where the main focus is on how to speedup the simulation but keeping it still pure. In the concurrency part, Software Transactional Memory is used, sacrificing purity but still retaining certain guarantees about reproducibility. Finally, the thesis explores testing of ABS implementations using property-based testing to show how to encode agent specifications and model invariants and perform verification of the explanatory model and hypothesis testing of the exploratory model.
+% what i did
+Thematically, the research of the thesis is split into two parts with the first one dealing with the the \textit{approach} to a pure functional ABS implementation, and the second one with exploring \textit{benefits} enabled through pure functional programming.
+First, the thesis explores \textit{how} to implement ABS pure functionally, discussing both a time- and event-driven approach. In each case arrowized Functional Reactive Programming is used to derive fundamental abstractions and concepts. As use cases the well known explanatory agent-based SIR and the exploratory Sugarscape models are used. Then the thesis focuses on \textit{why} it is of benefit to implement ABS pure functionally. It explores robust parallel and concurrent programming where the main focus is on how to speed up the simulation but keeping it still pure. In the concurrency part, Software Transactional Memory is used, sacrificing purity but still retaining certain guarantees about reproducibility. Finally, the thesis explores testing of ABS implementations using property-based testing to show how to encode agent specifications and model invariants and perform verification of the explanatory model and hypothesis testing of the exploratory model.
 
-%Then you clearly state your contribution.
-
+%contribution
 The contribution of this thesis is threefold:
 \begin{enumerate}
 	\item Development of pure functional implementation techniques for ABS \\ through the use of arrowized Functional Reactive Programming.
-	\item Investigating the use of Software Transactional Memory for concurrent ABS.
+	\item Investigating the use of Software Transactional Memory for robust concurrent ABS.
 	\item Investigating the use of randomised property-based testing for declarative and stochastic ABS testing.
 \end{enumerate}
 
-The developed concepts in this thesis show that pure functional programming has indeed its place in ABS as it comes with unique benefits over the established object-oriented approach. A pure functional approach in general should lead to implementations which are more likely to be valid due to the use of the strong static type system and focus on purity by avoiding computations with unrestricted side effects under all costs. Further, parallel computation makes it possible to gain substantial speedup by retaining static guarantees. The use of Software Transactional Memory speeds up concurrent implementations by a substantial factor, dramatically outperforming lock-based approaches while still retaining certain guarantees about reproducibility. Finally, property-based testing is shown to be highly useful as it maps naturally to the stochastic nature of ABS and is thus possible to be integrated into the development process as additional tool for testing specifications and hypotheses.
+The results of the respective contributions support that pure functional programming has indeed its place in ABS. First, a pure functional approach in general leads to implementations which are more likely to be valid due to the focus on purity by avoiding computations with unrestricted side effects under all costs. Second, pure parallel computation and Software Transactional Memory based concurrency make it possible to gain substantial speedup, with the latter one dramatically outperforming lock-based approaches. While pure parallel computation fully retains static guarantees, Software Transactional Memory sacrifices purity, but is still able to retain certain guarantees about reproducibility. Finally, property-based testing is shown to be highly useful as it maps naturally to the stochastic nature of ABS and is thus possible to be integrated into the development process as additional tool for testing specifications and hypotheses.
 
-%One final paragraph, making a statement of the usefulness of the research conducted.
-%"Overall we have fulfilled the aim, and supported both communities by giving them new technologies (ABM) and application areas (FP) ... We believe that this research will lead to ..."
-
+%statement of the usefulness of the research conducted.
 Overall we have fulfilled the aim, and supported both the functional programming and ABS communities by giving them new technologies and application areas. We believe that this research will lead to an increased interest of purity in ABS, the use of Software Transactional Memory to parallelise ABS implementations and property-based testing to test ABS, to ultimately increase the confidence in the researchers results.

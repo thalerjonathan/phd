@@ -1,0 +1,27 @@
+STM transaction statistics (2018-07-28 16:49:12.21646824 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       480867    1550693       3.22
+STM transaction statistics (2018-07-28 16:50:13.111933159 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       501911    1638790       3.27
+STM transaction statistics (2018-07-28 16:51:13.704632611 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       520516    1691735       3.25
+STM transaction statistics (2018-07-28 16:52:14.646468133 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       512251    1676267       3.27
+STM transaction statistics (2018-07-28 16:53:15.210205131 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       518602    1698828       3.28
+STM transaction statistics (2018-07-28 16:54:15.787878124 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       521574    1706175       3.27
+STM transaction statistics (2018-07-28 16:55:16.359859612 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       429828    1359514       3.16
+STM transaction statistics (2018-07-28 16:56:17.202839955 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       446355    1428954       3.20
+
+ratios = [3.22, 3.27, 3.25, 3.27, 3.28 ,3.27 ,3.16 ,3.20]
+mean (ratios) =   3.2400

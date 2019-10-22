@@ -1,0 +1,54 @@
+2,664,873,811,952 bytes allocated in the heap
+ 597,982,210,424 bytes copied during GC
+   2,391,286,728 bytes maximum residency (254 sample(s))
+       8,808,752 bytes maximum slop
+            4907 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     190643 colls, 190643 par   1943.270s  111.825s     0.0006s    0.0311s
+  Gen  1       254 colls,   253 par   463.781s  31.856s     0.1254s    0.2501s
+
+  Parallel GC work balance: 96.00% (serial 0%, perfect 100%)
+
+  TASKS: 34 (1 bound, 33 peak workers (33 total), using -N16)
+
+  SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+
+  INIT    time    0.004s  (  0.099s elapsed)
+  MUT     time  2401.456s  (1735.187s elapsed)
+  GC      time  2407.051s  (143.681s elapsed)
+  EXIT    time    0.000s  (  0.006s elapsed)
+  Total   time  4808.511s  (1878.973s elapsed)
+
+  Alloc rate    1,109,690,991 bytes per MUT second
+
+  Productivity  49.9% of total user, 92.3% of total elapsed
+
+
+2,664,837,850,104 bytes allocated in the heap
+ 597,977,510,504 bytes copied during GC
+   2,391,065,176 bytes maximum residency (252 sample(s))
+       8,808,176 bytes maximum slop
+            4907 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     191161 colls, 191161 par   1953.267s  112.767s     0.0006s    0.0314s
+  Gen  1       252 colls,   251 par   465.660s  32.017s     0.1271s    0.2541s
+
+  Parallel GC work balance: 95.83% (serial 0%, perfect 100%)
+
+  TASKS: 34 (1 bound, 33 peak workers (33 total), using -N16)
+
+  SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+
+  INIT    time    0.001s  (  0.025s elapsed)
+  MUT     time  2420.305s  (1741.542s elapsed)
+  GC      time  2418.927s  (144.784s elapsed)
+  EXIT    time    0.009s  (  0.001s elapsed)
+  Total   time  4839.242s  (1886.352s elapsed)
+
+  Alloc rate    1,101,034,092 bytes per MUT second
+
+  Productivity  50.0% of total user, 92.3% of total elapsed
+
+

@@ -1,0 +1,188 @@
+Run 1
+ 166,670,714,800 bytes allocated in the heap
+  27,865,964,808 bytes copied during GC
+       7,053,392 bytes maximum residency (2022 sample(s))
+          69,072 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   22.480s  22.531s     0.0001s    0.0054s
+  Gen  1      2022 colls,     0 par    0.271s   0.272s     0.0001s    0.0003s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   51.347s  ( 51.473s elapsed)
+  GC      time   22.751s  ( 22.803s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   74.099s  ( 74.277s elapsed)
+
+  %GC     time      30.7%  (30.7% elapsed)
+
+  Alloc rate    3,245,946,341 bytes per MUT second
+
+  Productivity  69.3% of total user, 69.3% of total elapsed
+
+Run 2
+ 166,670,682,032 bytes allocated in the heap
+  27,866,887,296 bytes copied during GC
+       7,053,768 bytes maximum residency (2022 sample(s))
+          68,560 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   22.295s  22.348s     0.0001s    0.0053s
+  Gen  1      2022 colls,     0 par    0.265s   0.266s     0.0001s    0.0003s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   49.600s  ( 49.723s elapsed)
+  GC      time   22.561s  ( 22.613s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   72.162s  ( 72.338s elapsed)
+
+  %GC     time      31.3%  (31.3% elapsed)
+
+  Alloc rate    3,360,295,663 bytes per MUT second
+
+  Productivity  68.7% of total user, 68.7% of total elapsed
+
+Run 3
+ 166,670,682,032 bytes allocated in the heap
+  27,865,226,040 bytes copied during GC
+       7,060,752 bytes maximum residency (2022 sample(s))
+          68,720 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   22.866s  22.931s     0.0002s    0.0089s
+  Gen  1      2022 colls,     0 par    0.271s   0.271s     0.0001s    0.0004s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   48.408s  ( 48.551s elapsed)
+  GC      time   23.137s  ( 23.202s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   71.546s  ( 71.754s elapsed)
+
+  %GC     time      32.3%  (32.3% elapsed)
+
+  Alloc rate    3,443,049,070 bytes per MUT second
+
+  Productivity  67.7% of total user, 67.7% of total elapsed
+
+Run 4
+ 166,670,682,032 bytes allocated in the heap
+  27,881,639,360 bytes copied during GC
+       7,055,608 bytes maximum residency (2023 sample(s))
+          68,720 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150428 colls,     0 par   22.751s  22.832s     0.0002s    0.0087s
+  Gen  1      2023 colls,     0 par    0.270s   0.271s     0.0001s    0.0005s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   49.768s  ( 49.942s elapsed)
+  GC      time   23.021s  ( 23.102s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   72.790s  ( 73.045s elapsed)
+
+  %GC     time      31.6%  (31.6% elapsed)
+
+  Alloc rate    3,348,920,262 bytes per MUT second
+
+  Productivity  68.4% of total user, 68.4% of total elapsed
+
+Run 5
+ 166,670,682,032 bytes allocated in the heap
+  27,865,725,216 bytes copied during GC
+       7,055,608 bytes maximum residency (2022 sample(s))
+          68,720 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   23.343s  23.455s     0.0002s    0.0083s
+  Gen  1      2022 colls,     0 par    0.276s   0.277s     0.0001s    0.0007s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   49.956s  ( 50.186s elapsed)
+  GC      time   23.619s  ( 23.733s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   73.576s  ( 73.920s elapsed)
+
+  %GC     time      32.1%  (32.1% elapsed)
+
+  Alloc rate    3,336,359,892 bytes per MUT second
+
+  Productivity  67.9% of total user, 67.9% of total elapsed
+
+Run 6
+ 166,670,714,800 bytes allocated in the heap
+  27,867,269,392 bytes copied during GC
+       7,060,752 bytes maximum residency (2022 sample(s))
+          69,072 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   22.773s  22.885s     0.0002s    0.0084s
+  Gen  1      2022 colls,     0 par    0.268s   0.269s     0.0001s    0.0008s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   48.567s  ( 48.794s elapsed)
+  GC      time   23.042s  ( 23.154s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   71.609s  ( 71.949s elapsed)
+
+  %GC     time      32.2%  (32.2% elapsed)
+
+  Alloc rate    3,431,793,807 bytes per MUT second
+
+  Productivity  67.8% of total user, 67.8% of total elapsed
+
+Run 7
+ 166,670,616,496 bytes allocated in the heap
+  27,867,172,440 bytes copied during GC
+       7,055,608 bytes maximum residency (2022 sample(s))
+          68,560 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   22.487s  22.585s     0.0002s    0.0070s
+  Gen  1      2022 colls,     0 par    0.265s   0.266s     0.0001s    0.0004s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   48.373s  ( 48.583s elapsed)
+  GC      time   22.752s  ( 22.851s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   71.125s  ( 71.435s elapsed)
+
+  %GC     time      32.0%  (32.0% elapsed)
+
+  Alloc rate    3,445,555,899 bytes per MUT second
+
+  Productivity  68.0% of total user, 68.0% of total elapsed
+
+Run 8
+ 166,670,682,032 bytes allocated in the heap
+  27,866,415,600 bytes copied during GC
+       7,060,752 bytes maximum residency (2022 sample(s))
+          68,720 bytes maximum slop
+              23 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     150429 colls,     0 par   22.595s  22.698s     0.0002s    0.0076s
+  Gen  1      2022 colls,     0 par    0.265s   0.267s     0.0001s    0.0008s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   48.391s  ( 48.604s elapsed)
+  GC      time   22.861s  ( 22.965s elapsed)
+  EXIT    time    0.001s  (  0.001s elapsed)
+  Total   time   71.252s  ( 71.570s elapsed)
+
+  %GC     time      32.1%  (32.1% elapsed)
+
+  Alloc rate    3,444,272,486 bytes per MUT second
+
+  Productivity  67.9% of total user, 67.9% of total elapsed
+
+durations = [74.277, 72.338, 71.754, 73.045, 73.920, 71.949, 71.435, 71.570];
+mean (durations) = 72.536
+
+

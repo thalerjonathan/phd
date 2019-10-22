@@ -1,0 +1,11 @@
+851 steps after 60.0 sec. is a ratio of 14.183333333333334
+851 steps after 60.0 sec. is a ratio of 14.183333333333334
+851 steps after 60.0 sec. is a ratio of 14.183333333333334
+851 steps after 60.0 sec. is a ratio of 14.183333333333334
+867 steps after 60.0 sec. is a ratio of 14.45
+886 steps after 60.0 sec. is a ratio of 14.766666666666667
+879 steps after 60.0 sec. is a ratio of 14.65
+880 steps after 60.0 sec. is a ratio of 14.666666666666666
+
+ratios = [14.18, 14.18, 14.18, 14.18, 14.45, 14.76, 14.65, 14.66]
+mean (ratios) = 14.405

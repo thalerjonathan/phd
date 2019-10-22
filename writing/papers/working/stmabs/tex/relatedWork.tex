@@ -1,6 +1,35 @@
 \section{Related Work}
 \label{sec:rel_work}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOI: 10.1016/j.procs.2013.05.231 \cite{suryanarayanan_pdes-mas_2013}
+"The fundamental problem is that MAS models are by nature data-centric. A MAS simulation typically requires a very large set of shared variables which could, in principle, be accessed or updated by the agents (if they were in the right position at the right time etc.)"
+"PDES-MAS provides mechanisms for the adaptive partitioning of the simulation shared state and addresses
+the problems of load balancing, synchronisation and interest management (avoiding all to all communications) in
+an integrated, adaptive and fully transparent manner."
+"In Tileworld, agents move in a 2-D grid environment of squared cells which contains objects such as tiles, holes and obstacles. The objective of an agent is to maximise its score by pushing the tiles into the holes while avoiding obstacles. Objects in the environment appear and disappear dynamically based on user controlled parameters. In each step, an agent goes through a sense-think-act cycle, prioritising the selected targets within its sensor range, and then moving to its target using A* route planning with a minimum cost (defined with the number of cells required to reach a target). An agent
+with sensory range r can cover 8(1+2+...+r) cells, but it can only move in four directions (UP, LEFT, RIGHT,
+DOWN)."
+
+The work \cite{suryanarayanan_pdes-mas_2013} gives a detailed and in-depth discussion of the internals and implementation of the PDES-MAS system. Using the Tileworld ABM as benchmark they report performance
+
+
+
+% DOI: 10.1109/5.910853 \cite{logan_distributed_2001}
+% DOI: 10.1177/0037549708096691 \cite{lees_using_2008}
+% DOI 10.1145/2517449 \cite{suryanarayanan_synchronised_2013}
+% SPADES (dl.acm.org/citation.cfm?id=1030926) \cite{riley_next_2003}
+% MACE3J (DOI: 10.1145/544862.544918) \cite{gasser_mace3j:_2002}
+% James II (DOI: 10.1109/ANSS.2007.34) plug 'n simulate \cite{himmelspach_plugn_2007}
+% DOI: 10.1002/cpe.1280 RePast-HLA which has ported RePast on HLA \cite{minson_distributing_2008}
+% DOI: 10.22360/SpringSim.2016.HPC.046 RepastHPC uses both optimistic and pessimistic PDES \cite{gorur_repast_2016}
+% DOI: 10.1145/2769458.2769462 hardware transactional memory has been investigated in the context of PDES not for agents though \cite{hay_experiments_2015}
+% DOI: 10.1016/j.cosrev.2017.03.001 \cite{abar_agent_2017}
+% \cite{cicirelli_efficient_2015} [2] Cicirelli, F., Giordano, A., & Nigro, L. (2015). Efficient environment management for distributed simulation of large‐scale situated multi‐agent systems. Concurrency and Computation: Practice and Experience, 27(3), 610-632.
+% DOI: 10.1145/2535417 interest management \cite{liu_interest_2014}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 In his master thesis \cite{bezirgiannis_improving_2013} the author investigates Haskells' parallel and concurrency features to implement (amongst others) \textit{HLogo}, a Haskell clone of the NetLogo \cite{wilensky_introduction_2015} simulation package, focusing on using STM for a limited form of agent-interactions. \textit{HLogo} is basically a re-implementation of NetLogos API in Haskell where agents run within an unrestricted context (known as \textit{IO}) and thus can also make use of STM functionality. The benchmarks show that this approach does indeed result in a speed-up especially under larger agent-populations. The authors' thesis can be seen as one of the first works on ABS using Haskell. Despite the concurrency and parallel aspect our work share, our approach is rather different: we avoid IO within the agents under all costs and explore the use of STM more on a conceptual level rather than implementing a ABS library and compare our case-studies with lock-based and imperative implementations.
 
 There exists some research \cite{di_stefano_using_2005, varela_modelling_2004, sher_agent-based_2013} using the functional programming language Erlang \cite{armstrong_erlang_2010} to implement concurrent ABS. The language is inspired by the actor model \cite{agha_actors:_1986} and was created in 1986 by Joe Armstrong for Eriksson for developing distributed high reliability software in telecommunications. The actor model can be seen as quite influential to the development of the concept of agents in ABS, which borrowed it from Multi Agent Systems \cite{wooldridge_introduction_2009}. It emphasises message-passing concurrency with share-nothing semantics (no shared state between agents), which maps nicely to functional programming concepts. Erlang implements light-weight processes, which allows to spawn thousands of them without heavy memory overhead. The mentioned papers investigate how the actor model can be used to close the conceptual gap between agent-specifications, which focus on message-passing and their implementation. Further they show that using this kind of concurrency allows to overcome some problems of low level concurrent programming as well.

@@ -2,24 +2,43 @@
 \label{sec:rel_work}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DOI: 10.1016/j.procs.2013.05.231 \cite{suryanarayanan_pdes-mas_2013}
-The work \cite{suryanarayanan_pdes-mas_2013} gives a detailed and in-depth discussion of the internals and implementation of their PDES-MAS system, and using the Tileworld ABM as benchmark provide the performance behaviour of it. It is a powerful system, providing mechanisms for the adaptive partitioning of the simulation shared state, addressing load balancing, synchronisation and interest management (avoiding all to all communications) in an integrated, adaptive and fully transparent manner. This work provides a good insight into how complex the development of a correctly working PDES system is. The authors make the important point, that MAS models are data-centric by nature, requiring a large number of shared variables, which has important implications parallelisation. The fact that it is a data-centric problem is exploited by STM to a very high degree as it allows to approach parallel programming as if it were a data-centric problem without the issues of low-level synchronisation.
-
-% DOI: 10.1109/5.910853 \cite{logan_distributed_2001}
-The rather conceptual work \cite{logan_distributed_2001} proposes a general, distributed simulation framework for multiagent systems. It discusses distributed discrete-event simulation as technique for simulating multi agent systems and addresses a number of key problems: decomposition of the environment, load balancing, modelling, communication and shared state variables, which the authors mention as the central problem of parallelisation. They base their ideas on spheres of influence to minimise communication and synchronisation between agent processes and propose an algorithm to decomposition of the
-shared state into specific communication logical processes.
-
-% DOI: 10.1177/0037549708096691 \cite{lees_using_2008}
-% DOI 10.1145/2517449 \cite{suryanarayanan_synchronised_2013}
-% SPADES (dl.acm.org/citation.cfm?id=1030926) \cite{riley_next_2003}
-% MACE3J (DOI: 10.1145/544862.544918) \cite{gasser_mace3j:_2002}
-% James II (DOI: 10.1109/ANSS.2007.34) plug 'n simulate \cite{himmelspach_plugn_2007}
-% DOI: 10.1002/cpe.1280 RePast-HLA which has ported RePast on HLA \cite{minson_distributing_2008}
-% DOI: 10.22360/SpringSim.2016.HPC.046 RepastHPC uses both optimistic and pessimistic PDES \cite{gorur_repast_2016}
-% DOI: 10.1145/2769458.2769462 hardware transactional memory has been investigated in the context of PDES not for agents though \cite{hay_experiments_2015}
-% DOI: 10.1016/j.cosrev.2017.03.001 \cite{abar_agent_2017}
-% \cite{cicirelli_efficient_2015} [2] Cicirelli, F., Giordano, A., & Nigro, L. (2015). Efficient environment management for distributed simulation of large‐scale situated multi‐agent systems. Concurrency and Computation: Practice and Experience, 27(3), 610-632.
-% DOI: 10.1145/2535417 interest management \cite{liu_interest_2014}
+%% DOI: 10.1016/j.procs.2013.05.231 \cite{suryanarayanan_pdes-mas_2013}
+%The work \cite{suryanarayanan_pdes-mas_2013} gives a detailed and in-depth discussion of the internals and implementation of their PDES-MAS system, and using the Tileworld ABM as benchmark provide the performance behaviour of it. It is a powerful system, providing mechanisms for the adaptive partitioning of the simulation shared state, addressing load balancing, synchronisation and interest management (avoiding all to all communications) in an integrated, adaptive and fully transparent manner. This work provides a good insight into how complex the development of a correctly working PDES system is. The authors make the important point, that MAS models are data-centric by nature, requiring a large number of shared variables, which has important implications parallelisation. The fact that it is a data-centric problem is exploited by STM to a very high degree as it allows to approach parallel programming as if it were a data-centric problem without the issues of low-level synchronisation.
+%
+%% DOI: 10.1109/5.910853 \cite{logan_distributed_2001}
+%The rather conceptual work \cite{logan_distributed_2001} proposes a general, distributed simulation framework for multiagent systems. It discusses distributed discrete-event simulation as technique for simulating multi agent systems and addresses a number of key problems: decomposition of the environment, load balancing, modelling, communication and shared state variables, which the authors mention as the central problem of parallelisation. They base their ideas on spheres of influence to minimise communication and synchronisation between agent processes and propose an algorithm to decomposition of the
+%shared state into specific communication logical processes. Again, the main focus is on the management of share variable and how do best parallelise access to them without violating causality principle.
+%
+%% DOI: 10.1177/0037549708096691 \cite{lees_using_2008}
+%The work \cite{lees_using_2008} compares the performance of various optimistic synchronisation algorithms for parallel MAS simulation using PDES. 
+%
+%% DOI 10.1145/2517449 \cite{suryanarayanan_synchronised_2013}
+%The work \cite{suryanarayanan_synchronised_2013} discusses range queries in PDES-MAS system.
+%
+%% SPADES (dl.acm.org/citation.cfm?id=1030926) \cite{riley_next_2003}
+%OK
+%
+%% MACE3J (DOI: 10.1145/544862.544918) \cite{gasser_mace3j:_2002}
+%OK
+%
+%% James II (DOI: 10.1109/ANSS.2007.34) plug 'n simulate \cite{himmelspach_plugn_2007}
+%OK
+%
+%% DOI: 10.1002/cpe.1280 RePast-HLA which has ported RePast on HLA \cite{minson_distributing_2008}
+%OK
+%
+%% DOI: 10.22360/SpringSim.2016.HPC.046 RepastHPC uses both optimistic and pessimistic PDES \cite{gorur_repast_2016}
+%OK
+%
+%% DOI: 10.1145/2769458.2769462 hardware transactional memory has been investigated in the context of PDES not for agents though \cite{hay_experiments_2015}
+%OK
+%
+%% DOI: 10.1016/j.cosrev.2017.03.001 \cite{abar_agent_2017}
+%OK
+%
+%% \cite{cicirelli_efficient_2015} [2] Cicirelli, F., Giordano, A., & Nigro, L. (2015). Efficient environment management for distributed simulation of large‐scale situated multi‐agent systems. Concurrency and Computation: Practice and Experience, 27(3), 610-632.
+%% DOI: 10.1145/2535417 interest management \cite{liu_interest_2014}
+% NOT RELEVANT
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 In his master thesis \cite{bezirgiannis_improving_2013} the author investigates Haskells' parallel and concurrency features to implement (amongst others) \textit{HLogo}, a Haskell clone of the NetLogo \cite{wilensky_introduction_2015} simulation package, focusing on using STM for a limited form of agent-interactions. \textit{HLogo} is basically a re-implementation of NetLogos API in Haskell where agents run within an unrestricted context (known as \textit{IO}) and thus can also make use of STM functionality. The benchmarks show that this approach does indeed result in a speed-up especially under larger agent-populations. The authors' thesis can be seen as one of the first works on ABS using Haskell. Despite the concurrency and parallel aspect our work share, our approach is rather different: we avoid IO within the agents under all costs and explore the use of STM more on a conceptual level rather than implementing a ABS library and compare our case-studies with lock-based and imperative implementations.

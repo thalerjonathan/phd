@@ -2737,3 +2737,35 @@ Early Smalltalk was the first complete realization of these new points of view a
 	keywords = {Agent-based Computing, Architectures, Internet of Things, Methodology, Modeling, Simulation},
 	pages = {307--320}
 }
+
+@inproceedings{hay_experiments_2015,
+	address = {New York, NY, USA},
+	series = {{SIGSIM} {PADS} '15},
+	title = {Experiments with {Hardware}-based {Transactional} {Memory} in {Parallel} {Simulation}},
+	isbn = {978-1-4503-3583-6},
+	url = {http://doi.acm.org/10.1145/2769458.2769462},
+	doi = {10.1145/2769458.2769462},
+	abstract = {Transactional memory is a concurrency control mechanism that dynamically determines when threads may safely execute critical sections of code. It provides the performance of fine-grained locking mechanisms with the simplicity of coarse-grained locking mechanisms. With hardware based transactions, the protection of shared data accesses and updates can be evaluated at runtime so that only true collisions to shared data force serialization. This paper explores the use of transactional memory as an alternative to conventional synchronization mechanisms for managing the pending event set in a Time Warp synchronized parallel simulator. In particular, we explore the application of Intel's hardware-based transactional memory (TSX) to manage shared access to the pending event set by the simulation threads. Comparison between conventional locking mechanisms and transactional memory access is performed to evaluate each within the warped Time Warp synchronized parallel simulation kernel. In this testing, evaluation of both forms of transactional memory found in the Intel Haswell processor, Hardware Lock Elision (HLE) and Restricted Transactional Memory (RTM), are evaluated. The results show that RTM generally outperforms conventional locking mechanisms and that HLE provides consistently better performance than conventional locking mechanisms, in some cases as much as 27\%.},
+	urldate = {2019-10-22},
+	booktitle = {Proceedings of the 3rd {ACM} {SIGSIM} {Conference} on {Principles} of {Advanced} {Discrete} {Simulation}},
+	publisher = {ACM},
+	author = {Hay, Joshua and Wilsey, Philip A.},
+	year = {2015},
+	note = {event-place: London, United Kingdom},
+	keywords = {optimistic synchronization, parallel simulation, transactional memory, pending event set},
+	pages = {75--86}
+}
+
+@article{suryanarayanan_pdes-mas_2013,
+	title = {{PDES}-{MAS} : distributed simulation of multi-agent systems},
+	issn = {1877-0509},
+	shorttitle = {{PDES}-{MAS}},
+	url = {https://dr.ntu.edu.sg/handle/10220/24029},
+	doi = {http://dx.doi.org/10.1016/j.procs.2013.05.231},
+	abstract = {Multi-agent systems (MAS) are increasingly being acknowledged as a modelling paradigm for capturing the dynamics of complex systems in a wide range of domains, from system biology to adaptive socio-technical system of systems. The execution of such MAS simulations on parallel machines is a challenging problem due to their dynamic, non-deterministic, data-centric behaviour and nature. These problems are exacerbated as the scale of such MAS models increases. PDES-MAS is a distributed simulation kernel developed specifically to support MAS models addressing the problems of partitioning, load balancing and interest management in an integrated, transparent and adaptive manner. This paper presents an overview of PDES-MAS and for the first time it provides a quantitative evaluation of the system.},
+	language = {en},
+	urldate = {2019-10-22},
+	author = {Suryanarayanan, Vinoth and Theodoropoulos, Georgios and Lees, Michael},
+	year = {2013},
+	file = {Full Text PDF:/home/jonathan/Zotero/storage/TBPFEN5U/Suryanarayanan et al. - 2013 - PDES-MAS  distributed simulation of multi-agent s.pdf:application/pdf;Snapshot:/home/jonathan/Zotero/storage/STFHNC2R/24029.html:text/html}
+}

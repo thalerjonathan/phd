@@ -41,8 +41,6 @@
 
 %TODO 
 % refine introduction
-% add semantics section on STM from thesis
-% add agent accessing STM section from thesis
 % remove sequential comparisons of java/GPU/repast
 % add property-based testing as method to check that two implementations are the same / concurrency has no influence. cite my own paper from summersim
 % use wording Agent-Based Modelling (ABM) instead of ABS
@@ -66,9 +64,9 @@
   \country{United Kingdom}}
 
 \begin{abstract}
-With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations. Unfortunately the established programming languages in the field, Python, Java and C++, are not very well suited to tackle the complexities of parallel programming. In this paper we propose the use of Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell, which in combination, allow us to overcome the problems and complexities of parallel implementations in imperative approaches.
+With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations (ABS). This has been acknowledge in the field a while ago and numerous research on distributed parallel ABS exists, focusing primarily on Parallel Discrete Event Simulation as the underlying mechanism. However, these concepts and tools are inherently difficult to master and apply and often overkill in case implementers simply want to parallelise their own, custom agent-based model implementation. Unfortunately, the established programming languages in the field, Python, Java and C++, are not very well suited to tackle the complexities of parallel programming due to unrestricted side effects and the intricacies of low-level locking semantics. Therefore, in this paper we propose the use of a lock-free approach to parallel ABS using Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell, which in combination, removes some of the problems and complexities of parallel implementations in imperative approaches.
 
-We present two case studies where we compare the performance of lock-based and STM implementations in two different well known Agent-Based Models, where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further by utilizing the pure functional language Haskell we gain additional benefits like immutable data and lack of side-effects guaranteed at compile-time, something of fundamental importance and benefit in parallel programming.
+We present two case studies where we compare the performance of lock-based and lock-free STM implementations in two different well known Agent-Based Models, where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the lock-free STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further by utilizing the pure functional language Haskell we gain additional benefits like immutable data and lack of side effects guaranteed at compile-time, something of fundamental importance and benefit in parallel programming in general and scientific computing like ABS in particular.
 \end{abstract}
 
 %

@@ -8,60 +8,59 @@ Software Transactional Memory (STM) was introduced by \cite{shavit_software_1995
 	\item Race conditions due to forgotten locks;
 	\item Deadlocks resulting from inconsistent lock ordering;
 	\item Corruption caused by uncaught exceptions;
-	\item Lost wake-ups induced by omitted notifications.
+	\item Lost wake ups induced by omitted notifications.
 \end{itemize}
 
 Worse, concurrency does not compose. It is very difficult to write two functions (or methods in an object) acting on concurrent data which can be composed into a larger concurrent behaviour. The reason for it is that one has to know about internal details of locking, which breaks encapsulation and makes composition dependent on knowledge about their implementation. Therefore, it is impossible to compose two  functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
 
-STM promises to solve all these problems for a low cost by executing actions \textit{atomically}, where modifications made in such an action are invisible to other threads and changes by other threads are invisible as well until actions are committed - STM actions are atomic and isolated. When an STM action exits, either one of two outcomes happen: if no other thread has modified the same data as the thread running the STM action, then the modifications performed by the action will be committed and become visible to the other threads. If other threads have modified the data then the modifications will be discarded, the action block rolled-back and automatically restarted.
+STM promises to solve all these problems for a low cost by executing actions \textit{atomically}, where modifications made in such an action are invisible to other threads and changes by other threads are invisible as well until actions are committed - STM actions are atomic and isolated. When an STM action exits, either one of two outcomes happen: if no other thread has modified the same data as the thread running the STM action, then the modifications performed by the action will be committed and become visible to the other threads. If other threads have modified the data then the modifications will be discarded, the action block rolled back and automatically restarted.
 
-STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks whether it has a consistent view to the shared data or not: whether other threads have written to memory it has read. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
+STM in Haskell is implemented using optimistic synchronisation, which means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exits, the thread checks if it has a consistent view to the shared data by verifying whether other threads have written to memory it has read or not. % This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
 
 In the paper \cite{heindl_modeling_2009} the authors use a model of STM to simulate optimistic and pessimistic STM behaviour under various scenarios using the AnyLogic simulation package. They conclude that optimistic STM may lead to 25\% less retries of transactions. The authors of \cite{perfumo_limits_2008} analyse several Haskell STM programs with respect to their transactional behaviour. They identified the roll-back rate as one of the key metric which determines the scalability of an application. Although STM might promise better performance, they also warn of the overhead it introduces which could be quite substantial in particular for programs which do not perform much work inside transactions as their commit overhead appears to be high.
 
 \subsection{Parallelism, Concurrency and STM in Haskell}
-In our case-study implementations we are using the functional programming language Haskell. The paper of \citep{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. Note that Haskell is a \textit{lazy} language which means that expressions are only evaluated when they are actually needed.
+In our case studies we are using the functional programming language Haskell. The paper of \citep{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. Note that Haskell is a \textit{lazy} language which means that expressions are only evaluated when they are actually needed.
 
-\subsubsection{Side-Effects}
-One of the fundamental strengths of Haskell is its way of dealing with side-effects in functions. A function with side-effects has observable interactions with some state outside of its explicit scope. This means that the behaviour depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side-effects are (amongst others): modify a global variable, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random-numbers, etc.
+\subsubsection{Side Effects}
+One of the fundamental strengths of Haskell is its way of dealing with side effects in functions. A function with side effects has observable interactions with some state outside of its explicit scope. This means that the behaviour depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side effects are (amongst others): modify a global variable, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random numbers, etc.
 
-The unique feature of Haskell is that it allows to indicate in the \textit{type} of a function that it does have side-effects and what kind of effects they are. There are a broad range of different effect types available, to restrict the possible effects a function can have e.g. drawing random-numbers, sharing read/write state between functions, etc. Depending on the type, only specific operations are available, which is then checked by the compiler. This means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile.
+The unique feature of Haskell is that it allows to indicate in the \textit{type} of a function that it does have side effects and what kind of effects they are. There are a broad range of different effect types available, to restrict the possible effects a function can have e.g. drawing random numbers, sharing read/write state between functions, etc. Depending on the type, only specific operations are available, which is then checked by the compiler. This means that a program which tries to read from a file in a function which only allows drawing random numbers will fail to compile.
 
-Here we are only concerned with two effect types: The \textit{IO} effect context can be seen as completely unrestricted as the main entry point of each Haskell program runs in the \textit{IO} context which means that this is the most general and powerful one. It allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections, mutable references, etc. Also the \textit{IO} context provides functionality for concurrent locks and global shared references. The other effect context we are concerned with is \textit{STM} and indicates the STM context of a function - we discuss it below. 
+Here we are only concerned with two effect types: The \texttt{IO} effect context can be seen as completely unrestricted as the main entry point of each Haskell program runs in the \texttt{IO} context which means that this is the most general and powerful one. It allows all kind of input/output (I/O) related side effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network connections, mutable references, etc. Also the \texttt{IO} context provides functionality for concurrent locks and global shared references. The other effect context we are concerned with is \texttt{STM} and indicates the STM context of a function - we discuss it below. 
 
-A function without any side-effect type is called \textit{pure}. A function with a given effect-type needs to be executed with a given effect-runner which takes all necessary parameters depending on the effect and runs a given effectful function returning its return value and depending on the effect also an effect-related result. Note that we cannot call functions of different effect-types from a function with another effect-type, which would violate the guarantees. Calling a \textit{pure} function though is always allowed because it has, by definition, no side-effects. 
+A function without any side effect type is called \textit{pure}. A function with a given effect type needs to be executed with a given effect runner which takes all necessary parameters depending on the effect and runs a given effectful function returning its return value and depending on the effect also an effect related result. Note that we cannot call functions of different effect types from a function with another effect type, which would violate the guarantees. Calling a \textit{pure} function though is always allowed because it has, by definition, no side effects. 
 
-Although such a type-system might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential run-time errors. Second, by the use of effect-runners, we can execute effectful functions in a very controlled way, by making the effect-context explicit in the parameters to the effect-runner.
+Although such a type system might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential run time errors. Second, by the use of effect runners, we can execute effectful functions in a very controlled way, by making the effect context explicit in the parameters to the effect runner.
 
 \subsubsection{Parallelism \& Concurrency}
-Haskell makes a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency.
+Haskell makes a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side effects because although parallel code can be run concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency.
 
-Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. Although data in functional programming is immutable, Haskell provides primitives which allow to share immutable data between threads. Accessing these primitives is only possible from within an \textit{IO} or \textit{STM} context (see below) which means that when we are using concurrency in our program, the types of our functions change from pure to either a \textit{IO} or \textit{STM} effect context.
+Concurrency on the other hand is potentially nondeterministic because of nondeterministic interactions of concurrently running threads through shared data. Although data in functional programming is immutable, Haskell provides primitives which allow to share immutable data between threads. Accessing these primitives is only possible from within an \texttt{IO} or \texttt{STM} context (see below) which means that when we are using concurrency in our program, the types of our functions change from pure to either a \texttt{IO} or \texttt{STM} effect context.
 
-Note that spawning tens of thousands or even millions of threads in Haskell is no problem, because threads in Haskell have a \textit{very} low memory footprint due to being lightweight user-space threads, also known as green threads, managed by the Haskell Runtime System, which maps them to physical operating-system worker threads \cite{marlow_runtime_2009}.
+Note that spawning tens of thousands or even millions of threads in Haskell is no problem, because threads in Haskell have a \textit{very} low memory footprint due to being lightweight user space threads, also known as green threads, managed by the Haskell Runtime System, which maps them to physical operating system worker threads \cite{marlow_runtime_2009}.
 
 \subsubsection{STM}
-The work of \cite{harris_composable_2005, harris_transactional_2006} added STM to Haskell which was one of the first programming languages to incorporate STM into its main core and added the ability to composable operations. There exist various implementations of STM in other languages as well (Python, Java, C\#, C/C++, etc) but we argue, that it is in Haskell with its type-system and the way how side-effects are treated where it truly shines.
+The work of \cite{harris_composable_2005, harris_transactional_2006} added STM to Haskell which was one of the first programming languages to incorporate STM into its main core and added the ability to composable operations. There exist various implementations of STM in other languages as well (Python, Java, C\#, C/C++, etc) but we argue, that it is in Haskell with its type system and the way how side effects are treated where it truly shines.
 
-In the Haskell implementation, STM actions run within the \textit{STM} context. This restricts the operations to only STM primitives as shown below, which allows to enforce that STM actions are always repeatable without persistent side-effects because such persistent side-effects (e.g. writing to a file, launching a missile) are not possible in an \textit{STM} context. This is also the fundamental difference to  \textit{IO}, where all bets are off because \textit{everything} is possible as there are basically no restrictions because \textit{IO} can run everything.
+In the Haskell implementation, STM actions run within the \texttt{STM} context. This restricts the operations to only STM primitives as shown below, which allows to enforce that \texttt{STM} actions are always repeatable without persistent side effects because such persistent side effects (e.g. writing to a file, launching a missile) are not possible in an \texttt{STM} context. This is also the fundamental difference to  \texttt{IO}, where all bets are off because \textit{everything} is possible as there are basically no restrictions because \texttt{IO} can run everything.
 
-Thus the ability to \textit{restart} a block of actions without any visible effects is only possible due to the nature of Haskells type-system: by restricting the effects to STM only, ensures that no uncontrolled effects, which cannot be rolled-back, occur.
+Thus the ability to \textit{restart} a block of actions without any visible effects is only possible due to the nature of Haskells type system: by restricting the effects to \texttt{STM} only, prevents uncontrolled effects which cannot be rolled back.
 
 STM comes with a number of primitives to share transactional data. Amongst others the most important ones are:
 
 \begin{itemize}
-	\item \textit{TVar} - A transactional variable which can be read and written arbitrarily;
-	\item \textit{TArray} - A transactional array where each cell is an individual shared data, allowing much finer-grained transactions instead of e.g. having the whole array in a \textit{TVar};
-	\item \textit{TChan} - A transactional channel, representing an unbounded FIFO channel;
-	\item \textit{TMVar} - A transactional \textit{synchronising} variable which is either empty of full. To read from an empty or write to a full \textit{TMVar} will cause the current thread to retry its transaction.
+	\item \texttt{TVar}   A transactional variable which can be read and written arbitrarily;
+	\item \texttt{TArray}   A transactional array where each cell is an individual shared data, allowing much finer grained transactions instead of e.g. having the whole array in a \texttt{TVar};
+	\item \texttt{TChan}   A transactional channel, representing an unbounded FIFO channel;
+	\item \texttt{TMVar}   A transactional \textit{synchronising} variable which is either empty of full. To read from an empty or write to a full \texttt{TMVar} will cause the current thread to retry its transaction.
 \end{itemize}
 
 % NOTE: too technical
-%To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which can be seen as the STM effect-runner as it performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context.
+%To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which can be seen as the STM effect runner as it performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context.
 
 \subsubsection{An example}
-We provide a short example to demonstrate the use of STM. To make it more interesting and to show the retry semantics, we use it within a \texttt{StateT} transformer where \texttt{STM} is the innermost Monad. It is important to understand that \texttt{STM} does not provide a transformer instance for very good reasons. If it would provide a transformer then we could make \texttt{IO} the innermost Monad and perform \texttt{IO} actions within \texttt{STM}. This would violate the retry semantics as in case of a retry, \texttt{STM} is unable to undo the effects of \texttt{IO} actions in general. This stems from the fact, that the \texttt{IO} type is simply too powerful and we cannot distinguish between different kinds of \texttt{IO} actions in the type, be it simply reading from a file or actually launching a missile. % Note that this would not only apply to the IO monad but to other monads as well, for example if the STM would be placed on a higher stack level, the levels below would not be subject to a retry. For monads like the \textit{ReaderT} this would not matter because they are read-only but for a StateT this fact would matter a lot. 
-Lets look at the example code:
+We provide a short example to demonstrate the use of STM. To show the retry semantics more clearly, we use \texttt{STM} within a \texttt{StateT} effect context. A \texttt{StateT} effect allows to read and write some state, which in this example we simply set to be an \texttt{Int} value. Lets look at the example code. It takes a transactional variable \texttt{TVar} which holds an \texttt{Int} and runs within a \texttt{StateT} effect, providing read and write access to an \texttt{Int}, and an \texttt{STM} effect returning an \texttt{Int}:
 
 \begin{HaskellCode}
 stmAction :: TVar Int -> StateT Int STM Int 
@@ -72,29 +71,31 @@ stmAction v = do
   n <- lift (readTVar v)
   -- await a condition: content of the TVar >= 42
   if n < 42
-    -- condition not met: retry
+    -- condition not met, therefore retry: block this thread
+    -- until the TVar v is written by another thread, then
+    -- try again
     then lift retry
     -- condition met: return content ot TVar
     else return n
 \end{HaskellCode}
 
-In this example, the \texttt{STM} is the innermost Monad in a stack with a \texttt{StateT} transformer. When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT} transformer. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. We see the combined effects of using the transformer stack were we have both the \texttt{StateT} and the \texttt{STM} effects available. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
+When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT}. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
 
 \begin{HaskellCode}
 stmThread :: TVar Int -> IO ()
 stmThread v = do
-  -- the initial state of the StateT transformer
+  -- the initial state of the StateT effect
   let s = 0
-  -- run the state transformer with initial value of s (0)
+  -- run the state with initial value of s (0)
   let ret = runStateT (stmAction v) s
-  -- atomically run the STM block
+  -- atomically run the STM action
   (a, s') <- atomically ret
   -- print final result
   putStrLn("final StateT state     = " ++ show s' ++
            ", STM computation result = " ++ show a)
 \end{HaskellCode}
 
-The thread simply runs the \texttt{StateT} transformer layer with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to updated the \texttt{TVar} until the condition is met within \texttt{stmAction}:
+The thread simply runs the \texttt{StateT} effect with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to updated the \texttt{TVar} until the condition is met within \texttt{stmAction}:
 
 \begin{HaskellCode}
 main :: IO ()
@@ -107,7 +108,8 @@ main = do
   forM_ [1..42] (\i -> do
     -- use delay to 'make sure' that a retry is happening for ever increment
     threadDelay 10000
-    -- write new value to TVar using atomically
+    -- write new value to TVar using atomically, will cause the STM
+    -- thread to wake up and retry
     atomically (writeTVar v i))
 \end{HaskellCode}
 

@@ -9,13 +9,13 @@ figure;
 plot (agents, stm, '-', "color", [0, 0.7, 0]);
 hold on;
 plot (agents, io4, ':', "color", [0.7, 0, 0]);
-%hold on;
-%loglog (agents, io3, '--', "color", [0.7, 0.7, 0]);
+hold on;
+plot (agents, io3, '--', "color", [0.7, 0.7, 0]);
 %hold on;
 %loglog (agents, rep, '-.', "color", [0, 0, 0.7]);
 
 %legend ("STM 4 cores", "IO 4 cores", "IO 3 cores", "RePast 1 core");
-legend ("STM", "IO");
+legend ("STM", "IO with 4 cores´", "IO with 3 cores");
 xlabel ("Agents");
 ylabel ("Average Time sec.");
 

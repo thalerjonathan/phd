@@ -37,7 +37,7 @@ agentThread n agent rng retVar dtVar = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-Computing a simulation step is quite trivial within the main thread. All agent threads \texttt{MVars} are signalled to unblock followed by an immediate block on the \texttt{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \texttt{TVar} which the agent threads have updated:
+Computing a simulation step is quite trivial within the main thread. All agent threads \texttt{MVars} are signalled to unblock, followed by an immediate block on the \texttt{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \texttt{TVar} which the agent threads have updated:
 
 %\begin{HaskellCode}
 \begin{footnotesize}

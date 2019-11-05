@@ -44,8 +44,8 @@
 %%% loading packages, author definitions
 
 %\documentclass[twocolumn]{bmcart}% uncomment this for twocolumn layout and comment line below
-%\documentclass[linenumbers, doublespacing]{bmcart}
-\documentclass{bmcart}
+\documentclass[linenumbers, doublespacing]{bmcart}
+%\documentclass{bmcart}
 
 %%% Load packages
 %\usepackage{amsthm,amsmath}
@@ -92,9 +92,6 @@
 %%% Begin ...
 \begin{document}
 
-%TODO 
-% proof reading of the whole final PRINTOUT
-
 %\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 %%% Start of article front matter
@@ -109,7 +106,7 @@
 %%                                          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{A Tale Of Lock-Free Agents: Towards Software Transactional Memory in parallel Agent-Based Simulation}
+\title{A tale of lock-free Agents: Towards Software Transactional Memory in parallel Agent-Based Simulation}
 %\subtitle{Towards Software Transactional Memory in parallel Agent-Based Simulation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,7 +246,7 @@ We present two case studies where we compare the performance of lock-based and l
 
 \input{./cs_1_sir.tex}
 
-\input{./cs_2_sugarScape.tex}
+\input{./cs_2_sugarscape.tex}
 
 \input{./conclusions.tex}
 
@@ -267,7 +264,7 @@ We present two case studies where we compare the performance of lock-based and l
 %\section*{Abbreviations}
 %ABS - Agent Based Simulation
 %STM - Software Transactional Memory
-
+%PDES - Parallel Discrete Event Simulation
 
 \section*{Declarations}
 \section*{Availability of data and materials}
@@ -348,7 +345,7 @@ The authors would like to thank J. Hey and M. Handley for constructive feedback,
 
 \begin{figure}[h!]
 	\includegraphics[width=0.6\textwidth, angle=0]{./sir_core_duration_stm_io.png}
-	\caption{Comparison of performance and scaling on multiple cores of STM vs. Lock-Based. Note that the Lock-Based implementation performs worse on 4 than on 3 cores due to lock contention.}
+	\caption{Performance and scaling comparison of \textit{STM} and \textit{Lock-Based} SIR implementations on multiple cores. Note that the Lock-Based implementation performs worse on 4 than on 3 cores due to lock contention.}
 	\label{fig:core_duration_stm_io}
 \end{figure}
 

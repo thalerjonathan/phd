@@ -27,9 +27,9 @@ One of the fundamental strengths of Haskell is its way of dealing with side effe
 
 The unique feature of Haskell is that it allows to indicate in the \textit{type} of a function that it does have side effects and what kind of effects they are. There are a broad range of different effect types available, to restrict the possible effects a function can have e.g. drawing random numbers, sharing read/write state between functions, etc. Depending on the type, only specific operations are available, which is then checked by the compiler. This means that a program which tries to read from a file in a function which only allows drawing random numbers will fail to compile.
 
-Here we are only concerned with two effect types: The \texttt{IO} effect context can be seen as completely unrestricted as the main entry point of each Haskell program runs in the \texttt{IO} context which means that this is the most general and powerful one. It allows all kind of input/output (I/O) related side effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network connections, mutable references, etc. Also the \texttt{IO} context provides functionality for concurrent locks and global shared references. The other effect context we are concerned with is \texttt{STM} and indicates the STM context of a function - we discuss it below. 
+Here we are only concerned with two effect types: The \texttt{IO} effect context can be seen as completely unrestricted as the main entry point of each Haskell program runs in the \texttt{IO} context which means that this is the most general and powerful one. It allows all kind of input/output (IO) related side effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network connections, mutable references, etc. Also the \texttt{IO} context provides functionality for concurrent locks and global shared references. The other effect context we are concerned with is \texttt{STM} and indicates the STM context of a function - we discuss it more in detail below. 
 
-A function without any side effect type is called \textit{pure}. A function with a given effect type needs to be executed with a given effect runner which takes all necessary parameters depending on the effect and runs a given effectful function returning its return value and depending on the effect also an effect related result. Note that we cannot call functions of different effect types from a function with another effect type, which would violate the guarantees. Calling a \textit{pure} function though is always allowed because it has, by definition, no side effects. 
+A function with a given effect type needs to be executed with a given effect runner which takes all necessary parameters depending on the effect and runs a given effectful function returning its return value and depending on the effect also an effect related result. Note that we cannot call functions of different effect types from a function with another effect type, which would violate the guarantees. A function without any side effect is called \textit{pure}. Calling a \textit{pure} function though is always allowed because it has, by definition, no side effects. 
 
 Although such a type system might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential run time errors. Second, by the use of effect runners, we can execute effectful functions in a very controlled way, by making the effect context explicit in the parameters to the effect runner.
 
@@ -53,7 +53,7 @@ STM comes with a number of primitives to share transactional data. Amongst other
 	\item \texttt{TVar}   A transactional variable which can be read and written arbitrarily;
 	\item \texttt{TArray}   A transactional array where each cell is an individual shared data, allowing much finer grained transactions instead of e.g. having the whole array in a \texttt{TVar};
 	\item \texttt{TChan}   A transactional channel, representing an unbounded FIFO channel;
-	\item \texttt{TMVar}   A transactional \textit{synchronising} variable which is either empty of full. To read from an empty or write to a full \texttt{TMVar} will cause the current thread to retry its transaction.
+	\item \texttt{TMVar}   A transactional \textit{synchronising} variable which is either empty or full. To read from an empty or write to a full \texttt{TMVar} will cause the current thread to block and retry its transaction when the \texttt{TMVar} was updated by another thread.
 \end{itemize}
 
 % NOTE: too technical
@@ -61,7 +61,7 @@ STM comes with a number of primitives to share transactional data. Amongst other
 
 \subsubsection{An example}
 \label{sub:stm_example}
-We provide a short example to demonstrate the use of STM. To show the retry semantics more clearly, we use \texttt{STM} within a \texttt{StateT} effect context. A \texttt{StateT} effect allows to read and write some state, which in this example we simply set to be an \texttt{Int} value. Lets look at the example code. It takes a transactional variable \texttt{TVar} which holds an \texttt{Int} and runs within a \texttt{StateT} effect, providing read and write access to an \texttt{Int}, and an \texttt{STM} effect returning an \texttt{Int}:
+We provide a short example to demonstrate the use of STM. To show the retry semantics more clearly, we use \texttt{STM} within a \texttt{StateT} effect context. A \texttt{StateT} effect allows to read and write some state, which in this example we simply set to be an \texttt{Int} value. The example code takes a transactional variable \texttt{TVar} which holds an \texttt{Int} and runs within a \texttt{StateT} effect, providing read and write access to an \texttt{Int}, and an \texttt{STM} effect returning an \texttt{Int}:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -84,7 +84,7 @@ stmAction v = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT}. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
+When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT}. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. To run \texttt{stmAction} we need to spawn a thread:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -104,7 +104,7 @@ stmThread v = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-The thread simply runs the \texttt{StateT} effect with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to updated the \texttt{TVar} until the condition is met within \texttt{stmAction}:
+The thread simply runs the \texttt{StateT} effect with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to update the \texttt{TVar} until the condition is met within \texttt{stmAction}:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -117,7 +117,7 @@ main = do
   forkIO (stmThread v)
   -- do 42 times...
   forM_ [1..42] (\i -> do
-    -- use delay to 'make sure' that a retry is happening for ever increment
+    -- use delay to 'make sure' that a retry is happening for every increment
     threadDelay 10000
     -- write new value to TVar using atomically, will cause the STM
     -- thread to wake up and retry
@@ -126,4 +126,4 @@ main = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-If we run this program, we will see \texttt{'increment!'} printed 43 times, followed by \texttt{'final StateT state = 1, STM computation result = 42'}. This clearly demonstrates the retry semantics where \texttt{stmAction} is retried 42 times and thus prints \texttt{'increment!'} 43 times to the console. The \texttt{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data structure by simply throwing away the new value and retrying with the original value. This example also demonstrates that any \texttt{IO} actions which happen within an \texttt{STM} action are persistent and can obviously not be rolled back. \texttt{Debug.trace} is an \texttt{IO} action masked as pure using \texttt{unsafePerformIO}.
+If we run this program, we will see \texttt{'increment!'} printed 43 times, followed by \texttt{'final StateT state = 1, STM computation result = 42'}. This clearly demonstrates the retry semantics where \texttt{stmAction} is retried 42 times and thus prints \texttt{'increment!'} 43 times to the console. The \texttt{StateT} computation however is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data structures by simply throwing away the new value and retrying with the old value. This example also demonstrates that any \texttt{IO} actions which happen within an \texttt{STM} action are persistent and can obviously not be rolled back. \texttt{Debug.trace} is an \texttt{IO} action masked as pure using \texttt{unsafePerformIO}.

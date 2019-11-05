@@ -20,7 +20,7 @@ STM in Haskell is implemented using optimistic synchronisation, which means that
 In the paper \cite{heindl_modeling_2009} the authors use a model of STM to simulate optimistic and pessimistic STM behaviour under various scenarios using the AnyLogic simulation package. They conclude that optimistic STM may lead to 25\% less retries of transactions. The authors of \cite{perfumo_limits_2008} analyse several Haskell STM programs with respect to their transactional behaviour. They identified the roll-back rate as one of the key metric which determines the scalability of an application. Although STM might promise better performance, they also warn of the overhead it introduces which could be quite substantial in particular for programs which do not perform much work inside transactions as their commit overhead appears to be high.
 
 \subsection{Parallelism, Concurrency and STM in Haskell}
-In our case studies we are using the functional programming language Haskell. The paper of \citep{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. Note that Haskell is a \textit{lazy} language which means that expressions are only evaluated when they are actually needed.
+In our case studies we are using the functional programming language Haskell. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. Note that Haskell is a \textit{lazy} language which means that expressions are only evaluated when they are actually needed.
 
 \subsubsection{Side Effects}
 One of the fundamental strengths of Haskell is its way of dealing with side effects in functions. A function with side effects has observable interactions with some state outside of its explicit scope. This means that the behaviour depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side effects are (amongst others): modify a global variable, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random numbers, etc.
@@ -60,9 +60,12 @@ STM comes with a number of primitives to share transactional data. Amongst other
 %To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which can be seen as the STM effect runner as it performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context.
 
 \subsubsection{An example}
+\label{sub:stm_example}
 We provide a short example to demonstrate the use of STM. To show the retry semantics more clearly, we use \texttt{STM} within a \texttt{StateT} effect context. A \texttt{StateT} effect allows to read and write some state, which in this example we simply set to be an \texttt{Int} value. Lets look at the example code. It takes a transactional variable \texttt{TVar} which holds an \texttt{Int} and runs within a \texttt{StateT} effect, providing read and write access to an \texttt{Int}, and an \texttt{STM} effect returning an \texttt{Int}:
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 stmAction :: TVar Int -> StateT Int STM Int 
 stmAction v = do
   -- print a debug output and increment the value in StateT 
@@ -77,11 +80,15 @@ stmAction v = do
     then lift retry
     -- condition met: return content ot TVar
     else return n
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT}. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. The question is how this code behaves if we actually run it. To do this we need to spawn a thread:
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 stmThread :: TVar Int -> IO ()
 stmThread v = do
   -- the initial state of the StateT effect
@@ -93,11 +100,15 @@ stmThread v = do
   -- print final result
   putStrLn("final StateT state     = " ++ show s' ++
            ", STM computation result = " ++ show a)
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 The thread simply runs the \texttt{StateT} effect with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to updated the \texttt{TVar} until the condition is met within \texttt{stmAction}:
 
-\begin{HaskellCode}
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
 main :: IO ()
 main = do
   -- create a new TVar with initial value of 0
@@ -111,6 +122,8 @@ main = do
     -- write new value to TVar using atomically, will cause the STM
     -- thread to wake up and retry
     atomically (writeTVar v i))
-\end{HaskellCode}
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
 
 If we run this program, we will see \texttt{'increment!'} printed 43 times, followed by \texttt{'final StateT state = 1, STM computation result = 42'}. This clearly demonstrates the retry semantics where \texttt{stmAction} is retried 42 times and thus prints \texttt{'increment!'} 43 times to the console. The \texttt{StateT} computation however is carried out only once and is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data structure by simply throwing away the new value and retrying with the original value. This example also demonstrates that any \texttt{IO} actions which happen within an \texttt{STM} action are persistent and can obviously not be rolled back. \texttt{Debug.trace} is an \texttt{IO} action masked as pure using \texttt{unsafePerformIO}.

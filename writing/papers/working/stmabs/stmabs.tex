@@ -1,128 +1,428 @@
-\documentclass[format=acmsmall, review=true, screen=true]{acmart}
+%% BioMed_Central_Tex_Template_v1.06
+%%                                      %
+%  bmc_article.tex            ver: 1.06 %
+%                                       %
 
+%%IMPORTANT: do not delete the first line of this template
+%%It must be present to enable the BMC Submission system to
+%%recognise this template!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                     %%
+%%  LaTeX template for BioMed Central  %%
+%%     journal article submissions     %%
+%%                                     %%
+%%          <8 June 2012>              %%
+%%                                     %%
+%%                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                                 %%
+%% For instructions on how to fill out this Tex template           %%
+%% document please refer to Readme.html and the instructions for   %%
+%% authors page on the biomed central website                      %%
+%% http://www.biomedcentral.com/info/authors/                      %%
+%%                                                                 %%
+%% Please do not use \input{...} to include other tex files.       %%
+%% Submit your LaTeX manuscript as one .tex document.              %%
+%%                                                                 %%
+%% All additional figures and files should be attached             %%
+%% separately and not embedded in the \TeX\ document itself.       %%
+%%                                                                 %%
+%% BioMed Central currently use the MikTex distribution of         %%
+%% TeX for Windows) of TeX and LaTeX.  This is available from      %%
+%% http://www.miktex.org                                           %%
+%%                                                                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% additional documentclass options:
+%  [doublespacing]
+%  [linenumbers]   - put the line numbers on margins
+
+%%% loading packages, author definitions
+
+%\documentclass[twocolumn]{bmcart}% uncomment this for twocolumn layout and comment line below
+%\documentclass[linenumbers, doublespacing]{bmcart}
+\documentclass{bmcart}
+
+%%% Load packages
+%\usepackage{amsthm,amsmath}
+%\RequirePackage{natbib}
+%\RequirePackage[authoryear]{natbib}% uncomment this for author-year bibliography
+%\RequirePackage{hyperref}
+\usepackage[utf8]{inputenc} %unicode support
+%\usepackage[applemac]{inputenc} %applemac support if unicode package fails
+%\usepackage[latin1]{inputenc} %UNIX support if unicode package fails
+
+\usepackage{hyperref}
 \usepackage{booktabs} % For formal tables
-
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{subcaption}
 \usepackage{ifthen}
-\usepackage{minted}
+%\usepackage{minted}
 \usepackage{verbatim}
 \usepackage{multirow}
 
-% Metadata Information
-\acmJournal{TOMACS}
-\acmVolume{28}
-\acmNumber{4}
-\acmArticle{0}
-\acmYear{2018}
-\acmMonth{10}
-\copyrightyear{2018}
-%\acmArticleSeq{9}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                             %%
+%%  If you wish to display your graphics for   %%
+%%  your own use using includegraphic or       %%
+%%  includegraphics, then comment out the      %%
+%%  following two lines of code.               %%
+%%  NB: These line *must* be included when     %%
+%%  submitting to BMC.                         %%
+%%  All figure files must be submitted as      %%
+%%  separate graphics through the BMC          %%
+%%  submission process, not included in the    %%
+%%  submitted article.                         %%
+%%                                             %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Copyright
-%\setcopyright{none}
-%\setcopyright{acmcopyright}
-\setcopyright{acmlicensed}
-%\setcopyright{rightsretained}
-%\setcopyright{usgov}
-%\setcopyright{usgovmixed}
-%\setcopyright{cagov}
-%\setcopyright{cagovmixed}
+%\def\includegraphic{}
+%\def\includegraphics{}
 
-% DOI
-\acmDOI{0000001.0000001}
+%%% Put your definitions there:
+\startlocaldefs
+\endlocaldefs
 
-% Paper history
-\received{October 2018}
 
-% Document starts
+%%% Begin ...
 \begin{document}
 
 %TODO 
-% better captions of tables: smaller / higher is better, add units
-% use wording Agent-Based Modelling (ABM) instead of ABS
-% format for target journal
 % proof reading of the whole final PRINTOUT
 
-\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
+%\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
-\title[A Tale Of Lock-Free Agents]{A Tale Of Lock-Free Agents}
-\subtitle{Towards Software Transactional Memory in parallel Agent-Based Simulation}
+%%% Start of article front matter
+\begin{frontmatter}
 
-\author{Jonathan Thaler}
-\orcid{https://orcid.org/0000-0001-8736-0479}
-\email{jonathan.thaler@nottingham.ac.uk}
-\author{Peer-Olaf Siebers}
-\email{peer-olaf.siebers@nottingham.ac.uk}
-\affiliation{
-  \institution{University of Nottingham}
-  \streetaddress{7301 Wollaton Rd}
-  \city{Nottingham}
-  \postcode{NG8 1BB}
-  \country{United Kingdom}}
+\begin{fmbox}
+\dochead{Research}
 
-\begin{abstract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Enter the title of your article here     %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{A Tale Of Lock-Free Agents: Towards Software Transactional Memory in parallel Agent-Based Simulation}
+%\subtitle{Towards Software Transactional Memory in parallel Agent-Based Simulation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Enter the authors here                   %%
+%%                                          %%
+%% Specify information, if available,       %%
+%% in the form:                             %%
+%%   <key>={<id1>,<id2>}                    %%
+%%   <key>=                                 %%
+%% Comment or delete the keys which are     %%
+%% not used. Repeat \author command as much %%
+%% as required.                             %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\author[
+   addressref={aff1},                   % id's of addresses, e.g. {aff1,aff2}
+   corref={aff1},                       % id of corresponding address, if any
+   %noteref={n1},                        % id's of article notes, if any
+   email={jonathan.thaler@nottingham.ac.uk}   % email address
+]{\inits{JT}\fnm{Jonathan} \snm{Thaler}}
+\author[
+   addressref={aff1},
+   email={peer-olaf.siebers@nottingham.ac.uk}
+]{\inits{POS}\fnm{Peer-Olaf} \snm{Siebers}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Enter the authors' addresses here        %%
+%%                                          %%
+%% Repeat \address commands as much as      %%
+%% required.                                %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\address[id=aff1]{%                           % unique id
+  \orgname{University of Nottingham}, % university, etc
+  \street{7301 Wollaton Rd},                     %
+  \postcode{NG8 1BB}                                % post or zip code
+  \city{Nottingham},                              % city
+  \cny{UK}                                    % country
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Enter short notes here                   %%
+%%                                          %%
+%% Short notes will be after addresses      %%
+%% on first page.                           %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{artnotes}
+%%\note{Sample of title note}     % note to the article
+%\note[id=n1]{Equal contributor} % note, connected to author
+\end{artnotes}
+
+\end{fmbox}% comment this for two column layout
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% The Abstract begins here                 %%
+%%                                          %%
+%% Please refer to the Instructions for     %%
+%% authors on http://www.biomedcentral.com  %%
+%% and include the section headings         %%
+%% accordingly for your article type.       %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstractbox}
+
+\begin{abstract} % abstract
 With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations (ABS). This has been acknowledge in the field a while ago and numerous research on distributed parallel ABS exists, focusing primarily on Parallel Discrete Event Simulation as the underlying mechanism. However, these concepts and tools are inherently difficult to master and apply and often overkill in case implementers simply want to parallelise their own, custom agent-based model implementation. However, with the established programming languages in the field, Python, Java and C++, it is not easy to address the complexities of parallel programming due to unrestricted side effects and the intricacies of low-level locking semantics. Therefore, in this paper we propose the use of a lock-free approach to parallel ABS using Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell, which in combination, removes some of the problems and complexities of parallel implementations in imperative approaches.
 
 We present two case studies where we compare the performance of lock-based and lock-free STM implementations in two different well known Agent-Based Models, where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the lock-free STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further, by utilizing the pure functional language Haskell we gain the benefits of immutable data and lack of unrestricted side effects guaranteed at compile-time, making validation easier and leading to increased confidence in the correctness of an implementation, something of fundamental importance and benefit in parallel programming in general and scientific computing like ABS in particular.
 \end{abstract}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% The keywords begin here                  %%
+%%                                          %%
+%% Put each keyword in separate \kwd{}.     %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{keyword}
+\kwd{Agent-Based Simulation}
+\kwd{Software Transactional Memory}
+\kwd{Parallel Programming}
+\kwd{Haskell}
+\end{keyword}
+
+% MSC classifications codes, if any
+%\begin{keyword}[class=AMS]
+%\kwd[Primary ]{}
+%\kwd{}
+%\kwd[; secondary ]{}
+%\end{keyword}
+
+\end{abstractbox}
 %
-% The code below should be generated by the tool at
-% http://dl.acm.org/ccs.cfm
-% Please copy and paste the code instead of the example below.
-%
-\begin{CCSXML}
-<ccs2012>
-<concept>
-<concept_id>10010147.10010341.10010349.10010355</concept_id>
-<concept_desc>Computing methodologies~Agent / discrete models</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010341.10010349.10010362</concept_id>
-<concept_desc>Computing methodologies~Massively parallel and high-performance simulations</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010341.10010366.10010368</concept_id>
-<concept_desc>Computing methodologies~Simulation languages</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-</ccs2012>
-\end{CCSXML}
+%\end{fmbox}% uncomment this for twcolumn layout
 
-\ccsdesc[500]{Computing methodologies~Agent / discrete models}
-\ccsdesc[500]{Computing methodologies~Massively parallel and high-performance simulations}
-\ccsdesc[300]{Computing methodologies~Simulation languages}
+\end{frontmatter}
 
-\keywords{Agent-Based Simulation, Software Transactional Memory, Parallel Programming, Concurrency, Functional Programming, Haskell}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% The Main Body begins here                %%
+%%                                          %%
+%% Please refer to the instructions for     %%
+%% authors on:                              %%
+%% http://www.biomedcentral.com/info/authors%%
+%% and include the section headings         %%
+%% accordingly for your article type.       %%
+%%                                          %%
+%% See the Results and Discussion section   %%
+%% for details on how to create sub-sections%%
+%%                                          %%
+%% use \cite{...} to cite references        %%
+%%  \cite{koon} and                         %%
+%%  \cite{oreg,khar,zvai,xjon,schn,pond}    %%
+%%  \nocite{smith,marg,hunn,advi,koha,mouse}%%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%% start of article main body
+% <put your article body there>
 
-\input{./tex/introduction.tex}
 
-%\input{./tex/relatedWork.tex}
+\input{./introduction.tex}
 
-\input{./tex/background.tex}
+\input{./background.tex}
 
-\input{./tex/stmAndABS.tex}
+\input{./stmAndABS.tex}
 
-\input{./tex/cs_1_sir.tex}
+\input{./cs_1_sir.tex}
 
-\input{./tex/cs_2_sugarScape.tex}
+\input{./cs_2_sugarScape.tex}
 
-\input{./tex/conclusions.tex}
+\input{./conclusions.tex}
 
-\input{./tex/furtherResearch.tex}
+\input{./furtherResearch.tex}
 
-\begin{acks}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Backmatter begins here                   %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{backmatter}
+
+%\section*{Abbreviations}
+%ABS - Agent Based Simulation
+%STM - Software Transactional Memory
+
+
+\section*{Declarations}
+\section*{Availability of data and materials}
+The datasets used and/or analysed during the current study are available from the corresponding author on reasonable request.
+
+\section*{Competing interests}
+The authors declare that they have no competing interests.
+
+\section*{Funding}
+Not applicable.
+
+\section*{Authors' contributions}
+JT initiated the idea and the research, did the implementation, experiments, performance measurements, and writing. POS supervised the work, gave feedback and supported the writing process. All authors read and approved the final manuscript.
+
+\section*{Acknowledgements}
 The authors would like to thank J. Hey and M. Handley for constructive feedback, comments and valuable discussions.
-\end{acks}
 
-% Bibliography
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{references.bib}
+\section*{Authors' information}
+\textbf{\uppercase{JONATHAN THALER}} is a Ph.D. student at the University of Nottingham and part of the Intelligent Modelling and Analysis Group (\url{http://www.cs.nott.ac.uk/~psxjat/}). His main research interest is the benefits and drawbacks of using pure functional programming with Haskell for implementing Agent-Based Simulations.
 
+\textbf{\uppercase{Dr. PEER-OLAF SIEBERS}} is an Assistant Professor at the School of Computer Science, University of Nottingham, UK (\url{http://www.cs.nott.ac.uk/~pszps/}). His main research interest is the application of computer simulation to study human-centric complex adaptive systems. He is a strong advocate of Object Oriented Agent-Based Social Simulation. This is a novel and highly interdisciplinary research field, involving disciplines like Social Science, Economics, Psychology, Operations Research, Geography, and Computer Science. His current research focuses on Urban Sustainability and he is a co-investigator in several related projects and a member of the university's "Sustainable and Resilient Cities" Research Priority Area management team.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                  The Bibliography                       %%
+%%                                                         %%
+%%  Bmc_mathpys.bst  will be used to                       %%
+%%  create a .BBL file for submission.                     %%
+%%  After submission of the .TEX file,                     %%
+%%  you will be prompted to submit your .BBL file.         %%
+%%                                                         %%
+%%                                                         %%
+%%  Note that the displayed Bibliography will not          %%
+%%  necessarily be rendered by Latex exactly as specified  %%
+%%  in the online Instructions for Authors.                %%
+%%                                                         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% if your bibliography is in bibtex format, use those commands:
+\bibliographystyle{vancouver} % Style BST file (bmc-mathphys, vancouver, spbasic).
+\bibliography{references}      % Bibliography file (usually '*.bib' )
+% for author-year bibliography (bmc-mathphys or spbasic)
+% a) write to bib file (bmc-mathphys only)
+% @settings{label, options="nameyear"}
+% b) uncomment next line
+%\nocite{label}
+
+% or include bibliography directly:
+% \begin{thebibliography}
+% \bibitem{b1}
+% \end{thebibliography}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                               %%
+%% Figures                       %%
+%%                               %%
+%% NB: this is for captions and  %%
+%% Titles. All graphics must be  %%
+%% submitted separately and NOT  %%
+%% included in the Tex document  %%
+%%                               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%
+%% Do not use \listoffigures as most will included as separate files
+
+\section*{Figures}
+\begin{figure}[h!]
+	\includegraphics[width=0.6\textwidth, angle=0]{./stm_abs.png}
+	\caption{Diagram of the parallel time-driven lock-step approach.}
+	\label{fig:stm_abs_structure}
+\end{figure}
+
+\begin{figure}[h!]
+	\includegraphics[width=0.4\textwidth, angle=0]{./sir_vis.png}
+	\caption{Simulating the spatial SIR model with a Moore neighbourhood, a single infected agent at the center, contact rate $\beta = \frac{1}{5}$, infection probability $\gamma = 0.05$ and illness duration $\delta = 15$ . Infected agents are indicated by red circles, recovered agents by green ones. The susceptible agents are rendered as blue hollow circles for better contrast.}
+	\label{fig:vis_sir}
+\end{figure}
+
+\begin{figure}[h!]
+	\includegraphics[width=0.6\textwidth, angle=0]{./sir_core_duration_stm_io.png}
+	\caption{Comparison of performance and scaling on multiple cores of STM vs. Lock-Based. Note that the Lock-Based implementation performs worse on 4 than on 3 cores due to lock contention.}
+	\label{fig:core_duration_stm_io}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.7\textwidth, angle=0]{./sir_stm_io_varyinggrid_performance.png}
+	\caption{Performance comparison of \textit{STM} and \textit{Lock-Based} SIR implementations on varying grid sizes.}
+	\label{fig:varyinggrid_constcores}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./sugarscape_t60_environment.png}
+			\caption{Visualisation of the Sugarscape at $t = 50$}
+			\label{fig:vis_sugarscape_t50_environment}
+		\end{subfigure}
+    	
+    	&
+  
+		\begin{subfigure}[b]{0.6\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./sugarscape_t60_dynamics.png}
+			\caption{Dynamics population size over 50 steps}
+			\label{fig:vis_sugarscape_t50_dynamics}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Visualisation of our SugarScape implementation and dynamics of the population size over 50 steps. The white numbers in the blue agent circles are the agents unique ids.}
+	\label{fig:vis_sugarscape}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+	\includegraphics[width=0.7\textwidth, angle=0]{./sug_varying_cores.png}
+	\caption{Comparison of steps per seconds (higher is better) and retries of various Sugarscape implementations with constant agent numbers. Using a 50x50 grid and 500 initial agents on varying cores.}
+	\label{fig:varying_cores}
+\end{figure}
+
+\begin{figure}[h!]
+	\includegraphics[width=0.6\textwidth, angle=0]{./sug_varying_agents.png}
+	\caption{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid and varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
+	\label{fig:state_results_agentsscale_time}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                               %%
+%% Tables                        %%
+%%                               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Use of \listoftables is discouraged.
+%%
+%\section*{Tables}
+%\begin{table}[h!]
+%\caption{Sample table title. This is where the description of the table should go.}
+%      \begin{tabular}{cccc}
+%        \hline
+%           & B1  &B2   & B3\\ \hline
+%        A1 & 0.1 & 0.2 & 0.3\\
+%        A2 & ... & ..  & .\\
+%        A3 & ..  & .   & .\\ \hline
+%      \end{tabular}
+%\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                               %%
+%% Additional Files              %%
+%%                               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{backmatter}
 \end{document}

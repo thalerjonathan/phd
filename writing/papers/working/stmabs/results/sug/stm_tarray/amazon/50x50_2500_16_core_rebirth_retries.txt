@@ -1,4 +1,0 @@
-STM transaction statistics (2018-08-01 17:34:40.81493553 UTC):
-Transaction     Commits    Retries      Ratio
-SugarScape      7430471     592724       0.08
-

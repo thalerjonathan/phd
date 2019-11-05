@@ -14,31 +14,6 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 	\item Environment Size: 50 x 50 cells with toroid boundaries which wrap around in both x and y dimension.
 \end{itemize}
 
-\begin{figure}
-\begin{center}
-	\begin{tabular}{c c}
-		\begin{subfigure}[b]{0.4\textwidth}
-			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/sugarscape/vis/sugarscape_t60_environment.png}
-			\caption{Visualisation of the Sugarscape at $t = 50$}
-			\label{fig:vis_sugarscape_t50_environment}
-		\end{subfigure}
-    	
-    	&
-  
-		\begin{subfigure}[b]{0.6\textwidth}
-			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/sugarscape/vis/sugarscape_t60_dynamics.png}
-			\caption{Dynamics population size over 50 steps}
-			\label{fig:vis_sugarscape_t50_dynamics}
-		\end{subfigure}
-	\end{tabular}
-	
-	\caption{Visualisation of our SugarScape implementation and dynamics of the population size over 50 steps. The white numbers in the blue agent circles are the agents unique ids.}
-	\label{fig:vis_sugarscape}
-\end{center}
-\end{figure}
-
 \subsection{Experiment Design}
 We compare four different implementations with the code freely accessible from the \href{https://github.com/thalerjonathan/haskell-stm-sugarscape}{repository}~\cite{thaler_stm_sugarscape_repository}:
 
@@ -104,13 +79,6 @@ In a first approach we compare the performance of all implementations on varying
 	\label{tab:varying_cores}
 \end{table}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.7\textwidth, angle=0]{./fig/sugarscape/varying_cores.png}
-	\caption{Comparison of steps per seconds (higher is better) and retries of various Sugarscape implementations with constant agent numbers. Using a 50x50 grid and 500 initial agents on varying cores.}
-	\label{fig:varying_cores}
-\end{figure}
-
 As expected, the \textit{Sequential} implementation is the slowest, followed by the \textit{Lock-Based} and \textit{TVar} approach whereas \textit{TArray} is the best performing one.
 
 We clearly see that using a \texttt{TVar} to share the environment is a very inefficient choice: \textit{every} write to a cell leads to a retry independent whether the reading agent reads that changed cell or not, because the data structure can not distinguish between individual cells. By using a \texttt{TArray} we can avoid the situation where a write to a cell in a far distant location of the environment will lead to a retry of an agent which never even touched that cell. Also the \textit{TArray} seems to scale up by 10 steps per second for every core added. It will be interesting to see how far this could go with the Amazon experiment, as we seem not to hit a limit with 4 cores yet.
@@ -138,13 +106,6 @@ Except for the \textit{Sequential} approach we ran all experiments with 4 cores 
   	\caption{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid with varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
 	\label{tab:state_results_agentsscale_time}
 \end{table}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sugarscape/varying_agents.png}
-	\caption{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid and varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
-	\label{fig:state_results_agentsscale_time}
-\end{figure}
 
 As expected, the \textit{TArray} implementation outperforms all others substantially. Also as expected, the \textit{TVar} implementation on 3 cores is faster than on 4 cores as well when scaling up to more agents. The \textit{Lock-Based} approach performs about the same as the \textit{TVar} on 3 cores because of the very similar approaches: both access the \textit{whole} environment. Still the \textit{TVar} approach uses one core less to arrive at the same performance, thus strictly speaking outperforming the \textit{Lock-Based} implementation.
 

@@ -1,6 +1,6 @@
 \section{Time-driven specification}
 \label{sec:timedriven_specification}
-The time-driven SIR agents have a very small interface as they only receive the agent population from the previous step and output their state in the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas arrowized FRP. Thus, a specification of a time-driven approach is given in terms of probabilities and timeouts, rather than in events as in the event-driven testing as presented before.
+The time-driven SIR agents have a very small interface as they only receive the agent population from the previous step and output their state in the current step. We can also assume an implicit forward flow of time, statically guaranteed by Yampas Arrowized FRP. Thus, a specification of a time-driven approach is given in terms of probabilities and timeouts, rather than in events as in the event-driven testing as presented before.
 
 \begin{itemize}
 	\item Susceptible agent - makes \textit{on average} contact with $\beta$ (contact rate) agents per time unit. The distribution follows the exponential distribution with $\lambda = \frac{1}{\beta}$. If a susceptible agent gets into contact with an infected agent, it will become infected with a uniform probability of $\gamma$ (infectivity).

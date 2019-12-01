@@ -1,0 +1,41 @@
+This `vancouver.bst' bibliographic style file (for LaTeX/BibTeX) is generated with the docstrip utility and modified manually to meet the ``Uniform Requirements for Manuscripts Submitted to Biomedical Journals'' as published in N Engl J Med 1997;336:309-315. (also known as the Vancouver style)
+This specification may be found on the web page of the International Committe of Medical Journal Editors:
+
+http://www.icmje.org
+
+-------------------------------------------------------------------
+
+Copyright 2004  Folkert van der Beek
+
+This work may be distributed and/or modified under the conditions of the LaTeX Project Public License, either version 1.3 of this license or (at your option) any later version.
+The latest version of this license is in
+  http://www.latex-project.org/lppl.txt
+and version 1.3 or later is part of all distributions of LaTeX version 2005/12/01 or later.
+
+This work has the LPPL maintenance status `maintained'.
+
+The Current Maintainer of this work is Folkert van der Beek.
+
+Complaints, suggestions and comments may be sent to
+
+Folkert van der Beek <folkertvanderbeek at gmail dot com>
+
+-------------------------------------------------------------------
+This bibliography style file is intended for texts in ENGLISH
+This is a numerical citation style, and as such is standard LaTeX.
+It requires no extra package to interface to the main text.
+The form of the \bibitem entries is
+  \bibitem{key}...
+Usage of \cite is as follows:
+  \cite{key} ==>>          [#]
+  \cite[chap. 2]{key} ==>> [#, chap. 2]
+where # is a number determined by the ordering in the reference list.
+The order in the reference list is that by which the works were originally
+  cited in the text, or that in the database.
+
+To change the reference numbering system from [1] to 1,
+put the following code in the preamble:
+\makeatletter % Reference list option change
+\renewcommand\@biblabel[1]{#1} % from [1] to 1
+\makeatother %
+---------------------------------------------------------------------

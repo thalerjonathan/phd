@@ -1,0 +1,238 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[english]{babel}
+\usepackage[super,comma,sort&compress]{natbib}
+\usepackage{url}
+\urlstyle{rm} % typeset urls in roman instead of in typewriter style
+\makeatletter
+\renewcommand\@biblabel[1]{#1} %from [1] to 1
+\makeatother
+
+%opening
+\title{International Committee of Medical Journal Editors Uniform Requirements}
+
+\author{Folkert van der Beek}
+
+\begin{document}
+
+\maketitle
+The vancouver.bst bibliographic style file (for \LaTeX/Bib\TeX) is generated with the docstrip utility and modified manually to meet the ``Uniform Requirements for Manuscripts Submitted to Biomedical Journals'' as published in N Engl J Med 1997;336:309-315. (also known as the Vancouver style). This specification may be found on the web page of the International Committe of Medical Journal Editors.\cite{uniform}
+The following samples of reference citation formats were taken from the National Library of Medicine web site to show what works and what does not (yet).\cite{bibliographic}
+
+In order to meet all citation formats, several entry types {--} such as \textbf{@map}, \textbf{@patent}, \textbf{@dictionary} and \textbf{@webpage} {--} and fields {--} such as \textbf{inventor}, \textbf{assignee} (for patents), \textbf{cartographer} (for maps), \textbf{part}, \textbf{lastchecked}, and \textbf{updated} (for webpages). For proper use of these entries and fields I refer to the vancouver.bib file included with the package.
+
+\section{Articles in Journals}
+
+\subsection{Standard journal article}
+
+List the first six authors followed by et al. (Note: NLM now lists all authors.)
+\linebreak 
+Halpern SD, Ubel PA, Caplan AL. Solid-organ transplantation in HIV-infected patients. N Engl J Med. 2002 Jul 25;347(4):284-7.\cite{halpern.ubel.ea:solid-organ*2}
+
+
+As an option, if a journal carries continuous pagination throughout a volume (as many medical journals do) the month and issue number may be omitted.
+\linebreak 
+Halpern SD, Ubel PA, Caplan AL. Solid-organ transplantation in HIV-infected patients. N Engl J Med. 2002;347:284-7.\cite{halpern.ubel.ea:solid-organ}
+
+\subsubsection{Optional addition of a database's unique identifier for the citation:}
+
+Halpern SD, Ubel PA, Caplan AL. Solid-organ transplantation in HIV-infected patients. N Engl J Med. 2002 Jul 25;347(4):284-7. Cited in PubMed; PMID 12140307.\cite{halpern.ubel.ea:solid-organ*1}
+
+\subsubsection{More than six authors:}
+
+Rose ME, Huerbin MB, Melick J, Marion DW, Palmer AM, Schiding JK, et al. Regulation of interstitial excitatory amino acid concentrations after cortical contusion injury. Brain Res. 2002;935(1-2):40-6.\cite{rose.huerbin.ea:regulation}
+
+\subsection{Organization as author}
+
+Diabetes Prevention Program Research Group. Hypertension, insulin, and proinsulin in participants with impaired glucose tolerance. Hypertension. 2002;40(5):679-86.\cite{hypertension}
+
+\subsection{Both personal authors and an organization as author (This example does not conform to NISO standards.)}
+
+Vallancien G, Emberton M, Harving N, van Moorselaar RJ; Alf-One Study Group. Sexual dysfunction in 1,274 European men suffering from lower urinary tract symptoms. J Urol. 2003;169(6):2257-61.\cite{vallancien.emberton.ea:sexual}
+
+\subsection{No author given}
+
+21st century heart solution may have a sting in the tail. BMJ. 2002;325(7357):184.\cite{21st}
+
+\subsection{Article not in English}
+
+(Note: NLM translates the title into English, encloses the translation in square brackets, and adds an abbreviated language designator.)
+\linebreak 
+Ellingsen AE, Wilhelmsen I. Sykdomsangst blant medisin- og jusstudenter. Tidsskr Nor Laegeforen. 2002;122(8):785-7.\cite{ellingsen.wilhelmsen:sykdomsangst}
+
+\subsection{Volume with supplement}
+
+Geraud G, Spierings EL, Keywood C. Tolerability and safety of frovatriptan with short- and long-term use for treatment of migraine and in comparison with sumatriptan. Headache. 2002;42 Suppl 2:S93-9.\cite{geraud.spierings.ea:tolerability}
+
+\subsection{Issue with supplement}
+
+Glauser TA. Integrating clinical trial data into clinical practice. Neurology. 2002;58(12 Suppl 7):S6-12.\cite{glauser:integrating}
+
+\subsection{Volume with part}
+
+Abend SM, Kulish N. The psychoanalytic method from an epistemological viewpoint. Int J Psychoanal. 2002;83(Pt 2):491-5.\cite{abend.kulish:psychoanalytic}
+
+\subsection{Issue with part}
+
+Ahrar K, Madoff DC, Gupta S, Wallace MJ, Price RE, Wright KC. Development of a large animal model for lung tumors. J Vasc Interv Radiol. 2002;13(9 Pt 1):923-8.\cite{ahrar.madoff.ea:development}
+
+\subsection{Issue with no volume}
+
+Banit DM, Kaufer H, Hartford JM. Intraoperative frozen section analysis in revision total joint arthroplasty. Clin Orthop. 2002;(401):230-8.\cite{banit.kaufer.ea:intraoperative}
+
+\subsection{No volume or issue}
+
+Outreach: bringing HIV-positive individuals into care. HRSA Careaction. 2002 Jun:1-6.\cite{outreach}
+
+\subsection{Pagination in roman numerals}
+
+Chadwick R, Schuklenk U. The politics of ethical consensus finding. Bioethics. 2002;16(2):iii-v.\cite{chadwick.schuklenk:politics}
+
+\subsection{Type of article indicated as needed}
+
+Tor M, Turker H. International approaches to the prescription of long-term oxygen therapy [letter]. Eur Respir J. 2002;20(1):242.\cite{tor.turker:international}
+\linebreak 
+Lofwall MR, Strain EC, Brooner RK, Kindbom KA, Bigelow GE. Characteristics of older methadone maintenance (MM) patients [abstract]. Drug Alcohol Depend. 2002;66 Suppl 1:S105.\cite{lofwall.strain.ea:characteristics}
+
+\subsection{Article containing retraction}
+
+Feifel D, Moutier CY, Perry W. Safety and tolerability of a rapidly escalating dose-loading regimen for risperidone. J Clin Psychiatry. 2002;63(2):169. Retraction of: Feifel D, Moutier CY, Perry W. J Clin Psychiatry. 2000;61(12):909-11.\cite{feifel.moutier.ea:safety}
+
+\subsection{Article retracted}
+
+Feifel D, Moutier CY, Perry W. Safety and tolerability of a rapidly escalating dose-loading regimen for risperidone. J Clin Psychiatry. 2000;61(12):909-11. Retraction in: Feifel D, Moutier CY, Perry W. J Clin Psychiatry. 2002;63(2):169.\cite{feifel.moutier.ea:safety*1}
+
+\subsection{Article republished with corrections}
+
+Mansharamani M, Chilton BS. The reproductive importance of P-type ATPases. Mol Cell Endocrinol. 2002;188(1-2):22-5. Corrected and republished from: Mol Cell Endocrinol. 2001;183(1-2):123-6.\cite{mansharamani.chilton:reproductive}
+
+\subsection{Article with published erratum}
+
+Malinowski JM, Bolesta S. Rosiglitazone in the treatment of type 2 diabetes mellitus: a critical review. Clin Ther. 2000;22(10):1151-68; discussion 1149-50. Erratum in: Clin Ther 2001;23(2):309.\cite{malinowski.bolesta:rosiglitazone}
+
+\subsection{Article published electronically ahead of the print version}
+
+Yu WM, Hawley TS, Hawley RG, Qu CK. Immortalization of yolk sac-derived precursor cells. Blood. 2002 Nov 15;100(10):3828-31. Epub 2002 Jul 5.\cite{yu.hawley.ea:immortalization}
+
+\section{Books and Other Monographs}
+
+\subsection{Personal author(s)}
+
+Murray PR, Rosenthal KS, Kobayashi GS, Pfaller MA. Medical microbiology. 4th ed. St. Louis: Mosby; 2002.\cite{murray.rosenthal.ea:medical}
+
+\subsection{Editor(s), compiler(s) as author}
+
+Gilstrap LC 3rd, Cunningham FG, VanDorsten JP, editors. Operative obstetrics. 2nd ed. New York: McGraw-Hill; 2002.\cite{gilstrap.cunningham.ea:operative}
+
+\subsection{Author(s) and editor(s)}
+
+Breedlove GK, Schorfheide AM. Adolescent pregnancy. 2nd ed. Wieczorek RR, editor. White Plains (NY): March of Dimes Education Services; 2001.\cite{breedlove.schorfheide:adolescent}
+
+\subsection{Organization(s) as author}
+
+Royal Adelaide Hospital; University of Adelaide, Department of Clinical Nursing. Compendium of nursing research and practice development, 1999-2000. Adelaide (Australia): Adelaide University; 2001.\cite{compendium}
+
+\subsection{Chapter in a book}
+
+Meltzer PS, Kallioniemi A, Trent JM. Chromosome alterations in human solid tumors. In: Vogelstein B, Kinzler KW, editors. The genetic basis of human cancer. New York: McGraw-Hill; 2002. p. 93-113.\cite{meltzer.kallioniemi.ea:genetic}
+
+\subsection{Conference proceedings}
+
+Harnden P, Joffe JK, Jones WG, editors. Germ cell tumours V. Proceedings of the 5th Germ Cell Tumour Conference; 2001 Sep 13-15; Leeds, UK. New York: Springer; 2002.\cite{harnden.joffe.ea:germ}
+
+\subsection{Conference paper}
+
+Christensen S, Oppacher F. An analysis of Koza's computational effort statistic for genetic programming. In: Foster JA, Lutton E, Miller J, Ryan C, Tettamanzi AG, editors. Genetic programming. EuroGP 2002: Proceedings of the 5th European Conference on Genetic Programming; 2002 Apr 3-5; Kinsdale, Ireland. Berlin: Springer; 2002. p. 182-91.\cite{christensen.oppacher:analysis}
+
+\subsection{Scientific or technical report}
+
+\subsubsection{Issued by funding/sponsoring agency:}
+
+Yen GG (Oklahoma State University, School of Electrical and Computer Engineering, Stillwater, OK). Health monitoring on vibration signatures. Final report. Arlington (VA): Air Force Office of Scientific Research (US), Air Force Research Laboratory; 2002 Feb. Report No.: AFRLSRBLTR020123. Contract No.: F496209810049.\cite{yen:health}
+
+\subsubsection{Issued by performing agency:}
+
+Russell ML, Goth-Goldstein R, Apte MG, Fisk WJ. Method for measuring the size distribution of airborne Rhinovirus. Berkeley (CA): Lawrence Berkeley National Laboratory, Environmental Energy Technologies Division; 2002 Jan. Report No.: LBNL49574. Contract No.: DEAC0376SF00098. Sponsored by the Department of Energy.\cite{russell.goth-goldstein.ea:method}
+
+\subsection{Dissertation}
+
+Borkowski MM. Infant sleep and feeding: a telephone survey of Hispanic Americans [dissertation]. Mount Pleasant (MI): Central Michigan University; 2002.\cite{borkowski:infant}
+
+\subsection{Patent}
+
+Pagedas AC, inventor; Ancel Surgical R\&D Inc., assignee. Flexible endoscopic grasping and cutting device and positioning tool assembly. United States patent US 20020103498. 2002 Aug 1.\cite{pagedas:flexible}
+
+\section{Other Published Material}
+
+\subsection{Newspaper article}
+
+Tynan T. Medical improvements lower homicide rate: study sees drop in assault rate. The Washington Post. 2002 Aug 12;Sect. A:2 (col. 4).\cite{tynan:medical}
+
+\subsection{Audiovisual material}
+
+Chason KW, Sallustio S. Hospital preparedness for bioterrorism [videocassette]. Secaucus (NJ): Network for Continuing Medical Education; 2002.\cite{chason.sallustio:hospital}
+
+\subsection{Legal Material}
+
+\subsubsection{Public law:}
+Veterans Hearing Loss Compensation Act of 2002, Pub. L. No. 107-9, 115 Stat. 11 (May 24, 2001).
+
+\subsubsection{Unenacted bill:}
+Healthy Children Learn Act, S. 1012, 107th Cong., 1st Sess. (2001).
+
+\subsubsection{Code of Federal Regulations:}
+Cardiopulmonary Bypass Intracardiac Suction Control, 21 C.F.R. Sect. 870.4430 (2002).
+
+\subsubsection{Hearing:}
+Arsenic in Drinking Water: An Update on the Science, Benefits and Cost: Hearing Before the Subcomm. on Environment, Technology and Standards of the House Comm. on Science, 107th Cong., 1st Sess. (Oct. 4, 2001).
+
+\subsection{Map}
+
+Pratt B, Flick P, Vynne C, cartographers. Biodiversity hotspots [map]. Washington: Conservation International; 2000.\cite{prat.flick.ea:biodiversity}
+
+\subsection{Dictionary and similar references}
+
+Dorland's illustrated medical dictionary. 29th ed. Philadelphia: W.B. Saunders; 2000. Filamin; p. 675.\cite{filamin}
+
+\section{Unpublished Material}
+
+\subsection{In press}
+
+(Note: NLM prefers "forthcoming" because not all items will be printed.)
+\linebreak 
+Tian D, Araki H, Stahl E, Bergelson J, Kreitman M. Signature of balancing selection in Arabidopsis. Proc Natl Acad Sci U S A. In press 2002.\cite{ tian.araki.ea:signature}
+
+\section{Electronic Material}
+
+\subsection{CD-ROM}
+
+Anderson SC, Poulsen KB. Anderson's electronic atlas of hematology [CD-ROM]. Philadelphia: Lippincott Williams \& Wilkins; 2002.\cite{anderson.poulsen:andersons}
+
+\subsection{Journal article on the Internet}
+
+Abood S. Quality improvement initiative in nursing homes: the ANA acts in an advisory role. Am J Nurs [serial on the Internet]. 2002 Jun [cited 2002 Aug 12];102(6):[about 3 p.]. Available from: http://www.nursingworld.org/AJN/2002/june/Wawatch.htm\cite{abood:quality}
+
+\subsection{Monograph on the Internet}
+
+Foley KM, Gelband H, editors. Improving palliative care for cancer [monograph on the Internet]. Washington: National Academy Press; 2001 [cited 2002 Jul 9]. Available from: http://www.nap.edu/books/0309074029/html/.\cite{foley.gelband:improving}
+
+\subsection{Homepage/Web site}
+
+Cancer-Pain.org [homepage on the Internet]. New York: Association of Cancer Online Resources, Inc.; c2000-01 [updated 2002 May 16; cited 2002 Jul 9]. Available from: http://www.cancer-pain.org/.\cite{cancer-pain}
+
+\subsection{Part of a homepage/Web site}
+
+American Medical Association [homepage on the Internet]. Chicago: The Association; c1995-2002 [updated 2001 Aug 23; cited 2002 Aug 12]. AMA Office of Group Practice Liaison; [about 2 screens]. Available from: http://www.ama-assn.org/ama/pub/category/1736.html\cite{american}
+
+\subsection{Database on the Internet}
+
+\subsubsection{Open database:}
+Who's Certified [database on the Internet]. Evanston (IL): The American Board of Medical Specialists. c2000 - [cited 2001 Mar 8]. Available from: http://www.abms.org/newsearch.asp\cite{whos}
+
+\subsubsection{Closed database:}
+Jablonski S. Online Multiple Congential Anomaly/Mental Retardation (MCA/MR) Syndromes [database on the Internet]. Bethesda (MD): National Library of Medicine (US). c1999 [updated 2001 Nov 20; cited 2002 Aug 12]. Available from: http://www.nlm.nih.gov/mesh/jablonski/syndrome\_title.html\cite{jablonski:online}
+
+\subsubsection{Part of a database on the Internet}
+MeSH Browser [database on the Internet]. Bethesda (MD): National Library of Medicine (US); 2002 - [cited 2003 Jun 10]. Meta-analysis; unique ID: D015201; [about 3 p.]. Available from: http://www.nlm.nih.gov/mesh/MBrowser.html\cite{mesh}
+\bibliography{vancouver}
+\bibliographystyle{/home/folkert/scripts/vancouver}
+\end{document}

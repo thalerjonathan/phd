@@ -1,0 +1,17 @@
+Question:
+Why can't MacTeX find my BibTeX file?
+Answer:
+The problem isn't a bug in the vancouver style file, but rather an issue with the way TeXShop/MacTeX handles bibliographies. TeX Live is slightly pickier about placement of these files. ".bib" files go in ~/Library/texmf/bibtex/bib or subfolders of this directory, and ".bst" files go in ~/Library/texmf/bibtex/bst or subfolders of this directory. It is a known issue of MacTex that is explained in this FAQ: http://tug.org/mactex/faq/#qm05.
+
+Question:
+The Digital Object Identifier (DOI®) included in the .bib file isn't displayed in the final pdf file latex generated
+Answer:
+The doi formatting is disabled by default. You can enable it by changing the following line in vancouver.bst from:
+#0 'adddoiresolver := % 0=no DOI resolver; 1=include it
+to:
+#1 'adddoiresolver := % 0=no DOI resolver; 1=include it
+
+Question:
+My bibliography is supposed to be sorted by author name instead of appearance for a better overview. Is there a way to order the bibliography alphabetically instead of by appearance?
+Answer:
+According to the requirements of the vancouver style, the reference list has to be unsorted, i.e. in order of appearance. The only way (I'm aware of) to make BibTeX sort the citations alphabetically instead of in order of appearance is to change the style file. That involves quite a drastic change with insertion of a few sorting functions and quite a lot of other changes. In short, it would mean the implementation of an entirely new style file.

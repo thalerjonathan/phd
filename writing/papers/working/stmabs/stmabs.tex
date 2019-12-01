@@ -183,6 +183,7 @@
 % TODO:
 % Major changes:
 % 1. implement fairer lock-based implementations: use ReadWrite lock in case of SIR, use cell-based lock in SugarScape. Don't delete old results. Due to my new hardware I need a full re-run of all experiments. This allows to properly address point 2, which also the JOS referees made: more robust statistics and results of performance measurements and about reproducibility. This cost me a lof of time because I did it very naively by hand, instead of using a proper tool. Therefore, see point 2:
+%	NOTE: atomicModifyIORef' is strictly speaking not a lock-based but actually a lock-free implementation (!!) based on IO instead of STM: it does not aquire any lock but uses hardware features of the CPU to swap a pointer https://stackoverflow.com/questions/10102881/haskell-how-does-atomicmodifyioref-work. mention this unique feature of haskell, which is not possible in other languages (TODO: is this so? do we have here really a unique feature of haskell?). A downside is that it only works in case there is only a single IORef in the program and that we are still running in IO - the performance however is even better than STM (!!!)
 % 2. use criterion or gauge to automately re-run all tests with much more and robust detail on performance.
 % 3. incorporate minor changes outlined by the reviewers
 

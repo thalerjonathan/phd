@@ -1,0 +1,88 @@
+Reviewer reports:
+
+Reviewer #1: The paper describes the use of Software Transactional Memory (STM) in the implementation of parallel non-distributed Agent-Based Simulations (ABS) using Haskell. The authors are right to point out the difficulty of parallel programming using established languages, particularly in the ABS context where there is often little that is embarrassingly parallel and frequent and sometimes complicated access to shared variables. The introduction adequately makes this case, and I agree that using STM with a non-side effect language like Haskell is compelling for thread-based parallelization of ABS. I do, however, have the following criticisms, focusing on reproducibility and the implementation of the lock-based scenarios.
+
+Reproducibility is a crucial aspect of ABS and simulation in general. Typically, given the same random seed, the simulation results should be identical. This is often very difficult or even impossible to do when each agent operates on a separate thread and the order of agent execution is thus not under the modeler's / programmer's control. The authors do touch on these issues when discussing the sugarscape example model, but I think a more extensive discussion of verification and validation (without which even the most performant models are just toys) in the face non-reproducible results would be useful. In this vein too, performing more runs, displaying the variation in the performance, and discussing how the order of execution as determined by the threading model effects, or not, performance variations would also be useful. In short, I think the discussion of the experimental design needs to include some discussion of reproducibility and what this means with respect to
+experimental outcomes.
+
+More importantly, in their comparison of the locking and lock free STM approaches, the locking scheme seems too naive to adequately reflect the benefits of the STM approach. In the SIR example the lock-based scheme appears to use a lock that locks on both reads and writes, rather than a read / write lock which allows concurrent reads, but locks on a write, for example, in Java, see https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/locks/ReadWriteLock.html. If the aim is to demonstrate the performance improvements of STM in a real-world type situation then a read / write locking scheme is much more realistic. No competent programmer would implement locking like this when there are so few writes compared to the number of reads. In short, the comparison isn't fair and is thus not compelling. Similarly, in the sugarscape example, a better locking example comparison would be something more equivalent to the TArray access pattern. The authors do mention this as
+further research, but I think it is the proper comparison for this paper, rather than as further research.
+
+Lastly, as the paper goes on the quality of the written english decreases. A proof read with that in mind is necessary -- e.g "Haskell provides primitives which allow to share immutable data between threads", and "A StateT effect allows to ..." The language is also too informal in places (e.g. "all bets are off", "in the field a while ago") which detracts from the quality of the paper.
+
+Specific comments:
+
+p3 l.47 - A little more info on the IO context would be helpful for those that don't know Haskell. Or even a "see more below in section 2.2.1 where it is discussed more thoroughly" would be good.
+
+p3 l.52 - What is meant by "conceptual level" when presenting the two examples -- word choice is confusing.
+
+p4 l.26 -- "mode" -> "model".
+
+p5 l.17 - paragraph starting on line 17 could be tighter -- seems like it wants to express upsides and downsides of optimistic STM vs. pessimistic -- if that's the case, an intro sentence to that effect would help.
+
+p5 l.43 - need explanation of "referential transparency"
+
+p6 l.13 - "effectful function" is awkward -- what is meant here? A function with specified side effects?
+
+p6 l.57 - Doesn't seem like this is argued for at all -- STM certainly works and is useful in Haskell, but we don't get anything about how it works in these other implementations.
+
+
+p7 l.32 - The introduction of the StateT effect context is confusing. Is this a type of STM context? How does it relate to the STM context that has been described previously. Also, how does it relate to the code example (e.g. runStateT) -- for those that don't know Haskell how are effects run?
+
+Table 3. -- add (4 cores) to the STM header so its clear.
+
+p11 l.37 -- This needs more explanation.
+
+p11 l.49 -- More discussion of why this might the case would be good -- more agents requires more threads and 4 cores with more hardware threads can better map more green threads, perhaps?
+
+14 l.42 - "time steps" better than just "steps."
+
+p14 .46 - what does "the numbers are always indicated clearly" mean?
+
+p17 Section 5.5 The comparison with results from 2008 is not worth making, and it fact it looks sloppy to make it at all, given the difference in hardware etc. The argument against using a GPU does make sense though.
+
+Figure 2. the caption is confusing -- the figure looks like its some number of iterations into the simulation but the caption describes only the starting conditions.
+
+Font in plot figures (fig 5, 7, 7) is too small.
+
+Ref 27 seems to be missing some publication info.
+
+
+Reviewer #2:
+
+This study aims at proving the utility of Software Transactional Memory (STM) along with Haskell programming language as a framework for parallel implementation of ABS in a lock-free mode. Authors have used two very classic and well studied examples of ABS i.e. SIR Model and SugarScape models to prove the efficacy of this approach. They have done impressive job in proving their hypothesis utilizing varying gridsizes for variable agent numbers along with varying computing cores to run the above mentioned ABS's with both approaches i.e. STM and Lock based to validate the lesser time requirement for lock-free STM approach. They have used latest and effective  references to support their points wherever necessary throughout the manuscript. Overall, the STM lock-free approach is clearly and validly established to be utilized for custom parallel implementation of ABSs cutting down some of the limitations/complexities associated with their counterparts in imperative approaches.
+This work has definitely potential application in the domain and is very relevant for a larger ABS's audience in general too.
+While the paper is worthy of publication I would suggest few minor changes mentioned below.
+ 
+Minor Comments:
+
+*        Overkill--> Overkilling (line 56 page 2).
+
+*       Section 3 title STM in ABS --> may be better if acronyms are not used
+*       Discussion is usually meant to be for whole manuscript. I suggest for each case study may be better to use some other relevant term alongside mentioning the case study number.(Section 4.6 and 5.6)
+*       In Table 3 For the STM approach, authors have used 4 cores which is mentioned in manuscript text but not in legend or the table titles. However for the sake of comparison it is present for the other lock-based approached. I would suggest to show the number of cores for STM in a similar manner for a quick skimming reader. Adapt for all other relevant places/tables.
+*       Semantics of STM (page numbers 7-9) might be better to be placed in a supplementary file with some numbers referencing  each of them.
+*        I would suggest to improve the figures.
+o       The font of Figure 1 especially have room and needs to have reasonable visibility
+o       Figures3-7 needs to have better font sizes for both axis titles and markers along with the actual graph lines and their sizes too.
+
+
+
+
+
+
+Reviewer #3: The paper "A tale of lock-free Agents: Towards Software Transactional Memory in parallel Agent-Based Simulation" has been reviewed. The paper is interesting and within the scope of this journal. But, before publishing this paper, the authors must review their paper by considering following issues.
+1- The Abstract section:-
+The abstract is to present the picture of complete paper. This is very small section. It do not requires long paragraphs. It is suggested to rewrite it and mention the problem statement, proposed solution, steps taken in solving problem, and finally what results are achieved.
+2- The writing style:-
+The overall written English is fine, but the writing style needs improvements. Like in the Introduction section, many paragraphs are only to define whats happening in the paper. For e.g "In this body of work", "the baseline of this body of research", "In this paper".....
+It will be better if abstract is to be expanded in Introduction section. So that a good introduction of domain, problem statement, solution, contributions, research methods .... can be provided.
+3- References:-
+There are lack of references. Like reference is required at line 39, paragraph 1, of subsection 2.2.1 Side Effects.
+4- Grammar:-
+There are grammatical mistakes in the paper. Like in section 3 "STM in ABS", the 1st line of 1st paragraph, comma is missing after "In this section...".
+5- It will be more good to use table for comparison in comparison section.
+6-Also try to write short, clear and easy to read sentences. Like in the section Conclusion, the 1st line of 1st paragraph is too complex and too long. Here you mixed up what you have done in the paper and what you concluded.
+
+Good Luck!!!
+

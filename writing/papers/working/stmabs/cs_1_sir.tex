@@ -10,28 +10,40 @@ We followed in our agent-based implementation of the SIR model the work \cite{ma
 Due to the continuous-time nature of the SIR model, our implementation follows the time driven \cite{meyer_event-driven_2014} approach. This requires us to sample the system with very small $\Delta t$, which means that we have comparatively few writes to the shared environment which will become important when discussing the performance results.
 
 \subsection{Experiment Design}
-In this case study we compare the performance of three implementations under varying numbers of CPU cores and agent numbers. The code of all implementations can be accessed freely from the \href{https://github.com/thalerjonathan/haskell-stm-sir}{repository}~\cite{thaler_stm_sir_repository}.
+In this case study we compare the performance of five (5) implementations under varying numbers of CPU cores and agent numbers. The code of all implementations can be accessed freely from the \href{https://github.com/thalerjonathan/haskell-stm-sir}{repository}~\cite{thaler_stm_sir_repository}.
 
 \begin{enumerate}
 	\item Sequential - This is the original implementation as discussed in \cite{thaler_pure_2018} where the discrete 2D grid is shared amongst all agents as read-only data and the agents are executed sequentially within the main thread without any concurrency.
+	
+	\item Lock-Based Naive - This is exactly the same implementation as the \textit{STM} one, but instead of running in the \texttt{STM} context, the agents now run in the \texttt{IO} context. They share the discrete 2D grid using a reference and have access to a lock to synchronise access to the reference.
+
+	\item Lock-Based Read-Write Lock - This is the same implementation as \textit{Lock-Based Naive} but uses a read-write lock from the \href{http://hackage.haskell.org/package/concurrent-extra}{concurrent-extra library}~\cite{concurrent_extra_library} for a more fine-grained locking strategy, exploiting the fact that in the SIR model reads outnumber the writes by far, making a read-write lock much more appropriate.
+
+	%\item Lock-Based Advanced - This is the same implementation as \textit{Lock-Based Naive} but instead of holding the lock unconditionally, it distinguishes more granularly between an unconditional read scenario and a conditional write scenario: it acquires and releases the lock to read the shared environment and re-acquires and re-reads the environment in case a write becomes necessary. This works in this case study for two reasons: First, data in Haskell is immutable, therefore it is possible to read it from the reference and then perform lookups on it; Second, in the SIR model, every agent writes only to its position, therefore the lock does not to be held for the entire operation.
+	
+	\item Hybrid (Lock-Based Atomic) - This is the same implementation as \textit{Lock-Based Naive} but uses an atomic modification operation to both read and write the shared environment. Strictly speaking, this is not a lock-based approach as it does not acquire locks but uses a compare-and-swap hardware instruction. A limitation of this is approach is that it is only applicable when there is just a single reference in the program and all operations need to go through the atomic modification operation.
+
 	\item STM - This is the same implementation as the \textit{Sequential} but agents run now in the \texttt{STM} context and have access to the discrete 2D grid through a transactional variable \texttt{TVar}. This means that the agents now communicate indirectly by reads and writes through the \texttt{TVar}.
-	\item Lock-Based - This is exactly the same implementation as the \textit{STM} one, but instead of running in the \texttt{STM} context, the agents now run in the \texttt{IO} context. They share the discrete 2D grid using a reference and have access to a lock to synchronise access to the reference.
+	
 \end{enumerate}
 
-Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional workload and report the mean. Further, we checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential} implementation \cite{thaler_pure_2018}. A rigorous comparison of all three implementations is beyond the focus of this paper but we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}. In the experiments we varied the number of agents (grid size) as well as the number of cores when running concurrently - the numbers are always indicated clearly. %For varying the number of cores we compiled the executable using the tool \textit{stack} with the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x indicates the number of cores. 
+Each experiment was run on our machine (see Table \ref{tab:machine_specs}) under no additional workload until $t = 100$ and stepped using $\Delta t = 0.1$. In the experiments we varied the number of agents (grid size) as well as the number of cores when running concurrently - the numbers are always indicated clearly. We checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential} implementation \cite{thaler_pure_2018}. A rigorous comparison of all implementations is quite involved and therefore beyond the focus of this paper but as a remedy we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}.
+
+For robust performance measurements we used the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage}. It allows the definition and running of benchmark suites, measuring performance by executing them repeatedly, fitting actual against expected runtime, reporting mean and standard deviation for statistically robust results. By running each benchmark repeatedly, fitting it using linear regression analysis, Criterion is able to robustly determine whether the measurements fall within a normal range or are outliers (and therefore should be re-run) due to some external influences like additional workload on the machine. In our case Criterion ran each experiment 10 times with increasing increments of 1, 2, 3 and 4 times. We report the estimates of OLS regression together with the standard deviation.
+
+%For varying the number of cores we compiled the executable using the tool \textit{stack} with the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x indicates the number of cores. 
 
 \begin{table}
 	\centering
 	\begin{tabular}{ c || c }
-		OS & Fedora 28 64-bit \\ \hline
+		OS & Ubuntu 19.10 64-bit \\ \hline
 		RAM & 16 GByte \\ \hline
-		CPU & Intel Quad Core i5-4670K @ 3.4GHz (4th Gen.) \\ \hline
-		HD & 250Gbyte SSD \\ \hline
-		Haskell & GHC 8.2.2 \\ \hline
-		Java & OpenJDK 1.8.0
+		CPU & Intel Core i7-8550U @ 3.6GHz x 8 \\ \hline
+		HD & 512Gbyte SSD \\ \hline
+		Haskell & GHC 8.4.3 (stack resolver lts-12.4)
 	\end{tabular}
 	
-	\caption{Machine and Software Specs for all experiments}
+	\caption{Machine and software details for all experiments}
 	\label{tab:machine_specs}
 \end{table}
 
@@ -45,32 +57,109 @@ In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and 
 		\multicolumn{1}{ |c| }{Cores} & Duration       \\ \hline \hline 
 		
 		\multicolumn{1}{ c||  }{\multirow{1}{*}{Sequential} } &
-		\multicolumn{1}{ |c| }{1} & 72.5      \\ \hline \hline 
+		\multicolumn{1}{ |c| }{1} & 73.9 (2.06)      \\ \hline \hline 
 		
-		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based} } &
-		\multicolumn{1}{ |c| }{1} & 60.6       \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based Naive} } &
+		\multicolumn{1}{ |c| }{1} &    \\ \cline{2-3}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{2} & 42.8    \\ \cline{2-3}
+		\multicolumn{1}{ |c| }{2} &    \\ \cline{2-3}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{3} & 38.6    \\ \cline{2-3}
+		\multicolumn{1}{ |c| }{3} &    \\ \cline{2-3}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{4} & 41.6    \\ \hline \hline 
+		\multicolumn{1}{ |c| }{4} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{5} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{6} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{7} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{8} &    \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based Read-Write} } &
+		\multicolumn{1}{ |c| }{1} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{2} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{3} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{4} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{5} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{6} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{7} &    \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{8} &    \\ \hline \hline 
+		
+%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based Advanced} } &
+%		\multicolumn{1}{ |c| }{1} & 56.8 (0.71)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{2} & 41.7 (0.06)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{3} & 35.2 (0.05)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{4} & 32.5 (0.11)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{5} & 33.4 (0.02)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{6} & 34.6 (0.23)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{7} & 35.2 (0.16)   \\ \cline{2-3}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{8} & 40.2 (0.05)   \\ \hline \hline 
+		
+		\multicolumn{1}{ c||  }{\multirow{4}{*}{Hybrid (Lock-Based Atomic)} } &
+		\multicolumn{1}{ |c| }{1} & 51.0 (0.11)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{2} & 32.4 (0.09)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{3} & 25.5 (0.09)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{4} & 22.7 (0.08)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{5} & 22.6 (0.03)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{6} & 22.3 (0.09)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{7} & 22.8 (0.07)  \\ \cline{2-3}
+		\multicolumn{1}{ c||  }{}                       &
+		\multicolumn{1}{ |c| }{8} & 25.8 (0.02)  \\ \hline \hline 
 		
 		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM} } &
-		\multicolumn{1}{ |c| }{1} & 53.2       \\ \cline{2-3}
+		\multicolumn{1}{ |c| }{1} & 53.2 TODO      \\ \cline{2-3}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{2} & 27.8    \\ \cline{2-3}
+		\multicolumn{1}{ |c| }{2} & 27.8 TODO   \\ \cline{2-3}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{3} & 21.8    \\ \cline{2-3}
+		\multicolumn{1}{ |c| }{3} & 21.8 TODO   \\ \cline{2-3}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{4} & \textbf{20.8}    \\ \hline \hline 
+		\multicolumn{1}{ |c| }{4} & \textbf{20.8} TODO    \\ \hline \hline 
 		
 %		\multicolumn{1}{ c||  }{\multirow{1}{*}{RePast} } &
 %		\multicolumn{1}{ |c| }{1} & \textbf{10.8}      \\ \hline \hline 
 	\end{tabular}
   	
-  	\caption{SIR performance comparisons on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better).}
+  	\caption{SIR performance comparisons on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better). Standard deviation in parentheses.}
 	\label{tab:constgrid_varyingcores}
+\end{table}
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c | c | c }
+        Cores & Sequential  & L-B Naive & L-B Read-Write & Hybrid    & STM  \\ \hline \hline 
+   		1     & 73.9 (2.06) &          &               & 51.0 (0.11) &     \\ \hline
+   		2     & -           &          &               & 32.4 (0.09) &      \\ \hline
+   		3     & -           &          &               & 25.5 (0.09) &      \\ \hline
+   		4     & -           &          &               & 22.7 (0.08) &      \\ \hline
+   		5     & -           &          &               & 22.6 (0.03) &      \\ \hline
+   		6     & -           &          &               & 22.3 (0.09) &      \\ \hline
+   		7     & -           &          &               & 22.8 (0.07) &      \\ \hline
+   		8     & -           &          &               & 25.8 (0.02) &      \\ \hline \hline
+  	\end{tabular}
+
+  	\caption{SIR performance comparisons on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better). Standard deviation in parentheses.}
+	\label{tab:constgrid_varyingcores_arranged}
 \end{table}
 
 Comparing the performance and scaling to multiple cores of the \textit{STM} and \textit{Lock-Based} implementations shows that the \textit{STM} implementation significantly outperforms the \textit{Lock-Based} one and scales better to multiple cores. The \textit{Lock-Based} implementation performs best with 3 cores and shows slightly worse performance on 4 cores as can be seen in Figure \ref{fig:core_duration_stm_io}. This is no surprise because the more cores are running at the same time, the more contention for the lock, thus the more likely synchronisation happening, resulting in higher potential for reduced performance. This is not an issue in \textit{STM} because no locks are taken in advance. 

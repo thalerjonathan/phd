@@ -15,15 +15,15 @@ In this case study we compare the performance of five (5) implementations under 
 \begin{enumerate}
 	\item Sequential - This is the original implementation as discussed in \cite{thaler_pure_2018} where the discrete 2D grid is shared amongst all agents as read-only data and the agents are executed sequentially within the main thread without any concurrency.
 	
+	\item STM - This is the same implementation as the \textit{Sequential} but agents run now in the \texttt{STM} context and have access to the discrete 2D grid through a transactional variable \texttt{TVar}. This means that the agents now communicate indirectly by reads and writes through the \texttt{TVar}.
+		
 	\item Lock-Based Naive - This is exactly the same implementation as the \textit{STM} one, but instead of running in the \texttt{STM} context, the agents now run in the \texttt{IO} context. They share the discrete 2D grid using a reference and have access to a lock to synchronise access to the reference.
 
 	\item Lock-Based Read-Write Lock - This is the same implementation as \textit{Lock-Based Naive} but uses a read-write lock from the \href{http://hackage.haskell.org/package/concurrent-extra}{concurrent-extra library}~\cite{concurrent_extra_library} for a more fine-grained locking strategy, exploiting the fact that in the SIR model reads outnumber the writes by far, making a read-write lock much more appropriate.
 
 	%\item Lock-Based Advanced - This is the same implementation as \textit{Lock-Based Naive} but instead of holding the lock unconditionally, it distinguishes more granularly between an unconditional read scenario and a conditional write scenario: it acquires and releases the lock to read the shared environment and re-acquires and re-reads the environment in case a write becomes necessary. This works in this case study for two reasons: First, data in Haskell is immutable, therefore it is possible to read it from the reference and then perform lookups on it; Second, in the SIR model, every agent writes only to its position, therefore the lock does not to be held for the entire operation.
 	
-	\item Hybrid (Lock-Based Atomic) - This is the same implementation as \textit{Lock-Based Naive} but uses an atomic modification operation to both read and write the shared environment. Strictly speaking, this is not a lock-based approach as it does not acquire locks but uses a compare-and-swap hardware instruction. A limitation of this is approach is that it is only applicable when there is just a single reference in the program and all operations need to go through the atomic modification operation.
-
-	\item STM - This is the same implementation as the \textit{Sequential} but agents run now in the \texttt{STM} context and have access to the discrete 2D grid through a transactional variable \texttt{TVar}. This means that the agents now communicate indirectly by reads and writes through the \texttt{TVar}.
+	\item Hybrid (Lock-Based Atomic) - This is the same implementation as \textit{Lock-Based Naive} but uses an atomic modification operation to both read and write the shared environment. Strictly speaking, this is not a lock-based approach as it does not acquire locks but uses a compare-and-swap hardware instruction. A limitation of this approach is that it is only applicable when there is just a single reference in the program and all operations need to go through the atomic modification operation.
 	
 \end{enumerate}
 
@@ -36,10 +36,11 @@ For robust performance measurements we used the microbenchmarking library Criter
 \begin{table}
 	\centering
 	\begin{tabular}{ c || c }
-		OS & Ubuntu 19.10 64-bit \\ \hline
-		RAM & 16 GByte \\ \hline
-		CPU & Intel Core i7-8550U @ 3.6GHz x 8 \\ \hline
-		HD & 512Gbyte SSD \\ \hline
+		Model   & Dell XPS 13 (9370)				    \\ \hline
+		OS      & Ubuntu 19.10 64-bit 				\\ \hline
+		RAM     & 16 GByte 							\\ \hline
+		CPU     & Intel Core i7-8550U @ 3.6GHz x 8 	\\ \hline
+		HD      & 512Gbyte SSD 						\\ \hline
 		Haskell & GHC 8.4.3 (stack resolver lts-12.4)
 	\end{tabular}
 	
@@ -184,11 +185,11 @@ The results are reported in Table \ref{tab:sir_varyinggrid_constcores} and plott
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c  }
-        Grid Size          &  Lock-Based Read-Write & Hybrid       & STM                   \\ \hline \hline 
-   		101 x 101 (10,201) &  139.0 (0.15)          & 91.1 (0.14)  & 96.5 (0.27)           \\ \hline
-   		151 x 151 (22,801) &  314.0 (0.67)          & 204.0 (0.36) & 212.0 (0.16)          \\ \hline
-   		201 x 201 (40,401) &  559.0 (1.22)          & 360.0 (0.61) & 382.0 (0.85)          \\ \hline
-   		251 x 251 (63,001) &  861.0 (0.62)          & TODO         & TODO \textbf{495.7}   \\ \hline \hline
+        Grid Size          &  Lock-Based Read-Write & Hybrid       & STM            \\ \hline \hline 
+   		101 x 101 (10,201) &  139.0 (0.15)          & 91.1 (0.14)  & 96.5 (0.27)    \\ \hline
+   		151 x 151 (22,801) &  314.0 (0.67)          & 204.0 (0.36) & 212.0 (0.16)   \\ \hline
+   		201 x 201 (40,401) &  559.0 (1.22)          & 360.0 (0.61) & 382.0 (0.85)   \\ \hline
+   		251 x 251 (63,001) &  861.0 (0.62)          & 571.0 (0.71) & 608.0 (1.20)   \\ \hline \hline
   	\end{tabular}
 
   	\caption{Performance comparison of \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations on varying grid sizes and 4 cores. Timings in seconds (lower is better).}

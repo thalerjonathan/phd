@@ -2,8 +2,8 @@ png("sir_varyinggrid_constcores.png", width = 700, height = 700)
 
 agents <- c(10201, 22801, 40401, 63001)
 lbRw  <- c(139, 314, 559, 861)
-hyb   <- c(91.1, 204, 360, 0)
-stm   <- c(96.5, 212, 382, 0)
+hyb   <- c(91.1, 204, 360, 571)
+stm   <- c(96.5, 212, 382, 608)
 
 #dev.new(width = 500, height = 500, unit = "px")
 plot(agents, lbRw, type="o", col="red", pch="o", lty=1,

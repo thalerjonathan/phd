@@ -222,6 +222,8 @@ Independent of the number of agents we always have a retry ratio of 0.0. This in
 \subsection{Going Large-Scale}
 To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{STM} cases, we ran two experiments, 51x51 and 251x251, on Amazon EC instances with a larger number of cores than our local machinery, starting with 16 and 32 to see if we are running into decreasing returns. The results are reported in Table \ref{tab:sir_varying_cores_amazon}.
 
+TODO: amazon instance description: m5ad.16xlarge, 64 vCPUs, 256 GiB RAM
+
 \begin{table}
 	\centering
   	\begin{tabular}{cc|c|c}

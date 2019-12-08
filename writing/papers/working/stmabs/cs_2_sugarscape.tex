@@ -117,6 +117,8 @@ We also measured the average retries both for \textit{TVar} and \textit{TArray} 
 \subsection{Going Large-Scale}
 To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{TArray} cases, we ran the two experiments (carrying capacity and rebirthing) on Amazon EC instances with increasing number of cores starting with 16 and 32 to see if we run into decreasing returns. The results are reported in Table \ref{tab:sug_varying_cores_amazon}.
 
+TODO: make clear how many agents!! carrying capacity is clear: uses 500 agents, with rebirthing 2500 is very likely
+
 \begin{table}
 	\centering
 %  	\begin{tabular}{ c || c | c | c }

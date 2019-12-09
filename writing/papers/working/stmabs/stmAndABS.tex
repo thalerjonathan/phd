@@ -9,7 +9,7 @@ As will be described in subsequent sections, central to both case studies is an 
 \subsection{Adding STM to agents}
 A detailed discussion of how to add STM to agents on a technical level is beyond the focus of this paper as it would require to give an in-depth technical explanation of how our agents are actually implemented \cite{thaler_pure_2018}.
 
-However, the concepts are similar to the example in Section \ref{sub:stm_example}. The agent behaviour is an \texttt{STM} action and has access to the environment either through a \texttt{TVar} or \texttt{TArray} and performs read and write operations directly on it. Each agent itself is run within its own thread, and synchronises with the main thread. Thus, it takes Haskells \texttt{MVar} synchronisation primitives to synchronise with the main thread and simply runs the \texttt{STM} agent behaviour each time it receives the next tick \texttt{DTime}:
+However, the concepts are similar to the example in Section \ref{sub:stm_example}. The agent behaviour is an \texttt{STM} action and has access to the environment either through a \texttt{TVar} or \texttt{TArray} and performs read and write operations directly on it. Each agent itself is run within its own thread, and synchronises with the main thread. Thus, it takes Haskells \texttt{MVar} synchronisation primitives to synchronise with the main thread and simply runs the \texttt{STM} agent behaviour each time it receives the next tick \texttt{DTime}: \\ % need line break otherwise code is too close to text
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -37,7 +37,9 @@ agentThread n agent rng retVar dtVar = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-Computing a simulation step is quite trivial within the main thread. All agent threads \texttt{MVars} are signalled to unblock, followed by an immediate block on the \texttt{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \texttt{TVar} which the agent threads have updated:
+\medskip % needed otherwise code is too close to text
+
+Computing a simulation step is quite trivial within the main thread. All agent threads \texttt{MVars} are signalled to unblock, followed by an immediate block on the \texttt{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \texttt{TVar} which the agent threads have updated: \\ % need line break otherwise code is too close to text
 
 %\begin{HaskellCode}
 \begin{footnotesize}

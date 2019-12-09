@@ -57,11 +57,34 @@ STM comes with a number of primitives to share transactional data. Amongst other
 \end{itemize}
 
 % NOTE: too technical
-%To run an \textit{STM} action the function \textit{atomically :: STM a $\to$ IO a} is provided, which can be seen as the STM effect runner as it performs a series of \textit{STM} actions atomically within an \textit{IO} context. It takes the STM action which returns a value of type \textit{a} and returns an \textit{IO} action which returns a value of type \textit{a}. This \textit{IO} action can only be executed within an \textit{IO} context.
+To execute an \texttt{STM} action the function \texttt{atomically :: STM a $\to$ IO a} is provided, which performs a series of \texttt{STM} actions atomically within an \texttt{IO} context. It takes the \texttt{STM} action which returns a polymorphic value of type \texttt{a} and returns an \texttt{IO} action which returns a value of type \texttt{a}.
 
 \subsubsection{An example}
 \label{sub:stm_example}
-We provide a short example to demonstrate the use of STM. To show the retry semantics more clearly, we use \texttt{STM} within a \texttt{StateT} effect context. A \texttt{StateT} effect allows to read and write some state, which in this example we simply set to be an \texttt{Int} value. The example code takes a transactional variable \texttt{TVar} which holds an \texttt{Int} and runs within a \texttt{StateT} effect, providing read and write access to an \texttt{Int}, and an \texttt{STM} effect returning an \texttt{Int}:
+We provide two short examples to demonstrate the use of STM. The first example is an implementation of the aforementioned functionality, where money is withdrawn from one account and transferred to another. The implementing function \texttt{transferFunds} takes two \texttt{TVar}, holding the account balances, and the amount to exchange. It executes using \texttt{atomically}, therefore running in the \texttt{IO} context. It uses the two functions \texttt{withdraw} and \texttt{deposit} which do the work of withdrawing some amount from one account and depositing some amount to another. This example demonstrates how easy STM can be used: the implementation looks quite trivial, simply swapping values, without any locking involved or special handling of concurrency, other than the use of \texttt{atomically}. \\ % need line break otherwise code is too close to text
+
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
+transferFunds :: TVar Integer -> TVar Integer -> Integer -> IO ()
+transferFunds from to n = atomically $ do
+  withdraw from n
+  deposit to n
+  
+withdraw :: TVar Integer -> Integer -> STM ()
+withdraw account amount = do
+  balance <- readTVar account
+  writeTVar (balance - amount)
+  
+deposit :: TVar Integer -> Integer -> STM ()
+deposit account amount = do
+  balance <- readTVar account
+  writeTVar (balance + amount)
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
+
+In the second example we show the retry semantics of STM, by using \texttt{STM} within a \texttt{StateT} effect context. A \texttt{StateT} effect allows to read and write some state, which in this example we simply set to be an \texttt{Int} value. The example code takes a transactional variable \texttt{TVar} which holds an \texttt{Int} and runs within a \texttt{StateT} effect, providing read and write access to an \texttt{Int}, and an \texttt{STM} effect returning an \texttt{Int}: \\ % need line break otherwise code is too close to text
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -84,7 +107,9 @@ stmAction v = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT}. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. To run \texttt{stmAction} we need to spawn a thread:
+\medskip % needed otherwise code is too close to text
+
+When \texttt{stmAction} is run, it prints an \texttt{'increment!'} debug message to the console and increments the value in the \texttt{StateT}. Then it awaits a condition for as long as \texttt{TVar} is less then 42 the action will retry whenever it is run. If the condition is met, it will return the content of the \texttt{TVar}. To run \texttt{stmAction} we need to spawn a thread: \\ % need line break otherwise code is too close to text
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -104,7 +129,9 @@ stmThread v = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-The thread simply runs the \texttt{StateT} effect with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to update the \texttt{TVar} until the condition is met within \texttt{stmAction}:
+\medskip % needed otherwise code is too close to text
+
+The thread simply runs the \texttt{StateT} effect with the initial value of 0 and then the \texttt{STM} computation through \texttt{atomically} and prints the result to the console. The value of \texttt{a} is the result of \texttt{stmAction} and \texttt{s'} is the final state of the \texttt{StateT} computation. To actually run this example we need the main thread to update the \texttt{TVar} until the condition is met within \texttt{stmAction}: \\ % need line break otherwise code is too close to text
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -125,5 +152,7 @@ main = do
 \end{verbatim}
 \end{footnotesize}
 %\end{HaskellCode}
+
+\medskip % needed otherwise code is too close to text
 
 If we run this program, we will see \texttt{'increment!'} printed 43 times, followed by \texttt{'final StateT state = 1, STM computation result = 42'}. This clearly demonstrates the retry semantics where \texttt{stmAction} is retried 42 times and thus prints \texttt{'increment!'} 43 times to the console. The \texttt{StateT} computation however is always rolled back when a retry is happening. The rollback is easily possible in pure functional programming due to persistent data structures by simply throwing away the new value and retrying with the old value. This example also demonstrates that any \texttt{IO} actions which happen within an \texttt{STM} action are persistent and can obviously not be rolled back. \texttt{Debug.trace} is an \texttt{IO} action masked as pure using \texttt{unsafePerformIO}.

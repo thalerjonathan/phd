@@ -181,6 +181,8 @@
 \begin{abstractbox}  
     
 \begin{abstract} % abstract
+TODO: incorporate minor changes
+
 With the decline of Moore's law and the ever increasing availability of cheap massively parallel hardware, it becomes more and more important to embrace parallel programming methods to implement Agent-Based Simulations (ABS). This has been acknowledge in the field a while ago and numerous research on distributed parallel ABS exists, focusing primarily on Parallel Discrete Event Simulation as the underlying mechanism. However, these concepts and tools are inherently difficult to master and apply and often overkill in case implementers simply want to parallelise their own, custom agent-based model implementation. However, with the established programming languages in the field, Python, Java and C++, it is not easy to address the complexities of parallel programming due to unrestricted side effects and the intricacies of low-level locking semantics. Therefore, in this paper we propose the use of a lock-free approach to parallel ABS using Software Transactional Memory (STM) in conjunction with the pure functional programming language Haskell, which in combination, removes some of the problems and complexities of parallel implementations in imperative approaches.
 
 We present two case studies where we compare the performance of lock-based and lock-free STM implementations in two different well known Agent-Based Models, where we investigate both the scaling performance under increasing number of CPUs and the scaling performance under increasing number of agents. We show that the lock-free STM implementations consistently outperform the lock-based ones and scale much better to increasing number of CPUs both on local machines and on Amazon Cloud Services. Further, by utilizing the pure functional language Haskell we gain the benefits of immutable data and lack of unrestricted side effects guaranteed at compile-time, making validation easier and leading to increased confidence in the correctness of an implementation, something of fundamental importance and benefit in parallel programming in general and scientific computing like ABS in particular.
@@ -345,14 +347,14 @@ The authors would like to thank J. Hey and M. Handley for constructive feedback,
 
 \begin{figure}[h!]
 	\includegraphics[width=0.6\textwidth, angle=0]{./sir_varyingcores_constgrid.png}
-	\caption{Performance comparison of \textit{Sequential}, \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations under varying cores with grid size of 51x51 (2,601) agents.}
+	\caption{Performance comparison of \textit{Sequential}, \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations on varying cores with grid size of 51x51 (2,601) agents.}
 	\label{fig:sir_varyingcores_constgrid}
 \end{figure}
 
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.7\textwidth, angle=0]{./sir_varyinggrid_constcores.png}
-	\caption{Performance comparison of \textit{STM} and \textit{Lock-Based} SIR implementations under varying grid sizes on 4 cores.}
+	\caption{Performance comparison of \textit{Lock-Based}, \textit{Hybrid} and \textit{STM} SIR implementations with varying grid sizes on 4 cores.}
 	\label{fig:sir_varyinggrid_constcores}
 \end{figure}
 

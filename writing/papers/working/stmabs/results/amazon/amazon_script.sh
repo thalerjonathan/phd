@@ -6,11 +6,10 @@
 
 # NOTE: extend the harddisk space to 32Gbyte because 8GByte is to small
 # extend volume through console and then tell the instance OS to extend the volume
-
-# extending the volume in the OS
-df -h
-sudo growpart /dev/xvda 1
-sudo resize2fs /dev/xvda1
+# if necessary, extend the volume in the OS
+# df -h
+# sudo growpart /dev/xvda 1
+# sudo resize2fs /dev/xvda1
 
 # install gcc and other development tools
 sudo yum groupinstall "Development Tools"

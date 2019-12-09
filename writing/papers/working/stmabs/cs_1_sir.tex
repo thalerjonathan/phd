@@ -29,7 +29,7 @@ In this case study we compare the performance of five (5) implementations under 
 
 Each experiment was run on our machine (see Table \ref{tab:machine_specs}) under no additional workload until $t = 100$ and stepped using $\Delta t = 0.1$. In the experiments we varied the number of agents (grid size) as well as the number of cores when running concurrently - the numbers are always indicated clearly. We checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential} implementation \cite{thaler_pure_2018}. A rigorous comparison of all implementations is quite involved and therefore beyond the focus of this paper but as a remedy we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}.
 
-For robust performance measurements we used the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage}. It allows the definition and running of benchmark suites, measuring performance by executing them repeatedly, fitting actual against expected runtime, reporting mean and standard deviation for statistically robust results. By running each benchmark repeatedly, fitting it using linear regression analysis, Criterion is able to robustly determine whether the measurements fall within a normal range or are outliers (and therefore should be re-run) due to some external influences like additional workload on the machine. Therefore, we made sure to only include measurements Criterion labelled as normal. Criterion ran each of our benchmark 10 times with increasing increments of 1, 2, 3 and 4 times. In the results we report the estimates of ordinary least squares (OLS) regression together with the standard deviation because it gives the most reliable results in terms of statistical robustness.
+For robust performance measurements we used the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage}. It allows the definition and running of benchmark suites, measuring performance by executing them repeatedly, fitting actual against expected runtime, reporting mean and standard deviation for statistically robust results. By running each benchmark repeatedly, fitting it using linear regression analysis, Criterion is able to robustly determine whether the measurements fall within a normal range or are outliers (and therefore should be re-run) due to some external influences like additional workload on the machine. Therefore, we made sure to only include measurements Criterion labelled as normal,which meant we re-ran measurements where the goodness of fit $R^2$ was less than 0.99. Criterion ran each of our benchmark 10 times with increasing increments of 1, 2, 3 and 4 times. In the results we report the estimates of ordinary least squares (OLS) regression together with the standard deviation because it gives the most reliable results in terms of statistical robustness. 
 
 %For varying the number of cores we compiled the executable using the tool \textit{stack} with the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x indicates the number of cores. 
 
@@ -156,19 +156,18 @@ In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c | c | c }
-        Cores & Sequential  & Lock-Based Naive   & Lock-Based Read-Write & Hybrid    & STM             \\ \hline \hline 
-   		1     & 73.9 (2.06) & 59.2 (0.16) &  55.0 (0.22) & 51.0 (0.11) & 52.2 (0.23) \\ \hline
-   		2     & -           & 46.5 (0.05) &  40.8 (0.18) & 32.4 (0.09) & 33.2 (0.03) \\ \hline
-   		3     & -           & 44.2 (0.08) &  35.8 (0.06) & 25.5 (0.09) & 26.4 (0.05) \\ \hline
-   		4     & -           & 47.4 (0.12) &  34.0 (0.32) & 22.7 (0.08) & 23.3 (0.19) \\ \hline
-   		5     & -           & 48.1 (0.13) &  34.5 (0.06) & 22.6 (0.03) & 23.0 (0.06) \\ \hline
-   		6     & -           & 49.1 (0.09) &  34.8 (0.03) & 22.3 (0.09) & 23.1 (0.05) \\ \hline
-   		7     & -           & 49.8 (0.09) &  35.9 (0.15) & 22.8 (0.07) & 23.4 (0.22) \\ \hline
-   		8     & -           & 57.2 (0.06) &  40.4 (0.21) & 25.8 (0.02) & 26.2 (0.22) \\ \hline \hline
+        Cores & Sequential  & Lock-Based Naive & Lock-Based Read-Write & Hybrid                & STM          \\ \hline \hline 
+   		1     & 73.9 (2.06) & 59.2 (0.16)      & 55.0 (0.22)           & \textbf{51.0} (0.11)  & 52.2 (0.23   \\ \hline
+   		2     & -           & 46.5 (0.05)      & 40.8 (0.18)           & \textbf{32.4} (0.09)  & 33.2 (0.03)  \\ \hline
+   		3     & -           & 44.2 (0.08)      & 35.8 (0.06)           & \textbf{25.5} (0.09)  & 26.4 (0.05)  \\ \hline
+   		4     & -           & 47.4 (0.12)      & 34.0 (0.32)           & \textbf{22.7} (0.08)  & 23.3 (0.19)  \\ \hline
+   		5     & -           & 48.1 (0.13)      & 34.5 (0.06)           & \textbf{22.6} (0.03)  & 23.0 (0.06)  \\ \hline
+   		6     & -           & 49.1 (0.09)      & 34.8 (0.03)           & \textbf{22.3} (0.09)  & 23.1 (0.05)  \\ \hline
+   		7     & -           & 49.8 (0.09)      & 35.9 (0.15)           & \textbf{22.8} (0.07)  & 23.4 (0.22)  \\ \hline
+   		8     & -           & 57.2 (0.06       & 40.4 (0.21)           & \textbf{25.8} (0.02)  & 26.2 (0.22)  \\ \hline \hline
   	\end{tabular}
 
-		
-  	\caption{SIR performance comparisons on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better). Standard deviation in parentheses.}
+  	\caption{Performance comparison of \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations under varying cores with grid size of 51x51 (2,601) agents. Timings in seconds (lower is better), standard deviation in parentheses.}
 	\label{tab:sir_varyingcores_constgrid}
 \end{table}
 
@@ -178,21 +177,21 @@ Comparing the performance and scaling to multiple cores of the \textit{STM} and 
 %What comes a bit as a surprise is, that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do). When looking at benchmarks \footnote{\url{https://benchmarksgame-team.pages.debian.net/benchmarksgame/faster/haskell.html}} comparing Haskell to Java, C and C++, Haskell is significantly outperformed in most of the cases. This is a strong indication that Haskell is in general not as fast as Java, C or C++. %Although there exist advanced techniques where Haskell can approach a performance like C \cite{kqr_competing_2017} we don't use them here as often this comes at the cost of more complex features, some of them not part of the language standard, more complex code and ultimately requires lots of experience .
 %Also, we build on the concepts developed in \cite{thaler_pure_2019} to implement our ABS which make heavy use of Functional Reactive Programming, which can be substantially slower than imperative approaches \cite{nilsson_functional_2002, hudak_arrows_2003}. 
 
-\subsection{Varying Grid Size, Constat Cores}
+\subsection{Varying Grid Size, Constant Cores}
 In this experiment we varied the grid size and used constantly 4 cores. Because in the previous experiment \textit{Lock-Based} performed best on 3 cores, we additionally ran Lock-Based on 3 cores as well. %Note that the RePast experiments all ran on a single (1) core and were conducted to have a rough estimate where the functional approach is in comparison to the imperative.
 The results are reported in Table \ref{tab:sir_varyinggrid_constcores} and plotted in Figure \ref{fig:sir_varyinggrid_constcores}.
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c  }
-        Grid Size          &  Lock-Based Read-Write & Hybrid       & STM            \\ \hline \hline 
-   		101 x 101 (10,201) &  139.0 (0.15)          & 91.1 (0.14)  & 96.5 (0.27)    \\ \hline
-   		151 x 151 (22,801) &  314.0 (0.67)          & 204.0 (0.36) & 212.0 (0.16)   \\ \hline
-   		201 x 201 (40,401) &  559.0 (1.22)          & 360.0 (0.61) & 382.0 (0.85)   \\ \hline
-   		251 x 251 (63,001) &  861.0 (0.62)          & 571.0 (0.71) & 608.0 (1.20)   \\ \hline \hline
+        Grid Size           & Lock-Based Read-Write & Hybrid                 & STM            \\ \hline \hline 
+   		101 x 101 (10,201)  & 39.0 (0.15)           & \textbf{91.1} (0.14)   & 96.5 (0.27)    \\ \hline
+   		151 x 151 (22,801)  & 314.0 (0.67)          & \textbf{204.0} (0.36)  & 212.0 (0.16)   \\ \hline
+   		201 x 201 (40,401)  & 559.0 (1.22)          & \textbf{360.0} (0.61)  & 382.0 (0.85)   \\ \hline
+   		251 x 251 (63,001)  & 861.0 (0.62)          & \textbf{571.0} (0.71)  & 608.0 (1.20)   \\ \hline \hline
   	\end{tabular}
 
-  	\caption{Performance comparison of \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations on varying grid sizes and 4 cores. Timings in seconds (lower is better).}
+  	\caption{Performance comparison of \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations on varying grid sizes and 4 cores. Timings in seconds (lower is better), standard deviation in parentheses.}
 	\label{tab:sir_varyinggrid_constcores}
 \end{table}
 

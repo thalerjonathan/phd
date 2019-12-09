@@ -17,6 +17,7 @@ We implemented the \textit{Carrying Capacity} (p. 30) section of Chapter II of t
 \subsection{Experiment Design}
 We compare four different implementations with the code freely accessible from the \href{https://github.com/thalerjonathan/haskell-stm-sugarscape}{repository}~\cite{thaler_stm_sugarscape_repository}:
 
+TODO: more detail: make sure all except Tarray use an array to manipulate the environment (cite array library)
 \begin{enumerate}
 	\item Sequential - All agents are run after another (including the environment) and the environment is shared amongst the agents using a read and write state context.
 	\item Lock-Based - All agents are run concurrently and the environment is shared using a global reference amongst the agents which acquire and release a lock when accessing it.
@@ -31,54 +32,92 @@ This decision leaves the execution order of the agents ultimately to Haskell's R
 
 Note that in the concurrent implementations we have two options for running the environment: either asynchronously as a concurrent agent at the same time with the population agents or synchronously after all agents have run. We must be careful though as running the environment as a concurrent agent can be seen as conceptually wrong because the time when the regrowth of the sugar happens is now completely random. In this case it could happen that sugar regrows in the very first transaction or in the very last, different in each step, which can be seen as a violation of the model specifications. Thus we do not run the environment concurrently with the agents but synchronously after all agents have run.
 
+TODO: rewrite
 We follow \cite{lysenko_framework_2008} and measure the average number of steps per second of the simulation over 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional workload and report the average. In the experiments we varied the number of cores when running concurrently - the numbers are always indicated clearly.
 
 %Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is often important in ABS, it is not what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step piped into a file, thus omitting slow output to the console \footnote{Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in high number of steps per second but which obviously don't really reflect the true computations done.}.
 
 \subsection{Constant Agent Size}
-In a first approach we compare the performance of all implementations on varying numbers of cores. The results are reported in Table \ref{tab:varying_cores} and plotted in Figure \ref{fig:varying_cores}. 
+In a first approach we compare the performance of all implementations on varying numbers of cores. The results are reported in Table \ref{tab:sugarscape_varyingcores_constagents} and plotted in Figure \ref{fig:sugarscape_varyingcores_constagents}. 
+
+%\begin{table}
+%	\centering
+%	\begin{tabular}{cc|c|c}
+%		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
+%		\multicolumn{1}{ |c| }{Cores} & Steps & Retries      \\ \hline \hline 
+%		
+%		\multicolumn{1}{ c||  }{\multirow{1}{*}{Sequential} } &
+%		\multicolumn{1}{ |c| }{1} & 39.4 & N/A     \\ \hline \hline 
+%		
+%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based} } &
+%		\multicolumn{1}{ |c| }{1} & 43.0 & N/A       \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{2} & 51.8 & N/A   \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{3} & 57.4 & N/A   \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{4} & 58.1 & N/A   \\ \hline \hline 
+%		
+%		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TVar}} } &
+%		\multicolumn{1}{ |c| }{1} & \textbf{47.3} & 0.0       \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{2} & 53.5 & 1.1    \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{3} & 57.1 & 2.2    \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{4} & 53.0 & 3.2   \\ \hline \hline 
+%		
+%		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TArray}} } &
+%		\multicolumn{1}{ |c| }{1} & 45.4 & 0.0       \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{2} & \textbf{65.3} & 0.02   \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{3} & \textbf{75.7} & 0.04    \\ \cline{2-4}
+%		\multicolumn{1}{ c||  }{}                       &
+%		\multicolumn{1}{ |c| }{4} & \textbf{84.4} & 0.05   \\ \hline \hline 
+%	\end{tabular}  	
+%  	
+%  	\caption{Comparison of steps per seconds (higher is better) and retries (lower is better) of various Sugarscape implementations with constant agent numbers. Using 50x50 grid with 500 initial agents on varying cores.}
+%	\label{tab:varying_cores}
+%\end{table}
 
 \begin{table}
 	\centering
-	\begin{tabular}{cc|c|c}
-		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
-		\multicolumn{1}{ |c| }{Cores} & Steps & Retries      \\ \hline \hline 
-		
-		\multicolumn{1}{ c||  }{\multirow{1}{*}{Sequential} } &
-		\multicolumn{1}{ |c| }{1} & 39.4 & N/A     \\ \hline \hline 
-		
-		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based} } &
-		\multicolumn{1}{ |c| }{1} & 43.0 & N/A       \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{2} & 51.8 & N/A   \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{3} & 57.4 & N/A   \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{4} & 58.1 & N/A   \\ \hline \hline 
-		
-		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TVar}} } &
-		\multicolumn{1}{ |c| }{1} & \textbf{47.3} & 0.0       \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{2} & 53.5 & 1.1    \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{3} & 57.1 & 2.2    \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{4} & 53.0 & 3.2   \\ \hline \hline 
-		
-		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TArray}} } &
-		\multicolumn{1}{ |c| }{1} & 45.4 & 0.0       \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{2} & \textbf{65.3} & 0.02   \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{3} & \textbf{75.7} & 0.04    \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{4} & \textbf{84.4} & 0.05   \\ \hline \hline 
-	\end{tabular}  	
-  	
-  	\caption{Comparison of steps per seconds (higher is better) and retries (lower is better) of various Sugarscape implementations with constant agent numbers. Using 50x50 grid with 500 initial agents on varying cores.}
-	\label{tab:varying_cores}
+  	\begin{tabular}{ c || c | c | c | c }
+        Cores  & Sequential  & Lock-Based            & TVar         & TArray                \\ \hline \hline 
+    		1      & 25.2 (0.36) & \textbf{21.0} (0.12)  & 21.1 (0.25)  & 42.0 (2.20)           \\ \hline
+   		2      & -           & \textbf{20.0} (0.12)  & 22.2 (0.21)  & 24.5 (1.07)           \\ \hline
+   		3      & -           & 21.9 (0.19)           & 23.6 (0.12)  & \textbf{19.7} (1.05)  \\ \hline
+   		4      & -           & 24.0 (0.17)           & 25.2 (0.16)  & \textbf{18.9} (0.58)  \\ \hline
+   		5      & -           & 26.7 (0.17)           & 31.0 (0.24)  & \textbf{20.3} (0.87)  \\ \hline
+   		6      & -           & 29.3 (0.57)           & 35.2 (0.12)  & \textbf{21.2} (1.49)  \\ \hline
+   		7      & -           & 30.0 (0.12)           & 38.7 (0.42)  & \textbf{21.0} (0.41)  \\ \hline
+   		8      & -           & 31.2 (0.29)           & 49.0 (0.41)  & \textbf{21.1} (0.64)  \\ \hline \hline
+   	\end{tabular}
+ 
+  	\caption{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{TVar} and \textit{TArray} Sugarscape implementations under varying cores with 50x50 environment and 500 initial agents. Timings in seconds (lower is better), standard deviation in parentheses.}
+	\label{tab:sugarscape_varyingcores_constagents}
 \end{table}
 
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c }
+        Cores & TVar  & TArray  \\ \hline \hline 
+    		1     & 0.00  & 0.00    \\ \hline
+   		2     & 1.04  & 0.02    \\ \hline
+   		3     & 2.15  & 0.04    \\ \hline
+   		4     & 3.20  & 0.06    \\ \hline
+   		5     & 4.06  & 0.07    \\ \hline
+   		6     & 5.02  & 0.09    \\ \hline
+   		7     & 6.09  & 0.10    \\ \hline
+   		8     & 8.45  & 0.11    \\ \hline \hline
+   	\end{tabular}
+ 
+  	\caption{Retry ratio comparison of the \textit{TVar} and \textit{TArray} Sugarscape implementations under varying cores with 50x50 environment and 500 initial agents. Lower is better.}
+	\label{tab:sugarscape_retry_ratios}
+\end{table}
+
+TODO: rewrite 
 As expected, the \textit{Sequential} implementation is the slowest, followed by the \textit{Lock-Based} and \textit{TVar} approach whereas \textit{TArray} is the best performing one.
 
 We clearly see that using a \texttt{TVar} to share the environment is a very inefficient choice: \textit{every} write to a cell leads to a retry independent whether the reading agent reads that changed cell or not, because the data structure can not distinguish between individual cells. By using a \texttt{TArray} we can avoid the situation where a write to a cell in a far distant location of the environment will lead to a retry of an agent which never even touched that cell. Also the \textit{TArray} seems to scale up by 10 steps per second for every core added. It will be interesting to see how far this will go with the Amazon experiment, as we seem not to hit a limit with 4 cores yet.
@@ -90,23 +129,24 @@ So far we kept the initial number of agents at 500, which due to the model speci
 
 We now measure the performance of our approaches under increased number of agents. For this we slightly change the implementation: always when an agent dies it spawns a new one which is inspired by the ageing and birthing feature of Chapter III in the book \cite{epstein_growing_1996}. This ensures that we keep the number of agents roughly constant (still fluctuates but doesn't drop to low levels) over the whole duration. This ensures a constant load of concurrent agents interacting with each other and demonstrates also the ability to terminate and fork threads dynamically during the simulation.
 
-Except for the \textit{Sequential} approach we ran all experiments with 4 cores (\textit{TVar} with 3 as well). We looked into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment). The results are reported in Table \ref{tab:state_results_agentsscale_time} and plotted in Figure \ref{fig:state_results_agentsscale_time}.
+Except for the \textit{Sequential} approach we ran all experiments with 4 cores (\textit{TVar} with 3 as well). We looked into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment). The results are reported in Table \ref{tab:sugarscape_varyingagents_constcores} and plotted in Figure \ref{fig:sugarscape_varyingagents_constcores}.
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c | c | c }
-        Agents  & Sequential & Lock-Based & TVar (3 cores) & TVar (4 cores) & TArray  \\ \hline \hline 
-    	500     & 14.4       & 20.2		  &	20.1           & 18.5       	& \textbf{71.9}    \\ \hline
-   		1,000   & 6.8        & 10.8 	  & 10.4           & 9.5       	    & \textbf{54.8}    \\ \hline
-   		1,500   & 4.7        & 8.1 		  & 7.9            & 7.3			& \textbf{44.1}    \\ \hline
-   		2,000   & 4.4        & 7.6 		  & 7.4            & 6.7    		& \textbf{37.0}    \\ \hline 
-   		2,500   & 5.3        & 5.4 		  & 9.2            & 8.9			& \textbf{33.3}    \\ \hline \hline
+  	\begin{tabular}{ c || c | c | c | c }
+        Agents  & Sequential    & Lock-Based    & TVar          & TArray                \\ \hline \hline 
+    	    500     & 70.1 (0.41)   & 67.9 (0.13)   & 69.1 (0.34)   & \textbf{25.7} (0.42)  \\ \hline
+   		1,000   & 145.0 (0.11)  & 130.0 (0.28)  & 136.0 (0.16)  & \textbf{38.8} (1.43)  \\ \hline
+   		1,500   & 220.0 (0.14)  & 183.0 (0.83)  & 192.0 (0.73)  & \textbf{40.1} (0.25)  \\ \hline
+   		2,000   & 213.0 (0.69)  & 181.0 (0.84)  & 214.0 (0.53)  & \textbf{49.9} (0.82)  \\ \hline
+   		2,500   & 193.0 (0.16)  & 272.0 (0.81)  & 147.0 (0.32)  & \textbf{55.2} (1.04)  \\ \hline \hline
    	\end{tabular}
   	
-  	\caption{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid with varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
-	\label{tab:state_results_agentsscale_time}
+  	\caption{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{TVar} and \textit{TArray} Sugarscape implementations with varying agent numbers and 50x50 environment on 4 cores. Timings in seconds (lower is better), standard deviation in parentheses.}
+	\label{tab:sugarscape_varyingagents_constcores}
 \end{table}
 
+TODO: rewrite
 As expected, the \textit{TArray} implementation outperforms all others substantially. Also as expected, the \textit{TVar} implementation on 3 cores is faster than on 4 cores as well when scaling up to more agents. The \textit{Lock-Based} approach performs about the same as the \textit{TVar} on 3 cores because of the very similar approaches: both access the \textit{whole} environment. Still the \textit{TVar} approach uses one core less to arrive at the same performance, thus strictly speaking outperforming the \textit{Lock-Based} implementation.
 
 What seems to be very surprising is that in the \textit{Sequential} and \textit{TVar} cases the performance with 2,500 agents is \textit{better} than the one with 2,000 agents. The reason for this is that in the case of 2,500 agents, an agent can't move anywhere because all cells are already occupied. In this case the agent won't rank the cells in order of their payoff (max sugar) to move to but just stays where it is. We hypothesize that due to Haskells laziness the agents actually never look at the content of the cells in this case but only the number which means that the cells themselves are never evaluated which further increases performance. This leads to the better performance in case of \textit{Sequential} and \textit{TVar} because both exploit laziness.
@@ -145,7 +185,7 @@ TODO: make clear how many agents!! carrying capacity is clear: uses 500 agents, 
 		\multicolumn{1}{ |c| }{32} & \textbf{109.8} (0.41)      & \textbf{31.3} (0.18)      \\ \hline \hline 
 	\end{tabular}  	
   	
-  	\caption{Sugarscape \textit{STM} performance on 16 and 32 cores on Amazon EC2. Values are steps per second (higher is better). Retry ratio in brackets.}
+  	\caption{Sugarscape \textit{STM} performance on 16 and 32 cores on Amazon EC2. Values are steps per second (higher is better). Retry ratios in parentheses.}
 	\label{tab:sug_varying_cores_amazon}
 \end{table}
 

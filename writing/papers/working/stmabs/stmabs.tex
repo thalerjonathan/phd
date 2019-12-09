@@ -360,7 +360,7 @@ The authors would like to thank J. Hey and M. Handley for constructive feedback,
 
 \begin{figure}[h!]
 	\includegraphics[width=0.6\textwidth, angle=0]{./sir_varyingcores_constgrid.png}
-	\caption{Performance comparison of \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations under varying cores with grid size of 51x51 (2,601) agents.}
+	\caption{Performance comparison of \textit{Sequential}, \textit{STM}, \textit{Lock-Based} and \textit{Hybrid} SIR implementations under varying cores with grid size of 51x51 (2,601) agents.}
 	\label{fig:sir_varyingcores_constgrid}
 \end{figure}
 
@@ -397,15 +397,15 @@ The authors would like to thank J. Hey and M. Handley for constructive feedback,
 \end{figure}
 
 \begin{figure}[h!]
-	\includegraphics[width=0.7\textwidth, angle=0]{./sug_varying_cores.png}
-	\caption{Comparison of steps per seconds (higher is better) and retries of various Sugarscape implementations with constant agent numbers. Using a 50x50 grid and 500 initial agents on varying cores.}
-	\label{fig:varying_cores}
+	\includegraphics[width=0.7\textwidth, angle=0]{./sugarscape_varyingcores_constagents.png}
+	\caption{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{TVar} and \textit{TArray} Sugarscape implementations under varying cores with 50x50 environment and 500 initial agents.}
+	\label{fig:sugarscape_varyingcores_constagents}
 \end{figure}
 
 \begin{figure}[h!]
-	\includegraphics[width=0.6\textwidth, angle=0]{./sug_varying_agents.png}
-	\caption{Steps per second (higher is better) of various Sugarscape implementations with varying agent numbers. Using 50x50 grid and varying number of agents with 4 (and 3) cores except the \textit{Sequential} (1 core) implementation.}
-	\label{fig:state_results_agentsscale_time}
+	\includegraphics[width=0.6\textwidth, angle=0]{./sugarscape_varyingagents_constcores.png}
+	\caption{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{TVar} and \textit{TArray} Sugarscape implementations with varying agent numbers and 50x50 environment on 4 cores.}
+	\label{fig:sugarscape_varyingagents_constcores}
 \end{figure}
 
 

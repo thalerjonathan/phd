@@ -1,6 +1,0 @@
-1. thanks
-2. we re-ran all experiments because new hardware AND using criterion which ensured much more precise timings and most important statistically highly robust results.
-3. we added ReadWrite lock in SIR
-4. we added Hybrid (atomic) implementation in SIR
-5. we addressed the 'unfairness' of TArray vs IO in Sugarscape: it sounds nice but is actually simply impossible. might be possible with a highly involved locking algorithm but we didn't go into this
-6. we addressed all other minor problems and added a bit more detail to the STM background section (one additional example)

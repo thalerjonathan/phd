@@ -1,0 +1,18 @@
+1. thanks
+2. we re-ran all experiments because new hardware AND using criterion which ensured much more precise timings and most important statistically highly robust results.
+3. we added ReadWrite lock in SIR
+4. we added Hybrid (atomic) implementation in SIR
+5. we addressed the 'unfairness' of TArray vs IO in Sugarscape: it sounds nice but is actually simply impossible. might be possible with a highly involved locking algorithm but we didn't go into this
+6. we addressed all other minor problems and added a bit more detail to the STM background section (one additional example)
+
+Reproducibility: the referee is right to point this out bu given the other work we did, we simply didn't have time to contribute any in-depth and systematic work and research on this. This matter is not simply solved in a matter of 2 weeks but needs thorough investigation, with the potential for an additional paper dedicated to just this problem
+
+ReadWriteLock: thanks for pointing this out in the case of the SIR we implemented it, the results are indicated in the paper and obviously the results show a much better performance, but still behind STM. In the case of the Sugarscape the ReadWrite Lock was not applicable due to model semantics - we explained this in the paper.
+
+TArray access pattern: after a little bit of thinking and trying, we came to the insight that our initial idea of an array of locks for the Lock-Based case is simply not possible due to race conditions. We pointed that out in the paper. Maybe a highly intricate locking algorithm could solve this problem but this is not the focus of our paper.
+
+We addressed the issues of informal language and the specific comments, which were also very helpful
+
+the performance figures were re-created and are more clear now with increased font size
+
+"Semantics of STM (page numbers 7-9) might be better to be placed in a supplementary file with some numbers referencing  each of them.": we decided to keep the example in the text as it is more useful there, but we added some additional explanation, to make the role of StateT more clear. Also we added a second, simpler example which shows how to implement the concurrent money transfer problem, mentioned at the beginning of the background section, with STM

@@ -25,7 +25,7 @@ In this case study we compare the performance of five (5) implementations under 
 	
 \end{enumerate}
 
-Each experiment was run on our hardware (see Table \ref{tab:machine_specs}) under no additional workload until $t = 100$ and stepped using $\Delta t = 0.1$. In the experiments we varied the number of agents (grid size) as well as the number of cores when running concurrently - the numbers are always indicated clearly. We checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential} implementation \cite{thaler_pure_2018}. A rigorous, statistical comparison of all implementations, to investigate the effects of concurrency on the dynamics, is quite involved and therefore beyond the focus of this paper but as a remedy we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}.
+Each experiment was run on our hardware (see Table \ref{tab:machine_specs}) under no additional workload until $t = 100$ and stepped using $\Delta t = 0.1$. In the experiments we varied the number of agents (grid size) as well as the number of cores when running concurrently. We checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential} implementation \cite{thaler_pure_2018}. A rigorous, statistical comparison of all implementations, to investigate the effects of concurrency on the dynamics, is quite involved and therefore beyond the focus of this paper but as a remedy we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}.
 
 For robust performance measurements we used the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage}. It allows the definition and running of benchmark suites, measuring performance by executing them repeatedly, fitting actual against expected runtime, reporting mean and standard deviation for statistically robust results. By running each benchmark repeatedly, fitting it using linear regression analysis, Criterion is able to robustly determine whether the measurements fall within a normal range or are outliers (and therefore should be re-run) due to some external influences like additional workload on the machine. Therefore, we made sure to only include measurements Criterion labelled as normal,which meant we re-ran measurements where goodness-of-fit was $R^2 < 0.99$. Criterion ran each of our benchmark 10 times with increasing increments of 1, 2, 3 and 4 times. In the results we report the estimates of ordinary least squares (OLS) regression together with the standard deviation because it gives the most reliable results in terms of statistical robustness. 
 
@@ -169,7 +169,7 @@ In this experiment we held the grid size constant at 51 x 51 (2,601 agents) and 
 	\label{tab:sir_varyingcores_constgrid}
 \end{table}
 
-Comparing the performance and scaling to multiple cores of the \textit{STM} and both \textit{Lock-Based} implementations shows that the \textit{STM} implementation significantly outperforms the \textit{Lock-Based} ones and scales better to multiple cores. The \textit{Lock-Based} implementations perform best with 3 and 4 cores respective, and shows decreasing performance beyond 4 cores as can be seen in Figure \ref{fig:sir_varyingcores_constgrid}. This is no surprise because the more cores, the more contention for the central lock, thus the more likely synchronisation happening, ultimately resulting in reduced performance. This is not an issue in \textit{STM} because no locks are taken in advance. The \textit{STM} implementation is running into decreasing returns after 5 cores, which we attribute to the fact that the sequential part of the program is taking over, as retries are clearly not an issue in this model (see below).
+Comparing the performance and scaling to multiple cores of the \textit{STM} and both \textit{Lock-Based} implementations shows that the \textit{STM} implementation significantly outperforms the \textit{Lock-Based} ones and scales better to multiple cores. The \textit{Lock-Based} implementations perform best with 3 and 4 cores respective, and shows decreasing performance beyond 4 cores as can be seen in Figure \ref{fig:sir_varyingcores_constgrid}. This is no surprise because the more cores, the more contention for the central lock, thus the more likely synchronisation happening, ultimately resulting in reduced performance. This is not an issue in \textit{STM} because no locks are taken in advance due to optimistic locking, where a log of changes is kept allowing the runtime to trigger a retry if conflicting changes are detected upon transacting. The \textit{STM} implementation is running into decreasing returns after 5 cores, which we attribute to the fact that the sequential part of the program is taking over, as retries are clearly not an issue in this model (see below).
 
 A big surprise however is that the\textit{Hybrid} implementation is slightly outperforming the \textit{STM} one, which is something we would not have anticipated. We attribute this to the lower overhead of the atomic modification operation. As the \textit{STM} implementation, the \textit{Hybrid} implementation is running into decreasing returns as well, which indicates that the sequential part of the program is taking over in this case as well.
 
@@ -217,10 +217,7 @@ Of very much interest when using STM is the retry ratio, which indicates how man
 Independent of the number of agents we always have a retry ratio of 0. This indicates that this model is \textit{very} well suited to STM, which is also directly reflected in the much better performance over the \textit{Lock-Based} implementation. Obviously this ratio stems from the fact, that in our implementation we have \textit{very} few conditional writes, which happen only in case when an agent changes from \textit{Susceptible} to \textit{Infected} or from \textit{Infected} to \textit{Recovered}. 
 
 \subsection{Going Large-Scale}
-TODO: await results
-To test how far we can scale up the number of cores in both the \textit{Lock-Based} and \textit{STM} cases, we ran two experiments, 51x51 and 251x251, on Amazon EC instances with a larger number of cores than our local machinery, starting with 16 and 32 to see if we are running into decreasing returns. The results are reported in Table \ref{tab:sir_varying_cores_amazon}.
-
-TODO: amazon instance description: m5ad.16xlarge, 64 vCPUs, 256 GiB RAM
+To test how far we can scale up the number of cores in the best performing cases, \textit{Hybrid} and \textit{STM}, we ran two experiments, 51x51 and 251x251, on an Amazon EC \texttt{m5ad.16xlarge} instance with 16 and 32 cores to see if we are running into decreasing returns. The results are reported in Table \ref{tab:sir_varying_cores_amazon}.
 
 \begin{table}
 	\centering
@@ -228,22 +225,28 @@ TODO: amazon instance description: m5ad.16xlarge, 64 vCPUs, 256 GiB RAM
 		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
 		\multicolumn{1}{ |c| }{Cores} & 51x51    & 251x251       \\ \hline \hline 
 		
-		\multicolumn{1}{ c||  }{\multirow{2}{*}{Lock-Based} } &
-		\multicolumn{1}{ |c| }{16} & 72.5    & 1830.5       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{\multirow{2}{*}{Hybrid} } &
+		\multicolumn{1}{ |c| }{16} & 18.0 (0.21)   & 638.0 (8.24)       \\ \cline{2-4}
 		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{32} & 73.1    & 1882.2      \\ \hline \hline 
+		\multicolumn{1}{ |c| }{32} & 15.6 (0.07)   & 720.0 (1.70)      \\ \hline \hline 
+		%\multicolumn{1}{ c||  }{}                       &
+		%\multicolumn{1}{ |c| }{64} & 28.4 (0.35)   & TODO      \\ \hline \hline 
 		
 		\multicolumn{1}{ c||  }{\multirow{2}{*}{STM} } &
-		\multicolumn{1}{ |c| }{16} & \textbf{8.6}     & \textbf{237.0}       \\ \cline{2-4}
-		\multicolumn{1}{ c||  }{}                       &
-		\multicolumn{1}{ |c| }{32} & 12.0    & 248.7      \\ \hline \hline 
+		\multicolumn{1}{ |c| }{16} & \textbf{14.5} (0.03)  & \textbf{307.0} (1.12)       \\ \cline{2-4}
+		\multicolumn{1}{ c||  }{}                          &
+		\multicolumn{1}{ |c| }{32} & \textbf{14.7} (0.17)  & \textbf{269.0} (1.05)      \\ \hline \hline 
+		%\multicolumn{1}{ c||  }{}                       &
+		%\multicolumn{1}{ |c| }{64} & TODO    & TODO      \\ \hline \hline 
 	\end{tabular}
 
-  	\caption{SIR \textit{STM} performance on 16 and 32 cores on Amazon EC2. Timings in seconds (lower is better).}
+  	\caption{SIR \textit{Hybrid} and \textit{STM} performance on 16 and 32 cores on an Amazon EC2 \texttt{m5ad.16xlarge} instance. Timings in seconds (lower is better), standard deviations in parentheses.}
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 
-As expected, the \textit{Lock-Based} approach doesn't scale up to many cores because each additional core brings more contention to the lock, resulting in an even more decreased performance. This is particularly obvious in the 251x251 experiment because of the much larger number of concurrent agents. The \textit{STM} approach returns better performance on 16 cores but fails to scale further up to 32 where the performance drops below the one with 16 cores. In both STM cases we measured a retry ratio of 0, thus we conclude that with 32 cores we become limited by the overhead of STM transactions \cite{perfumo_limits_2008} because the workload of an STM action in our SIR implementation is quite small.
+The \textit{Hybrid} implementation is able to scale up performance from 16 to 32 cores in the case of 51x51 but fails to do so with 251x251. We attribute this behaviour to an increased number of retries of the atomic modification operation, which obviously increases when the number of agents increases. The \textit{STM} implementation performance on the other hand nearly stays constant on 16 and 32 cores in the 51x51 case. In both cases we measured a retry ratio of 0, thus we conclude that with 32 cores we become limited by the overhead of STM transactions \cite{perfumo_limits_2008} because the workload of an STM action in our SIR implementation is quite small. On the other hand, with heavy load as in the 251x251 case, we see an increased performance with 32 cores.
+
+What is interesting is that on more cores, the \textit{STM} implementations has an edge over the \textit{Hybrid} approach, and performs better in all cases. It seems that for our problem at hand, the atomic modification operation seems to be not as efficient on many cores as an STM approach. 
 
 % NOTE: 0 retries in both cases means that the STM transactions themselves are becoming the bottleneck. this makes sens because the STM trasnactions in our SIR implementation are very small (especially recovered and infected agent) and could therefore really cause substantial overhead as pointed out by \cite{perfumo_limits_2008}
 %16 cores 251x251: 0.0 retry ratio
@@ -252,9 +255,9 @@ As expected, the \textit{Lock-Based} approach doesn't scale up to many cores bec
 %16 cores 51x51: 0.0 retry ratio
 %32 cores 51x51: 0.0 retry ratio
 
-\subsection{Discussion}
+\subsection{Summary}
 %TODO: say something about hybrid (atomicmodify): is strictly speaking not a lock-based but actually a lock-free implementation (!!) based on IO instead of STM: it does not aquire any lock but uses hardware features of the CPU to swap a pointer https://stackoverflow.com/questions/10102881/haskell-how-does-atomicmodifyioref-work. mention this unique feature of haskell, which is not possible in other languages (TODO: is this so? do we have here really a unique feature of haskell?). A downside is that it only works in case there is only a single IORef in the program and that we are still running in IO - the performance however is even better than STM (!!!) it is using compare-and-swap
 
 The timing measurements speak a clear language. Running in \texttt{STM} and sharing state using a transactional variable \texttt{TVar} is much more time efficient than the \textit{Sequential} and both \textit{Lock-Based} approach. On 5 cores \textit{STM} achieves a speedup factor of 3.2 over the \textit{Sequential} implementation, which is a big improvement compared to the simplicity of the approach. What came as a surprise was that the \textit{Hybrid} approach slightly outperforms the \textit{STM} implementation. However, the \textit{Hybrid} approach, which uses an atomic modification operation, is only applicable in case there is just a single reference in the program and requires that all operations go through this atomic modification operation. Whether the latter condition is possible or not, is highly dependent on the model semantics, which support it in the case of the SIR model but unfortunately not in the case of Sugarscape.
 
-Obviously both \textit{Lock-Based}, \textit{Hybrid} and \textit{STM} sacrifice determinism, which means that repeated runs might not lead to same dynamics despite same initial conditions. However, when sticking to STM, we get the guarantee that the source of this nondeterminism is concurrency within the \texttt{STM} context but \textit{nothing else}. This can not be guaranteed in the case of both \textit{Lock-Based} and \textit{Hybrid} approaches as all bets are off when running within the \texttt{IO} context. The fact to have \textit{both} a substantial speedup \textit{and} the stronger static guarantees, makes the \textit{STM} approach \textit{very} compelling.
+Obviously both \textit{Lock-Based}, \textit{Hybrid} and \textit{STM} sacrifice determinism, which means that repeated runs might not lead to same dynamics despite same initial conditions. However, when sticking to STM, we get the guarantee that the source of this nondeterminism is concurrency within the \texttt{STM} context but \textit{nothing else}. This can not be guaranteed in the case of both \textit{Lock-Based} and \textit{Hybrid} approaches as we lose certain static guarantees when running within the \texttt{IO} context. The fact to have \textit{both} a substantial speedup \textit{and} the stronger static guarantees, makes the \textit{STM} approach \textit{very} compelling.

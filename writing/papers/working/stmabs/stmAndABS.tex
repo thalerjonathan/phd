@@ -1,4 +1,4 @@
-\section{STM in ABS}
+\section{Software Transactional Memory in Agent-Based Simulation}
 \label{sec:stm_abs}
 In this section we give a short overview of how to apply STM in ABS. We fundamentally follow a time-driven approach in both case studies where the simulation is advanced by some given $\Delta t$ and in each step all agents are executed. To employ parallelism, each agent runs within its own thread and agents are executed in lock-step, synchronising between each $\Delta t$ which is controlled by the main thread. This way of stepping the simulation is introduced in \cite{thaler_art_2017} on a conceptual level, where the authors name it \textit{concurrent update-strategy}. See Figure \ref{fig:stm_abs_structure} for a visualisation of our concurrent, time-driven lock-step approach. 
 

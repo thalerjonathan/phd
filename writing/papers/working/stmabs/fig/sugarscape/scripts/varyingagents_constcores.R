@@ -1,4 +1,5 @@
 png("sugarscape_varyingagents_constcores.png", width = 700, height = 700)
+par(mar=c(5,5,1,1)+.1)
 
 agents   <- c(500,1000,1500,2000,2500)
 seq     <- c(70.1, 145.0, 220.0, 213.0, 193.0)
@@ -11,7 +12,7 @@ plot(agents, seq, type="o", col="red", pch="-", lty=1,
      xlab = "Agents", 
      ylab = "Seconds",
      ylim=c(20, 300),
-     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+     cex.lab=1.8, cex.axis=1.8, cex.main=1.8, cex.sub=1.8)
 
 points(agents, lb, col="blue", pch="o")
 lines(agents, lb, col="blue",lty=2)
@@ -27,7 +28,7 @@ legend("topleft",
       col=c("red", "blue", "dark green", "black"),
       lty=c(1,2,3,4),
       xpd=TRUE,
-      cex = 1.5)
+      cex = 1.8)
 
 # 3. Close the file
 dev.off()

@@ -1,4 +1,5 @@
 png("sir_varyingcores_constgrid.png", width = 700, height = 700)
+par(mar=c(5,5,1,1)+.1)
 
 cores   <- c(1,2,3,4,5,6,7,8)
 seq     <- c(73.9, 73.9, 73.9, 73.9, 73.9, 73.9, 73.9, 73.9)
@@ -12,7 +13,7 @@ plot(cores, seq, type="o", col="red", pch="-", lty=1,
      xlab = "Cores", 
      ylab = "Seconds",
      ylim=c(0,80),
-     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+     cex.lab=1.8, cex.axis=1.8, cex.main=1.8, cex.sub=1.8)
 
 points(cores, lbNaive, col="orange", pch="o")
 lines(cores, lbNaive, col="orange",lty=2)
@@ -35,7 +36,7 @@ legend("bottomleft",
       col=c("red", "orange", "blue", "dark green", "black"),
       lty=c(1,2,3,4, 5),
       xpd=TRUE,
-      cex = 1.5)
+      cex = 1.8)
 
 # 3. Close the file
 dev.off()

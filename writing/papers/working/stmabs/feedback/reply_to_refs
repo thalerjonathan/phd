@@ -5,6 +5,8 @@
 5. we addressed the 'unfairness' of TArray vs IO in Sugarscape: it sounds nice but is actually simply impossible. might be possible with a highly involved locking algorithm but we didn't go into this
 6. we addressed all other minor problems and added a bit more detail to the STM background section (one additional example)
 
+re-ran all experiments, the results are roughly the same because the hardware is similar. we changed sugarscape experiment from steps per seconds over 60 second measurement to always run 1000 steps and measure the time
+
 Reproducibility: the referee is right to point this out bu given the other work we did, we simply didn't have time to contribute any in-depth and systematic work and research on this. This matter is not simply solved in a matter of 2 weeks but needs thorough investigation, with the potential for an additional paper dedicated to just this problem
 
 ReadWriteLock: thanks for pointing this out in the case of the SIR we implemented it, the results are indicated in the paper and obviously the results show a much better performance, but still behind STM. In the case of the Sugarscape the ReadWrite Lock was not applicable due to model semantics - we explained this in the paper.

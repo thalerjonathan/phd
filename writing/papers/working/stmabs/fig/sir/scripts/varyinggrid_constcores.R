@@ -20,7 +20,7 @@ points(agents, stm, col="dark green",pch="+")
 lines(agents, stm, col="dark green", lty=3)
 
 legend("topleft", 
-       legend=c("Lock-Based Read-Write","Hybrid", "STM"), 
+       legend=c("Lock-Based Read-Write","Atomic IO", "STM"), 
        col=c("red", "blue", "dark green"),
        lty=c(1,2,3),
        xpd=TRUE,

@@ -2,6 +2,7 @@
 \label{sec:concurrent_sir}
 Our first case study is the SIR model as introduced in Chapter \ref{sec:sir_model}. The aim of this case study is to investigate the potential speedup a concurrent STM implementation gains over a sequential one under varying number of CPU cores and agent populations. The behaviour of the agents is quite simple and the interactions are happening indirectly through the environment, where reads from the environment outnumber the writes to it by far. Further, a comparison to lock-based implementations with the \texttt{IO} Monad is done to show that STM outperforms traditional lock-based concurrency \textit{in a functional ABS implementation} while still retaining some static guarantees.
 
+\subsection{Experiment Design}
 In this case study we compared the performance of five (5) implementations under varying numbers of CPU cores and agent numbers. The code of all implementations can be accessed freely from the \href{https://github.com/thalerjonathan/haskell-stm-sir}{code repository}~\cite{thaler_stm_sir_repository}.
 
 \begin{enumerate}

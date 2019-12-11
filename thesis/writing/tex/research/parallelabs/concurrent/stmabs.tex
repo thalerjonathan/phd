@@ -68,7 +68,7 @@ agentThread n sf rng retVar dtVar = do
   putMVar retVar ret
   
   -- tail recursion to next step 
-  agentThread (n - 1) sf' rng retVar dtVar
+  agentThread (n - 1) sf' rng' retVar dtVar
 \end{HaskellCode}
 
 Computing a simulation step is now trivial within the main thread. All agent threads \texttt{MVars} are signalled to unblock followed by an immediate block on the \texttt{MVars} into which the agent threads post back their result. The state of the current step is then extracted from the environment, which is stored within the \texttt{TVar} which the agent threads have updated.

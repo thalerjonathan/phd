@@ -44,6 +44,7 @@ In this experiment we held the grid size constant at 51 x 51 (2,601 agents) and 
 
 \begin{table}
 	\centering
+	\begin{adjustbox}{width=1\textwidth}
   	\begin{tabular}{ c || c | c | c | c | c }
         Cores & Sequential  & Lock-Based Naive & Lock-Based Read-Write & Atomic IO             & STM          \\ \hline \hline 
    		1     & 73.9 (2.06) & 59.2 (0.16)      & 55.0 (0.22)           & \textbf{51.0} (0.11)  & 52.2 (0.23)  \\ \hline
@@ -53,15 +54,17 @@ In this experiment we held the grid size constant at 51 x 51 (2,601 agents) and 
    		5     & -           & 48.1 (0.13)      & 34.5 (0.06)           & \textbf{22.6} (0.03)  & 23.0 (0.06)  \\ \hline
    		6     & -           & 49.1 (0.09)      & 34.8 (0.03)           & \textbf{22.3} (0.09)  & 23.1 (0.05)  \\ \hline
    		7     & -           & 49.8 (0.09)      & 35.9 (0.15)           & \textbf{22.8} (0.07)  & 23.4 (0.22)  \\ \hline
-   		8     & -           & 57.2 (0.06       & 40.4 (0.21)           & \textbf{25.8} (0.02)  & 26.2 (0.22)  \\ \hline \hline
+   		8     & -           & 57.2 (0.06)      & 40.4 (0.21)           & \textbf{25.8} (0.02)  & 26.2 (0.22)  \\ \hline \hline
   	\end{tabular}
-
+	\end{adjustbox}
+	
   	\caption{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{Atomic IO} and \textit{STM} SIR implementations under varying cores with grid size of 51x51 (2,601) agents. Timings in seconds (lower is better), standard deviation in parentheses.}
 	\label{tab:sir_varyingcores_constgrid}
 \end{table}
 
 \begin{figure}
-	\includegraphics[width=0.8\textwidth, angle=0]{./fig/concurrentabs/sir/sir_varyingcores_constgrid.png}
+	\centering
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/concurrentabs/sir/sir_varyingcores_constgrid.png}
 	\caption{Performance comparison of \textit{Sequential}, \textit{STM}, \textit{Lock-Based} and \textit{Atomic IO} SIR implementations on varying cores with grid size of 51x51 (2,601) agents.}
 	\label{fig:sir_varyingcores_constgrid}
 \end{figure}
@@ -93,7 +96,7 @@ It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Ba
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\textwidth, angle=0]{./fig/concurrentabs/sir/sir_varyinggrid_constcores.png}
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/concurrentabs/sir/sir_varyinggrid_constcores.png}
 	\caption{Performance comparison of \textit{Lock-Based Read-Write}, \textit{Atomic IO} and \textit{STM} SIR implementations with varying grid sizes on 4 cores.}
 	\label{fig:sir_varyinggrid_constcores}
 \end{figure}

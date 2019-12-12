@@ -27,9 +27,7 @@ In this case study we compare the performance of five (5) implementations under 
 
 Each experiment was run on our hardware (see Table \ref{tab:machine_specs}) under no additional workload until $t = 100$ and stepped using $\Delta t = 0.1$. In the experiments we varied the number of agents (grid size) as well as the number of cores when running concurrently. We checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential} implementation \cite{thaler_pure_2018}. A rigorous, statistical comparison of all implementations, to investigate the effects of concurrency on the dynamics, is quite involved and therefore beyond the focus of this paper but as a remedy we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}.
 
-For robust performance measurements we used the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage}. It allows the definition and running of benchmark suites, measuring performance by executing them repeatedly, fitting actual against expected runtime, reporting mean and standard deviation for statistically robust results. By running each benchmark repeatedly, fitting it using linear regression analysis, Criterion is able to robustly determine whether the measurements fall within a normal range or are outliers (and therefore should be re-run) due to some external influences like additional workload on the machine. Therefore, we made sure to only include measurements Criterion labelled as normal,which meant we re-ran measurements where goodness-of-fit was $R^2 < 0.99$. Criterion ran each of our benchmark 10 times with increasing increments of 1, 2, 3 and 4 times. In the results we report the estimates of ordinary least squares (OLS) regression together with the standard deviation because it gives the most reliable results in terms of statistical robustness. 
-
-%For varying the number of cores we compiled the executable using the tool \textit{stack} with the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x indicates the number of cores. 
+For robust performance measurements we used the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage}. It allows the definition and running of benchmark suites, measuring performance by executing them repeatedly, fitting actual against expected runtime, reporting mean and standard deviation for statistically robust results. By running each benchmark repeatedly, fitting it using linear regression analysis, Criterion is able to robustly determine whether the measurements fall within a normal range or are outliers (and therefore should be re-run) due to some external influences like additional workload on the machine. Therefore, we made sure to only include measurements Criterion labelled as normal,which meant we re-ran measurements where goodness-of-fit was $R^2 < 0.99$. Criterion ran each of our benchmark 10 times with increasing increments of 1, 2, 3 and 4 times. In the results we report the estimates of ordinary least squares regression together with the standard deviation because it gives the most reliable results in terms of statistical robustness. 
 
 \begin{table}
 	\centering
@@ -48,108 +46,6 @@ For robust performance measurements we used the microbenchmarking library Criter
 
 \subsection{Constant Grid Size, Varying Cores}
 In this experiment we held the grid size constant at 51 x 51 (2,601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:sir_varyingcores_constgrid} and visualised in Figure \ref{fig:sir_varyingcores_constgrid}.
-
-%\begin{table}
-%	\centering
-%	\begin{tabular}{cc|c}
-%		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
-%		\multicolumn{1}{ |c| }{Cores} & Duration       \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{1}{*}{Sequential} } &
-%		\multicolumn{1}{ |c| }{1} & 73.9 (2.06)      \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based Naive} } &
-%		\multicolumn{1}{ |c| }{1} & 59.2 (0.16)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & 46.5 (0.05)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & 44.2 (0.08)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & 47.4 (0.12)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{5} & 48.1 (0.13)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{6} & 49.1 (0.09)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{7} & 49.8 (0.09)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{8} & 57.2 (0.06)  \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based Read-Write} } &
-%		\multicolumn{1}{ |c| }{1} & 55.0 (0.22)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & 40.8 (0.18)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & 35.8 (0.06)   \\ \cline{2-3} 
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & 34.0 (0.32)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{5} & 34.5 (0.06)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{6} & 34.8 (0.03)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{7} & 35.9 (0.15)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{8} & 40.4 (0.21)   \\ \hline \hline 
-%		
-%%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based Advanced} } &
-%%		\multicolumn{1}{ |c| }{1} & 56.8 (0.71)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{2} & 41.7 (0.06)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{3} & 35.2 (0.05)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{4} & 32.5 (0.11)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{5} & 33.4 (0.02)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{6} & 34.6 (0.23)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{7} & 35.2 (0.16)   \\ \cline{2-3}
-%%		\multicolumn{1}{ c||  }{}                       &
-%%		\multicolumn{1}{ |c| }{8} & 40.2 (0.05)   \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Atomic IO´} } &
-%		\multicolumn{1}{ |c| }{1} & 51.0 (0.11)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & 32.4 (0.09)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & 25.5 (0.09)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & 22.7 (0.08)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{5} & 22.6 (0.03)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{6} & 22.3 (0.09)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{7} & 22.8 (0.07)  \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{8} & 25.8 (0.02)  \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM} } &
-%		\multicolumn{1}{ |c| }{1} & 52.2 (0.23)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & 33.2 (0.03)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & 26.4 (0.05)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & 23.3 (0.19)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{5} & 23.0 (0.06)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{6} & 23.1 (0.05)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{7} & 23.4 (0.22)   \\ \cline{2-3}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{8} & 26.2 (0.22)   \\ \hline \hline 
-%		
-%%		\multicolumn{1}{ c||  }{\multirow{1}{*}{RePast} } &
-%%		\multicolumn{1}{ |c| }{1} & \textbf{10.8}      \\ \hline \hline 
-%	\end{tabular}
-%  	
-%  	\caption{SIR performance comparisons on 51x51 (2,601 agents) grid with varying number of cores. Timings in seconds (lower is better). Standard deviation in parentheses.}
-%	\label{tab:constgrid_varyingcores}
-%\end{table}
 
 \begin{table}
 	\centering
@@ -175,12 +71,8 @@ A big surprise however is that the \textit{Atomic IO} implementation is slightly
 
 Both the \textit{STM} and \textit{Atomic IO} implementations are running into decreasing returns after 5 to 6 cores, which we attribute to our hardware. Although virtually it comes across as 8 cores it has only 4 physical ones, implementing hyper threading to simulate 4 additional cores. Due to the fact that resources are shared between two threads of a core, it is only logical that we are running into decreasing returns in all implementations on more than 5 to 6 cores on our hardware.
 
-%What comes a bit as a surprise is, that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do). When looking at benchmarks \footnote{\url{https://benchmarksgame-team.pages.debian.net/benchmarksgame/faster/haskell.html}} comparing Haskell to Java, C and C++, Haskell is significantly outperformed in most of the cases. This is a strong indication that Haskell is in general not as fast as Java, C or C++. %Although there exist advanced techniques where Haskell can approach a performance like C \cite{kqr_competing_2017} we don't use them here as often this comes at the cost of more complex features, some of them not part of the language standard, more complex code and ultimately requires lots of experience .
-%Also, we build on the concepts developed in \cite{thaler_pure_2019} to implement our ABS which make heavy use of Functional Reactive Programming, which can be substantially slower than imperative approaches \cite{nilsson_functional_2002, hudak_arrows_2003}. 
-
 \subsection{Varying Grid Size, Constant Cores}
-In this experiment we varied the grid size and used constantly 4 cores. %Note that the RePast experiments all ran on a single (1) core and were conducted to have a rough estimate where the functional approach is in comparison to the imperative.
-The results are reported in Table \ref{tab:sir_varyinggrid_constcores} and plotted in Figure \ref{fig:sir_varyinggrid_constcores}.
+In this experiment we varied the grid size and used constantly 4 cores. The results are reported in Table \ref{tab:sir_varyinggrid_constcores} and plotted in Figure \ref{fig:sir_varyinggrid_constcores}.
 
 \begin{table}
 	\centering
@@ -196,7 +88,7 @@ The results are reported in Table \ref{tab:sir_varyinggrid_constcores} and plott
 	\label{tab:sir_varyinggrid_constcores} 
 \end{table}
 
-It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Based} implementation by a substantial factor. However, the \textit{Atomic IO} implementation outperforms the \textit{STM} one again, where this time the difference is a bit more pronounced due to the higher workload of the experiments. %Also  while on a 51x51 grid the single (1) core Java \textit{RePast} version outperforms the 4 core Haskell \textit{STM} version by a factor of 2. The figure is inverted on a 251x251 grid where the 4 core Haskell \textit{STM} version outperforms the single core Java \textit{Repast} version by a factor of 6. This might not be entirely surprising because we compare single (1) core against multi-core performance - still the scaling is indeed impressive and we would not have anticipated an increase of factor 6. %The RePast implementation shows an exponential increase of computation time whereas the other implementations scale linearly which we attribute to the use of multi-cores.
+It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Based} implementation by a substantial factor. However, the \textit{Atomic IO} implementation outperforms the \textit{STM} one again, where this time the difference is a bit more pronounced due to the higher workload of the experiments.
 
 \subsection{Retries}
 Of very much interest when using STM is the retry ratio, which indicates how many of the total \texttt{STM} actions had to be re-run. A high retry ratio shows that a lot of work is wasted on re-running \texttt{STM} actions due to many concurrent read and writes. Obviously, it is highly dependent on the read-write patterns of the implementation and indicates how well an STM approach is suitable for the problem at hand. We used the \href{http://hackage.haskell.org/package/stm-stats}{stm-stats}~\cite{stm_stats_library} library to record statistics of commits, retries and the ratio. The results are reported in Table \ref{tab:retries_stm}.
@@ -231,15 +123,11 @@ To test how far we can scale up the number of cores in the best performing cases
 		\multicolumn{1}{ |c| }{16} & 18.0 (0.21)   & 638.0 (8.24)       \\ \cline{2-4}
 		\multicolumn{1}{ c||  }{}                       &
 		\multicolumn{1}{ |c| }{32} & 15.6 (0.07)   & 720.0 (1.70)      \\ \hline \hline 
-		%\multicolumn{1}{ c||  }{}                       &
-		%\multicolumn{1}{ |c| }{64} & 28.4 (0.35)   & TODO      \\ \hline \hline 
 		
 		\multicolumn{1}{ c||  }{\multirow{2}{*}{STM} } &
 		\multicolumn{1}{ |c| }{16} & \textbf{14.5} (0.03)  & \textbf{307.0} (1.12)       \\ \cline{2-4}
 		\multicolumn{1}{ c||  }{}                          &
 		\multicolumn{1}{ |c| }{32} & \textbf{14.7} (0.17)  & \textbf{269.0} (1.05)      \\ \hline \hline 
-		%\multicolumn{1}{ c||  }{}                       &
-		%\multicolumn{1}{ |c| }{64} & TODO    & TODO      \\ \hline \hline 
 	\end{tabular}
 
   	\caption{Performance comparison of \textit{Atomic IO} and \textit{STM} SIR implementations on 16 and 32 cores on an Amazon EC2 \texttt{m5ad.16xlarge} instance. Timings in seconds (lower is better), standard deviations in parentheses.}
@@ -250,16 +138,7 @@ The \textit{Atomic IO} implementation is able to scale up performance from 16 to
 
 What is interesting is that on more cores, the \textit{STM} implementations has an edge over the \textit{Atomic IO} approach, and performs better in all cases. It seems that for our problem at hand, the atomic modification operation seems to be not as efficient on many cores as an STM approach. 
 
-% NOTE: 0 retries in both cases means that the STM transactions themselves are becoming the bottleneck. this makes sens because the STM trasnactions in our SIR implementation are very small (especially recovered and infected agent) and could therefore really cause substantial overhead as pointed out by \cite{perfumo_limits_2008}
-%16 cores 251x251: 0.0 retry ratio
-%32 cores 251x251: 0.0 retry ratio
-%
-%16 cores 51x51: 0.0 retry ratio
-%32 cores 51x51: 0.0 retry ratio
-
 \subsection{Summary}
-%TODO: say something about Atomic IO (atomicmodify): is strictly speaking not a lock-based but actually a lock-free implementation (!!) based on IO instead of STM: it does not aquire any lock but uses hardware features of the CPU to swap a pointer https://stackoverflow.com/questions/10102881/haskell-how-does-atomicmodifyioref-work. mention this unique feature of haskell, which is not possible in other languages (TODO: is this so? do we have here really a unique feature of haskell?). A downside is that it only works in case there is only a single IORef in the program and that we are still running in IO - the performance however is even better than STM (!!!) it is using compare-and-swap
-
 The timing measurements speak a clear language. Running in \texttt{STM} and sharing state using a transactional variable \texttt{TVar} is much more time efficient than the \textit{Sequential} and both \textit{Lock-Based} approaches. On 5 cores \textit{STM} achieves a speedup factor of 3.2 over the \textit{Sequential} implementation, which is a big improvement compared to the simplicity of the approach. What came as a surprise was that the \textit{Atomic IO} approach slightly outperforms the \textit{STM} implementation. However, the \textit{Atomic IO} approach, which uses an atomic modification operation, is only applicable in case there is just a single reference in the program and requires that all operations go through this atomic modification operation. Whether the latter condition is possible or not, is highly dependent on the model semantics, which support it in the case of the SIR model but unfortunately not in the case of Sugarscape.
 
 Obviously both \textit{Lock-Based}, \textit{Atomic IO} and \textit{STM} sacrifice determinism, which means that repeated runs might not lead to same dynamics despite same initial conditions. However, when sticking to STM, we get the guarantee that the source of this nondeterminism is concurrency within the \texttt{STM} context but \textit{nothing else}. This can not be guaranteed in the case of both \textit{Lock-Based} and \textit{Atomic IO} approaches as we lose certain static guarantees when running within the \texttt{IO} context. The fact to have \textit{both} a substantial speedup \textit{and} the stronger static guarantees, makes the \textit{STM} approach \textit{very} compelling.

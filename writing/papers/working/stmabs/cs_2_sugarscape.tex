@@ -1,4 +1,4 @@
-\section{Case Study 2: SugarScape} %(Second Encounter)
+\section{Case Study 2: SugarScape}
 \label{sec:cs_sugarscape}
 
 One of the first models in Agent-Based Simulation was the seminal Sugarscape model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon observed in real-world societies. In this model a population of agents move around in a discrete 2D environment, where sugar grows, and interact with each other and the environment in many different ways. The main features of this model are (amongst others): searching, harvesting and consuming of resources, wealth and age distributions, population dynamics under sexual reproduction, cultural processes and transmission, combat and assimilation, bilateral decentralized trading (bartering) between agents with endogenous demand and supply, disease processes transmission and immunology.
@@ -27,8 +27,6 @@ In this case study we compare the performance of four (4) implementations under 
 	\item STM TArray - This is the same implementation as \textit{Sequential}, but all agents are run concurrently within the \texttt{STM} context. The environment is represented and shared between the agents using a \texttt{TArray}. 
 \end{enumerate}
 
-%The model specification requires to shuffle agents before every step (Footnote 12 on page 26 \cite{epstein_growing_1996}). In the \textit{Sequential} approach we do this explicitly but in the \textit{Lock-Based} and both \textit{STM} approaches we assume that this happens automatically due to race conditions in concurrency thus we arrive at an \textit{effectively} shuffled processing of agents: we implicitly assume that the order of the agents is \textit{effectively} random in every step. Not making assumptions of the ordering of thread execution is a core principle of concurrent programming, which we exploit in this case to assume an effective randomness. The important difference between the two approaches is that in the \textit{Sequential} approach we have full control over this randomness but in the \textit{STM} not - also this means that repeated runs with the same initial conditions might lead to slightly different results.
-
 \paragraph{Ordering} The model specification requires to shuffle agents before every step (\cite{epstein_growing_1996}, footnote 12 on page 26). In the \textit{Sequential} approach we do this explicitly but in the \textit{Lock-Based} and both \textit{STM} approaches we assume this to happen automatically due to race conditions from concurrency, thus we arrive at an effectively shuffled processing of agents because we implicitly assume that the order of the agents is \textit{effectively} random in every step. The important difference between the two approaches is that in the \textit{Sequential} approach we have full control over this randomness but in the \textit{STM} and \textit{Lock-Based} not. This has the consequence that repeated runs with the same initial conditions might lead to slightly different results. 
 This decision leaves the execution order of the agents ultimately to Haskell's Runtime System and the underlying operating system. We are aware that by doing this, we make assumptions that the threads run uniformly distributed (fair) but such assumptions should not be made in concurrent programming. As a result we can expect this fact to produces non-uniform distributions of agent runs but we assumed that for this model this does not have a significance influence. In case of doubt, we could resort to shuffling the agents before running them in every step. This problem, where also the influence of nondeterministic ordering on the correctness and results of ABS has to be analysed, deserves in-depth research on its own and is therefore beyond the focus of this paper. As a potential direction for such an investigation, we refer to the technique of property-based testing as shown in \cite{thaler_show_2019}.
 
@@ -38,51 +36,8 @@ Note that in the concurrent implementations we have two options for running the 
 
 The experiment setup is the same as in the SIR case study, with the same hardware (see Table \ref{tab:machine_specs}), with measurements done under no additional workload using the microbenchmarking library Criterion \cite{criterion_serpentine, criterion_hackage} as well. However, as the Sugarscape model is stepped using natural numbers we ran each measurement until $t = 1000$ and stepped it using $\Delta t = 1$. In the experiments we varied the number of agents as well as the number of cores when running concurrently. We checked the visual outputs and the dynamics and they look qualitatively the same as the reference \textit{Sequential}. As in the SIR case study, a rigorous, statistical comparison of all implementations, to investigate the effects of concurrency on the dynamics, is quite involved and therefore beyond the focus of this paper but as a remedy we refer to the use of property-based testing, as shown in \cite{thaler_show_2019}.
 
-%Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is often important in ABS, it is not what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step piped into a file, thus omitting slow output to the console \footnote{Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in high number of steps per second but which obviously don't really reflect the true computations done.}.
-
 \subsection{Constant Agent Size}
-In a first approach we compare the performance of all implementations on varying numbers of cores. The results are reported in Table \ref{tab:sugarscape_varyingcores_constagents} and plotted in Figure \ref{fig:sugarscape_varyingcores_constagents}. 
-
-%\begin{table}
-%	\centering
-%	\begin{tabular}{cc|c|c}
-%		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
-%		\multicolumn{1}{ |c| }{Cores} & Steps & Retries      \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{1}{*}{Sequential} } &
-%		\multicolumn{1}{ |c| }{1} & 39.4 & N/A     \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{Lock-Based} } &
-%		\multicolumn{1}{ |c| }{1} & 43.0 & N/A       \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & 51.8 & N/A   \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & 57.4 & N/A   \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & 58.1 & N/A   \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TVar}} } &
-%		\multicolumn{1}{ |c| }{1} & \textbf{47.3} & 0.0       \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & 53.5 & 1.1    \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & 57.1 & 2.2    \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & 53.0 & 3.2   \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{4}{*}{STM \textit{TArray}} } &
-%		\multicolumn{1}{ |c| }{1} & 45.4 & 0.0       \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{2} & \textbf{65.3} & 0.02   \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{3} & \textbf{75.7} & 0.04    \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{4} & \textbf{84.4} & 0.05   \\ \hline \hline 
-%	\end{tabular}  	
-%  	
-%  	\caption{Comparison of steps per seconds (higher is better) and retries (lower is better) of various Sugarscape implementations with constant agent numbers. Using 50x50 grid with 500 initial agents on varying cores.}
-%	\label{tab:varying_cores}
-%\end{table}
+In this experiment we compare the performance of all implementations on varying numbers of cores. The results are reported in Table \ref{tab:sugarscape_varyingcores_constagents} and plotted in Figure \ref{fig:sugarscape_varyingcores_constagents}. 
 
 \begin{table}
 	\centering
@@ -162,30 +117,6 @@ To test how far we can scale up the number of cores in the \textit{TArray} case,
 
 \begin{table}
 	\centering
-%  	\begin{tabular}{ c || c | c | c }
-%                   & Cores & Carrying Capacity & Rebirthing  \\ \hline \hline 
-%    	Lock-Based & 16    & 53.9              & 4.4         \\ \hline
-%    	Lock-Based & 32    & 44.2              & 3.6         \\ \hline \hline 
-%   		
-%   		STM TArray & 16    & \textbf{116.8} (0.23)      & \textbf{39.5} (0.08) \\ \hline
-%   		STM TArray & 32    & 109.8 (0.41)      & 31.3 (0.18) \\ \hline \hline 
-%   	\end{tabular}
-  	
-%	\begin{tabular}{cc|c|c}
-%		\multicolumn{1}{ c||  }{\multirow{2}{*}{} } &
-%		\multicolumn{1}{ |c| }{Cores} & Carrying Capacity    & Rebirthing       \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{2}{*}{Lock-Based} } &
-%		\multicolumn{1}{ |c| }{16} & 53.9              & 4.4       \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{32} & 44.2              & 3.6      \\ \hline \hline 
-%		
-%		\multicolumn{1}{ c||  }{\multirow{2}{*}{STM TArray} } &
-%		\multicolumn{1}{ |c| }{16} & \textbf{116.8} (0.23)      & \textbf{39.5} (0.08)       \\ \cline{2-4}
-%		\multicolumn{1}{ c||  }{}                       &
-%		\multicolumn{1}{ |c| }{32} & \textbf{109.8} (0.41)      & \textbf{31.3} (0.18)      \\ \hline \hline 
-%	\end{tabular}  	
- 
   	\begin{tabular}{ c || c | c }
         Cores  & Carrying Capacity  & Rebirthing    \\ \hline \hline 
     	    16     & 11.9 (0.21)        & 46.6 (0.07)   \\ \hline

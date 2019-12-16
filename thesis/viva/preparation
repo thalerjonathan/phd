@@ -2,12 +2,21 @@ External examiner?
 - https://www.youtube.com/watch?v=8IhuPi5SbcI
 - https://www.youtube.com/watch?v=VDMkt9ND5Es
 
+Read:
+- re-read papers and thesis of ionescu
+- re-read my thesis
+
 Theoretical preparation:
 - read transformers chapters
 - read basic libraries chapter	
 - completely understand monads (read / do all about monads): be able to derive and explain them
 - completely understand continuations: be able to derive and explain them
  completely understand arrows: be able to derive and explain them, read Hughes papers: "Programming with Arrows" and "Generalising Monads to Arrows", and "Arrows, Robots and Functional Reactive Programming" by Hudak et al.
+- re-read my thesis
+- study monad Transformers: how are they implemrnted, why do monads not Compose?
+- study arrows and their implementation
+- study Signal Functions as of yampa and their implementation
+- study MSFs and their implementation
 
 - be able to produce the proof of non computable as given in the book on computation (because i often mention it)	
 

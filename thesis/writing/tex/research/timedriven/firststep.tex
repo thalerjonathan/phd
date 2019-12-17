@@ -35,20 +35,20 @@ sirAgent g Infected    = infectedAgent g
 sirAgent _ Recovered   = recoveredAgent
 \end{HaskellCode}
 
-Depending on the initial state we return the corresponding behaviour. Also, we are passing a random-number generator instead of running in the \texttt{Rand} Monad because signal functions as implemented in Yampa are not capable of being monadic. 
+Depending on the initial state, we return the corresponding behaviour. Also, we are passing a random number generator instead of running in the \texttt{Rand} Monad because signal functions as implemented in Yampa are not capable of being monadic. 
 
-We see that the recovered agent ignores the random-number generator because a recovered agent does nothing, stays immune forever and can not get infected again in this model. Thus, a recovered agent is a consuming state from which there is no escape, it simply acts as a sink, constantly returning \texttt{Recovered}:
+We see that the recovered agent ignores the random number generator because a recovered agent does nothing, stays immune forever and cannot get infected again in this model. Thus, a recovered agent is a consuming state from which there is no escape, it simply acts as a sink, constantly returning \texttt{Recovered}:
 
 \begin{HaskellCode}
 recoveredAgent :: SIRAgent
 recoveredAgent = arr (const Recovered)
 \end{HaskellCode}
 
-Next, we implement the behaviour of a susceptible agent. It makes contact \textit{on average} with $\beta$ other random agents. For every \textit{infected} agent it gets into contact with, it becomes infected with a probability of $\gamma$. If an infection happens, it makes the transition to the \texttt{Infected} state. To make contact, it gets fed the states of all agents in the system from the previous time step, so it can draw random contacts. Observing the states of all agents from the previous step allows for a very simple, one-directional form of making contact between agents. Although simple, it works perfectly for this approach in particular and for time-driven ABS in general. We will discuss a more complex interaction mechanism between agents in the next Chapter \ref{ch:eventdriven} on event-driven ABS.
+Next, we implement the behaviour of a susceptible agent. It makes contact \textit{on average} with $\beta$ other random agents. For every \textit{infected} agent it contacts, it becomes infected with a probability of $\gamma$. If an infection happens, it makes the transition to the \texttt{Infected} state. To make contact, it gets fed the states of all agents in the system from the previous time step, so it can draw random contacts. Observing the states of all agents from the previous step allows for a very simple, one-directional form of making contact between agents. Although simple, it works perfectly for this approach in particular and for time-driven ABS in general. We will discuss a more complex interaction mechanism between agents in Chapter \ref{ch:eventdriven} on event-driven ABS.
 
-A susceptible agent behaves as susceptible until it becomes infected. Upon infection an \texttt{Event} is returned, which results in switching into the \texttt{infectedAgent} SF, which causes the agent to behave as an infected agent from that moment on. When an infection event occurs we change the behaviour of an agent using the Yampa combinator \texttt{switch}, which is quite elegant and expressive as it makes the change of behaviour at the occurrence of an event explicit. To make contact \textit{on average}, we use Yampas \texttt{occasionally} function which requires us to carefully select the right $\Delta t$ for sampling the system as will be shown in the results below. 
+A susceptible agent behaves as susceptible until it becomes infected. Upon infection an \texttt{Event} is returned, which results in switching into the \texttt{infectedAgent} SF, which causes the agent to behave as an infected agent from that moment on. When an infection event occurs, we change the behaviour of an agent using the Yampa combinator \texttt{switch}, which is quite elegant and expressive as it makes the change of behaviour at the occurrence of an event explicit. To make contact \textit{on average}, we use Yampas \texttt{occasionally} function which requires us to carefully select the right $\Delta t$ for sampling the system, as will be shown in the results below. 
 
-The use of \texttt{iPre :: a $\rightarrow$ SF a a} delays the input signal by one sample, taking an initial value for the output at time zero. The reason for it is that we need to delay the transition from susceptible to infected by one step due to the semantics of the \texttt{switch} combinator: whenever the switching event occurs, the signal function into which is switched will be run at the time of the event occurrence. This means that a susceptible agent could make a transition to recovered within one time step, which we want to prevent, because the semantics should be that only one state transition can happen per time step.
+The use of \texttt{iPre :: a $\rightarrow$ SF a a} delays the input signal by one sample, taking an initial value for the output at time zero. The reason for this is that we need to delay the transition from susceptible to infected by one step, due to the semantics of the \texttt{switch} combinator. Whenever the switching event occurs, the signal function into which is switched will be run at the time of the event occurrence. This means that a susceptible agent could make a transition to recovered within one time step. We want to prevent this occurrence, because the semantics should be that only one state transition can happen per time step.
 
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
@@ -79,7 +79,7 @@ susceptibleAgent g
         else returnA -< (Susceptible, NoEvent)
 \end{HaskellCode}
 
-To deal with randomness in an FRP way, we implemented additional signal functions built on the \texttt{noiseR} function provided by Yampa. This is an example for the stream character and statefulness of a signal function as it allows to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \texttt{randomBoolSF}; \texttt{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
+To deal with randomness in an FRP way, we implemented additional signal functions built on the \texttt{noiseR} function provided by Yampa. This is an example of the stream character and statefulness of a signal function as it allows for keeping track of the changed random number generator internally, through the use of continuations and closures. Here we provide the implementation of \texttt{randomBoolSF}; \texttt{drawRandomElemSF} works similarly, but takes a list as input and returns a randomly chosen element from it:
 
 \begin{HaskellCode}
 randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
@@ -88,7 +88,7 @@ randomBoolSF g p = proc _ -> do
   returnA -< (r <= p)
 \end{HaskellCode}
 
-An infected agent recovers \textit{on average} after $\delta$ time units. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to the \texttt{Recovered} state after this duration. Thus the infected agent behaves as infected until it recovers after which it behaves as a recovered agent by switching into \texttt{recoveredAgent}. As in the case of the susceptible agent, we use the \texttt{occasionally} function to generate the event when the agent recovers. %Note that the infected agent ignores the states of the other agents as its behaviour is completely independent of them.
+An infected agent recovers \textit{on average} after $\delta$ time units. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to the \texttt{Recovered} state after this duration. Thus, the infected agent behaves as infected until it recovers, after which it behaves as a recovered agent by switching into \texttt{recoveredAgent}. As in the case of the susceptible agent, we use the \texttt{occasionally} function to generate the event when the agent recovers.
 
 \begin{HaskellCode}
 infectedAgent :: RandomGen g => g -> SIRAgent
@@ -119,7 +119,7 @@ runSimulation g t dt as
     sfs       = zipWith sirAgent rngs as
 \end{HaskellCode}
 
-What we need to implement next is a closed feedback loop which is at the heart of every ABS. The authors of \cite{courtney_yampa_2003, nilsson_functional_2002} discusses implementing this in Yampa. The function \texttt{stepSimulation} is an implementation of such a closed feedback loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns this step's new agent states. The use of \texttt{notYet} is required to delay switching by one step to break a potentially infinite recursive switching. This is necessary because we are recursively switching back into the \texttt{stepSimulation}, which would result in the immediate evaluation of the next step, overriding the output of the current step, recursively switching back into \texttt{stepSimulation} and so on. The combinator \texttt{notYet} breaks this by delaying the switching event by one step.
+What we need to implement next is a closed feedback loop, which is at the heart of every ABS. The authors of \cite{courtney_yampa_2003, nilsson_functional_2002} discusses implementing this in Yampa. The function \texttt{stepSimulation} is an implementation of such a closed feedback loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns this step's new agent states. The use of \texttt{notYet} is required to delay switching by one step to break a potentially infinite recursive switching. This is necessary because we are recursively switching back into the \texttt{stepSimulation}. This would then result in the immediate evaluation of the next step, overriding the output of the current step, recursively switching back into \texttt{stepSimulation} and so on. The combinator \texttt{notYet} breaks this up by delaying the switching event by one step.
 
 \begin{HaskellCode}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
@@ -156,7 +156,7 @@ dpSwitch :: Functor col
 
 Conceptually, \texttt{dpSwitch} allows us to recursively switch back into the \texttt{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. 
 
-Its first argument is the pairing-function, which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function, which generates the continuation after the switching event has occurred. \texttt{dpSwitch} returns a new signal function, which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. %NOTE: the following IS SIMPLY WRONG, d stands for delayed observation, not delayed switching! The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
+Its first argument is the pairing-function, which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function, which generates the continuation after the switching event has occurred. \texttt{dpSwitch} returns a new signal function, which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. %The d in \textit{dpSwitch} stands for delayed observation.
 
 \subsection{Results}
 \label{sub:timedriven_results}
@@ -188,7 +188,7 @@ The dynamics generated by this implementation can be seen in Figure \ref{fig:sir
 \end{center}
 \end{figure}
 
-By following the FRP approach we assume a continuous flow of time, which means that we need to select a \textit{correct} $\Delta t$, otherwise we would end up with wrong dynamics. The selection of a correct $\Delta t$ depends in our case on \texttt{occasionally} in the susceptible behaviour, which randomly generates an event on average with $\beta$ following the exponential distribution. To arrive at the correct dynamics, this requires us to sample \texttt{occasionally}, and thus the whole system, with small enough $\Delta t$ matching the frequency of events generated by $\beta$. If we choose a too large $\Delta t$, we loose events, which will result in wrong dynamics as can be seen in Figure \ref{fig:sir_abs_approximating_01dt_1000agents}. This issue is known as undersampling and is described in Figure \ref{fig:sampling_issue}.
+By following the FRP approach we assume a continuous flow of time, which means that we need to select a \textit{correct} $\Delta t$, otherwise we would end up with wrong dynamics. The selection of a correct $\Delta t$ depends, in our case, on \texttt{occasionally} in the susceptible behaviour, which randomly generates an event on average with $\beta$ following the exponential distribution. To arrive at the correct dynamics, this requires us to sample \texttt{occasionally}, and thus the whole system, with small enough $\Delta t$ matching the frequency of events generated by $\beta$. If we choose too large a $\Delta t$, we lose events, which will result in wrong dynamics as can be seen in Figure \ref{fig:sir_abs_approximating_01dt_1000agents}. This issue is known as undersampling and is described in Figure \ref{fig:sampling_issue}.
 
 \begin{figure}
 \begin{center}
@@ -210,18 +210,16 @@ By following the FRP approach we assume a continuous flow of time, which means t
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption[Visual explanation of undersampling and supersampling]{Visual explanation of undersampling and supersampling. The black dots represent the time steps of the simulation. The red dots represent virtual events, which occur at specific points in continuous time. In the case of undersampling, three events occur in between the two time steps but \texttt{occasionally} only captures the first one. By increasing the sampling frequency either through a smaller $\Delta t$ or supersampling all three events can be captured.} 
+	\caption[Visual explanation of undersampling and supersampling]{Visual explanation of undersampling and supersampling. The black dots represent the time steps of the simulation. The red dots represent virtual events, which occur at specific points in continuous time. In the case of undersampling, three events occur in between the two time steps but \texttt{occasionally} only captures the first one. By increasing the sampling frequency either through a smaller $\Delta t$, or supersampling all three events can be captured.} 
 	\label{fig:sampling_issue}
 \end{center}
 \end{figure}
 
-For tackling this issue we have three options. The first one is to use a smaller $\Delta t$ as can be seen in \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The second option is to step the simulation with $\Delta t = 1$ and in each step, instead of using \texttt{occasionally}, to make a number of contacts drawn from the exponential distribution. If we follow this option, we abandon the time-driven approach altogether because we don't abstract away from $\Delta t$ and violate the fundamental abstraction of FRP, which assumes that time is continuous and signal functions are running conceptually infinitely fast and infinitely often \cite{winograd-cort_wormholes:_2012}. This leaves us with the third option to implement supersampling and apply it to \texttt{occasionally}, which allows us then to run the whole simulation with $\Delta t = 1.0$ and only sample the \texttt{occasionally} function with a much higher frequency.
+For tackling this issue we have three options. The first one is to use a smaller $\Delta t$ as can be seen in \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The second option is to step the simulation with $\Delta t = 1$ and in each step, instead of using \texttt{occasionally}, to make a number of contacts drawn from the exponential distribution. If we follow this option, we abandon the time-driven approach altogether because we don't abstract away from $\Delta t$. This option violates the fundamental abstraction of FRP, which assumes that time is continuous and signal functions are running conceptually infinitely fast and infinitely often \cite{winograd-cort_wormholes:_2012}. This leaves us with the third option to implement supersampling and apply it to \texttt{occasionally}, which allows us to run the whole simulation with $\Delta t = 1.0$ and only sample the \texttt{occasionally} function with a much higher frequency.
 
-The function \texttt{embed}, which allows to run a given signal function with provided $\Delta t$, does not help here because it does not return a signal function. What we need is a signal function which takes the number of super samples \texttt{n}, the signal function \texttt{sf} to sample and returns a new signal function, which performs supersampling on it. We provide a full implementation of such a function, which also gives an insight into how signal functions are implemented in Yampa, and how the $\Delta t$ is hidden:
+The function \texttt{embed}, which allows us to run a given signal function with provided $\Delta t$, does not help here because it does not return a signal function. What we need is a signal function which takes the number of super samples \texttt{n}, the signal function \texttt{sf} to sample and return a new signal function, which performs supersampling on it. We provide a full implementation of such a function. Additionally, this instance gives insight into how signal functions are implemented in Yampa, and how the $\Delta t$ is hidden:
 
 \begin{HaskellCode}
-import FRP.Yampa.InternalCore
-
 -- SF is the signal function defined for time t = 0 and returns
 -- a continuation of type SF' which is the signal function 
 -- defined for t > 0: it receives an additional time delta
@@ -233,7 +231,7 @@ superSampling n sf0 = SF { sfTF = tf0 }
   where
     -- no supersampling at time 0
     tf0 :: a -> (SF' a b, [b])
-    tf0 a0 = (tfCont, [b0])
+    tf0 a0 = (tfCont, replicate n b0)
       where
         (sf', b0) = sfTF sf0 a0 -- running the SF using sfTF 
         tfCont    = superSamplingAux sf'
@@ -268,16 +266,22 @@ It evaluates the \texttt{SF} argument for \texttt{n} times, each with $\Delta t 
 We conclude that our first step already introduced most of the fundamental concepts of ABS:
 \begin{itemize}
 	\item Time - the simulation occurs over virtual time which is modelled explicitly, divided into \textit{fixed} $\Delta t$, where at each step all agents are executed.
+	
 	\item Agents - each agent is implemented as an individual, with the behaviour depending on its state. It is clear to see that agents behave as signals: when the system is sampled with $\Delta t = 0$ then their behaviour will stay constant and will not change because it is completely determined by the flow of time. 
+	
 	\item Feedback - the output state of the agent in the current time step $t$ is the input state for the next time step $t + \Delta t$.
-	\item Environment - as environment we implicitly assume a fully-connected network (complete graph) where every agent 'knows' every other agent, including itself and thus can make contact with all of them.
-	\item Stochasticity - it is an inherently stochastic simulation, which is indicated by the random-number generator and the usage of \texttt{occasionally}, \texttt{randomBoolSF} and \texttt{drawRandomElemSF}.
-	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs \textit{not} in the \texttt{IO} Monad. This guarantees that no external, uncontrollable sources of non-determinism can interfere with the simulation.
-	\item Parallel, lock-step semantics - the simulation implements a \textit{parallel} update strategy where in each step the agents are run isolated in parallel and don't see the actions of the others until the next step.
+	
+	\item Environment - as environment we implicitly assume a fully connected network (complete graph) where every agent 'knows' every other agent, including itself and thus can make contact with all of them.
+	
+	\item Stochasticity - it is an inherently stochastic simulation, which is indicated by the random number generator and the usage of \texttt{occasionally}, \texttt{randomBoolSF} and \texttt{drawRandomElemSF}.
+	
+	\item Deterministic - repeated runs with the same initial randomnumber generator result in same dynamics. This may not come as a surprise, but in Haskell we can guarantee that property statically immediately at compile time because our simulation does \textit{not} run in the \texttt{IO} Monad. This guarantees that no external, uncontrollable sources of non-determinism can interfere with the simulation.
+	
+	\item Parallel, lock-step semantics - the simulation implements a \textit{parallel} update strategy, where in each step, the agents are run isolated in parallel and don't see the actions of the others until the next step.
 \end{itemize}
 
 Using FRP in Yampa results in a clear, expressive and robust implementation. State is implicitly encoded, depending on which signal function is active. By using explicit time semantics with \texttt{occasionally} we can achieve extremely fine grained stochastics by sampling the system with small $\Delta t$. We are treating it as a truly continuous time-driven agent-based system.
 
-A severe problem, hard to find with testing, is the fact that in the susceptible agent the same random-number generator is used in \texttt{occasionally}, \texttt{drawRandomElemSF} and \texttt{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level. We left this severe bug in for explanatory reasons, as it shows an example where functional programming actually encourages very subtle bugs if one is not careful. A possible but not very elegant solution would be to simply split the initial random-number generator in \texttt{sirAgent} three times and pass three random-number generators to \texttt{susceptibleAgent}. A much more elegant solution would be to use the \texttt{Rand} Monad which, unfortunately is not possible because Yampa is not monadic.
+A severe problem, which is hard to find with testing, is the fact that in the susceptible agent the same random number generator is used in \texttt{occasionally}, \texttt{drawRandomElemSF} and \texttt{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level. We left this severe bug in for explanatory reasons, as it shows an example where functional programming actually encourages very subtle bugs, if one is not careful. A possible, but not very elegant, solution would be to simply split the initial random number generator in \texttt{sirAgent} three times and pass three random number generators to \texttt{susceptibleAgent}. A much more elegant solution would be to use the \texttt{Rand} Monad, which unfortunately is not possible, because Yampa is not monadic.
 
-So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment and an elegant solution to the random-number correlation. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a way for an elegant solution to the random-number correlation.
+So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is an elegant solution to the random number correlation and a general treatment of an environment. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a method for an elegant solution to the random number correlation.

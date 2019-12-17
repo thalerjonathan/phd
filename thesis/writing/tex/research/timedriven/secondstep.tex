@@ -1,9 +1,9 @@
-\section{Going monadic}
+\section{Going Monadic}
 \label{sec:timedriven_monadic}
 A part of the library Dunai is BearRiver, a wrapper reimplementing Yampa on top of Dunai, which allows us to easily replace Yampa with Monadic Stream Functions (MSF). This will enable us to run arbitrary monadic computations in a signal function, solving the problem of correlated random numbers through the use of the \texttt{Rand} Monad.
 
 \subsection{Identity Monad}
-We start by making the transition to BearRiver by simply replacing Yampas signal function by BearRivers', which is the same but takes an additional type parameter \texttt{m}, indicating the monadic context. If we replace this type parameter with the \texttt{Identity} Monad, we should be able to keep the code exactly the same, because BearRiver reimplements all necessary functions we are using from Yampa. We simply redefine the agent signal function, introducing the Monad stack our SIR implementation runs in:
+We start by making the transition to BearRiver by simply replacing Yampas signal function by that of BearRivers, which is the same but takes an additional type parameter \texttt{m}, indicating the monadic context. If we replace this type parameter with the \texttt{Identity} Monad, we should be able to keep the code exactly the same, because BearRiver re-implements all necessary functions we are using from Yampa. We simply redefine the agent signal function, introducing the Monad stack in which our SIR implementation runs:
 
 \begin{HaskellCode}
 type SIRMonad = Identity
@@ -11,14 +11,14 @@ type SIRAgent = SF SIRMonad [SIRState] SIRState
 \end{HaskellCode}
 
 \subsection{Rand Monad}
-Using the \texttt{Identity} Monad does not gain us anything but it is a first step towards a more general solution. Our next step is to replace the \texttt{Identity} Monad by the \texttt{Rand} Monad, which will allow us to run the whole simulation within the \texttt{Rand} Monad with the full features of FRP, finally solving the problem of correlated random numbers in an elegant way. We start by redefining the \texttt{SIRMonad} and \texttt{SIRAgent}:
+Using the \texttt{Identity} Monad does not gain us anything but it is a first step towards a more general solution. Our next step is to replace the \texttt{Identity} Monad with the \texttt{Rand} Monad, which will allow us to run the whole simulation within the \texttt{Rand} Monad with the full features of FRP. Finally this allows us to solve the problem of correlated random numbers in an elegant way. We start by redefining the \texttt{SIRMonad} and \texttt{SIRAgent}:
 
 \begin{HaskellCode}
 type SIRMonad g = Rand g
 type SIRAgent g = SF (SIRMonad g) [SIRState] SIRState
 \end{HaskellCode}
 
-To access the \texttt{Rand} Monad functionality within an MSF, overloaded functions are used. For the function \texttt{occasionally}, there exists a monadic pendant \texttt{occasionallyM} which requires a \texttt{MonadRandom} type class. Because we are now running within a \texttt{MonadRandom} instance we simply replace \texttt{occasionally} with \texttt{occasionallyM}. 
+To access the \texttt{Rand} Monad functionality within an MSF, overloaded functions are used. For the function \texttt{occasionally}, there exists a monadic pendant \texttt{occasionallyM} which requires a \texttt{MonadRandom} type class. Because we are now running within a \texttt{MonadRandom} instance, we simply replace \texttt{occasionally} with \texttt{occasionallyM}. 
 
 \begin{HaskellCode}
 occasionallyM :: MonadRandom m => Time -> b -> SF m a (Event b)
@@ -29,4 +29,4 @@ drawRandomElemSF :: MonadRandom m => SF m [a] a
 \end{HaskellCode}
 
 \subsection{Discussion} 
-Running in the \texttt{Rand} Monad elegantly solves the problem of correlated random numbers and guarantees that we will not have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of an explicit discrete 2D environment.
+Running in the \texttt{Rand} Monad elegantly solves the problem of correlated random numbers and guarantees that we will not have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of an explicit, discrete 2D environment.

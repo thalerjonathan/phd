@@ -1,5 +1,5 @@
-\subsection{Agent-local abstractions}
-After having established Sugarscapes full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \texttt{AgentMSF} we need to define model-specific data definitions for the event type \texttt{e} and the output type \texttt{o}. Thus, we define the event type \texttt{SugEvent}, which defines all event types of Sugarscape and the output type \texttt{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation or exporting purposes. 
+\subsection{Agent-Local Abstractions}
+After having established Sugarscape's full Monad stack, we can now move on to specify the agent behaviour and develop advanced agent-local concepts and abstractions. Before we can parametrise the \texttt{AgentMSF}, we need to define model-specific data definitions for the event type \texttt{e} and the output type \texttt{o}. Thus, we define the event type \texttt{SugEvent}, which defines all the event types of Sugarscape and the output type \texttt{SugAgentObservable}, which contains all observable properties, an agent wants to communicate to the outside world, for visualisation or exporting purposes. 
 
 \begin{HaskellCode}
 data SugEvent = MatingRequest AgentGender
@@ -21,7 +21,7 @@ We can now parametrise the \texttt{AgentMSF} with the right types for the Sugars
 type SugAgentMSF g = AgentMSF (SugAgentMonad g) SugEvent SugAgentObservable
 \end{HaskellCode}
 
-Next, we define the type of the top-level agent behaviour function. We want to make the unique agent id and the model configuration (scenario) explicit, so it will be passed as curried arguments to the function. Further, the initial agent state is passed as curried input as well.
+Next, we define the type of the top-level agent behaviour function. We want to make the unique agent id and the model configuration (scenario) explicit, so it will be passed as curried arguments to the function. Furthermore, the initial agent state is passed as curried input as well.
 
 \begin{HaskellCode}
 data SugarScapeScenario = SugarScapeScenario 
@@ -41,9 +41,9 @@ type SugarScapeAgent g
        = SugarScapeScenario -> AgentId -> SugAgentState -> SugAgentMSF g
 \end{HaskellCode}
 
-Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of very importance is that we don't have any impure \texttt{IO} monadic context anywhere in our type definitions and we can also guarantee that it will not get sneaked in. The transformer stack of the agents \texttt{MSF} is terminated through the \texttt{Rand} Monad thus it is simply not possible to add other layers. 
+Now we have fully specified types for the Sugarscape agent. The types indicate very clearly the intention and the interface. What is of high importance is that we don't have any impure \texttt{IO} monadic context anywhere in our type definitions and we can also guarantee that it will not somehow sneak in. The transformer stack of the agents \texttt{MSF} is closed through the \texttt{Rand} Monad, consequently it is simply not possible to add other layers. 
 
-An agent is fully represented by a top level \texttt{SugarScapeAgent} function, which encapsulates the whole agent behaviour. We next look at how to define agent-local behaviour, which is hidden behind the \texttt{SugarScapeAgent} function type. Whereas the previously defined types are exposed to the whole simulation, the following deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
+An agent is fully represented by a top level \texttt{SugarScapeAgent} function, which encapsulates the whole agent behaviour. Next we will look at how to define agent-local behaviour, which is hidden behind the \texttt{SugarScapeAgent} function type. Whereas the previously defined types are exposed to the whole simulation, the following section deals with types and behaviour which are locally encapsulated and hidden from the simulation kernel. In the next sections we show how to encapsulate the agents' state locally while retaining mutability. Further, we explain how sending of events works in the Sugarscape implementation and how to achieve read-only access to the agents unique id and the model configuration.
 
 \subsubsection{Agent-local state}
 To implement the local encapsulation of the agents' state is straightforward with MSFs as they are continuations, allowing them to capture local data using closures. Fortunately we do not need to implement the low-level plumbing, as Dunai provides us with the suitable function \texttt{feedback :: Monad m $\Rightarrow$ c $\rightarrow$ MSF m (a, c) (b, c) $\rightarrow$ MSF m a b}. It takes an initial value of type \texttt{c} and an \texttt{MSF} which takes in addition to its input \texttt{a} also the given type \texttt{c} and outputs in addition to type \texttt{b} also the type \texttt{c}, which clearly indicates the read and write property of type \texttt{c}. The function returns a new \texttt{MSF} which only operates on \texttt{a} as input and returns \texttt{b} as output by running the provided \texttt{MSF} and feeding back the \texttt{c} (with the initial \texttt{c} at the first call).
@@ -55,7 +55,7 @@ sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do ... )
 
 Before we can move on to write a function handling incoming events, we need to define the \textit{agent-local} Monad stack. The event handler must be able to manipulate the agent-local state we just encapsulated through \texttt{feedback}, support reading the unique agent id and model scenario and scheduling of events.
 
-Providing the local, mutable agent state is done using a \texttt{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \texttt{Reader} Monad. For implementing event scheduling, a \texttt{Writer} Monad is used, which is the same mechanism as in the event-driven SIR. As the Monoid type for \texttt{WriterT}, the \texttt{AgentOut} is used. All fields of its data definition are Monoid instances, making \texttt{AgentOut} a Monoid as well, thus writing a type class instance for it is trivial. This approach allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour. Further, it should be clear now why \texttt{AgentOut} contains the list of events, as discussed in the previous section \ref{sec:dynamic_creationremoval}. Having established this, we define the agent local Monad which is only used \textit{within} \texttt{AgentMSF}.
+Providing the local, mutable agent state is done using a \texttt{State} Monad. Providing the model configuration (scenario) and the unique agent id is done using the \texttt{Reader} Monad. For implementing event scheduling, a \texttt{Writer} Monad is used, which is the same mechanism as in the event-driven SIR. As the Monoid type for \texttt{WriterT}, the \texttt{AgentOut} is used. All fields of its data definition are Monoid instances, making \texttt{AgentOut} a Monoid as well, thus writing a type class instance for it is trivial. This approach allows to easily add new agent definitions and mark an agent for removal throughout the agents behaviour. Further, it is simple to send new events through \texttt{AgentOut} as it contains the list of events, as discussed in the previous section \ref{sec:dynamic_creationremoval}. Having established this, we define the agent local Monad which is only used \textit{within} \texttt{AgentMSF}.
 
 \begin{HaskellCode}
 type AgentLocalMonad g = WriterT (SugAgentOut g) 
@@ -160,15 +160,15 @@ handleMatingRequest sender otherGender = do
   sendEventTo sender (MatingReply acc)
 \end{HaskellCode}
 
-Finally, we have a look at how to actually run an agents' \texttt{MSF} using the function \texttt{runAgentMSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an overkill to pass in five arguments and get a six-tuple as result but this is the price we have to pay for pure functional programming where everything is explicit, with all its benefits and drawbacks.
+Finally, we have a look at how to actually run an agents' \texttt{MSF} using the function \texttt{runAgentMSF}. It is a \textit{pure} function as well and thus takes all input as explicit arguments. It might look like an excess to pass in five arguments and get a six-tuple as result but this is the price we have to pay for pure functional programming where everything is explicit, with all its benefits and drawbacks.
 
 \begin{HaskellCode}
-runAgentMSF :: RandomGen g        -- ^ RandomGen type class for g
-            => SugAgentMSF g      -- ^ agents MSF to run.
-            -> ABSEvent SugEvent  -- ^ event it receives.
-            -> ABSState           -- ^ ABSState (next agent id and current time)
-            -> SugEnvironment     -- ^ environment state
-            -> g                  -- ^ random-number generator
+runAgentMSF :: RandomGen g        -- RandomGen type class for g
+            => SugAgentMSF g      -- agents MSF to run.
+            -> ABSEvent SugEvent  -- event it receives.
+            -> ABSState           -- ABSState (next agent id and current time)
+            -> SugEnvironment     -- environment state
+            -> g                  -- random-number generator
             -> (SugAgentOut g, SugAgentObservable, SugAgentMSF g, 
                 ABSState, SugEnvironment, g)
 runAgentMSF msf evt absState env g = (ao, obs, msf', absState', env', g') 

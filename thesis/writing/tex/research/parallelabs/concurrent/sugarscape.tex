@@ -90,7 +90,7 @@ The reason for the bad performance of \textit{TVar} is that using a \texttt{TVar
 Interestingly, the performance of the \textit{TArray} implementation is the \textit{worst} amongst all on 1 core. We attribute this to the overhead incurred by STM, which dramatically adds up in terms of a sequential execution.
 
 \subsection{Scaling up Agents}
-So far we kept the initial number of agents at 500, which due to the model specification, quickly drops and stabilises around 200 due to the carrying capacity of the environment as can be seen in Figure \ref{fig:vis_sugarscape_t50_dynamics} and which is also described in the book \cite{epstein_growing_1996} section \textit{Carrying Capacity} (p. 30).
+So far we kept the initial number of agents at 500, which due to the model specification, quickly drops and stabilises around 200 due to the carrying capacity of the environment as described in the book \cite{epstein_growing_1996} section \textit{Carrying Capacity} (p. 30).
 
 We now measure the performance of our approaches under increased number of agents. For this we slightly change the implementation: always when an agent dies it spawns a new one which is inspired by the ageing and birthing feature of Chapter III in the book \cite{epstein_growing_1996}. This ensures that we keep the number of agents roughly constant (still fluctuates but doesn't drop to low levels) over the whole duration. This ensures a constant load of concurrent agents interacting with each other and demonstrates also the ability to terminate and fork threads dynamically during the simulation.
 

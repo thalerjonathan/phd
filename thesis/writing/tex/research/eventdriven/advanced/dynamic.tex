@@ -1,18 +1,18 @@
-\subsection{Dynamic agent creation and removal}
+\subsection{Dynamic Agent Creation and Removal}
 \label{sec:dynamic_creationremoval}
-Some models of ABS in general and Sugarscape in particular require the dynamic creation and removal of agents during simulation. The specific requirements here are that the agents themselves must be able to both remove themselves from the simulation and create new agents with given attributes. To achieve that, in such a simulation the output type of an agent must be richer than the one in the event-driven SIR. First, we define the output of an agent.
+Some models of ABS in general, and Sugarscape in particular, require the dynamic creation and removal of agents during simulation. The specific requirements here are that the agents themselves must be able to both remove themselves from the simulation and create new agents with given attributes. To achieve that, in such a simulation the output type of an agent must be richer than the one in the event-driven SIR. First, we define the output of an agent:
 
 \begin{HaskellCode}
 data AgentOut m e o = AgentOut
-  { aoKill   :: Any              -- True if this agent should be removed 
+  { aoKill   :: Any  -- True if this agent should be removed, Boolean Monoid
   , aoCreate :: [AgentDef m e o] -- a list of agents to create
   , aoEvents :: [(AgentId, e)]   -- a list of events (receiver, event)
   }
 \end{HaskellCode}
 
-\texttt{AgentOut} contains already the list of scheduled events, which makes it clear that scheduling of events in this approach is implemented different than in the event-driven SIR, where the agents Monad stack had a \texttt{WriterT} to write events to. The reason for that is that we treat agent-local abstractions different here because of the need to encapsulate local agent state as explained in subsequent sections.
+\texttt{AgentOut} already contains the list of scheduled events, which makes it clear that scheduling of events in this approach is implemented differently than in the event-driven SIR, where the agents Monad stack had a \texttt{WriterT} to write events to. The reason for that is that we treat agent-local abstractions differently here because of the need to encapsulate local agent state as explained in subsequent sections.
 
-If the agent wants to remove itself from the simulation, it simply sets \texttt{aoKill} to \texttt{True}. If it wants to create new agents it adds an agent definition \texttt{AgentDef} to the \texttt{aoCreate} list. The agent definition \texttt{AgentDef} holds the new id of the agent \footnote{An agent-controlled id makes it possible to reuse ids in case an agent dies and in case ids have no other purposes than identifying event receivers in a model.}, the \texttt{MSF} of the agent to create and the initial output of the new agent, so it has a representation in the visual or textual output for the current step without the need to run the new agent.
+If the agent wants to remove itself from the simulation, it simply sets \texttt{aoKill} to \texttt{True}. If it wants to create new agents it adds an agent definition \texttt{AgentDef} to the \texttt{aoCreate} list. The agent definition \texttt{AgentDef} holds the new id of the agent \footnote{An agent-controlled id makes it possible to reuse ids in case an agent dies and in case ids have no other purpose than identifying event receivers in a model.}, the \texttt{MSF} of the agent to create and the initial output of the new agent. Consequently, it has a representation in the visual or textual output for the current step without the need to run the new agent.
 
 \begin{HaskellCode}
 data AgentDef m e o = AgentDef
@@ -22,7 +22,7 @@ data AgentDef m e o = AgentDef
   }
 \end{HaskellCode}
 
-Further, the simulation must provide a \textit{global} mechanism to create new, unique \texttt{AgentId} for the newly created agents. The generating of ids for the new agents have to occur within the parent agents themselves because in some models they might need this very id to communicate with their children and an indirection through the kernel would only complicate matters. We thus start with a data definition, holding the next agent id. If an agent creates a new agent it simply reads that value and increments it by 1.
+Furthermore, the simulation must provide a \textit{global} mechanism to create new, unique \texttt{AgentId}s for the newly created agents. The generating of ids for the new agents have to occur within the parent agents themselves. Because, in some models they might need this very id to communicate with their children and an indirection through the kernel would only complicate matters. Therefore, we start with a data definition, holding the next agent id. If an agent creates a new agent it simply reads that value and increments it by 1.
 
 \begin{HaskellCode}
 data ABSState = ABSState { absNextId :: AgentId }
@@ -34,7 +34,7 @@ To make it \textit{globally} available to all agents a \texttt{StateT ABSState} 
 type AgentMonad m = StateT ABSState m
 \end{HaskellCode}
 
-Finally, we can define the polymorphic type of the agent \texttt{MSF}, as it is used in Sugarscape, where it is parametrised with model specific types in the next sections. It is similar to the event-driven SIR, where the agent takes the \texttt{ABSEvent} as input but the output is now a tuple of \texttt{AgentOut} and the polymorphic agent output type \texttt{o}. The reason why the output type \texttt{o} is not part of \texttt{AgentOut} is to keep \texttt{AgentOut} a Monoid, which allows accumulative and iterative changes to \texttt{AgentOut}, which is important for creating new agents and scheduling events, as explained in the agent-local abstractions below.
+Finally, we can define the polymorphic type of the agent \texttt{MSF}, as it is used in Sugarscape, where it is parametrised with model specific types in the next sections. It is similar to the event-driven SIR, where the agent takes the \texttt{ABSEvent} as input but the output is now a tuple of \texttt{AgentOut} and the polymorphic agent output type \texttt{o}. The reason why the output type \texttt{o} is not part of \texttt{AgentOut} is to keep \texttt{AgentOut} a Monoid, which allows accumulative and iterative changes to \texttt{AgentOut}. This becomes relevant for creating new agents and scheduling events, as explained in the agent-local abstractions below.
 
 \begin{HaskellCode}
 type AgentMSF m e o = MSF (AgentMonad m) (ABSEvent e) (AgentOut m e o, o)

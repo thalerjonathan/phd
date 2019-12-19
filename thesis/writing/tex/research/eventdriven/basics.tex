@@ -119,10 +119,10 @@ The implementation of the constructing function of type \texttt{SIRAgent} is str
 
 \begin{HaskellCode}
 sirAgent :: RandomGen g 
-         => Int         -- ^ contact rate (beta)
-         -> Double      -- ^ infectivity (gamma)
-         -> Double      -- ^ illness duration (delta)
-         -> SIRState    -- ^ initial state of the agent
+         => Int         -- contact rate (beta)
+         -> Double      -- infectivity (gamma)
+         -> Double      -- illness duration (delta)
+         -> SIRState    -- initial state of the agent
          -> SIRAgent g
 sirAgent beta gamma delta Susceptible aid = do
   -- on start, schedule MakeContact to itself

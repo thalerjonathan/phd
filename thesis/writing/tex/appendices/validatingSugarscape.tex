@@ -32,9 +32,9 @@ The hypotheses and their validation is described more in-depth in the section \r
 To start with, we implement a custom data generator to produce output from a Sugarscape simulation. The generator takes the number of ticks and the scenario with which to run the simulation and returns a list of outputs, one for each tick.
 
 \begin{HaskellCode}
-sugarscapeUntil :: Int                -- ^ Number of ticks to run
-                -> SugarScapeScenario -- ^ Scenario to run
-                -> Gen [SimStepOut]   -- ^ Output of each step
+sugarscapeUntil :: Int                -- Number of ticks to run
+                -> SugarScapeScenario -- Scenario to run
+                -> Gen [SimStepOut]   -- Output of each step
 sugarscapeUntil ticks params = do
   -- create a random-number generator
   g <- genStdGen
@@ -65,8 +65,8 @@ prop_disease_allrecover = property (do
 From the implementation it becomes clear, that this hypothesis states that the property has to hold \textit{for all} replications. The \textit{Inheritance Gini Coefficient (5)} hypothesis on the other hand assumes that the Gini Coefficient \textit{averages} at 0.7. We cannot average over replicated runs of the same property thus we generate multiple replications of the Sugarscape data within the property and employ a two-sided t-test with a 95\% confidence to test the hypothesis:
 
 \begin{HaskellCode}
-prop_gini :: Int      -- ^ Number of replications
-          -> Double   -- ^ Confidence of the t-test
+prop_gini :: Int      -- Number of replications
+          -> Double   -- Confidence of the t-test
           -> Property
 prop_gini repls confidence = property (do
   -- after 1000 ticks...

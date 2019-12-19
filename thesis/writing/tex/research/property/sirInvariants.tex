@@ -1,18 +1,17 @@
-\chapter{Testing model invariants}
+\chapter{Testing Model Invariants}
 \label{ch:sir_invariants}
-The tests of the event-driven implementation in the previous chapter were stateless: only one computational step of an agent was considered by feeding a single event and ignoring the agent continuation. Also the events didn't contain any notion of time as they would carry within the queue. Feeding follow-up events into the continuation would make testing inherently stateful as we introduce history into the system. Such tests would allow to test the full lifecycle of one agent or a full population.
+The tests of the event-driven implementation in the previous chapter were stateless: only one computational step of an agent was considered by feeding a single event and ignoring the agent continuation. Additionally, the events did not contain any notion of time as they would carry within the queue. Feeding follow-up events into the continuation would make testing inherently stateful as we introduce history into the system. Such tests would allow to test the full lifecycle of one agent or a full population.
 
-In this chapter we will discuss how we can encode properties and specifications which require stateful testing. We define stateful testing here as evolving a simulation state consisting of one or more agents over multiple events which means running the whole simulation and not only isolated agents.
+In this chapter we will discuss how we can encode properties and specifications that require stateful testing. We define stateful testing here as evolving a simulation state consisting of one or more agents over multiple events, which means running the whole simulation and not only isolated agents.
 
-We first show how we can encode actual laws of the underlying SIR model into properties and write property tests in QuickCheck for them. We then employ random event sampling to check whether these invariants also hold when ignoring the event-interdependencies between agents. Further, we compare the dynamics of both the event- and time-driven implementations, giving an excellent use case for property-based testing in ABS. Finally we show how to verify both the time- and event-driven implementations against the original System Dynamics specification.
+We first show how we can encode invariants of the underlying SIR model into properties and write property tests in QuickCheck for them. We then employ random event sampling to check whether these invariants also hold when ignoring the event-interdependencies between agents. Furthermore, we compare the dynamics of both the event and time-driven implementations, giving an excellent use case for property-based testing in ABS. Finally, we show how to verify both the time and event-driven implementations against the original System Dynamics specification.
 
-\section{Invariants in simulation dynamics}
+\section{Invariants in Simulation Dynamics}
 \label{sec:prop_invariants_dynamics}
-By informally reasoning about the agent specification and by realising that they are in fact a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered}, we can come up with a few invariants which have to hold for any SIR simulation run, independent of the random-number stream and the population:
+By informally reasoning about the agent specification and by realising that they are, in fact, a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered}, we can come up with a few invariants which have to hold for any SIR simulation run, independent of the random-number stream and the population:
 
 \begin{enumerate}
-	\item Simulation time is monotonic increasing. %For each event an output of the current number of S,I and R agents is generated together with the time when the events occurred. 
-	Each event carries a timestamp when it is scheduled. This timestamp may stay constant between multiple events but will eventually increase and must never decrease. Obviously this invariant is a fundamental assumption in most simulations where time advances into the future and does not flow backwards.
+	\item Simulation time is monotonic increasing. Each event carries a timestamp when it is scheduled. This timestamp may stay constant between multiple events but will eventually increase and must never decrease. Obviously, this invariant is a fundamental assumption in most simulations where time advances into the future and does not flow backwards.
 	
 	\item The number of total agents $N$ stays constant. In the SIR model no dynamic creation or removal of agents during simulation happens. This is in contrast to the Sugarscape where, depending on the model parameters, this can be very well the case.
 	
@@ -23,12 +22,12 @@ By informally reasoning about the agent specification and by realising that they
 	\item The number of infected agents $I$ respects the invariant of the equation $I = N - (S + R)$ for every step. This follows directly from the first property which says $N = S + I + R$.
 \end{enumerate}
 
-\subsection{Encoding the invariants}
+\subsection{Encoding the Invariants}
 All of those properties are easily expressed directly in code and read like a formal specification due to the declarative nature of functional programming:
 
 \begin{HaskellCode}
-sirInvariants :: Int                    -- ^ N total number of agents
-              -> [(Time,(Int,Int,Int))] -- ^ output each step: (Time,(S,I,R))
+sirInvariants :: Int                    -- N total number of agents
+              -> [(Time,(Int,Int,Int))] -- output each step: (Time,(S,I,R))
               -> Bool
 sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
   where
@@ -62,11 +61,11 @@ sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
 Putting this property into a QuickCheck test is straightforward. We randomise the model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) because the properties have to hold for all positive, finite model parameters.
 
 \begin{HaskellCode}
-prop_sir_invariants :: Positive Int    -- ^ beta, contact rate
-                    -> Probability     -- ^ gamma, infectivity in range (0,1)
-                    -> Positive Double -- ^ delta, illness duration
-                    -> TimeRange       -- ^ random duration in range (0, 50)
-                    -> [SIRState]      -- ^ population
+prop_sir_invariants :: Positive Int    -- beta, contact rate
+                    -> Probability     -- gamma, infectivity in range (0,1)
+                    -> Positive Double -- delta, illness duration
+                    -> TimeRange       -- random duration in range (0, 50)
+                    -> [SIRState]      -- population
                     -> Property
 prop_sir_invariants 
     (Positive beta) (P gamma) (Positive delta) (T t) as  = property (do
@@ -78,17 +77,17 @@ prop_sir_invariants
   return (sirInvariants n ret)
 \end{HaskellCode}
 
-Due to the large sampling space, we increase the number of test cases to run to 10,000 and all tests pass as expected. We put a random time limit within the range of (0,50) on the simulations to run, meaning that if a simulation does not terminate before that limit, it will be terminated at that random $t$. The reason for that is entirely practical as it ensures that the clock time to run the tests stays within reasonable bounds while still retaining randomness. In fact, limiting the duration is actually not necessary because we can reason that the SIR simulation \textit{will always} reach an equilibrium in finite steps. %We discuss this more in depth in Appendix \ref{app:equilibrium_totality}.
+Due to the large sampling space, we increase the number of test cases to run to 10,000 and all tests pass as expected. It is important to note that we put a random time limit within the range of (0,50) on the simulations to run. Meaning, that if a simulation does not terminate before that limit, it will be terminated at that random \texttt{t}. The reason for this is entirely practical as it ensures that the clock time to run the tests stays within reasonable bounds while still retaining randomness. In fact, limiting the duration is actually not necessary because we can reason that the SIR simulation \textit{will always} reach an equilibrium in finite steps.
 
-\subsection{Random event sampling invariants}
-An interesting question is whether or not these properties depend on correct interdependencies of events the agents send to each other in reaction to events they receive. Put in other words: do these invariants also hold under \textit{random event sampling}? To test this, instead of using the actual SIR implementation, which inserts the events generated by the agents into the event queue, we wrote a new SIR kernel. It completely ignores the events generated by the agents and instead makes use of an infinite stream of random queue elements from which it executes a given number, 100,000 in our case. Queue elements contain a timestamp, the receiving agent id and the actual event where the timestamp is ensured to be increasing, to hold up the monotonic time property, the receiving agent id is drawn randomly from the constant list of all agents in the simulation and the actual event is randomly generated. As it turns out, all tests pass, which means that the SIR properties are also invariant under \textit{random event sampling}.
+\subsection{Random Event Sampling of Invariants}
+An interesting question is whether or not these properties depend on correct interdependencies of events the agents send to each other, in reaction to events they receive. In other words, do these invariants also hold under \textit{random event sampling}? To test this, instead of using the actual SIR implementation, which inserts the events generated by the agents into the event queue, we wrote a new SIR kernel. It completely ignores the events generated by the agents and instead makes use of an infinite stream of random queue elements from which it executes a given number: 100,000 in our case. Queue elements contain a timestamp, the receiving agent id, and the actual event where the timestamp is ensured to be increasing, to hold up the monotonic time property. The receiving agent id is drawn randomly from the constant list of all agents in the simulation and the actual event is randomly generated. As it turns out, all tests pass, which means that the SIR properties are also invariant under \textit{random event sampling}.
 
-\subsection{Time-driven invariants}
+\subsection{Time-Driven Invariants}
 We can expect that the invariants above also hold for the time-driven implementation. The property test is exactly the same, with the time-driven implementation running instead of the even-driven one. A big difference is that is not necessary to check the property of monotonic increasing time, as it is an invariant statically guaranteed by Arrowized FRP through the Yampa implementation. Due to the fact that the flow of time is always implicitly forward and no time variable is explicitly made accessible within the code, it is not possible to violate the monotonic increase of time.
 
 When we ran the property test we got a big surprise though. After a few test cases the property test failed due to a violation of the invariants! After a little bit of investigation it became clear that the invariant \textit{(3) number of susceptible agents is monotonic decreasing} was violated. In the failing test case the number of susceptible agents is monotonic decreasing with the exception of one step where it \textit{increases} by 1 just to decrease by 1 in the next step. A coverage test reveals that this happens in about 66\% of 1,000 test cases.
 
-The technicalities of the problem are highly involved and not provided in depth here. The source of the problem are the semantics of \texttt{switch} and \texttt{dpSwitch} which could lead to a delayed output of the agent state, leading to inconsistencies when feeding it back as environment in the next step. The solution is to delay the output of the susceptible agent by one step using \texttt{iPre} as already shown in the original time-driven implementation of \ref{sec:timedriven_firststep}. This solves the problem and the property test passes. 
+The technicalities of the problem are highly involved and not provided in depth here. The source of the problem are the semantics of \texttt{switch} and \texttt{dpSwitch}, which could lead to a delayed output of the agent state, leading to inconsistencies when feeding it back as environment in the next step. The solution is to delay the output of the susceptible agent by one step using \texttt{iPre} as already shown in the original time-driven implementation of \ref{sec:timedriven_firststep}. This solves the problem and the property test passes. 
 
 %\medskip
 %
@@ -104,7 +103,7 @@ The technicalities of the problem are highly involved and not provided in depth 
 %
 %One way to solve this problem would be to use \textit{pSwitch}. It is the non-delayed, stricht version of \textit{dpSwitch}, which output at time of switching is the output of the \textit{new} signal functions. Using \textit{pSwitch} instead of \textit{dpSwitch} solves the problem because it will use the new signal functions in the second run because it is strict. Indeed, when using this, the property test passes. This comes though at a high cost: due to \textit{pSwitch} strict semantics, which runs all the signal functions before and at time of switching, all agents are run twice in each step! This is clearly an unacceptable solution, especially because the time-driven approach already suffers severe performance problems. A more performant solution is to delay the susceptible agents output, as we have done already in \ref{sec:timedriven_firststep}. This solves the problem as well and the property test passes. 
 
-\section{Comparing time- and event-driven implementations}
+\section{Comparing Time- and Event-Driven Implementations}
 %% THESE ARE NOTES TAKEN DURING TESTING, DON'T REMOVE, THEY EXPLAIN HOW WE ARRIVE AT THESE RESULTS
 %---------------------------------------------------------------------------------------------------------------------------
 %ON AVERAGE CONTACT RATE
@@ -121,7 +120,7 @@ The technicalities of the problem are highly involved and not provided in depth 
 
 Having two conceptually different implementations of the same model, an obvious question we want to answer is whether they are producing the same dynamics or not. To be more precise, we need to answer the question whether both simulations produce the same distributions under random model parameters and simulation time. This is a perfect use case for QuickCheck as well and easily encoded into a property test.
 
-We generate random values for $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) as well as a random population and a random duration to run the simulations for. We again restrict the random duration to be drawn from the range of (0,50) to reduce the clock time duration to a reasonable amount without taking away the randomness.
+We generate random values for $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) as well as a random population and a random duration to run the simulations. We again restrict the random duration to be drawn from the range of (0,50) to reduce the clock time duration to a reasonable amount without taking away the randomness.
 
 Both simulation types are run with the same random parameters for 100 replications, collecting the output of the final step. The samples of these replications are then compared using a Mann-Whitney test with a 95\% confidence (p-value of 0.05). The reason for choosing this statistical test over a Two Sample t-Test is that the Mann-Whitney test does not require the samples to be normally distributed. We know both from experimental observations and discussions in \cite{macal_agent-based_2010} that both implementations produce a bimodal distribution, thus we have to use a non-parametric test like Mann-Whitney to compare them.
 
@@ -130,11 +129,11 @@ Both simulation types are run with the same random parameters for 100 replicatio
 We expect a high coverage of at least 90\%, which makes our assumption explicit that we expect both simulations to produce highly similar distributions despite their different underlying implementations.
 
 \begin{HaskellCode}
-prop_event_time_equal :: Positive Int    -- ^ beta, contact rate
-                      -> Probability     -- ^ gamma, infectivity, (0,1) range
-                      -> Positive Double -- ^ delta, illness duration
-                      -> TimeRange       -- ^ time to run, (0, 50) range
-                      -> [SIRState]      -- ^ population 
+prop_event_time_equal :: Positive Int    -- beta, contact rate
+                      -> Probability     -- gamma, infectivity, (0,1) range
+                      -> Positive Double -- delta, illness duration
+                      -> TimeRange       -- time to run, (0, 50) range
+                      -> [SIRState]      -- population 
                       -> Property
 prop_event_time_equal
     (Positive beta) (P gamma) (Positive delta) (T t) as = checkCoverage (do
@@ -163,9 +162,9 @@ Indeed when running this test, enforcing QuickCheck to perform sequential statis
 
 This result shows that both implementations produce highly similar distributions although they are not exactly the same as the 10\% of failure shows. We will discuss this issue in a broader context in the next section.
 
-\section{Testing the SIR model specification}
+\section{Testing the SIR Model Specification}
 \label{sec:prop_sirspecs}
-In the previous chapters and sections we have established the correctness of our event- and time-driven implementation up to our informal specification, we derived from the formal SD specification from Chapter \ref{sec:sir_model}. What we are lacking is a verification whether the implementations also match the formal SD specification or not. We aim at connecting the agent-based implementation to the SD specification, by formalising it into properties within a property test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
+In Chapter \ref{ch:agentspec} and the previous sections we have established the correctness of our event and time-driven implementations up to our informal specification, we derived from the formal SD specification from Chapter \ref{sec:sir_model}. What we are lacking is a verification whether the implementations also match the formal SD specification or not. We aim to connect the agent-based implementation to the SD specification, by formalising it into properties within a property test. The SD specification can be given through the differential equations shown in Chapter \ref{sec:sir_model}, which we repeat here:
 
 \begin{equation}
 \begin{split}
@@ -181,7 +180,7 @@ recoveryRate = \frac{I}{\delta}
 \end{equation}
 \label{eq:sir_delta_rates}
 
-Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium. This is the formal definition of the steady state of the system where as soon as $I(t) = 0$ the system will not change any more.
+Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected, because if there were no infected agents, the system would immediately reach equilibrium. This is the formal definition of the steady state of the system, where as soon as $I(t) = 0$ the system will not change any more.
 
 \begin{align}
 S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
@@ -190,20 +189,20 @@ I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
 R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
-\subsection{Deriving a property}
-The goal is now to derive a property which connects those equations with our implementation. We have to be careful and realise a fundamental difference between the System Dynamics (SD) and ABS implementations: SD is deterministic and continuous, ABS is stochastic and discrete. Thus we cannot compare single runs but we can only compare averages. Stated informally, the property we want to implement is that the ABS dynamics matches the SD ones \textit{on average}, independent of the finite population size, model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) and duration of the simulation. To be able to compare averages, we run 100 replications of the ABS simulation with same parameters except a different random-number generator in each replication and collect the output of the final steps. We then run a Two Sided t-Test on the replication values with the expected values generated by an SD simulation.
+\subsection{Deriving a Property}
+The goal now is to derive a property which connects those equations with our implementation. We have to be careful and realise a fundamental difference between the System Dynamics (SD) and ABS implementations: SD is deterministic and continuous, ABS is stochastic and discrete. Thus, we cannot compare single runs but can only compare averages. Stated informally, the property we want to implement is that the ABS dynamics matches the SD ones \textit{on average}, independent of the finite population size, model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) and duration of the simulation. To be able to compare averages, we run 100 replications of the ABS simulation with same parameters, with the exception of a different random number generator in each replication and then collect the output of the final steps. We then run a Two Sided t-Test on the replication values with the expected values generated by an SD simulation.
 
 \begin{HaskellCode}
-compareSDToABS :: Int    -- ^ Initial number of susceptibles
-               -> Int    -- ^ Initial number of infected
-               -> Int    -- ^ Initial number of recovered
-               -> [Int]  -- ^ Final number of susceptibles in replications
-               -> [Int]  -- ^ Final number of infected in replications
-               -> [Int]  -- ^ Final number of recovered in replications
-               -> Int    -- ^ beta (contact rate)
-               -> Double -- ^ gamma (infectivity)
-               -> Double -- ^ delta (illness duration)
-               -> Time   -- ^ duration of simulation
+compareSDToABS :: Int    -- Initial number of susceptibles
+               -> Int    -- Initial number of infected
+               -> Int    -- Initial number of recovered
+               -> [Int]  -- Final number of susceptibles in replications
+               -> [Int]  -- Final number of infected in replications
+               -> [Int]  -- Final number of recovered in replications
+               -> Int    -- beta (contact rate)
+               -> Double -- gamma (infectivity)
+               -> Double -- delta (illness duration)
+               -> Time   -- duration of simulation
                -> Bool
 compareSDToABS s0 r0 i0
                ss is rs
@@ -218,17 +217,17 @@ compareSDToABS s0 r0 i0
     rTest = tTestSamples TwoTail r (1 - confidence) rs
 \end{HaskellCode}
 
-The implementation of \texttt{simulateSD} is discussed in depth in Appendix \ref{app:sd_simulation}. We are very well aware that comparing the output against an SD simulation is dangerous because after all, why should be trust the SD implementation? As outlined in Appendix \ref{app:sd_simulation}, great care has been taken to ensure the correctness. The formulas from the SIR specification are directly put into code, allowed by Yampas Arrowized FRP which guarantees that at least that translation step is correct. We then only rely on a small enough sampling rate and the correctness of the Yampa library. The former one is very well in our reach and we pick a sufficiently small samply rate; the latter one is beyond our reach but we expect the library to me mature enough to be correct for our purposes.
+The implementation of \texttt{simulateSD} is discussed in depth in Appendix \ref{app:sd_simulation}. We are very well aware that comparing the output against an SD simulation is dangerous because after all, why should we trust the SD implementation? As outlined in Appendix \ref{app:sd_simulation}, great care has been taken to ensure its correctness. The formulas from the SIR specification are directly put into code, allowed by Yampas Arrowized FRP, which guarantees that at least that translation step is correct. We then only rely on a small enough sampling rate and the correctness of the Yampa library. The former one is very well within our reach and we pick a sufficiently small sample rate; the latter one is beyond our reach, but we expect the library to be mature enough to be correct for our purposes.
 
-\subsection{Implementing the test}
-Implementing a property test is straightforward. Here we give the implementation for the time-driven SIR implementation, the implementation for the event-driven SIR implementation is exactly the same with the exception of \texttt{genTimeSIRRepls}. We again make use of the \texttt{checkCoverage} feature of QuickCheck to get statistical robust results and expect that in 75\% of all test cases the SD and ABS dynamics match \textit{on average}. We discuss below why we chose to use a 75\% coverage. QuickCheck will run as many tests as necessary to reach a statistically robust result which either allows to reject or accept this hypothesis.
+\subsection{Implementing the Test}
+Implementing the property test is straightforward. Here we give the implementation for the time-driven SIR implementation. The implementation for the event-driven SIR implementation is exactly the same with the exception of \texttt{genTimeSIRRepls}. We again make use of the \texttt{checkCoverage} feature of QuickCheck to get statistically robust results and expect that in 75\% of all test cases the SD and ABS dynamics match \textit{on average}. We discuss below why we chose to use 75\% coverage. QuickCheck will run as many tests as necessary to reach a statistically robust result, which either allows to reject or accept the hypothesis, that the time or event-driven implementations generate same dynamics as the SD simulation.
 
 \begin{HaskellCode}
-prop_sir_time_spec :: Positive Int    -- ^ beta, contact rate
-                   -> Propability     -- ^ gamma, infectivity, (0,1) range
-                   -> Positive Double -- ^ delta, illness duration
-                   -> TimeRange       -- ^ time to run, (0, 50) range
-                   -> [SIRState]      -- ^ population
+prop_sir_time_spec :: Positive Int    -- beta, contact rate
+                   -> Propability     -- gamma, infectivity, (0,1) range
+                   -> Positive Double -- delta, illness duration
+                   -> TimeRange       -- time to run, (0, 50) range
+                   -> [SIRState]      -- population
                    -> Property
 prop_sir_time_spec 
     (Positive beta) (P gamma) (Positive delta) (T t) as = checkCoverage (do
@@ -240,8 +239,8 @@ prop_sir_time_spec
   return $ cover 75 prop "SIR time-driven passes t-test with simulated SD" True
 \end{HaskellCode}
 
-\subsection{Running the test}
-When running the tests for the time- and event-driven implementation, \\ QuickCheck reports the following:
+\subsection{Running the Test}
+When running the tests for the time and event-driven implementation, \\ QuickCheck reports the following:
 
 \begin{verbatim}
 +++ OK, passed 400 tests 
@@ -251,27 +250,27 @@ When running the tests for the time- and event-driven implementation, \\ QuickCh
     (74.84% SIR event-driven passes t-test with simulated SD).
 \end{verbatim}
 
-The results show clearly that in both cases we reach the expected 75\% of coverage. The distributions of the time- and event-driven implementations match the simulated SD dynamics to at least 75\%, in case of time-driven this is even substantially higher. Still, this result raises two questions:
+The results show clearly that in both cases we reach the expected 75\% coverage. The distributions of the time and event-driven implementations match the simulated SD dynamics to at least 75\%, in the case of the time-driven approach this result is even substantially higher. Still, this result raises two questions:
 
 \begin{enumerate}
-	\item Why does the performance of the time-driven implementation surpasses the event-driven one by more than 10\%?
+	\item Why does the performance of the time-driven implementation surpass the event-driven one by more than 10\%?
 	
-	\item Why are we not reaching a far higher coverage beyond 90\% and why have we chosen 75\% in the first place? After all our initial assumption was that the time- and event-driven implementations are simply agent-based implementations of the SD model and thus their dynamics should generate the same distributions as the SD ones.	
+	\item Why are we not reaching a far higher coverage beyond 90\%? Why have we chosen 75\% in the first place? After all, our initial assumption was that the time and event-driven implementations are simply agent-based implementations of the SD model and thus, their dynamics should generate the same distributions as the SD ones.	
 \end{enumerate}
 
-First of all, the results are a very strong indication that although both implementation techniques try to implement the same underlying model, they generate different distributions and are thus not \textit{statistically} equal. This was already established in Chapter \ref{ch:sir_invariants}, where we have compared the distributions of both simulations and found that although we reach 90\% similarity this means that they are still different in some cases. The results of this property test reflect that as well and we argue that this is also the reason why we see different performance of each when compared to SD. 
+First of all, the results are a very strong indication that although both implementation techniques try to implement the same underlying model, they generate different distributions and are thus not \textit{statistically} equal. This was already established above, where we have compared the distributions of both simulations and found that although we reach 90\% similarity, this means that they are still different in some cases. The results of this property test reflect that as well and we argue that this is also the reason why we see different performance in each when compared to SD. 
 
-An explanation why the time-driven approach seems to be closer to the SD dynamics is that in the event-driven approach we are dealing with discrete events, jumping from time to time instead of moving forward in time continuously as it happens conceptually in the time-driven approach. Time is also continuous in SD, thus it seems intuitively clear that a time-driven approach is closer to the SD implementation than the event-driven one. The implication is that depending on our intention, picking a time-driven or an event-driven implementation can and will make a statistical difference. When one is transferring an SD to an ABS model, one might consider to follow the time-driven approach as it seems to come much closer to the SD dynamics than the event-driven approach.
-
-\medskip
-
-The reason that we are not reaching a coverage level up to and beyond 90\% is rooted in the fundamental difference between SD and ABS. Due to ABS' stochastic nature, its dynamics cannot match an SD exactly because it generates a \textit{distribution} whereas the SD is deterministic. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, such an alternative path would be the immediate recovery of the single infected agent at the beginning without infecting any other agent. This is not possible in the SD case where in case there is 1 infected agent, the whole epidemic will unfold.
-
-The difficulty of comparing dynamics between SD and ABS and the impracticality to compare them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the authors showed that it generates a bimodal distribution. Further, the authors report that a 70\% envelope contains both the results of the SD and ABS implementation which is the reason why we chose a a 75\% coverage as our initial guess, which has turned out to work well and is in accordance with the results of \cite{macal_agent-based_2010}. %Indeed, that is also supported by our observations. When looking at the samples of failed t-tests by plotting them in a histogram, it shows clearly that the values exhibit strong outliers, arriving at a skewed / fat tailed / bimodal histogram. 
+An explanation why the time-driven approach seems to be closer to the SD dynamics is that in the event-driven approach we are dealing with discrete events, jumping from time to time instead of moving forward in time continuously as it happens conceptually in the time-driven approach. Time is also continuous in SD, thus it seems intuitively clear that a time-driven approach is closer to the SD implementation than the event-driven one. The implication is that, depending on our intention, picking a time-driven or an event-driven implementation can and will make a statistical difference. When one is transferring an SD to an ABS model, one might consider following the time-driven approach as it seems to come much closer to the SD dynamics than the event-driven approach.
 
 \medskip
 
-The question which remains is whether it actually even makes sense to compare the approaches to SD or even amongst each other, after all they can be seen as fundamentally different approaches. We can argue that they are qualitatively equal as \cite{figueredo_comparing_2014} has already emphasised in a different study on comparing ABS and SD: although dynamics of ABS models are statistically different from SD ones, they \textit{look} similar. The main difference is that ABS can contribute additional insight through revealing extra patterns due to its stochasticity, something not possible with SD. Thus in the end we simply have to accept that the respective coverage ratios are probably the closest we can get and that this is also the closest we can get in terms of validating our implementations against the original SD specification.
+The reason that we are not reaching a coverage level up to and beyond 90\% is rooted in the fundamental difference between SD and ABS. Due to ABS's stochastic nature, its dynamics cannot match an SD exactly because it generates a \textit{distribution}, whereas the SD is deterministic. This enables ABS to explore and reveal paths which are not possible in deterministic SD. In the case of the SIR model, an alternative path would be the immediate recovery of the single infected agent at the beginning, without infecting any other agent. This is not possible in the SD case where in case there is 1 infected agent, the whole epidemic will unfold.
+
+The difficulty of comparing dynamics between SD and ABS and the impracticality in comparing them \textit{exactly} was shown by \cite{macal_agent-based_2010} in the case of the SIR model, where the authors showed that it generates a bimodal distribution. Furthermore, the authors report that a 70\% envelope contains both the results of the SD and ABS implementation which is the reason why we chose 75\% coverage as our initial guess, which has turned out to work well and is in accordance with the results of \cite{macal_agent-based_2010}. %Indeed, that is also supported by our observations. When looking at the samples of failed t-tests by plotting them in a histogram, it shows clearly that the values exhibit strong outliers, arriving at a skewed / fat tailed / bimodal histogram. 
+
+\medskip
+
+The question which remains is whether it actually  makes sense to compare the approaches to SD or even amongst each other. After all, these approaches can be seen as fundamentally different approaches. We can argue that they are qualitatively equal as \cite{figueredo_comparing_2014} has already emphasised in a different study on comparing ABS and SD. Although, dynamics of ABS models are statistically different from SD ones, they \textit{look} similar. The main difference is that ABS can contribute additional insight through revealing extra patterns due to its stochasticity, something not possible with SD. Thus, in the end we simply have to accept that the respective coverage ratios are probably the closest we can get and that this is also the closest in terms of validating our implementations against the original SD specification.
 
 %% THESE ARE NOTES TAKEN DURING TESTING, DON'T REMOVE, THEY EXPLAIN HOW WE ARRIVE AT THESE RESULTS
 %---------------------------------------------------------------------------------------------------------------------------
@@ -295,24 +294,22 @@ The question which remains is whether it actually even makes sense to compare th
 %In our implementation we follow the idea as presented in \cite{macal_agent-based_2010}. Their specification states that in each time-step of 1 time-unit the susceptible make contact with a fixed number (contact rate) of other agents. This is a valid ABS model but it deviates to come closer to the SD as it fixes the number of contacts instead of making contact \textit{on average}. In SD and the time-driven approach, these are all averages and thus we are drawing from the exponential distribution in the time-driven case. This is not the case in our event-drive implementation, following \cite{macal_agent-based_2010}. If we change this behaviour to incorporate the exponential distribution we get a higher match to the SD dynamics of 37\% which is still a far cry form the time-driven approach but it at least indicates that this is a viable option to push the results further towards the SD dynamics. 
 
 \section{Discussion}
-In this chapter we have shown how to encode properties about simulation dynamics, generated by executing agents over time. This allowed to encode actual laws of the underlying SIR model in code and check them under random model parameters.
+In this chapter we have shown how to encode properties about simulation dynamics, generated by executing agents over time. This allowed for us to encode actual laws of the underlying SIR model in code and check them under random model parameters.
 
-In the case of the time-driven implementation we saw that our initial assumption, that the invariants will hold for this implementation as well was wrong: QuickCheck revealed a \textit{very} subtle bug in our implementation. Although the probability of this bug is very low, QuickCheck found it due to its random testing nature. This is another \textit{strong} evidence, that random property-based testing is an \textit{excellent} approach for testing ABS. On the other hand, this bug revealed the difficulties in getting the subtle semantics of FRP right to implement pure functional ABS. This is a strong case that in general an event-driven approach should be preferred, which is also much faster and also not subject to the sampling issues discussed in Chapter \ref{sec:timedriven_firststep}.
+In the case of the time-driven implementation we saw that our initial assumption, that the invariants will hold for this implementation as well was wrong: QuickCheck revealed a \textit{very} subtle bug in our implementation. Although the probability of this bug is very low, QuickCheck found it due to its random testing nature. This is another \textit{strong} evidence, that random property-based testing is an \textit{excellent} approach for testing ABS. On the other hand, this bug revealed the difficulties in getting the subtle semantics of FRP right to implement pure functional ABS. This is a strong case that in general an event-driven approach should be preferred. Additionally, it is also much faster and not subject to the sampling issues discussed in Chapter \ref{sec:timedriven_firststep}.
 
-Further, we showed that property-based testing also allows to compare two conceptually different implementations of the same underlying model with each other. This is indeed a perfect use case for property-based testing as it compares whole distributions and not only single runs using unit tests, making this another strong case for the use of property-based testing in ABS.
+Further, we showed that property-based testing also allows us to compare two conceptually different implementations of the same underlying model with each other. This is indeed a perfect use case for property-based testing as it compares whole distributions and not only single runs using unit tests, making this another strong case for the use of property-based testing in ABS.
 
-Finally, after having shown in previous chapters, that individual agent behaviour is correct up to some specification, in this chapter we also focused on validating the dynamics of the simulation with the original SD specification. By using QuickCheck, we showed how to connect both ABS implementations to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested through generating random test cases with random agent populations and random model parameters. 
+Finally, after having shown in Chapter \ref{ch:agentspec}, that individual agent behaviour is correct up to some specification, in this chapter we also focused on validating the dynamics of the simulation with the original SD specification. By using QuickCheck, we showed how to connect both ABS implementations to the SD specification by deriving a property, based on the SD specification. This property is directly expressed in code and tested through generating random test cases with random agent populations and random model parameters. 
 
-Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using \\ QuickCheck. The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{figueredo_comparing_2014,macal_agent-based_2010} have already shown. Our approach might work out better for a different model, which has a better behaved underlying specification than the bimodal SIR.
+Although our initial idea of matching the ABS implementation to the SD specifications has not worked out in an exact way, we still showed a way of formalizing and expressing these relations in code and testing them using \\ QuickCheck. The results showed that the ABS implementation comes close to the original SD specification but does not match it exactly - it is indeed richer in its dynamics as \cite{figueredo_comparing_2014,macal_agent-based_2010} have already shown. Our approach might work out better for a different model, which has a better-behaved underlying specification than the bimodal SIR.
 
 \medskip
 
-Concluding the chapters on property-based testing we had an extensive look into the usefulness of randomised property-based testing in the development, specification and testing of pure functional ABS. We found property-based testing particularly well suited for ABS firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also the deductive nature of falsification in property-based testing suits very well the constructive and often exploratory nature of ABS. 
+Concluding the chapters on property-based testing we had an extensive look into the usefulness of randomised property-based testing in the development, specification and testing of pure functional ABS. We found property-based testing particularly well suited for ABS firstly due to ABS stochastic nature and second because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test. Also, the deductive nature of falsification in property-based testing suits the constructive and often exploratory nature of ABS very well. 
 
 Indeed, we can see property-based testing not only as a post-implementation testing tool but as an extension to the development process, where the developer engages in an interactive cycle of implementing agent and simulation behaviour and then immediately putting specifications into property tests and running them. This approach of expressing specifications instead of special cases like in unit tests is arguably a much more natural approach to test-driven development in ABS development than relying only on unit tests.
 
 In these chapters we only focused on the explanatory SIR model and ignored the exploratory Sugarcape. It is important to understand that testing of exploratory models is also possible through hypothesis testing. We discuss this approach in Appendix \ref{app:validating_sugarscape} in the context of validating our Sugarscape implementation.
 
-We have only touched the tip of the iceberg and expect tremendous potential from applying property-based testing to different kind of models and in implementing ABS in general. Indeed, although property-based testing has its origins in Haskell, similar libraries have been developed for other languages like Java, Python and C++ as well and we hope that our research will spark an interest in applying property-based testing to the established object-oriented languages in ABS as well.
-
-%For further insight into testing FRP we can directly leverage on the work of \cite{perez_testing_2017}. Another unique benefit of pure functional programming, \textit{equational reasoning} was not investigated in this thesis as it was beyond the focus of this Ph.D. We expect that this technique is applicable to parts of our approach as well but leave this for further research.
+We have only touched the tip of the iceberg and expect tremendous potential from applying property-based testing to different kind of models and in implementing ABS in general. Indeed, although property-based testing has its origins in Haskell, similar libraries have been developed for other languages like Java, Python and C++.

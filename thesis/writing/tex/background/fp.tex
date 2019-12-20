@@ -57,9 +57,9 @@ It may seem that one runs into efficiency problems in Haskell when using algorit
 \label{sec:purity_sideeffects}
 One of the fundamental strengths of Haskell is its way of dealing with side effects in functions. A function with side effects has observable interactions with some state outside of its explicit scope. Therefore, its behaviour depends on the history of the system which means that it loses its referential transparency character, which makes understanding and debugging much harder. Possible examples of side effects are (amongst others): modifying a variable, awaiting an input from the keyboard, reading or writing to a file, opening a connection to a server, drawing random numbers.
 
-Obviously, to write real-world programs which interact with the outside world requires side effects. Haskell allows for indicating in the \textit{type} of a function that it does, or does \textit{not} have side effects. What is more, there is a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is checked by the compiler, which means that code which tries to read from a file in a function, when only allowing for drawing random numbers, will fail to compile. The effect type \texttt{IO} allows all kind of input-output related side effects like reading and writing a file, creating threads, writing to the standard output, reading from the keyboard, opening network connections and modifying mutable references; \texttt{Rand} allows drawing random numbers; \texttt{Reader} allows reading from an environment; \texttt{Writer} allows writing to a \textit{monoid} environment; \texttt{State} allows reading and writing shared state of a given type.
+Obviously, to write real-world programs which interact with the outside world requires side effects. Haskell allows for indicating in the \textit{type} of a function that it does, or does \textit{not} have side effects. What is more, there is a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is checked by the compiler, which means that code which tries to read from a file in a function, when only allowing for drawing random numbers, will fail to compile.
 
-A function without any side effect type is called \textit{pure}, and the \texttt{factorial} function discussed above is indeed pure. Below we give the \texttt{queryUser} function as an example of a function which is not pure. It constructs a computation, which when executed, asks the user for its user name and compares it with a given user configuration. In the event that the user name matches, it returns \texttt{True}, and \texttt{False} otherwise after printing a corresponding message. 
+A function without any side effect type is called \textit{pure}, and the \texttt{factorial} function discussed above is indeed pure. Below we give the \texttt{queryUser} function as an example of a function which is not pure. It constructs a computation, which when executed, asks the user for its user name and compares it with a given user configuration. In the event that the user name matches, it returns \texttt{True}, and \texttt{False} otherwise after printing a corresponding message. The effect type of the function is \texttt{IO}, which allows all kind of input-output related side effects like reading and writing a file, creating threads, writing to the standard output, reading from the keyboard, opening network connections and modifying mutable references.
 
 \begin{HaskellCode}
 queryUser :: String -> IO Bool
@@ -78,16 +78,67 @@ queryUser username = do
       return False
 \end{HaskellCode}
 
-The \texttt{IO} in the first line indicates that the function runs in the \texttt{IO} effect and can thus (amongst other operations) print to the console and read input from it. What seems striking is that this looks very much like imperative code, which is no coincidence, but rather very much intentional. When we are dealing with side effects, ordering becomes important. Thus, Haskell introduced the so-called \textit{do} notation which emulates an imperative style of programming. Whereas, in imperative programming languages like C, instructions are chained or composed together using the semicolon (;) operator, in functional programming this is done using function composition. That is, feeding the output of a function directly into the next function. The machinery behind the \textit{do} notation does exactly this and desugars this imperative-style code into function compositions which run custom code between each line, depending on the type of effect the computation runs in. This approach of function composition with custom code in between each function allows to emulate a broad range of imperative-style effects, including the above-mentioned ones.
+What seems striking is that this looks very much like imperative code, which is no coincidence, but rather very much intentional. When we are dealing with side effects, ordering becomes important. Thus, Haskell introduced the so-called \textit{do} notation which emulates an imperative style of programming. Whereas, in imperative programming languages like C, instructions are chained or composed together using the semicolon (;) operator, in functional programming this is done using function composition. That is, feeding the output of a function directly into the next function. The machinery behind the \textit{do} notation does exactly this and desugars this imperative-style code into function compositions which run custom code between each line, depending on the type of effect the computation runs in. This approach of function composition with custom code in between each function allows to emulate a broad range of imperative-style effects, including the above-mentioned ones.
 
 Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in a function explicit. First, we can restrict the side effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors immediately at compile time. Second, because running effects themselves is \textit{pure}, we can execute functions with effects in a very controlled way by making the context of the effect explicit in the parameters to the effect execution. This allows for a much easier approach to isolated testing because the history of the system is made explicit. 
 
 \subsubsection{Monads}
-Haskell implements its way of dealing with side effects using the concept of \textit{Monads}. It is important to understand that Monads are implemented in terms of Haskell, and not the other way round, therefore effects are implemented in terms of Haskell and not built into the Runtime (with the exception of \texttt{IO} Monad). To better understand how Haskell implements its concept of side effects with Monads, in this section, we briefly give an overview of what Monads are, how they are defined in Haskell and how they are used to facilitate effectful programming in a pure functional way. As this is a vast and complex topic, we can only scratch the surface here, consequently for a more technical, in-depth discussion we refer to the papers \cite{jones_tackling_2002,moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997}.
+Haskell implements its way of dealing with side effects using the concept of \textit{Monads}. It is important to understand that Monads are implemented in terms of Haskell, and not the other way round. Therefore, effects (with the exception of \texttt{IO} Monad) are implemented in terms of Haskell and not built into the runtime. To better understand how Haskell implements its concept of side effects with Monads, in this section, we briefly give an overview of what Monads are, how they are defined in Haskell and how they are used to facilitate effectful programming in a pure functional way. As this is a vast and complex topic, we can only scratch the surface here, consequently for a more technical, in-depth discussion we refer to the papers \cite{jones_tackling_2002,moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997}.
 
-TODO: Explain the concept of a Monad more in detail e.g. providing type signatures / type class definitions, actual implementations e.g. Maybe?  also need to provide Functor and Applicative implementation
+A Monad is a concept from the field of Category Theory in Mathematics, where it is a \textit{Monoid in the category of Endofunctors}. Moggi \cite{moggi_computational_1989} realised that Monads can be used to structure computation. Later, Wadler \cite{wadler_monads_1995,wadler_how_1997} realised that Monads can be used as a way to achieve effectful computation in pure functional programming. 
 
-TODO: briefly mention Reader (partial function application), Writer (monoid), State (closure), Rand (is basically a state), List (non-deterministic programming).
+Without going into the mathematical details, we give the definition of Monads in Haskell. Informally speaking, in Haskell, a Monad is both an Applicative and a Functor, which provides the operation \textit{return} and \textit{bind}. The according type classes are:
+
+\begin{HaskellCode}
+-- Monad type class
+class Applicative m => Monad m where
+  return :: a -> m a
+  -- bind, in Haskell >>= is used
+  (>>=) :: m a -> (a -> m b) -> m b 
+
+-- Applicative type class
+-- Allows composing functions which map over values with structure.
+class Functor f => Applicative f where
+  pure  :: a -> f a
+  (<*>) :: f (a -> b) -> f a -> f b
+
+-- Functor type class
+-- Allows mapping between values with some structure.
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+\end{HaskellCode}
+
+\texttt{return} lifts a pure value into a Monad. \texttt{bind (>>=)} allows to sequence computations, feeding the output \texttt{a} of the first computation into a continuation, which returns a new computation in the same Monad \texttt{m} but with a possibly different return type \texttt{b}. Interestingly, with these interfaces it becomes possible to implement a wide range of pure, deterministic effects. As already mentioned above, in between lines of the \textit{do} notation runs custom code, for which the \texttt{bind (>>=)} method is used. The \texttt{return}, also seen above in the example, lifts a pure value, in the example a \texttt{Boolean} value, into a monadic value.
+
+Obviously, the Monad type class only defines the interface required for a Monad but no actual implementations. There are a number of different Monad implementations, providing different types of side effects:
+
+\begin{itemize}
+	\item \texttt{Reader} uses partial function application to implement reading from an environment;
+	\item \texttt{Writer} uses a monoid type to implement writing to a \textit{monoid} environment;
+	\item \texttt{State} uses functions and closures to implement reading and writing shared state of a given type;
+	\item \texttt{Rand} uses a \texttt{State} Monad to implement a random number stream;
+	\item \texttt{[] (List)} forms also a Monad and implements non-deterministic programming.
+\end{itemize}
+
+To better understand how a Monad is implemented, we discuss the implementation of the \texttt{Maybe} Monad, which allows programming with failure. The \texttt{Maybe} type itself is straightforward and provides some kind of optional value where a computation can either return \texttt{Just} some value or \texttt{Nothing}:
+
+\begin{HaskellCode}
+data Maybe a = Nothing | Just a
+\end{HaskellCode}
+
+Interestingly, \texttt{Maybe} forms a Monad. It allows us to write imperative-style code with the option of failure but saves us from handling each failure individually. Here is the implementation:
+
+\begin{HaskellCode}
+-- Instance of Maybe Monad.
+-- Type definitions of methods provided for clarification
+instance Monad Maybe where
+  return :: a -> Maybe a
+  return = Just
+  
+  (>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b
+  (>>=) Nothing _  = Nothing
+  (>>=) (Just a) f = f a 
+\end{HaskellCode}
 
 \medskip
 

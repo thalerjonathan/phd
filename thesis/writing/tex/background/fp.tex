@@ -220,12 +220,44 @@ Yampa also provides the combinator \texttt{noise :: (RandomGen g, Random b) $\Ri
 To run a signal function Yampa provides the function \texttt{embed :: SF a b $\rightarrow$ (a, [(DTime, Maybe a)]) $\rightarrow$ [b]}, which allows for running an SF for a given number of steps. Where, in each step one provides the $\Delta t$ and an input \texttt{a}. The function then returns the output of the signal function for each step. The input is optional, indicated by \texttt{Maybe}. In the first step at $t = 0$, the initial \texttt{a} is applied and whenever the input is \texttt{Nothing} in subsequent steps, the last \texttt{a} which was not \texttt{Nothing} is reused.
 
 \subsection{Arrowized programming}
-Yampa's signal functions are Arrows, requiring us to program with Arrows. Arrows are a generalisation of Monads, which in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}.
+Yampa's signal functions are Arrows, requiring us to program with Arrows. Arrows are a generalisation of Monads, which in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}. For a clearer understanding, we show how Arrows are defined in terms of Haskell \cite{arrows_haskell}:
 
-In general, Arrows can be understood to be computations that represent processes, which take an input of a specific type, process it and output a value of a given type. The concept of processes, which signal functions indeed are, maps naturally to Arrows which is the reason why Yampa is using them to represent their signal functions.
+\begin{HaskellCode}
+class Arrow a where
+  -- Each function may be treated as a computation.  
+  arr :: (b -> c) -> a b c
+  
+  -- A computation applied to part of the input, 
+  -- with the rest copied through to the output.
+  first :: a b c -> a (b,d) (c,d)
+  
+  -- Computations may be composed, by connecting 
+  -- the output of the first to the input of the second.
+  (>>>) :: a b c -> a c d -> a b d
+\end{HaskellCode}
 
-TODO: Explain Arrows more in detail e.g. providing type signatures and provide an actual implementation
- 
+It is clear to see in the type definitions, that each method also parametrises over the input type. As a simple example for an Arrow instance we provide the implementation of an Arrow for pure function computations:
+
+\begin{HaskellCode}
+newtype Func a b = Func { runFunc :: (a -> b) }
+
+-- Instance of pure function computations as Arrow.
+-- Type definitions of methods provided for clarification
+instance Arrow Func where
+  arr :: Func a b
+  arr f = Func f
+
+  first :: Func b c -> Func (b, d) (c, d)
+  first (Func f) = Func (mapFst f)
+    where
+      mapFst g (a,b) = (g a, b)
+    
+  (>>>) :: Func b c -> Func c d -> Func b d
+  (>>>) (Func f) (Func g) = Func (g . f)
+\end{HaskellCode}
+
+In general, Arrows can be understood to be computations that represent processes, which take an input of a specific type, process it and output a value of a given type. This is also reflected in the types of the \texttt{Arrow} type class and the example above: we are dealing with functions and not individual arguments, as in the case of Monads. The concept of processes, which signal functions indeed are, maps naturally to Arrows which is the reason why Yampa is using them to represent their signal functions.
+
 There exists a number of Arrow combinators, which allow arrowized programming in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's \textit{do} notation for arrows \cite{paterson_new_2001}, which makes the code more readable as it allows us to program with points.
 
 To show how arrowized programming works, we implement a simple signal function, which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.

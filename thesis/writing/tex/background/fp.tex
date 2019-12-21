@@ -148,14 +148,44 @@ However, the impure \texttt{IO} effect works differently. There is no dedicated 
 
 \subsubsection{Stacking Effects Using Monad Transformers}
 \label{sec:back_transformers}
-Often it is necessary to have multiple effects available for use. For example, if we want to manipulate a global state, write to some logging mechanism and need to be able to draw random numbers. The way this is achieved in Haskell is by using Monad Transformers \cite{jones_functional_1995}. Haskell provides the two libraries \textit{mtl} and \textit{transformers} for this, which achieve the same things with slightly different philosophies. In our approach we primarily use \textit{mtl} as it allows for overloading functions with monadic type classes as explained below.
+Often it is necessary to have multiple effects available for use. For example, if we want to manipulate a global state, write to some logging mechanism and need to be able to draw random numbers. Although Monads share a common interface and properties, it is not possible to compose Monads in general, as each Monad has different internals and semantics. Consequently, it always depends on the Monad how to compose it into another arbitrary Monad. The way this is achieved in Haskell is by using Monad Transformers \cite{allen_haskell_2016, jones_functional_1995, jones_tackling_2002}. Haskell provides the two libraries \textit{mtl} and \textit{transformers} for this, with \textit{transformers} being the older library but \textit{mtl} building on \textit{transformers}, additionally allowing for overloading functions with monadic type classes as explained below. In our approach we use both without making a distinction.
 
-Although Monads share a common interface and properties, it is not possible to compose Monads in a general way, as each Monad has different internals and semantics. Consequently it always depends on the Monad how to compose it into another arbitrary Monad \footnote{The technical details are quite involved, therefore we don't go into them here, but refer to the respective literature and tutorials on Monad Transformers \cite{allen_haskell_2016, jones_functional_1995, jones_tackling_2002} in the reference section.}. Therefore, the \textit{mtl} library provides so called \textit{Transformer implementations} of each of the standard Monads.
+A Transformer consists of a type constructor which takes an existing Monad and returns a Monad as result. It also needs to provide implementations of both the \texttt{return} and \texttt{bind} monadic operations. Also, it needs to provide an operation \texttt{lift :: Monad m $\Rightarrow$ m a $\rightarrow$ t m a}, which allows to execute ('lift') a monadic operation \texttt{m a} from the existing Monad \texttt{m} within (into) the Transformer \texttt{t}. Therefore a Transformer is always a Monad itself, which allows for the stacking of multiple Monads or Transformers on top of each other. The stack is closed by using a non-Transformer Monad. All non-Transformer Monads are actually Transformers with the \texttt{Identity} Monad as the type parameter.
 
-TODO: can we show that monads do not compose generally and therefore need a Transformer using the example of a Maybe monad?
-TODO: Explain the concept of a Monad Transformer more in detail e.g. providing type signatures and provide an actual implementation e.g. MaybeT?
+Implementing Transformers can get tricky, but as a relatively simple example, we show the implementation of the \texttt{MaybeT} Transformer from the \textit{transformers} library. The \texttt{MaybeT} is a Transformer which allows the inclusion of the \texttt{Maybe} Monad into a Transformer stack, to enable effectful computation which might fail. First, we provide the type constructor for the Transformer, which is a wrapper around the \texttt{Maybe} type, adding an arbitrary Monad \texttt{m}:
 
-A Transformer has an additional type parameter in its type constructor which has to be a Monad or another Transformer. This allows for the stacking of multiple Monads or Transformers on top of each other. The stack is closed by using a non-Transformer Monad. In \textit{mtl} all non-Transformer Monads are actually Transformers with the \texttt{Identity} Monad as the type parameter, for example \texttt{State Int} is \texttt{StateT Int Identity}. Access to the various layers of the stack is achieved with the \texttt{lift :: Monad m $\Rightarrow$ m a $\rightarrow$ t m a} function. Let's look at how we can define the type of a function which has multiple effects available:
+\begin{HaskellCode}
+newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
+\end{HaskellCode}
+
+Then, we provide the the implementation of the \texttt{Monad} instance for the \texttt{MaybeT} type. Consequently, this makes \texttt{MaybeT} a Monad:
+
+\begin{HaskellCode}
+-- Instance of MaybeT Monad.
+-- Type definitions of methods provided for clarification
+instance (Monad m) => Monad (MaybeT m) where
+  return :: a -> MaybeT a
+  return = MaybeT . return . Just -- first put the value a into Just, then lift it into the polymorphic Monad m and finally put it into a MaybeT
+
+  (>>=) :: MaybeT a -> (a -> MaybeT b) -> MaybeT b
+  (>>=) x f = MaybeT (do -- constructing a MaybeT
+      v <- runMaybeT x   -- executing the polymorphic Monadic action m and get the Maybe result
+      case v of          -- case analysis on the Maybe result
+          Nothing -> return Nothing    -- Nothing, then as return value lift Nothing into the poymorphic Monad m
+          Just y  -> runMaybeT (f y))  -- Just y, then run the MaybeT b returned by the continuation f with y as argument
+\end{HaskellCode}
+
+It is clear to see in the code that in a Transformer \textit{two} monadic actions are executed. TODO: explain 
+
+Finally, we provide the implementation of the \texttt{lift} operator:
+ 
+\begin{HaskellCode}
+lift = MaybeT . (liftM Just)
+liftM :: Monad m => (a -> b) -> m a -> m b
+\end{HaskellCode}
+
+TODO: explain
+Let's look at how we can define the type of a function which has multiple effects available:
 
 \begin{HaskellCode}
 data SimState = SimState { simStateAgents :: [SimAgent] ... }

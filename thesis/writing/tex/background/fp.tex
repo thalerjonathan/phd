@@ -83,32 +83,33 @@ What seems striking is that this looks very much like imperative code, which is 
 Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use in a function explicit. First, we can restrict the side effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors immediately at compile time. Second, because running effects themselves is \textit{pure}, we can execute functions with effects in a very controlled way by making the context of the effect explicit in the parameters to the effect execution. This allows for a much easier approach to isolated testing because the history of the system is made explicit. 
 
 \subsubsection{Monads}
-Haskell implements its way of dealing with side effects using the concept of \textit{Monads}. It is important to understand that Monads are implemented in terms of Haskell, and not the other way round. Therefore, effects (with the exception of \texttt{IO} Monad) are implemented in terms of Haskell and not built into the runtime. To better understand how Haskell implements its concept of side effects with Monads, in this section, we briefly give an overview of what Monads are, how they are defined in Haskell and how they are used to facilitate effectful programming in a pure functional way. As this is a vast and complex topic, we can only scratch the surface here, consequently for a more technical, in-depth discussion we refer to the papers \cite{jones_tackling_2002,moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997}.
+Haskell implements its way of dealing with side effects using the concept of \textit{Monads}. It is important to understand that Monads are implemented directly in Haskell, which means that effects (with the exception of \texttt{IO} Monad) are implemented in terms of Haskell and not built into the runtime. To better understand how Haskell implements its concept of side effects with Monads, in this section, we briefly give an overview of what Monads are, how they are defined in Haskell and how they are used to facilitate effectful programming in a pure functional way. As this is a vast and complex topic, we can only scratch the surface here, consequently for a more technical, in-depth discussion we refer to \cite{jones_tackling_2002,moggi_computational_1989,wadler_essence_1992,wadler_monads_1995,wadler_how_1997}.
 
-A Monad is a concept from the field of Category Theory in Mathematics, where it is a \textit{Monoid in the category of Endofunctors}. Moggi \cite{moggi_computational_1989} realised that Monads can be used to structure computation. Later, Wadler \cite{wadler_monads_1995,wadler_how_1997} realised that Monads can be used as a way to achieve effectful computation in pure functional programming. 
+A Monad is an algebraic structure from the field of Category Theory. Moggi \cite{moggi_computational_1989} realised that Monads can be used to structure computation and later, Wadler \cite{wadler_monads_1995,wadler_how_1997} realised that Monads can be used as a way to achieve effectful computation in pure functional programming. 
 
-Without going into the mathematical details, we give the definition of Monads in Haskell. Informally speaking, in Haskell, a Monad is both an Applicative and a Functor, which provides the operation \textit{return} and \textit{bind}. The according type classes are:
+Without going into the mathematical details, we give the definition of Monads in Haskell. Informally speaking, in Haskell, a Monad is both an Applicative and a Functor, which provides the operation \textit{return} and \textit{bind}. The according type class is:
 
 \begin{HaskellCode}
 -- Monad type class
+-- Applicative and Functor omitted for clarity
 class Applicative m => Monad m where
   return :: a -> m a
   -- bind, in Haskell >>= is used
-  (>>=) :: m a -> (a -> m b) -> m b 
-
--- Applicative type class
--- Allows composing functions which map over values with structure.
-class Functor f => Applicative f where
-  pure  :: a -> f a
-  (<*>) :: f (a -> b) -> f a -> f b
-
--- Functor type class
--- Allows mapping between values with some structure.
-class Functor f where
-  fmap :: (a -> b) -> f a -> f b
+  (>>=) :: m a -> (a -> m b) -> m b
 \end{HaskellCode}
 
-\texttt{return} lifts a pure value into a Monad. \texttt{bind (>>=)} allows to sequence computations, feeding the output \texttt{a} of the first computation into a continuation, which returns a new computation in the same Monad \texttt{m} but with a possibly different return type \texttt{b}. Interestingly, with these interfaces it becomes possible to implement a wide range of pure, deterministic effects. As already mentioned above, in between lines of the \textit{do} notation runs custom code, for which the \texttt{bind (>>=)} method is used. The \texttt{return}, also seen above in the example, lifts a pure value, in the example a \texttt{Boolean} value, into a monadic value.
+%-- Applicative type class
+%-- Allows composing functions which map over values with structure.
+%class Functor f => Applicative f where
+%  pure  :: a -> f a
+%  (<*>) :: f (a -> b) -> f a -> f b
+%
+%-- Functor type class
+%-- Allows mapping between values with some structure.
+%class Functor f where
+%  fmap :: (a -> b) -> f a -> f b
+
+\texttt{return} lifts a pure value into a Monad. \texttt{bind (>>=)} allows to sequence computations, feeding the output \texttt{a} of the first computation into a continuation, which returns a new computation in the same Monad \texttt{m} but with a possibly different return type \texttt{b}. Interestingly, with this interface it becomes possible to implement a wide range of pure, deterministic effects. As already mentioned above, in between lines of the \textit{do} notation runs custom code. This is achieved which the \texttt{bind (>>=)} method. The \texttt{return}, also seen above in the example, lifts a pure value, in the example a \texttt{Boolean} value, into a monadic value.
 
 Obviously, the Monad type class only defines the interface required for a Monad but no actual implementations. There are a number of different Monad implementations, providing different types of side effects:
 
@@ -120,7 +121,7 @@ Obviously, the Monad type class only defines the interface required for a Monad 
 	\item \texttt{[] (List)} forms also a Monad and implements non-deterministic programming.
 \end{itemize}
 
-To better understand how a Monad is implemented, we discuss the implementation of the \texttt{Maybe} Monad, which allows programming with failure. The \texttt{Maybe} type itself is straightforward and provides some kind of optional value where a computation can either return \texttt{Just} some value or \texttt{Nothing}:
+To better understand how a Monad is implemented, we show the implementation of the \texttt{Maybe} Monad, which allows programming with failure. The \texttt{Maybe} type itself is straightforward and provides some kind of optional value, where a computation can either return \texttt{Just} some value or \texttt{Nothing}:
 
 \begin{HaskellCode}
 data Maybe a = Nothing | Just a
@@ -140,52 +141,55 @@ instance Monad Maybe where
   (>>=) (Just a) f = f a 
 \end{HaskellCode}
 
+\texttt{return} simply lifts a pure value \texttt{a} into a \texttt{Just} value, applying the data constructor \texttt{Just}. \texttt{bind (>>=)} performs case analysis: if \texttt{Maybe a} is Nothing, the it will propagate \texttt{Nothing}, otherwise it will use \texttt{a} with the continuation \texttt{f}, to return the next computation \texttt{Maybe b}.
+
 \medskip
 
 It is important to understand that the code fragments of effectful computations are in fact  made up of enclosing lambda expressions, with the \textit{do} notation being a syntactic sugared version. Thus functions which have an effect in their type can be seen as \textit{pure} functions, which are referentially transparent and return such a fragment. This fragment, often called \textit{action}, results in an effect and a result when executed. We have to distinguish between the execution of pure effects like \texttt{Rand}, \texttt{Read}, \texttt{Write}, \texttt{State} and the impure effect of \texttt{IO}. Pure effects are executed using special runner functions. They take an action together with one or more initial values defining the history or context of the effect - for example, an initial value for the \texttt{State} or the read-only value of the \texttt{Reader} - and then run the action returning their its value. Consequently, these pure effects can be executed in a referential transparent and completely controlled way.
 
 However, the impure \texttt{IO} effect works differently. There is no dedicated \texttt{IO} execution function that exists, but it can only be executed from within the root \texttt{IO} action. This root action emanates from the \texttt{main :: IO ()} function of each Haskell program. As a result, \texttt{IO} actions can only be run within an enclosing \texttt{IO} action. The main \texttt{IO} action is then ultimately being executed by the Haskell runtime, which is linked against the executable. The reason for that is that if we did have a way of executing \texttt{IO} actions within pure code, we would lose all guarantees about referential transparency. The function \texttt{unsafePerformIO :: IO a $\rightarrow$ a}, exists, which allows for executing an \texttt{IO} action within a pure function, but its use is very limited and highly discouraged. Throughout this thesis and in all our code, we have avoided the use of this function at all costs. Consequently it is not used anywhere in this work, as avoiding \texttt{IO} is the very meaning of \textit{purity} and \textit{pure} functional programming.
 
-\subsubsection{Stacking Effects Using Monad Transformers}
+\subsubsection{Stacking Effects}
 \label{sec:back_transformers}
-Often it is necessary to have multiple effects available for use. For example, if we want to manipulate a global state, write to some logging mechanism and need to be able to draw random numbers. Although Monads share a common interface and properties, it is not possible to compose Monads in general, as each Monad has different internals and semantics. Consequently, it always depends on the Monad how to compose it into another arbitrary Monad. The way this is achieved in Haskell is by using Monad Transformers \cite{allen_haskell_2016, jones_functional_1995, jones_tackling_2002}. Haskell provides the two libraries \textit{mtl} and \textit{transformers} for this, with \textit{transformers} being the older library but \textit{mtl} building on \textit{transformers}, additionally allowing for overloading functions with monadic type classes as explained below. In our approach we use both without making a distinction.
+Often it is necessary to have multiple effects available for use. For example, if we want to manipulate a global state, write to some logging mechanism and need to be able to draw random numbers. Although Monads share a common interface and properties, it is not possible to compose Monads in general. Because each Monad has different internals and semantics, without knowing one of the two Monad to compose, it is not possible to combine them in general. Therefore, to combine two Monads, one is kept polymorphic, while the other one is known. The way this is achieved in Haskell is by using Monad Transformers \cite{allen_haskell_2016, jones_functional_1995, jones_tackling_2002}. Haskell provides the two libraries \textit{mtl} and \textit{transformers} for this, with \textit{transformers} being the older library but \textit{mtl} building on \textit{transformers}, additionally allowing for overloading functions with monadic type classes as explained below. In our approach we use both without making a distinction.
 
 A Transformer consists of a type constructor which takes an existing Monad and returns a Monad as result. It also needs to provide implementations of both the \texttt{return} and \texttt{bind} monadic operations. Also, it needs to provide an operation \texttt{lift :: Monad m $\Rightarrow$ m a $\rightarrow$ t m a}, which allows to execute ('lift') a monadic operation \texttt{m a} from the existing Monad \texttt{m} within (into) the Transformer \texttt{t}. Therefore a Transformer is always a Monad itself, which allows for the stacking of multiple Monads or Transformers on top of each other. The stack is closed by using a non-Transformer Monad. All non-Transformer Monads are actually Transformers with the \texttt{Identity} Monad as the type parameter.
 
-Implementing Transformers can get tricky, but as a relatively simple example, we show the implementation of the \texttt{MaybeT} Transformer from the \textit{transformers} library. The \texttt{MaybeT} is a Transformer which allows the inclusion of the \texttt{Maybe} Monad into a Transformer stack, to enable effectful computation which might fail. First, we provide the type constructor for the Transformer, which is a wrapper around the \texttt{Maybe} type, adding an arbitrary Monad \texttt{m}:
+Implementing Transformers can get tricky, but as a relatively simple example, we show the implementation of the \texttt{MaybeT} Transformer from the \textit{transformers} library. The \texttt{MaybeT} is a Transformer which allows the inclusion of the \texttt{Maybe} Monad into a Transformer stack, to enable effectful computations which might fail. First, we provide the type constructor for the Transformer, which is a wrapper around the \texttt{Maybe} type, adding an arbitrary Monad \texttt{m}:
 
 \begin{HaskellCode}
 newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
 \end{HaskellCode}
 
-Then, we provide the the implementation of the \texttt{Monad} instance for the \texttt{MaybeT} type. Consequently, this makes \texttt{MaybeT} a Monad:
+Then, we provide the the implementation \cite{allen_haskell_2016} of the \texttt{Monad} instance for the \texttt{MaybeT} type. Consequently, this makes \texttt{MaybeT} a Monad:
 
 \begin{HaskellCode}
 -- Instance of MaybeT Monad.
 -- Type definitions of methods provided for clarification
 instance (Monad m) => Monad (MaybeT m) where
   return :: a -> MaybeT a
-  return = MaybeT . return . Just -- first put the value a into Just, then lift it into the polymorphic Monad m and finally put it into a MaybeT
+  return = MaybeT . return . Just
 
-  (>>=) :: MaybeT a -> (a -> MaybeT b) -> MaybeT b
-  (>>=) x f = MaybeT (do -- constructing a MaybeT
-      v <- runMaybeT x   -- executing the polymorphic Monadic action m and get the Maybe result
-      case v of          -- case analysis on the Maybe result
-          Nothing -> return Nothing    -- Nothing, then as return value lift Nothing into the poymorphic Monad m
-          Just y  -> runMaybeT (f y))  -- Just y, then run the MaybeT b returned by the continuation f with y as argument
+  (>>=) :: MaybeT m a -> (a -> MaybeT m b) -> MaybeT m b
+  (>>=) (MaybeT ma) f = MaybeT (do 
+      v <- ma
+      case v of
+          Nothing -> return Nothing
+          Just y  -> runMaybeT (f y))
 \end{HaskellCode}
 
-It is clear to see in the code that in a Transformer \textit{two} monadic actions are executed. TODO: explain 
+\texttt{return} puts the value \texttt{a} into \texttt{Just}, then lifts the \texttt{Maybe} value into the polymorphic Monad \texttt{m} and constructs a \texttt{MaybeT}. \texttt{bind (>>=)} is a bit more complex. It starts by constructing a \texttt{MaybeT} which first executes the polymorphic monadic action \texttt{ma}, resulting in a \texttt{Maybe} result. Then it performs a case analysis over the \texttt{Maybe} result. In case it is \texttt{Nothing}, it simply returns \texttt{Nothing} lifted into the polymorphic Monad \texttt{m}. In case it is \texttt{Just}, it applies the continuation \texttt{f} to get the new \texttt{MaybeT m b} value with which to construct the resulting \texttt{MaybeT}.
 
 Finally, we provide the implementation of the \texttt{lift} operator:
  
 \begin{HaskellCode}
+lift :: m a -> MaybeT m a
 lift = MaybeT . (liftM Just)
+
 liftM :: Monad m => (a -> b) -> m a -> m b
 \end{HaskellCode}
 
-TODO: explain
-Let's look at how we can define the type of a function which has multiple effects available:
+\texttt{lift} simply packs the value \texttt{a} into the \texttt{MaybeT m a}. It does it by using \texttt{liftM} to lift the pure data constructor \texttt{Just} into the polymorphic Monad \texttt{m}, and then constructing a \texttt{MaybeT}. Let's look at how we can define the type of a function which has multiple effects available:
 
 \begin{HaskellCode}
 data SimState = SimState { simStateAgents :: [SimAgent] ... }
@@ -213,14 +217,44 @@ The Monad stack consists of three effects. The first and \textit{outermost} effe
 
 Executing a Monad Transformer stack works by using various monadic runner functions, which execute a Transformer layer with a given context as is shown in the example of section \ref{sec:back_msf} below. As with lifting, a Monad Transformer stack is evaluated from outside to inside (\texttt{StateT} $\rightarrow$ \texttt{WriterT} $\rightarrow$ \texttt{Rand}).
 
-A note on the commutativity of Monad Transformers: because we are stacking effects on top of each other, subsequent effects can change the final outcome, depending on their position within the stack - this is called commutativity of Monads. All the Monads in the example above commute. This means it does not matter where they are positioned in the stack, the outcome will be the same. An exception to this is the \texttt{MaybeT} transformer, which introduces failure as an effect within a stack, thus when failure occurs, subsequent effects will not be applied any more, making \texttt{MaybeT} non-commutative.
-
 The function \texttt{randomShuffle} is overloaded, having the \texttt{MonadRandom} type class in its type constraints. This indicates that it is a monadic action where \texttt{m} is of type \texttt{MonadRandom}, which supports the same functionality as \texttt{Rand}. This is the major benefit mtl provides, often resulting in much cleaner function types, which do not require fixing the order of the Monads in the stack. Another benefit is that we do not need lifts anymore.The drawback is that we cannot have multiple Monads of the same type, which would be still possible in a fully qualified Monad stack. The benefits become particularly clear when more than one effect is required. For example, we can write the type of \texttt{simulationCore} as:
 
 \begin{HaskellCode}
 simulationCore :: (MonadState SimState m, MonadWriter [String] m, MonadRandom m) 
                => Time -> m SimOut
 \end{HaskellCode}
+
+A note on the commutativity of Monad Transformers: because we are stacking effects on top of each other, subsequent effects can change the final outcome, depending on their position within the stack - this is called commutativity of Monads. All the Monads in the example above commute. This means it does not matter where they are positioned in the stack, the outcome will be the same. An exception to this is the \texttt{MaybeT} Transformer, as shown above. As can be seen in the implementation, when failure occurs, subsequent effects will not be applied any more, making \texttt{MaybeT} non-commutative. Consider the following examples:
+
+\begin{HaskellCode}
+-- evaluates to: Just "Haskell" / Just 1
+stateWithMaybe :: StateT Int Maybe String
+stateWithMaybe = do
+  modify (+1)
+  return "Haskell"
+
+-- evaluates always to Nothing
+stateWithMaybeNothing :: StateT Int Maybe String
+stateWithMaybeNothing = do
+  modify (+1)
+  lift Nothing
+
+-- evaluates to (Just "Haskell",1)
+maybeWithState :: MaybeT (State Int) String
+maybeWithState = do
+  lift $ modify (+1)
+  return "Haskell"
+
+-- evaluates to (Nothing,1)
+maybeWithStateFail :: MaybeT (State Int) String
+maybeWithStateFail = do
+  lift $ modify (+1)
+  fail "Some Failure"
+\end{HaskellCode}
+
+Depending on whether we want the \texttt{String} returned by the computation or the \texttt{Int} of the \texttt{StateT}, \texttt{stateWithMaybe} evaluates always to some \texttt{Just} value. However, \texttt{stateWithMaybeNothing} \textit{always} evaluates to \texttt{Nothing}, discharging the \texttt{Int} state of the \texttt{StateT}.
+
+\texttt{maybeWithState} always evaluates to \texttt{(Just "Haskell",1)}: it returns \textit{both} the final value of the \texttt{State} \textit{and} the \texttt{String} returned by the computation. This makes it possible that \texttt{maybeWithStateFail} fails, therefore returning no \texttt{String} but still retaining the state of the \texttt{State} effect.
 
 \subsection{Functional Reactive Programming}
 \label{sec:back_frp}

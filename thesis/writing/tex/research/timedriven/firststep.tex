@@ -154,7 +154,7 @@ dpSwitch :: Functor col
          -> SF a (col c)
 \end{HaskellCode}
 
-Conceptually, \texttt{dpSwitch} allows us to recursively switch back into the \texttt{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. 
+Conceptually, \texttt{dpSwitch} allows us to recursively switch back into the \\ \texttt{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. 
 
 Its first argument is the pairing-function, which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function, which generates the continuation after the switching event has occurred. \texttt{dpSwitch} returns a new signal function, which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. %The d in \textit{dpSwitch} stands for delayed observation.
 

@@ -63,7 +63,7 @@ susceptibleProps (Contact _ Infected) Infected es ai
 susceptibleProps _ _ _ _ = False
 \end{HaskellCode}
 
-Next, we give the implementation for the \texttt{checkMakeContactInvariants} and \texttt{checkInfectedInvariants} functions. The function \texttt{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{MakeContact} event. The \texttt{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent gets \texttt{Infected}:
+Next, we give the implementation for the \texttt{checkMakeContactInvariants} and \texttt{checkInfectedInvariants} functions. The function \\ \texttt{checkMakeContactInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{MakeContact} event. The \\ \texttt{checkInfectedInvariants} function encodes the invariants which have to hold when the susceptible agent gets \texttt{Infected}:
 
 \begin{HaskellCode}
 checkInfectedInvariants :: AgentId              -- Agent id of the agent 
@@ -205,8 +205,8 @@ When running the property test we get the following output:
 33.2578% Susceptible receives Recover, expected 33.33%
 11.1643% Susceptible receives Contact * Recovered, expected 11.11%
 11.1096% Susceptible receives Contact * Susceptible, expected 11.11%
-10.5616% Susceptible receives Contact * Infected, stays Susceptible, expected 10.56%
- 0.5485% Susceptible receives Contact * Infected, becomes Infected, expected 0.56%
+10.5616% Susceptible receives Contact * Infected, stays Susceptible, exp 10.56%
+ 0.5485% Susceptible receives Contact * Infected, becomes Infected, exp 0.56%
 \end{verbatim}
 \end{footnotesize}
 

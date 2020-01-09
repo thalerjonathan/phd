@@ -5,7 +5,7 @@ In this chapter we look at how property-based testing can be made of use to veri
 
 The answer lies in the very nature of exploratory models, they exist to explore and understand phenomena of the real world. Researchers come up with a model to explain the phenomena and (hopefully) with a few questions and \textit{hypotheses} about the emergent properties. The actual simulation is then used to test and refine the hypotheses. Indeed, descriptions, assumptions and hypotheses of varying formal degree abound in the Sugarscape model. Examples are: \textit{the carrying capacity becomes stable after 100 steps; when agents trade with each other, after 1000 steps the standard deviation of trading prices is less than 0.05; when there are cultures, after 2700 steps either one culture dominates the other or both are equally present}. 
 
-We show how to use property-based testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our \href{https://github.com/thalerjonathan/haskell-sugarscape}{implementation}~\cite{thaler_sugarscape_repository} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009}  \footnote{Lending didn't properly work in their NetLogo code and that they didn't implement Combat.}.
+We show how to use property-based testing to formalise and check such hypotheses. For this purpose we undertook a full \textit{verification} of our \href{https://github.com/thalerjonathan/haskell-sugarscape}{implementation}~\cite{thaler_sugarscape_repository} from Chapter \ref{sec:sugarscape}. We validated it against the book \cite{epstein_growing_1996} and a NetLogo implementation \cite{weaver_replicating_2009} \footnote{Lending didn't properly work in their NetLogo code and they didn't implement Combat.}.
 
 \section{Property-based hypothesis testing}
 The property we test for is whether \textit{the emergent property / hypothesis under test is stable under replicated runs} or not. To put it more technical, we use QuickCheck to run multiple replications with the same configuration but with different random-number streams and require that all tests pass. During the verification process we have derived and implemented property tests for the following hypotheses:
@@ -95,6 +95,7 @@ As already pointed out in Part \ref{ch:property}, QuickCheck by default runs up 
 
 Due to the duration even 1,000 ticks can take to compute, to get a first estimate of our hypotheses tests within reasonable time, we reduce the number of maximum successful replications required to 10 and when doing t-tests 10 replications are run there as well. 
 
+\begin{footnotesize}
 \begin{verbatim}
 SugarScape Tests
   Disease Dynamics All Recover:      OK (29.25s)
@@ -123,6 +124,7 @@ SugarScape Tests
     +++ OK, passed 0 tests (0% Gini coefficient averages at 0.7).
     Only 0% Gini coefficient averages at 0.7, but expected 100%
 \end{verbatim}
+\end{footnotesize}
 
 %\begin{enumerate}
 %	\item Disease Dynamics all recover: \textit{+++ OK, passed 10 tests.}

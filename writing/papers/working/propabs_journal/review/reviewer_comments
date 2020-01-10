@@ -1,0 +1,189 @@
+COMMENTS FOR THE AUTHOR:
+
+
+
+
+Meta Review:
+
+The area of the paper is considered interesting and relevant to the JAAMAS and the paper addresses an important topic. However, both reviewers feel that the paper needs major revisions. One of the comments is that the paper fails to document properly the relevant related work and does not clarify the main contribution of this paper in relation to previous work (specially by the same authors). Furthermore the reviewers consider that the paper needs more justifications on the technical decisions and descriptions presented, as well as major English fixing. Furthermore, as suggested by Reviewer 2, the main claims of the paper should be backed up by some extra work, such as a user study.
+I agree with the assessment by the two reviewers and as such, I recommend the authors to perform a major revision in the paper. I will furthermore advise the authors to read carefully the comments made by the reviewers and take them into account for the future revised version of this paper.
+
+
+-----
+Reviewer #1: JOURNAL OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS REVIEW FORM:
+
+[USE THIS DEFAULT FORM IF YOU'D LIKE. YOU MAY DELETE IT IF YOU WISH TO FOLLOW A DIFFERENT STRUCTURE IN YOUR REVIEW]
+
+THE JOURNAL OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS IS A LEADING VENUE FOR ARCHIVAL PUBLICATION OF RESEARCH IN THE DISCIPLINES OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS.  PAPERS SHOULD BE ASSESSED AGAINST HIGH STANDARDS OF SCHOLARSHIP, PRESENTATION AND EXPECTED IMPACT.
+
+
+SUMMARY. PROVIDE A BRIEF SUMMARY OF THE REASONS FOR YOUR RECOMMENDATION. WHAT ARE THE MAJOR STRENGTHS AND WEAKNESSES OF THE MANUSCRIPT?
+
+The article is interesting but the authors should take into account some issues.
+- There are some grammar/syntax errors. Please proof check your article.
+-There is no related work section. Some information is given at the Intro section but a specific related work section is need. A comparison among approaches and the proposed work should be detailed stated.
+-Plenty of (part) codes are presented but a better discussion is need. Please take into account an unfamiliar reader and provide enough information that will make your work presentation easy-to-understand.
+-The approach seems to work, although some parts are not so clear or convincing.
+
+
+RELEVANCE. HOW RELEVANT IS THE PAPER TO THE DISCIPLINES OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS?
+It is indeed relevant and interesting.
+
+
+SIGNIFICANCE [NOT APPLICABLE TO SURVEY PAPERS]. HOW SIGNIFICANTLY DOES THE PAPER ADVANCE THE CURRENT STATE-OF-THE-ART? HOW BIG AN IMPACT WILL THE PAPER HAVE, ON WHAT AREAS, AND WHY?  WILL THE PAPER STIMULATE FURTHER RESEARCH?
+The article proposes property-based testing for ABS. It could be useful for other researchers in the field.
+
+
+RELATED RESEARCH.  IS ALL RELEVANT PRIOR WORK DISCUSSED? IS THE CURRENT WORK A DISTINCT AND NEW CONTRIBUTION RELATIVE TO THE AUTHOR(S)' PREVIOUS WORK?  [NOTE, JAAMAS ENCOURAGES SUBMISSION OF COMPLETE VERSIONS OF SIGNIFICANT WORK PREVIOUSLY PUBLISHED IN CONFERENCES, SO LONG AS THE RELATIONSHIP TO THE EARLIER WORK IS ACKNOWLEDGED, BUT STRONGLY CONDEMNS PLAGIARISM.
+Well, the related work section is just embedded in the Intro section which is an issue. Furthermore, related research should be discussed better while a sufficient comparison among the proposed work and other approaches should be provided in order to justify the added value of the approach.
+
+
+
+RELATIONSHIP TO PREVIOUS RESEARCH [NOT APPLICABLE TO SURVEY PAPERS]. IS THE NOVEL CONTRIBUTION OF THE NEW WORK MADE EXPLICIT TOGETHER WITH ITS RELATIONSHIP TO PRIOR WORK?  IS THE NEED FOR THE NEW CONTRIBUTION SUBSTANTIATED?  DOES THE PAPER MAKE CLEAR NOT ONLY
+THE STRENGTH BUT ALSO THE LIMITATIONS OF THE NEW CONTRIBUTION?
+This can be improved. The authors state their contribution and briefly discuss prior works.
+
+
+THEORETICAL AND EXPERIMENTAL EVALUATION. IS THE THEORETICAL AND EXPERIMENTAL EVALUATION SOUND AND APPROPRIATE. ARE ALL CLAIMS THAT ARE MADE BACKED BY SUFFICIENT THEORETICAL OR EXPERIMENTAL SUPPORT? IS APPROPRIATE STATISTICAL ANALYSIS PROVIDED OF EXPERIMENTAL
+RESULTS AND ARE APPROPRIATE CONCLUSIONS DRAWN?
+In general yes but some parts should be better justified. The authors provide code but this is more verbose than necessary while a better discussion is needed.
+
+
+EXPRESSION. IS THE PAPER CLEARLY WRITTEN AND ACCESSIBLE TO A WIDE AUDIENCE OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS RESEARCHERS?  IF NOT, WHAT TYPES OF CHANGES ARE REQUIRED? IS THE ENGLISH EXPRESSION OF A SUITABLE STANDARD FOR PUBLICATION?  IS THE PAPER OF APPROPRIATE LENGTH? IF NOT, WHAT SHOULD BE ADDED, EXPANDED, DELETED OR COMPRESSED? DO THE TITLE AND ABSTRACT APPROPRIATELY REFLECT THE CONTENTS?
+The language should be checked. The article should be revised and sections should be better stated.
+
+
+TECHNICAL DETAIL.  IS SUFFICIENT DETAIL PROVIDED ABOUT ALGORITHMS AND TECHNIQUES, INCLUDING EXPERIMENTAL TECHNIQUES?  IS THERE SUFFICIENT DETAIL TO ALLOW REPLICATION OF THE WORK?
+There is code parts that can be used. Some details are missing though.
+
+
+FIGURES AND TABLES.  ARE THE FIGURES AND TABLES NECESSARY AND SUFFICIENT?
+There are just a few. Fig. 1 is unnecessary large.
+
+
+REFERENCES.  ARE THE REFERENCES ACCURATE AND COMPLETE?
+More related references could be added.
+
+
+FOR SURVEY PAPERS ONLY:
+- IS A SURVEY IN THIS AREA TIMELY?    [IS THE AREA OF INTEREST TO
+  THE AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS COMMUNITY AND IS THERE NO RECENT AND COMPREHENSIVE
+  REVIEW ALREADY AVAILABLE?]
+- IS THE COVERAGE OF THE AREA BALANCED, COMPLETE AND UP-TO-DATE?
+- DOES THE SURVEY PROVIDE A SUITABLE FRAMEWORK FOR UNDERSTANDING THE AREA?
+
+
+
+
+ANY OTHER COMMENTS NOT COVERED ABOVE.
+
+
+
+SUMMARIZE ANY CHANGES THAT MUST BE MADE FOR A REVISED VERSION OF THIS PAPER TO BE ACCEPTABLE FOR PUBLICATION.
+Proof check the article. Create a specific related work section and revise accordingly Intro. Provide better justification for the approach. Provide only the necessary code.
+
+
+SUMMARIZE ANY FURTHER CHANGES THAT YOU RECOMMEND THE AUTHOR(S)
+CONSIDER.
+
+
+Reviewer #2: JOURNAL OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS REVIEW FORM:
+
+
+** SUMMARY. PROVIDE A BRIEF SUMMARY OF THE REASONS FOR YOUR RECOMMENDATION. WHAT ARE THE MAJOR STRENGTHS AND WEAKNESSES OF THE MANUSCRIPT?
+
+
+This paper demonstrates that incorporating property-based testing into simulation development will **potentially** increase the confidence in the correctness of an implementation, something of fundamental importance for agent-based simulation in general and for models supporting far-reaching policy decision in particular.
+
++ well written
++ mostly well structured
++ important and relevant topic
+
+- several claims are not backed up
+- almost reads like a blogpost / tutorial
+
+
+** RELEVANCE. HOW RELEVANT IS THE PAPER TO THE DISCIPLINES OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS?
+
+The topic addressed by this paper -- viz. testing agent-based simulation systems -- is relevant and timely.
+
+
+** SIGNIFICANCE [NOT APPLICABLE TO SURVEY PAPERS]. HOW SIGNIFICANTLY DOES THE PAPER ADVANCE THE CURRENT STATE-OF-THE-ART? HOW BIG AN IMPACT WILL THE PAPER HAVE, ON WHAT AREAS, AND WHY?  WILL THE PAPER STIMULATE FURTHER RESEARCH?
+
+The work discussed in this paper is significant and important (as said before). The paper, however, builds on a previous, recent paper by the same authors. It is not clear what advances this paper brings, from rather explaining more in detail how things work.
+
+
+** RELATED RESEARCH.  IS ALL RELEVANT PRIOR WORK DISCUSSED? IS THE CURRENT WORK A DISTINCT AND NEW CONTRIBUTION RELATIVE TO THE AUTHOR(S)' PREVIOUS WORK?  [NOTE, JAAMAS ENCOURAGES SUBMISSION OF COMPLETE VERSIONS OF SIGNIFICANT WORK PREVIOUSLY PUBLISHED IN CONFERENCES, SO LONG AS THE RELATIONSHIP TO THE EARLIER WORK IS ACKNOWLEDGED, BUT STRONGLY CONDEMNS PLAGIARISM.
+
+The authors do explain previous and related research well.
+
+I would suggest to make it clear that [13] is a paper published by the authors.
+
+** RELATIONSHIP TO PREVIOUS RESEARCH [NOT APPLICABLE TO SURVEY PAPERS]. IS THE NOVEL CONTRIBUTION OF THE NEW WORK MADE EXPLICIT TOGETHER WITH ITS RELATIONSHIP TO PRIOR WORK?  IS THE NEED FOR THE NEW CONTRIBUTION SUBSTANTIATED?  DOES THE PAPER MAKE CLEAR NOT ONLY
+THE STRENGTH BUT ALSO THE LIMITATIONS OF THE NEW CONTRIBUTION?
+
+It is not clear what are the advances of this paper when compared to the previous paper by the same authors. After a quick scan, that conceptual paper seems pretty solid already
+
+
+** THEORETICAL AND EXPERIMENTAL EVALUATION. IS THE THEORETICAL AND EXPERIMENTAL EVALUATION SOUND AND APPROPRIATE. ARE ALL CLAIMS THAT ARE MADE BACKED BY SUFFICIENT THEORETICAL OR EXPERIMENTAL SUPPORT? IS APPROPRIATE STATISTICAL ANALYSIS PROVIDED OF EXPERIMENTAL
+RESULTS AND ARE APPROPRIATE CONCLUSIONS DRAWN?
+
+There is no really a theoretical and experimental evaluation. Hence, the many unsupported claims in the paper. This is a fundamental weakness of this paper.
+
+
+
+** EXPRESSION. IS THE PAPER CLEARLY WRITTEN AND ACCESSIBLE TO A WIDE AUDIENCE OF AUTONOMOUS AGENTS AND MULTIAGENT SYSTEMS RESEARCHERS?  IF NOT, WHAT TYPES OF CHANGES ARE REQUIRED? IS THE ENGLISH EXPRESSION OF A SUITABLE STANDARD FOR PUBLICATION?  IS THE PAPER OF APPROPRIATE LENGTH? IF NOT, WHAT SHOULD BE ADDED, EXPANDED, DELETED OR COMPRESSED? DO THE TITLE AND ABSTRACT APPROPRIATELY REFLECT THE CONTENTS?
+
+Clearly written and (mostly) well structured.
+
+
+** TECHNICAL DETAIL.  IS SUFFICIENT DETAIL PROVIDED ABOUT ALGORITHMS AND TECHNIQUES, INCLUDING EXPERIMENTAL TECHNIQUES?  IS THERE SUFFICIENT DETAIL TO ALLOW REPLICATION OF THE WORK?
+
+There is sufficient technical detail to reproduce the work. It is really well explained.
+
+
+** FIGURES AND TABLES.  ARE THE FIGURES AND TABLES NECESSARY AND SUFFICIENT?
+
+Figurers and Tables are necessary and sufficient.
+
+
+** REFERENCES.  ARE THE REFERENCES ACCURATE AND COMPLETE?
+
+[13] seems to be missing info.
+
+
+** ANY OTHER COMMENTS NOT COVERED ABOVE.
+
+Besides my comments above, I have the following comments/feedback/concerns:
+
+-- SIR model —> don't use acronyms in the abstract. I don't think this sentence is needed, though.
+
+— "is likely to increase dramatically," —> too weak of a sentence. If there any experiments to back this claim up.
+
+— Abstract also refers to SIR without explaining what it is.
+
+— After reading the introduction, I was left wondering about two things:
+        — Is this incremental work? How much more is done wrt. to the previous paper?
+        — What are the main contributions?
+
+— given rate of β other people —> is β a percentage or a number?
+
+— "In the following we follow [7] for translating —> don't use citations as part of sentences. This is bad style.
+
+— doesn't —> does not (do no use contractors)
+
+— There is no need to have one section with just one subsection, like section 6. Future work can be one paragraph.
+
+— Is there a replication package available?
+
+
+** SUMMARIZE ANY CHANGES THAT MUST BE MADE FOR A REVISED VERSION OF THIS PAPER TO BE ACCEPTABLE FOR PUBLICATION.
+
+The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an
+example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system.
+
+There are several sentences that are weak, with words such as "we are convinced", "we think", "believe". All these sentences need to be
+backed up.
+
+I've liked the paper, but I think that it would be much more believable if the authors would conduct a user study with a couple of users (like 5),
+showing that it indeed brings great benefits (e.g., injecting faults, ...)

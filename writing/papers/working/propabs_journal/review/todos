@@ -1,0 +1,39 @@
+Avoid the use of subjective / dramatic words e.g. "dramatically"
+
+#####################################################################
+Reviewer 1:
+Proof check the article.
+Create a specific related work section and revise accordingly Intro.
+Provide better justification for the approach.
+Provide only the necessary code.
+
+#####################################################################
+Reviewer 2:
+-- SIR model —> don't use acronyms in the abstract. I don't think this sentence is needed, though.
+
+— "is likely to increase dramatically," —> too weak of a sentence. If there any experiments to back this claim up.
+
+— Abstract also refers to SIR without explaining what it is.
+
+— After reading the introduction, I was left wondering about two things:
+        — Is this incremental work? How much more is done wrt. to the previous paper?
+        — What are the main contributions?
+
+— given rate of β other people —> is β a percentage or a number?
+
+— "In the following we follow [7] for translating —> don't use citations as part of sentences. This is bad style.
+
+— doesn't —> does not (do no use contractors)
+
+— There is no need to have one section with just one subsection, like section 6. Future work can be one paragraph.
+
+— Is there a replication package available?
+
+The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an
+example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system.
+
+There are several sentences that are weak, with words such as "we are convinced", "we think", "believe". All these sentences need to be
+backed up.
+
+I've liked the paper, but I think that it would be much more believable if the authors would conduct a user study with a couple of users (like 5),
+showing that it indeed brings great benefits (e.g., injecting faults, ...)

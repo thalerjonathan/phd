@@ -1,4 +1,4 @@
-\section{Encoding the agent specification}
+\section{Encoding agent specifications}
 \label{sec:method}
 We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \texttt{Bool} indicating whether the invariants hold or not. The encoding is straightforward when using pattern matching and it nearly reads like a formal specification due to the declarative nature of functional programming.
 
@@ -113,6 +113,8 @@ instance Arbitrary Probability where
 
 What is left is to write a custom generator for generating random events. In this case we want to be able to control the distribution of events generated. Instead of using \texttt{elements}, which picks uniformly, if a skewed distribution is needed, one can use the \texttt{frequency} function, where a frequency can be specified for each element. Due to the fact, that event generation is parametrised by frequencies and requires the population ids to pick from in the \texttt{Contact} event, it needs to be a run-time generator, thus running in \texttt{Gen} context. The function takes the frequencies for all three types of events, the frequencies of the \texttt{SIRState} in the \texttt{Contact} event and the agent population to pick the sender id from in the \texttt{Contact} event.
 
+TODO: this is by far too much detail, simply use a uniformly distributed Event generator, as we are only using uniformly distributed events throughout this paper
+
 %\begin{HaskellCode}
 \begin{footnotesize}
 \begin{verbatim}
@@ -183,7 +185,7 @@ Finally we can run the test using QuickCheck. Due to the large random sampling s
 \end{verbatim}
 \end{footnotesize}
 
-All 100,000 test cases pass, taking 6.7 seconds to run on our machine. The distribution of the transitions shows that we indeed cover both cases a susceptible agent can exhibit within one event. It either stays susceptible or makes the transition to infection. The fact that there is no transition to recovered shows that the implementation is correct - for a transition to recovered we would need to send an additional, second event to the agent.
+All 100,000 test cases pass, taking 6.7 seconds to run on our hardware. The distribution of the transitions shows that we indeed cover both cases a susceptible agent can exhibit within one event. It either stays susceptible or makes the transition to infection. The fact that there is no transition to recovered shows that the implementation is correct - for a transition to recovered we would need to send an additional, second event to the agent.
 
 Encoding of the invariants and writing property tests for the infected agents follows the same idea and is not repeated here. Next, we show how to test transition probabilities using the powerful statistical hypothesis testing feature of QuickCheck.
 
@@ -283,7 +285,9 @@ Only 25% Susceptible recv Recover, but expected 33%
 
 QuickCheck runs 100 test cases, prints the distribution of our labels and issues warnings in the last two lines that generated and expected coverages differ in these cases. Further, not all cases are covered, for example the contact with an infected and becoming infected. The reason for these issues is insufficient testing coverage as 100 test cases are simply not enough for a statistically robust result. We could increase the number of test cases to run to 100,000 which will cover then all cases but still QuickCheck is not satisfied as the expected and generated coverage differs in some fractions. % The usage pattern of \texttt{cover}, where we unconditionally include the test case into the coverage class so all test cases pass, emulates failure. 
 
-Fortunately, as a remedy QuickCheck provides the function \texttt{checkCoverage :: prop $\rightarrow$ Property} which solves this problem. When \texttt{checkCoverage} is added to the top of the function before the \texttt{do}, QuickCheck will run as many test cases necessary until it is clear whether the percentage in \texttt{cover} was reached or cannot be reached at all. The way QuickCheck does it, is by using sequential statistical hypothesis testing \cite{wald_sequential_1992}. Thus, if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving strong confidence in the result. With the usage of \texttt{checkCoverage} we get the following output:
+\medskip
+
+As a solution to this fundamental problem, QuickCheck provides the function \texttt{checkCoverage :: prop $\rightarrow$ Property}. When our property is checked together with \texttt{checkCoverage}, QuickCheck will run as many test cases necessary until it is clear whether the percentage in \texttt{cover} was reached or cannot be reached at all. This is implemented in QuickCheck through sequential statistical hypothesis testing \cite{wald_sequential_1992}. Thus, if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving strong confidence in the result. With the usage of \texttt{checkCoverage} we get the following output:
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -297,4 +301,84 @@ Fortunately, as a remedy QuickCheck provides the function \texttt{checkCoverage 
 \end{verbatim}
 \end{footnotesize}
 
-After 819,200 (!) test cases, run in 7.32 seconds on our machine, QuickCheck comes to the statistically robust conclusion that the distributions generated by the test cases reflect the expected distributions and passes the property test.
+After 819,200 (!) test cases, run in 7.32 seconds on our hardware, QuickCheck comes to the statistically robust conclusion that the distributions generated by the test cases reflect the expected distributions and passes the property test.
+
+\section{Encoding model invariants}
+By informally reasoning about the agent specification and by realising that they are, in fact, a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered}, we can come up with a few invariants which have to hold for any SIR simulation run, \textit{under random model parameters} and independent of the random-number stream and the population:
+
+\begin{enumerate}
+	\item Simulation time is monotonic increasing. Each event carries a timestamp when it is scheduled. This timestamp may stay constant between multiple events but will eventually increase and must never decrease. Obviously, this invariant is a fundamental assumption in most simulations where time advances into the future and does not flow backwards.
+	
+	\item The number of total agents $N$ stays constant. In the SIR model no dynamic creation or removal of agents during simulation happens. This is in contrast to the Sugarscape where, depending on the model parameters, this can be very well the case.
+	
+	\item The number of susceptible agents $S$ is monotonic decreasing. Susceptible agents \textit{might} become infected, reducing the total number of susceptible agents but they can never increase because neither an infected nor recovered agent can go back to susceptible.
+	
+	\item The number of recovered agents $R$ is monotonic increasing. This is because infected agents \textit{will} recover, leading to an increase of recovered agents but once the recovered state is reached, there is no escape from it.
+	
+	\item The number of infected agents $I$ respects the invariant of the equation $I = N - (S + R)$ for every step. This follows directly from the first property which says $N = S + I + R$.
+\end{enumerate}
+
+\subsection{Encoding the Invariants}
+All of those properties are easily expressed directly in code and read like a formal specification due to the declarative nature of functional programming:
+
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
+sirInvariants :: Int                    -- N total number of agents
+              -> [(Time,(Int,Int,Int))] -- output each step: (Time,(S,I,R))
+              -> Bool
+sirInvariants n aos = timeInc && aConst && susDec && recInc && infInv
+  where
+    (ts, sirs)  = unzip aos
+    (ss, _, rs) = unzip3 sirs
+
+    -- 1. time is monotonic increasing
+    timeInc = allPairs (<=) ts
+    -- 2. number of agents N stays constant in each step
+    aConst = all agentCountInv sirs
+    -- 3. number of susceptible S is monotonic decreasing
+    susDec = allPairs (>=) ss
+    -- 4. number of recovered R is monotonic increasing
+    recInc = allPairs (<=) rs
+    -- 5. number of infected I = N - (S + R)
+    infInv = all infectedInv sirs
+
+    agentCountInv :: (Int,Int,Int) -> Bool
+    agentCountInv (s,i,r) = s + i + r == n
+
+    infectedInv :: (Int,Int,Int) -> Bool
+    infectedInv (s,i,r) = i == n - (s + r)
+
+    allPairs :: (Ord a, Num a) => (a -> a -> Bool) -> [a] -> Bool
+    allPairs f xs = all (uncurry f) (pairs xs)
+
+    pairs :: [a] -> [(a,a)]
+    pairs xs = zip xs (tail xs)
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
+
+Putting this property into a QuickCheck test is straightforward. We randomise the model parameters $\beta$ (contact rate), $\gamma$ (infectivity) and $\delta$ (illness duration) because the properties have to hold for all positive, finite model parameters.
+
+%\begin{HaskellCode}
+\begin{footnotesize}
+\begin{verbatim}
+prop_sir_invariants :: Positive Int    -- beta, contact rate
+                    -> Probability     -- gamma, infectivity in range (0,1)
+                    -> Positive Double -- delta, illness duration
+                    -> TimeRange       -- random duration in range (0, 50)
+                    -> [SIRState]      -- population
+                    -> Property
+prop_sir_invariants 
+    (Positive beta) (P gamma) (Positive delta) (T t) as  = property (do
+  -- total agent count
+  let n = length as
+  -- run the SIR simulation with a new RNG 
+  ret <- genSimulationSIR as beta gamma delta t
+  -- check invariants and return result
+  return (sirInvariants n ret)
+\end{verbatim}
+\end{footnotesize}
+%\end{HaskellCode}
+
+Due to the large sampling space, we increase the number of test cases to run to 100,000 and all tests pass as expected. It is important to note that we put a random time limit within the range of (0,50) on the simulations to run. Meaning, that if a simulation does not terminate before that limit, it will be terminated at that random \texttt{t}. The reason for this is entirely practical as it ensures that the wall clock time to run the tests stays within reasonable bounds while still retaining randomness. In fact, limiting the duration is actually not necessary because we can reason that the SIR simulation \textit{will always} reach an equilibrium in finite steps. TODO: more argument on this detail

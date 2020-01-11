@@ -1,0 +1,22 @@
+We would like to thank the reviewers for their time reviewing our paper and their many very helpful comments. We addressed most of the changes which were requested by the reviewers. In general we tried to make this paper more distinct from the conceptual one we wrote already on this topic (see reference [12] in references). In addition, we incorporated some changes to the structure to make the paper character more clear, and prevent a style of writing which resembles a technical "blog". More specifically we made the following changes, additions and improvements:
+
+- TODO re-wrote the introduction with an even clearer motivation
+
+- TODO cleaned up and simplified the code throughout the paper, more specifically
+	- genEventFreq was substantially simplified as in the complexity it was presented was not relevant and used in the paper.
+
+- TODO removed speculative / dramatic / non-objective language e.g. "dramatically" 
+
+- TODO moved some parts of the quickcheck explanations into the section "Property-based testing" (now section 3), 
+
+- TODO performed proof checking, where we found a number of grammatical, spelling and comma mistakes.
+
+- added a related work section and added additional related references
+
+- reduced the size of Fig 1
+
+- added a new section "6 Encoding Model Invariants" in which we explain how to verify emergent properties of the model as a whole. We think that this is another compelling example for the benefits of property-based testing
+
+We did not conduct the requested user study, as it is both beyond the context of the paper and completely beyond our expertise. We agree that to undertake a user study in various ABS development techniques would be a highly interesting topic and worth a journal paper, however it is completely beyond our expertise. If done properly, it would require the designing and evaluating of questionaires with the right tools, which in itself is highly advanced science, for which we have no expertise at all. Most probably there would have been the need for an ethic commission approval. All this was not feasible for our department, our expertise and the given time frame.
+
+Concluding we want to say that with the help of the useful comments of the reviewers we think the paper is now in a much better shape with a lot of additional work done. We therefore hope that our major changes are acknowledged and that the paper will get accepted.

@@ -2,7 +2,7 @@ We would like to thank the reviewers for their time reviewing our paper and thei
 
 - TODO re-wrote the introduction with an even clearer motivation
 
-- TODO cleaned up and simplified the code throughout the paper, more specifically
+- TODO cleaned up, added explanation and simplified the code throughout the paper, more specifically
 	- genEventFreq was substantially simplified as in the complexity it was presented was not relevant and used in the paper.
 
 - TODO removed speculative / dramatic / non-objective language e.g. "dramatically" 
@@ -11,11 +11,19 @@ We would like to thank the reviewers for their time reviewing our paper and thei
 
 - TODO performed proof checking, where we found a number of grammatical, spelling and comma mistakes.
 
+- TODO expanded the discussion section
+
+- TODO expanded the conclusion section
+
+TODO "The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system." We made it more clear now how to apply this to EVENT DRIVEN agent-based system in general, by extending this a bit more. 
+
 - added a related work section and added additional related references
 
 - reduced the size of Fig 1
 
 - added a new section "6 Encoding Model Invariants" in which we explain how to verify emergent properties of the model as a whole. We think that this is another compelling example for the benefits of property-based testing
+
+"There is no really a theoretical and experimental evaluation. Hence, the many unsupported claims in the paper. This is a fundamental weakness of this paper.". This is not the aim, nor is this actually possible to derive some theory. However, we think that we have indeed shown substantial experimental evaluation by showing how property-based testing actually WORKS in a concrete example. Also all the other papers we refer to in the related work section have not developed theory but followed a similar method of conducting their research as we did. Especially the work of Collier, North on Test-Driven Development in ABS does not develop a new theory but shows by example how TDD works in ABS by showing a few examples of unit tests. 
 
 We did not conduct the requested user study, as it is both beyond the context of the paper and completely beyond our expertise. We agree that to undertake a user study in various ABS development techniques would be a highly interesting topic and worth a journal paper, however it is completely beyond our expertise. If done properly, it would require the designing and evaluating of questionaires with the right tools, which in itself is highly advanced science, for which we have no expertise at all. Most probably there would have been the need for an ethic commission approval. All this was not feasible for our department, our expertise and the given time frame.
 

@@ -1,4 +1,4 @@
-\section{Property-based testing}
+\section{Property-Based Testing}
 \label{sec:proptesting}
 Property-based testing allows to formulate \textit{functional specifications} in code which then a property-based testing library tries to falsify by \textit{automatically} generating test data, covering as much cases as necessary. When a case is found for which the property fails, the library then reduces the test data to its simplest form for which the test still fails, for example shrinking a list to a smaller size. It is clear to see that this kind of testing is especially suited to ABS, because it allows to formulate specifications, where we describe \textit{what} to test instead of \textit{how} to test. % Also the deductive nature of falsification in property-based testing suits very well the constructive and exploratory nature of ABS.
 Further, the automatic test generation can make testing of large scenarios in ABS feasible because it does not require the programmer to specify all test cases by hand, as is required in traditional unit tests.

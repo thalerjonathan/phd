@@ -1,25 +1,22 @@
 We would like to thank the reviewers for their time reviewing our paper and their many very helpful comments. We addressed most of the changes which were requested by the reviewers. In general we tried to make this paper more distinct from the conceptual one we wrote already on this topic (see reference [12] in references). In addition, we incorporated some changes to the structure to make the paper character more clear, and prevent a style of writing which resembles a technical "blog". More specifically we made the following changes, additions and improvements:
 
-- TODO re-wrote the introduction with an even clearer motivation
-
-- TODO removed speculative / dramatic / non-objective language e.g. "dramatically" 
-
-- TODO moved some parts of the quickcheck explanations into the section "Property-based testing" (now section 3), 
-
-- TODO performed proof checking, where we found a number of grammatical, spelling and comma mistakes.
-
-- TODO expanded the abstract slightly
-
-- TODO expanded the discussion section
-
-- TODO expanded the conclusion section
+- TODO expanded the discussion and conclusion
 
 - TODO cleaned up, added explanation and simplified the code throughout the paper, more specifically
-	- genEventFreq was substantially simplified as in the complexity it was presented was not relevant and used in the paper.
 
 TODO "The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system." We made it more clear now how to apply this to EVENT DRIVEN agent-based system in general, by extending this a bit more. 
 
+- TODO removed speculative / dramatic / non-objective language e.g. "dramatically" 
+
+- TODO performed proof checking, where we found a number of grammatical, spelling and comma mistakes. Also avoided use citations as part of sentences.
+
+- re-wrote the introduction with a clearer motivation and clearly stated what we improved / added over our previous paper on the same topic
+
 - added a related work section and added additional related references
+
+- expanded the abstract with a better motivation
+
+- moved some parts of the quickcheck explanations into the section "Property-based testing" (now section 3) and expanded it for better understanding
 
 - reduced the size of Fig 1
 

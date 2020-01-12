@@ -82,69 +82,9 @@ checkInfectedInvariants _ _ = False
 %%\end{HaskellCode}
 
 \subsection{Writing a Property Test}
-After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing types like Strings, Integers, Double, List, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. Thus, the first step is to write custom data generators, which are suitable for our problem at hand.
+After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing types like Strings, Integers, Double, List, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. We refer to section \ref{sec:proptesting}, where we explained the concept of data generators and already implemented all necessary generators for our task at hand.
 
-There are two ways to do this by either fixing them at compile time writing an \texttt{Arbitrary} instance or writing a run-time generator running in the \texttt{Gen} context. The advantage of having an \texttt{Arbitrary} instance is that the custom data type can then be used as an argument to a function, the advantage of writing a run-time generator is that it can depend on values computed during run time.
-
-First, we write an \texttt{Arbitrary} instance for the \texttt{SIRState}. When writing an \texttt{Arbitrary} instance one needs to provide an implementation for the \texttt{arbitrary} method, which returns a value of the given type for which the instance was implemented for - in our case it is \texttt{SIRState}. This implementation makes use of the \texttt{elements} function, which picks a random element from a non-empty list with uniform probability.
-
-%\begin{HaskellCode}
-\begin{footnotesize}
-\begin{verbatim}
-instance Arbitrary SIRState where
-  arbitrary = elements [Susceptible, Infected, Recovered]
-\end{verbatim}
-\end{footnotesize}
-%\end{HaskellCode}
-
-Next we write a custom generator to capture the concept of probabilities. This is necessary because if using a \texttt{Double} as input to a function it would cover the whole range of the type but we want to restrict its random range to $(0,1)$ reflecting a probability. We achieve this by introducing a new type and writing an \texttt{Arbitrary} instance for it. This implementation makes use of the \texttt{choose} function, which returns a random value within the given bounds.
-
-%\begin{HaskellCode}
-\begin{footnotesize}
-\begin{verbatim}
--- define a new type, representing a probability
-newtype Probability = P Double
-instance Arbitrary Probability where
-  arbitrary = P <$> choose (0, 1)
-\end{verbatim}
-\end{footnotesize}
-%\end{HaskellCode}
-%$
-
-What is left is to write a custom generator for generating random events. In this case we want to be able to control the distribution of events generated. Instead of using \texttt{elements}, which picks uniformly, if a skewed distribution is needed, one can use the \texttt{frequency} function, where a frequency can be specified for each element. Due to the fact, that event generation is parametrised by frequencies and requires the population ids to pick from in the \texttt{Contact} event, it needs to be a run-time generator, thus running in \texttt{Gen} context. The function takes the frequencies for all three types of events, the frequencies of the \texttt{SIRState} in the \texttt{Contact} event and the agent population to pick the sender id from in the \texttt{Contact} event.
-
-TODO: this is by far too much detail, simply use a uniformly distributed Event generator, as we are only using uniformly distributed events throughout this paper
-
-%\begin{HaskellCode}
-\begin{footnotesize}
-\begin{verbatim}
-genEventFreq :: Int             -- MakeContact frequency
-             -> Int             -- Contact frequency
-             -> Int             -- Recover frequency
-             -> (Int, Int, Int) -- Susceptible, Infected, Recovered frequency
-             -> [AgentId]       -- population agent ids
-             -> Gen SIREvent
-genEventFreq mf cf rf (s,i,r) ais
-  -- generate one of the three events with given frequency
-  = frequency [ (mf, return MakeContact)
-              , (cf, do
-                  -- pick SIRState for Contact event
-                  ss <- frequency [ (s, return Susceptible)
-                                  , (i, return Infected)
-                                  , (r, return Recovered)]
-                  -- pick sender id for Contact event
-                  ai <- elements ais
-                  return (Contact ai ss))
-              , (rf, return Recover)]
-         
--- helper function with uniform frequencies for all events and SIRState
-genEvent :: [AgentId] -> Gen SIREvent
-genEvent = genEventFreq 1 1 1 (1,1,1) 
-\end{verbatim}
-\end{footnotesize}
-%\end{HaskellCode}
-
-We are now equipped with all functionality to implement the property test. All parameters to the property test are generated randomly, which expresses that the properties encoded in the previous section have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that a value generated is positive; \texttt{NonEmptyList} ensures that a randomly generated list is not empty. Further, we use the function \texttt{label}, which can be used to generate labels for a test case, counting occurrences of same labels, generating a histogram. This is useful to get an insight into the distribution of the property test data and we use it to get an understanding for the distribution of the transitions. The case where the agents output state is \texttt{Recovered} is marked as "INVALID" as it must never occur, otherwise the test will fail, due to the invariants encoded in the previous section.
+We are now equipped with all functionality to implement the property test. All parameters to the property test are generated randomly, which expresses that the properties encoded in the previous section have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that a value generated is positive; \texttt{NonEmptyList} ensures that a randomly generated list is not empty. Further, we use the function \texttt{label}, as already explained in section \ref{sec:proptesting}, to get an understanding into the distribution of the transitions. The case where the agents output state is \texttt{Recovered} is marked as "INVALID" as it must never occur, otherwise the test will fail, due to the invariants encoded in the previous section.
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -190,34 +130,9 @@ All 100,000 test cases pass, taking 6.7 seconds to run on our hardware. The dist
 Encoding of the invariants and writing property tests for the infected agents follows the same idea and is not repeated here. Next, we show how to test transition probabilities using the powerful statistical hypothesis testing feature of QuickCheck.
 
 \subsection{Encoding Transition Probabilities}
-In the specifications from the previous section there are probabilistic state transitions, for example the susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. We look now into how we can encode these probabilistic properties using the powerful \texttt{cover} feature of QuickCheck.
+In the specifications from the previous section there are probabilistic state transitions, for example the susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. To encode these probabilistic properties we are using the function \texttt{cover} of QuickCheck. As already introduced in section \ref{sec:proptesting}, this function allows us to explicitly specify that a given percentage of successful test cases belong to a given class.
 
-The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test cases belong to a given class. The first argument is the expected percentage; the second argument indicates whether the current test case belongs to the class or not; the third argument is a label for the coverage; the fourth argument is the property which needs to hold for the test case to succeed.
-
-An example would be to use it to check whether at least 15\% of all test cases of the \texttt{prop\_reverse\_reverse} property of section \ref{sec:proptesting} has a length of at least 50. This would be encoded in the following way:
-
-% stack ghci --package QuickCheck
-%\begin{HaskellCode}
-\begin{footnotesize}
-\begin{verbatim}
-prop_reverse_reverse_cover :: [Int] -> Property
-prop_reverse_reverse_cover xs  =  
-  cover 15 (length xs >= 50) "length at least 50" (reverse (reverse xs) == xs)
-\end{verbatim}
-\end{footnotesize}
-%\end{HaskellCode}
-
-%When running it, the output indicates that although all tests passes, as the property is satisfied in all 100 test cases but the expected coverage differs from the actual one.
-%
-%\begin{footnotesize}
-%\begin{verbatim}
-%> quickCheck prop_reverse_reverse_cover
-%+++ OK, passed 100 tests (0.01s)
-%Only 9% length of list at least 50, but expected 15%
-%\end{verbatim}
-%\end{footnotesize}
-
-For our case we follow a slightly different approach: we include all test cases into the expected coverage, setting the second parameter always to \texttt{True} and we also set the last argument to \texttt{True} as we are only interested in testing the coverage, which is in fact the property we want to test. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output. It is important to note that in this property test we cannot randomise the model parameters $\beta$, $\gamma$ and $\delta$ because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the fixed model parameters can be adjusted arbitrarily and the property must still hold. We could have combined this test into the previous one but then we couldn't have used randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable. 
+For our case we follow a slightly different approach than in the example of section \ref{sec:proptesting}: we include all test cases into the expected coverage, setting the second parameter always to \texttt{True} and we also set the last argument to \texttt{True} as we are only interested in testing the coverage, which is in fact the property we want to test. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output. It is important to note that in this property test we cannot randomise the model parameters $\beta$, $\gamma$ and $\delta$ because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the fixed model parameters can be adjusted arbitrarily and the property must still hold. We could have combined this test into the previous one but then we couldn't have used randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable. 
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -283,11 +198,11 @@ Only 25% Susceptible recv Recover, but expected 33%
 \end{verbatim}
 \end{footnotesize}
 
-QuickCheck runs 100 test cases, prints the distribution of our labels and issues warnings in the last two lines that generated and expected coverages differ in these cases. Further, not all cases are covered, for example the contact with an infected and becoming infected. The reason for these issues is insufficient testing coverage as 100 test cases are simply not enough for a statistically robust result. We could increase the number of test cases to run to 100,000 which will cover then all cases but still QuickCheck is not satisfied as the expected and generated coverage differs in some fractions. % The usage pattern of \texttt{cover}, where we unconditionally include the test case into the coverage class so all test cases pass, emulates failure. 
+QuickCheck runs 100 test cases, prints the distribution of our labels and issues warnings in the last two lines that generated and expected coverages differ in these cases. Further, not all cases are covered, for example the contact with an infected and becoming infected. The reason for these issues is insufficient testing coverage as 100 test cases are simply not enough for a statistically robust result. We could increase the number of test cases to run to 100,000 which will cover then all cases but still QuickCheck is not satisfied as the expected and generated coverage differs in some fractions.
 
 \medskip
 
-As a solution to this fundamental problem, QuickCheck provides the function \texttt{checkCoverage :: prop $\rightarrow$ Property}. When our property is checked together with \texttt{checkCoverage}, QuickCheck will run as many test cases necessary until it is clear whether the percentage in \texttt{cover} was reached or cannot be reached at all. This is implemented in QuickCheck through sequential statistical hypothesis testing \cite{wald_sequential_1992}. Thus, if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving strong confidence in the result. With the usage of \texttt{checkCoverage} we get the following output:
+As a solution to this fundamental problem, we use QuickChecks \texttt{checkCoverage} function. As introduced in section \ref{sec:proptesting}, when the function \texttt{checkCoverage} is used, QuickCheck will run an increasing number of test cases until it can decide whether the percentage in \texttt{cover} was reached or cannot be reached at all. With the usage of \texttt{checkCoverage} we get the following output:
 
 \begin{footnotesize}
 \begin{verbatim}

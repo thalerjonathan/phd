@@ -2,7 +2,7 @@
 \label{sec:sirmodel}
 As use case to develop the concepts in this paper, we use the explanatory SIR model \cite{kermack_contribution_1927}. It is a very well studied and understood compartment model from epidemiology, which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles spreading through a population. 
 
-In this model, people in a population of size $N$ can be in either one of the three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given number of $\beta$ other people per time unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions seen in Figure \ref{fig:sir_transitions}.
+In this model, people in a population of size $N$ can be in either one of the three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given number of $\beta$ other people per time unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus, these interactions are ignored in this model. This definition gives rise to three compartments with the transitions seen in Figure \ref{fig:sir_transitions}.
 
 \begin{figure}
 	\centering
@@ -100,4 +100,4 @@ This specification implicitly covers that an infected agent never goes back to t
 
 \medskip
 
-The \textit{recovered} agent specification is very simple: it stays \texttt{Recovered} forever and does not schedule any events.
+The recovered agent specification is very simple: it stays \texttt{Recovered} forever and does not schedule any events.

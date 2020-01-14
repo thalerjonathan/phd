@@ -1,6 +1,6 @@
 \section{Encoding Agent Specifications}
 \label{sec:method}
-We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function which takes all necessary parameters and returns a \texttt{Bool} indicating whether the invariants hold or not. We are using pattern matching, therefore it reads like a formal specification due to the declarative nature of functional programming.
+We start by encoding the invariants of the susceptible agent directly into Haskell, implementing a function, which takes all necessary parameters and returns a \texttt{Bool} indicating whether the invariants hold or not. We are using pattern matching, therefore it reads like a formal specification due to the declarative nature of functional programming.
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -82,7 +82,7 @@ checkInfectedInvariants _ _ = False
 %%\end{HaskellCode}
 
 \subsection{Writing a Property Test}
-After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing Haskell types, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. We refer to section \ref{sec:proptesting}, where we explain the concept of data generators and implement generators for \texttt{SIRState} and \texttt{Probability}. The run-time generator \texttt{genEvent} for generating random \texttt{SIREvents} works similar to the \texttt{SIRState} generator and is omitted. For readers who are interested in a detailed implementation of \texttt{genEvent}, we refer to the code repository \cite{thaler_repository_2019}.
+After having encoded the invariants into a function, we need to write a QuickCheck property test, which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing Haskell types, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. We refer to section \ref{sec:proptesting}, where we explain the concept of data generators and implement generators for \texttt{Color} and \texttt{Probability}. The run-time generators for \texttt{SIRState} and \texttt{genEvent} for generating random \texttt{SIREvents} work similar to the \texttt{Color} generator and is omitted. For readers who are interested in a detailed implementation of both, we refer to the code repository \cite{thaler_repository_2019}.
 
 All parameters to the property test are generated randomly, which expresses that the properties encoded in the previous section have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that a value generated is positive; \texttt{NonEmptyList} ensures that a randomly generated list is not empty. Further, we use the function \texttt{label}, as explained in section \ref{sec:proptesting}, to get an understanding of the distribution of the transitions. The case where the agents output state is \texttt{Recovered} is marked as "INVALID" as it must never occur, otherwise the test will fail, due to the invariants encoded in the previous section.
 
@@ -112,9 +112,9 @@ prop_susceptible
 \end{footnotesize}
 %\end{HaskellCode}
 
-We have omitted the implementation of \texttt{genRunSusceptibleAgent} as it would require the discussion of implementation details of the agent. Conceptually speaking, it executes the agent with the respective arguments with a fresh random-number generator and returns the agent id, its state and scheduled events it has output.
+We have omitted the implementation of \texttt{genRunSusceptibleAgent} as it would require the discussion of implementation details of the agent. Conceptually speaking, it executes the agent with the respective arguments with a fresh random-number generator and returns the agent id, its state and scheduled events.
 
-Finally, we can run the test using QuickCheck. Due to the large random sampling space with 5 parameters, we increase the number of test cases to 100,000.
+Finally, we run the test using QuickCheck. Due to the large random sampling space with 5 parameters, we increase the number of test cases to 100,000.
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -127,12 +127,12 @@ Finally, we can run the test using QuickCheck. Due to the large random sampling 
 
 All 100,000 test cases pass, taking 6.7 seconds to run on our hardware. The distribution of the transitions shows that we indeed cover both cases a susceptible agent can exhibit within one event. It either stays susceptible or makes the transition to infection. The fact that there is no transition to \texttt{Recovered} shows that the implementation is correct.
 
-Encoding of the invariants and writing property tests for the infected agents follows the same idea and is not repeated here. Next, we show how to test transition probabilities using the powerful statistical hypothesis testing feature of QuickCheck.
+Encoding of the invariants and writing property tests for the infected agent follows the same idea and is not repeated here. Next, we show how to test transition probabilities using the powerful statistical hypothesis testing feature of QuickCheck.
 
 \subsection{Encoding Transition Probabilities}
 In the specifications from the previous section there are probabilistic state transitions, for example the susceptible agent \textit{might} become infected, depending on the events it receives and the infectivity ($\gamma$) parameter. To encode these probabilistic properties we are using the function \texttt{cover} of QuickCheck. As introduced in section \ref{sec:proptesting}, this function allows us to explicitly specify that a given percentage of successful test cases belong to a given class.
 
-For our case we follow a slightly different approach than in the example of section \ref{sec:proptesting}: we include all test cases into the expected coverage, setting the second parameter always to \texttt{True} as well as the last argument, as we are only interested in testing the coverage, which is in fact the property we want to test. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output. It is important to note that in this property test we cannot randomise the model parameters $\beta$, $\gamma$ and $\delta$ because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the fixed model parameters can be adjusted arbitrarily and the property must still hold. We could have combined this test into the previous one but then we couldn't have used randomised model parameters. For this reason, and to keep the concerns separated we opted for two different tests, which makes them also much more readable. 
+For our case we follow a slightly different approach than in the example of section \ref{sec:proptesting}: we include all test cases into the expected coverage, setting the second parameter always to \texttt{True} as well as the last argument, as we are only interested in testing the coverage, which is in fact the property we want to test. Implementing this property test is then simply a matter of computing the probabilities and of case analysis over the random input event and the agents output. It is important to note that in this property test we cannot randomise the model parameters $\beta$, $\gamma$ and $\delta$ because this would lead to random coverage. This might seem like a disadvantage but we do not really have a choice here, still the fixed model parameters can be adjusted arbitrarily and the property must still hold. We could have combined this test into the previous one but then we couldn't have used randomised model parameters. For this reason, and to keep the concerns separated, we opted for two different tests, which makes them also much more readable. 
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -184,7 +184,7 @@ prop_susceptible_prob (Positive t) (NonEmpty ais) = do
 \end{footnotesize}
 %\end{HaskellCode}
 
-We have omitted the details of computing the respective distributions of the cases, which depend on the frequencies of the events and the occurrences of \texttt{SIRState} within the \texttt{Contact} event. By varying different distributions in the \texttt{genEvent} function, we can change the distribution of the test cases, leading to a more general test than just using uniform distributed events. Again, for a detailed implementation of \texttt{genEvent}, we refer to the code repository \cite{thaler_repository_2019}. When running the property test we get the following output:
+We have omitted the details of computing the respective distributions of the cases, which depend on the frequencies of the events and the occurrences of \texttt{SIRState} within the \texttt{Contact} event. By varying different distributions in the \texttt{genEvent} function, we can change the distribution of the test cases, leading to a more general test than just using uniform distributed events. When running the property test we get the following output:
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -222,7 +222,7 @@ After 819,200 (!) test cases, run in 7.32 seconds on our hardware, QuickCheck co
 
 \section{Encoding Model Invariants}
 \label{sec:enc_model_inv}
-By informally reasoning about the agent specification and by realising that they are, in fact, a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered} (as seen in Figure \ref{fig:sir_transitions}), we can come up with a few invariants which have to hold for any SIR simulation run, \textit{under random model parameters} and independent of the random-number stream and the population:
+By informally reasoning about the agent specification and by realising that they are, in fact, a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered} (as seen in Figure \ref{fig:sir_transitions}), we can come up with a few invariants, which have to hold for any SIR simulation run, \textit{under random model parameters} and independent of the random-number stream and the population:
 
 \begin{enumerate}
 	\item Simulation time is monotonic increasing. Each event carries a timestamp when it is scheduled. This timestamp may stay constant between multiple events but will eventually increase and must never decrease. Obviously, this invariant is a fundamental assumption in most simulations where time advances into the future and does not flow backwards.

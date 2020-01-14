@@ -1,6 +1,6 @@
 \section{Property-Based Testing}
 \label{sec:proptesting}
-In property-based testing \textit{functional specifications}, also called properties, are formulated in code and tried to falsify using a property-based testing library. In general, to falsify a functional specification, the property-based testing library runs \textit{automated} test cases by \textit{automatically} generating test data. When a test case fails, the functional specification was falsified by finding a counter example. For better analysis, the library then reduces the test data to its simplest form for which the test still fails like shrinking of a list or pruning of a tree. On the other hand, if no counter example could be found for the functional specification, it is deemed valid and the test succeeds.
+In property-based testing \textit{functional specifications}, also called properties, are formulated in code and tried to falsify using a property-based testing library. In general, to falsify a functional specification, the property-based testing library runs \textit{automated} test cases by \textit{automatically} generating test data. When a test case fails, the functional specification was falsified by finding a counter example. For better analysis, the library then reduces the test data to its simplest form for which the test still fails, like shrinking of a list or pruning of a tree. On the other hand, if no counter example could be found for the functional specification, it is deemed valid and the test succeeds.
 
 Property-based testing has its origins in the QuickCheck library \cite{claessen_quickcheck_2000,claessen_testing_2002} of the pure functional programming language Haskell. QuickCheck tries to falsify the specifications by \textit{randomly} sampling the test space. This library has been successfully used for testing Haskell code in the industry for years, underlining its maturity and real world relevance in general and of property-based testing in particular \cite{hughes_quickcheck_2007}.
 
@@ -50,26 +50,29 @@ prop_reverse_distributive xs ys
 As expected, the property test fails because QuickCheck found a counter example to the property after 4 test cases. Also, we see that QuickCheck applied 5 shrinks to find the minimal failing counter example \texttt{xs = [0]} and \texttt{ys = [1]}. The reason for the failure is a wrong implementation of the \texttt{prop\_reverse\_distributive} property: to correct it, \texttt{xs} and \texttt{ys} need to be swapped on the right hand side of the equation. Note that when run repeatedly, QuickCheck might find the counter example earlier and might apply fewer shrinks due to a different random-number generator seed, resulting in different random data to start with.
 
 \subsection{Generators}
-QuickCheck comes with a lot of data generators for existing types like \texttt{String, Int, Double, [] (List)}, but in case one wants to randomize custom data types, one has to write custom data generators. There are two ways to do this. The first on is to fix them at compile time by writing an \texttt{Arbitrary} type class instance. A type class can be understood as an interface definition, and an instance as a concrete implementation of such an interface for a specific type. The advantage of having an \texttt{Arbitrary} instance is that the custom data type can be used as random argument to a function as in the examples above. The second way to write custom data generators is to implement a run-time generator in the \texttt{Gen} context.
+QuickCheck comes with a lot of data generators for existing types like \texttt{String, Int, Double, [] (List)}, but in case one wants to randomize custom data types, one has to write custom data generators. There are two ways to do this. The first one is to fix them at compile time by writing an \texttt{Arbitrary} type class instance. A type class can be understood as an interface definition, and an instance as a concrete implementation of such an interface for a specific type. The advantage of having an \texttt{Arbitrary} instance is that the custom data type can be used as random argument to a function as in the examples above. The second way to write custom data generators is to implement a run-time generator in the \texttt{Gen} context.
 
-Here we implement a custom data generator for the \texttt{SIRState} for both cases. We start with the run-time option, running in the \texttt{Gen} context:
+Here we implement a custom data generator for both cases, using a simple color representation as example. We start with the run-time option, running in the \texttt{Gen} context:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
 \begin{verbatim}
-genSIRState :: Gen SIRState
-genSIRState = elements [Susceptible, Infected, Recovered]
+-- enumeration of colors
+data Color = Red | Green | Blue
+
+genColor :: Gen Color
+genColor = elements [Red, Green, Blue]
 \end{verbatim}
 \end{footnotesize}
 %\end{HaskellCode}
 
-This implementation makes use of the \texttt{elements :: [a] $\rightarrow$ Gen a} function, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \texttt{frequency :: [(Int, Gen a)] $\rightarrow$ Gen a} function, where a frequency can be specified for each element. Generating on average 80\% \texttt{Susceptible}, 15\% \texttt{Infected} and 5\% \texttt{Recovered} can be achieved using this function:
+This implementation makes use of the \texttt{elements :: [a] $\rightarrow$ Gen a} function, which picks a random element from a non-empty list with uniform probability. If a skewed distribution is needed, one can use the \texttt{frequency :: [(Int, Gen a)] $\rightarrow$ Gen a} function, where a frequency can be specified for each element. Generating on average 80\% \texttt{Red}, 15\% \texttt{Green} and 5\% \texttt{Blue} can be achieved using this function:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
 \begin{verbatim}
-genSIRState :: Gen SIRState
-genSIRState = frequency [(80, Susceptible), (15, Infected), (5, Recovered)]
+genColor :: Gen Color
+genColor = frequency [(80, Red), (15, Green), (5, Blue)]
 \end{verbatim}
 \end{footnotesize}
 %\end{HaskellCode}
@@ -79,8 +82,8 @@ Implementing an \texttt{Arbitrary} instance is straightforward, one only needs t
 %\begin{HaskellCode}
 \begin{footnotesize}
 \begin{verbatim}
-instance Arbitrary SIRState where
-  arbitrary = genSIRState
+instance Arbitrary Color where
+  arbitrary = genColor
 \end{verbatim}
 \end{footnotesize}
 %\end{HaskellCode}
@@ -113,7 +116,7 @@ reverse_reverse_label xs
 \end{footnotesize}
 %\end{HaskellCode}
 
-When running the test, we see the following output:
+When running the test, we get the following output:
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -126,7 +129,7 @@ When running the test, we see the following output:
 \end{footnotesize}
 
 \subsection{Coverage}
-QuickCheck provides two additional functions to work with test-case distributions: \texttt{cover} and \texttt{checkCoverage}. The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test cases belong to a given class. The first argument is the expected percentage, the second argument is a \texttt{Bool} indicating whether the current test case belongs to the class or not, the third argument is a label for the coverage, and the fourth argument is the property which needs to hold for the test case to succeed. 
+QuickCheck provides two additional functions to work with test-case distributions: \texttt{cover} and \texttt{checkCoverage}. The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test cases belongs to a given class. The first argument is the expected percentage, the second argument is a \texttt{Bool} indicating whether the current test case belongs to the class or not, the third argument is a label for the coverage, and the fourth argument is the property which needs to hold for the test case to succeed. 
 
 Here we look at an example where we use \texttt{cover} to express that we expect 15\% of all test cases to have a random list with at least 50 elements:
 
@@ -141,7 +144,7 @@ reverse_reverse_cover xs
 \end{footnotesize}
 %\end{HaskellCode}
 
-When running the test a few times, we see the following output:
+When running the twice, we get the following output:
 
 \begin{footnotesize}
 \begin{verbatim}

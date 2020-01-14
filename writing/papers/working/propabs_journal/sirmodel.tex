@@ -23,14 +23,14 @@ In this paper we follow \cite{macal_agent-based_2010} for translating the inform
 \subsection{An informal specification}
 In this section we give an informal specification of the agent behaviour, relating the input to according output events. Before we can do that we first need to define the event types of the model, how they related to scheduling and how we can conceptually represent agents.
 
-We are using Haskell as notation and implementation as we conducted our research in that language because it originated property-based testing. We are aware that Haskell is not a mainstream programming language, so to make this paper sufficiently self contained, we introduce concepts step-by-step, which should allow readers, familiar with programming in general, understand the ideas behind what we are doing. Fortunately it is not necessary to go into detail of how agents are implemented as for our approach it is enough to understand the agents' inputs and outputs. For readers interested in the details of how to implement ABS in Haskell, we refer to \cite{thaler_pure_2018}.
+We are using Haskell as notation and implementation language as we conducted our research with it because it originated property-based testing. We are aware that Haskell is not a mainstream programming language, so to make this paper sufficiently self contained, we introduce concepts step-by-step, with many comments (\texttt{--} in the Haskell code) and explanations. This should allow readers, familiar with programming in general, understand the ideas behind what we are doing. Fortunately it is not necessary to go into detail of how agents are implemented as for our approach it is enough to understand the agents' inputs and outputs. For readers interested in the details of how to implement ABS in Haskell, we refer to \cite{thaler_pure_2018}.
 
 We start by defining the states the agents can be in:
 
 %\begin{haskellCode}
 \begin{footnotesize}
 \begin{verbatim}
--- enumeration of the states the agents can be in
+-- enumeration of the agents states
 data SIRState = Susceptible | Infected | Recovered
 \end{verbatim}
 \end{footnotesize}
@@ -41,7 +41,7 @@ The model uses three types of events. First, \texttt{MakeContact} is used by a s
 %\begin{haskellCode}
 \begin{footnotesize}
 \begin{verbatim}
--- agents are identified by a unique integer
+-- agents are identified by a unique Integer
 type AgentId = Int
 -- enumeration of the three events
 data SIREvent = MakeContact | Contact AgentId SIRState | Recover 
@@ -49,7 +49,7 @@ data SIREvent = MakeContact | Contact AgentId SIRState | Recover
 \end{footnotesize}
 %\end{haskellCode}
 
-As events are scheduled we need a new type to hold them which we termed \texttt{QueueItem} as it is put into the event queue. It contains the event to be scheduled, the id of the receiving agent and the scheduling time.
+As events are scheduled we need a new type to hold them, which we termed \texttt{QueueItem} as it is put into the event queue. It contains the event to be scheduled, the id of the receiving agent and the scheduling time.
 
 %\begin{haskellCode}
 \begin{footnotesize}
@@ -65,7 +65,7 @@ Finally, we define an agent: it is a function, mapping an event to the current s
 %\begin{haskellCode}
 \begin{footnotesize}
 \begin{verbatim}
--- an agent maps an incoming event to the agents current state 
+-- An agent maps an incoming event to the agents current state 
 -- and a list of scheduled events
 sirAgent :: SIREvent -> (SIRState, [QueueItem])
 \end{verbatim}
@@ -77,7 +77,7 @@ sirAgent :: SIREvent -> (SIRState, [QueueItem])
 We are now ready to give the full specification of the susceptible, infected and recovered agent by stating the input-to-output event relations. The susceptible agent is specified as follows:
 
 \begin{enumerate}
-	\item \texttt{MakeContact} - If the agent receives this event it will output $\beta$ \texttt{(Contact ai Susceptible)} events, where \texttt{ai} is the agents own id and \texttt{Susceptible} indicating the event comes from a susceptible agent. The events have to be scheduled immediately without delay, thus having the current time as scheduling timestamp. The receivers of the events are uniformly randomly chosen from the agent population. The agent doesn't change its state, stays \texttt{Susceptible} and does not schedule any other events than the ones mentioned.
+	\item \texttt{MakeContact} - If the agent receives this event it will output $\beta$ \texttt{(Contact ai Susceptible)} events, where \texttt{ai} is the agents own id and \texttt{Susceptible} indicating the event comes from a susceptible agent. The events have to be scheduled immediately without delay, thus having the current time as scheduling timestamp. The receivers of the events are uniformly randomly chosen from the agent population. Additionally, to continue the pro-active contact making process, the agent schedules \texttt{MakeContact} to itself 1 time unit into the future. The agent doesn't change its state, stays \texttt{Susceptible} and does not schedule any other events than the ones mentioned.
 	
 	\item \texttt{(Contact \_ Infected)} - if the agent receives this event there is a chance of uniform probability $\gamma$ that the agent becomes \texttt{Infected}. If this happens, the agent will schedule a \texttt{Recover} event to itself into the future, where the time is drawn randomly from the exponential distribution with $\lambda = \delta$. If the agent does not become infected, it will not change its state, stays \texttt{Susceptible} and does not schedule any events.
 	

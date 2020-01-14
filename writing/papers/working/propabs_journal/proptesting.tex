@@ -1,15 +1,15 @@
 \section{Property-Based Testing}
 \label{sec:proptesting}
-In property-based testing \textit{functional specifications} are formulated in code and using then a property-based testing library, trying to falsify these specifications. In general, such a property-based testing library runs \textit{automated} test cases by \textit{automatically} generating test data. When a test case fails, the library reduces the test data to its simplest form for which the test still fails. An example is the shrinking of a list to a smaller size or pruning of a tree.
+In property-based testing \textit{functional specifications}, also called properties, are formulated in code and tried to falsify using a property-based testing library. In general, to falsify a functional specification, the property-based testing library runs \textit{automated} test cases by \textit{automatically} generating test data. When a test case fails, the functional specification was falsified by finding a counter example. For better analysis, the library then reduces the test data to its simplest form for which the test still fails like shrinking of a list or pruning of a tree. On the other hand, if no counter example could be found for the functional specification, it is deemed valid and the test succeeds.
 
- Property-based testing has its origins in the QuickCheck library \cite{claessen_quickcheck_2000,claessen_testing_2002} of the pure functional programming language Haskell. QuickCheck tries to falsify the specifications by \textit{randomly} sampling the test space. This library has been successfully used for testing Haskell code in the industry for years, underlining its maturity and real world relevance in general and of property-based testing in particular \cite{hughes_quickcheck_2007}.
+Property-based testing has its origins in the QuickCheck library \cite{claessen_quickcheck_2000,claessen_testing_2002} of the pure functional programming language Haskell. QuickCheck tries to falsify the specifications by \textit{randomly} sampling the test space. This library has been successfully used for testing Haskell code in the industry for years, underlining its maturity and real world relevance in general and of property-based testing in particular \cite{hughes_quickcheck_2007}.
 
 To give an understanding of how property-based testing works with QuickCheck, we give a practical example of how to implement a property of lists. Such a property is directly expressed as a function in Haskell, with the return type of \texttt{Bool}. This indicates whether the property holds for the given random inputs or not. In general, a QuickCheck property can take arbitrary inputs, with random data generated automatically by QuickCheck during testing. The example property we want to encode is that reversing a reversed list results again in the original list:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
 \begin{verbatim}
--- The reverse of a reversed list is the original list
+-- Reversing of a reversed list is the original list
 prop_reverse_reverse :: [Int] -> Bool
 prop_reverse_reverse xs = reverse (reverse xs) == xs
 \end{verbatim}
@@ -25,7 +25,7 @@ Testing the property with QuickCheck is simply done using the function \\ \textt
 \end{verbatim}
 \end{footnotesize}
 
-QuickCheck generates 100 test cases by default and requires all of them to pass. Indeed, all 100 test cases of \texttt{prop\_reverse\_reverse} pass and therefore the property as a whole passes the test. Note that we do not provide any data for the input argument \texttt{[Int]}, the list of Integers, because QuickCheck is doing this automatically for us. For the standard types of Haskell, QuickCheck provides existing data generators.
+QuickCheck generates 100 test cases by default and requires all of them to pass. Indeed, all 100 test cases of \texttt{prop\_reverse\_reverse} pass and therefore the property as a whole passes the test. Note that we do not provide any data for the input argument \texttt{[Int]}, a list of Integers, because QuickCheck is doing this automatically for us. For the standard types of Haskell, QuickCheck provides existing data generators.
 
 To give an example of what happens in case of failure due to a  wrong property, we look at a wrong implementation of the property, that reverse distributes over the list append operator (\texttt{++} in Haskell):
 
@@ -47,7 +47,7 @@ prop_reverse_distributive xs ys
 \end{footnotesize}
 %\end{HaskellCode}
 
-As expected, the property test fails because QuickCheck found a counter example to the property after 4 test cases. Also, we see that QuickCheck applied 5 shrinks to find the minimal failing counter example \texttt{xs = [0]} and \texttt{ys = [1]}. The reason for the failure is a wrong implementation of the \texttt{prop\_reverse\_distributive} property: to correct it, \texttt{xs} and \texttt{ys} need to be swapped on the right hand side of the equation. Note that when run repeatedly, QuickCheck might find the counter example earlier and might apply fewer shrinks due to a different random-number generator see, resulting in different random data to start with.
+As expected, the property test fails because QuickCheck found a counter example to the property after 4 test cases. Also, we see that QuickCheck applied 5 shrinks to find the minimal failing counter example \texttt{xs = [0]} and \texttt{ys = [1]}. The reason for the failure is a wrong implementation of the \texttt{prop\_reverse\_distributive} property: to correct it, \texttt{xs} and \texttt{ys} need to be swapped on the right hand side of the equation. Note that when run repeatedly, QuickCheck might find the counter example earlier and might apply fewer shrinks due to a different random-number generator seed, resulting in different random data to start with.
 
 \subsection{Generators}
 QuickCheck comes with a lot of data generators for existing types like \texttt{String, Int, Double, [] (List)}, but in case one wants to randomize custom data types, one has to write custom data generators. There are two ways to do this. The first on is to fix them at compile time by writing an \texttt{Arbitrary} type class instance. A type class can be understood as an interface definition, and an instance as a concrete implementation of such an interface for a specific type. The advantage of having an \texttt{Arbitrary} instance is that the custom data type can be used as random argument to a function as in the examples above. The second way to write custom data generators is to implement a run-time generator in the \texttt{Gen} context.
@@ -85,7 +85,7 @@ instance Arbitrary SIRState where
 \end{footnotesize}
 %\end{HaskellCode}
 
-When we have a random \texttt{Double} as input to a function, but want to restrict its random range to (0,1) because it reflects a probability, we can do this easily with \texttt{newtype} and implementing an \texttt{Arbitrary} instance.
+When we have a random \texttt{Double} as input to a function, but want to restrict its random range to (0,1) because it reflects a probability, we can do this easily with \texttt{newtype} and implementing an \texttt{Arbitrary} instance:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -99,8 +99,8 @@ instance Arbitrary Probability where
 %\end{HaskellCode}
 
 \subsection{Distributions}
-As already mentioned, QuickCheck provides functions to measure the coverage of test cases. This can be done using the 
-\texttt{label :: String $\rightarrow$ prop $\rightarrow$ Property} function. It takes a \texttt{String} as first argument and a testable property and constructs a \texttt{Property}. QuickCheck collects all the generated labels, counts their occurrences and reports their distribution. For example, it could be used to get an idea of the length of the random lists created in the \texttt{reverse\_reverse} property shown above:
+QuickCheck provides functions to measure the coverage of test cases. This can be done using the 
+\texttt{label :: String $\rightarrow$ prop $\rightarrow$ Property} function. It takes a \texttt{String} as first argument and a testable property and constructs a \texttt{Property}. QuickCheck collects all the generated labels, counts their occurrences and reports their distribution. For example, it can be used to get an idea of the length of the random lists created in the \texttt{reverse\_reverse} property shown above:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -128,7 +128,7 @@ When running the test, we see the following output:
 \subsection{Coverage}
 QuickCheck provides two additional functions to work with test-case distributions: \texttt{cover} and \texttt{checkCoverage}. The function \texttt{cover :: Double $\rightarrow$ Bool $\rightarrow$ String $\rightarrow$ prop $\rightarrow$ Property} allows to explicitly specify that a given percentage of successful test cases belong to a given class. The first argument is the expected percentage, the second argument is a \texttt{Bool} indicating whether the current test case belongs to the class or not, the third argument is a label for the coverage, and the fourth argument is the property which needs to hold for the test case to succeed. 
 
-Here we look at an example where we use \texttt{cover} to express that we expect 15\% of all test cases to have a random list with at least 50 elements.
+Here we look at an example where we use \texttt{cover} to express that we expect 15\% of all test cases to have a random list with at least 50 elements:
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -141,7 +141,7 @@ reverse_reverse_cover xs
 \end{footnotesize}
 %\end{HaskellCode}
 
-When repeatedly running the test, we see the following output:
+When running the test a few times, we see the following output:
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -151,7 +151,7 @@ Only 10% Length of random-list at least 50, but expected 15%.
 \end{verbatim}
 \end{footnotesize}
 
-As can be seen, QuickCheck runs the default 100 test cases and prints a warning if the expected coverage is not reached. This is a useful feature, but it is up to us to decide whether 100 test cases are suitable and whether we can really claim that the given coverage will be reached or not. Therefore, QuickCheck provides the function \texttt{checkCoverage :: prop $\rightarrow$ Property} which does this for us. When \texttt{checkCoverage} is used, QuickCheck will run an increasing number of test cases until it can decide whether the percentage in \texttt{cover} was reached or cannot be reached at all. The way QuickCheck does this, is by using sequential statistical hypothesis testing \cite{wald_sequential_1992}. Thus, if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving us high confidence in the result.
+As can be seen, QuickCheck runs the default 100 test cases and prints a warning if the expected coverage is not reached. This is a useful feature, but it is up to us to decide whether 100 test cases are suitable and whether we can really claim that the given coverage will be reached or not. To free us from making this guess, QuickCheck provides the function \texttt{checkCoverage :: prop $\rightarrow$ Property}. When \texttt{checkCoverage} is used, QuickCheck will run an increasing number of test cases until it can decide whether the percentage in \texttt{cover} was reached or cannot be reached at all. The way QuickCheck does this, is by using sequential statistical hypothesis testing \cite{wald_sequential_1992}. Thus, if QuickCheck comes to the conclusion that the given percentage can or cannot be reached, it is based on a robust statistical test giving us high confidence in the result.
 
 When we run the example from above but now with \texttt{checkCoverage} we get the following output:
 

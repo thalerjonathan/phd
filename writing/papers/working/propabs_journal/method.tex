@@ -30,7 +30,7 @@ susceptibleProps _ _ _ _ = False
 \end{footnotesize}
 %\end{HaskellCode}
 
-Next, we give the implementation for the \texttt{checkInfectedInvariants} function. We omit a detailed implementation of \texttt{checkMakeContactInvariants} as it works in a similar way and its details do not add anything conceptually new. The function \texttt{checkInfectedInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{(Contact \_ Infected)} event from an infected agent and becomes infected:
+Next, we give the implementation for the \texttt{checkInfectedInvariants} function. We omit a detailed implementation of \texttt{checkMakeContactInvariants} as it works in a similar way and its details do not add anything conceptually new. The function \texttt{checkInfectedInvariants} encodes the invariants which have to hold when the susceptible agent receives a \texttt{(Contact \_ Infected)} event from an infected agent and becomes infected.
 
 %\begin{HaskellCode}
 \begin{footnotesize}
@@ -82,7 +82,7 @@ checkInfectedInvariants _ _ = False
 %%\end{HaskellCode}
 
 \subsection{Writing a Property Test}
-After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing types like Strings, Integers, Double, List, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. We refer to section \ref{sec:proptesting}, where we explain the concept of data generators and implement generators \texttt{SIRState} and \texttt{Probability}. The run-time generator \texttt{genEvent} for generating random \texttt{SIREvents} works similar to the \texttt{SIRState} generator and is omitted. For readers who are interested in a detailed implementation of \texttt{genEvent}, we refer to the code repository \cite{thaler_repository_2019}.
+After having encoded the invariants into a function, we need to write a QuickCheck property test which calls this function with random test data. Although QuickCheck comes with a lot of data generators for existing Haskell types, it obviously does not have generators for custom types, like the \texttt{SIRState} and \texttt{SIREvent}. We refer to section \ref{sec:proptesting}, where we explain the concept of data generators and implement generators for \texttt{SIRState} and \texttt{Probability}. The run-time generator \texttt{genEvent} for generating random \texttt{SIREvents} works similar to the \texttt{SIRState} generator and is omitted. For readers who are interested in a detailed implementation of \texttt{genEvent}, we refer to the code repository \cite{thaler_repository_2019}.
 
 All parameters to the property test are generated randomly, which expresses that the properties encoded in the previous section have to hold invariant of the model parameters. We make use of additional data generator modifiers: \texttt{Positive} ensures that a value generated is positive; \texttt{NonEmptyList} ensures that a randomly generated list is not empty. Further, we use the function \texttt{label}, as explained in section \ref{sec:proptesting}, to get an understanding of the distribution of the transitions. The case where the agents output state is \texttt{Recovered} is marked as "INVALID" as it must never occur, otherwise the test will fail, due to the invariants encoded in the previous section.
 
@@ -114,7 +114,7 @@ prop_susceptible
 
 We have omitted the implementation of \texttt{genRunSusceptibleAgent} as it would require the discussion of implementation details of the agent. Conceptually speaking, it executes the agent with the respective arguments with a fresh random-number generator and returns the agent id, its state and scheduled events it has output.
 
-Finally we can run the test using QuickCheck. Due to the large random sampling space with 5 parameters, we increase the number of test cases to generate to 100,000.
+Finally, we can run the test using QuickCheck. Due to the large random sampling space with 5 parameters, we increase the number of test cases to 100,000.
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -159,6 +159,7 @@ prop_susceptible_prob (Positive t) (NonEmpty ais) = do
   -- interested in its output SIRState, ignore id and events
   (_, ao, _) <- genRunSusceptibleAgent cor inf ild t ais evt
   -- encode expected distributions
+  -- case analysis over random input events
   return $ property $ case evt of 
     Recover -> 
       cover recoverPerc True "Susceptible recv Recover" True
@@ -169,6 +170,7 @@ prop_susceptible_prob (Positive t) (NonEmpty ais) = do
     (Contact _ Susceptible) -> 
       cover contactSusPerc True "Susceptible recv Contact * Susceptible" True
     (Contact _ Infected) -> 
+      -- case analysis over resulting agent state
       case ao of
         Susceptible ->
           cover contactInfSusPerc True 
@@ -198,7 +200,7 @@ Only 25% Susceptible recv Recover, but expected 33%
 \end{verbatim}
 \end{footnotesize}
 
-QuickCheck runs 100 test cases, prints the distribution of our labels and issues warnings in the last two lines that generated and expected coverages differ in these cases. Further, not all cases are covered, for example the contact with an \texttt{Infected} agent and the case of becoming infected. The reason for these issues is insufficient testing coverage as 100 test cases are simply not enough for a statistically robust result. We could increase the number of test cases to 100,000, which \textit{might} cover all cases but could still leave QuickCheck not satisfied as the expected and generated coverage \textit{might} still differ.
+QuickCheck runs 100 test cases, prints the distribution of the labels and issues warnings in the last two lines that generated and expected coverages differ in these cases. Further, not all cases are covered, for example the contact with an \texttt{Infected} agent and the case of becoming infected. The reason for these issues is insufficient testing coverage as 100 test cases are simply not enough for a statistically robust result. We could increase the number of test cases to 100,000, which \textit{might} cover all cases but could still leave QuickCheck not satisfied as the expected and generated coverage \textit{might} still differ.
 
 \medskip
 
@@ -220,7 +222,7 @@ After 819,200 (!) test cases, run in 7.32 seconds on our hardware, QuickCheck co
 
 \section{Encoding Model Invariants}
 \label{sec:enc_model_inv}
-By informally reasoning about the agent specification and by realising that they are, in fact, a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered}, we can come up with a few invariants which have to hold for any SIR simulation run, \textit{under random model parameters} and independent of the random-number stream and the population:
+By informally reasoning about the agent specification and by realising that they are, in fact, a state machine with a one-directional flow of \textit{Susceptible} $\rightarrow$ \textit{Infected} $\rightarrow$ \textit{Recovered} (as seen in Figure \ref{fig:sir_transitions}), we can come up with a few invariants which have to hold for any SIR simulation run, \textit{under random model parameters} and independent of the random-number stream and the population:
 
 \begin{enumerate}
 	\item Simulation time is monotonic increasing. Each event carries a timestamp when it is scheduled. This timestamp may stay constant between multiple events but will eventually increase and must never decrease. Obviously, this invariant is a fundamental assumption in most simulations where time advances into the future and does not flow backwards.
@@ -283,11 +285,11 @@ Putting this property into a QuickCheck test is straightforward. We randomise th
 %\begin{HaskellCode}
 \begin{footnotesize}
 \begin{verbatim}
-prop_sir_invariants :: Positive Int    -- beta, contact rate
-                    -> Probability     -- gamma, infectivity in range (0,1)
-                    -> Positive Double -- delta, illness duration
-                    -> TimeRange       -- random duration in range (0, 50)
-                    -> [SIRState]      -- population
+prop_sir_invariants :: Positive Int     -- beta (contact rate)
+                    -> Probability      -- gamma (infectivity)
+                    -> Positive Double  -- delta (illness duration)
+                    -> TimeRange        -- random duration in range (0, 50)
+                    -> [SIRState]       -- population
                     -> Property
 prop_sir_invariants 
     (Positive beta) (P gamma) (Positive delta) (T t) as  = property (do

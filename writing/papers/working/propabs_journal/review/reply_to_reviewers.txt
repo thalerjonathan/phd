@@ -1,0 +1,31 @@
+We would like to thank the reviewers for their time reviewing our paper and their many very helpful comments. We addressed most of the changes which were requested by the reviewers. In general we tried to make this paper more distinct from the conceptual one we wrote already on this topic (see reference [34] in references). In addition, we incorporated some changes to the structure to make the paper character more clear, and prevent a style of writing which resembles a technical "blog". More specifically we made the following changes, additions and improvements:
+
+- We performed proof checking, where we found a number of grammatical, spelling and comma mistakes. 
+
+- We collapsed the conclusion and further research into the discussion and expaneded it substantially.
+
+- We avoided the use of citations as part of sentences in most cases.
+
+- We removed speculative / dramatic / non-objective language e.g. "dramatically".
+
+- We cleaned up, added explanation and simplified the code throughout the paper.
+
+- We completely re-wrote the introduction with a clearer motivation and clearly stated what we improved / added over our previous paper on a similar topic (reference [34]).
+
+- We added a related work section and added additional related references, as requested by the reviewers.
+
+- We also expanded the abstract with an introduction and motivation.
+
+- We moved parts of the QuickCheck explanations into the section "Property-based testing" (now section 3) and expanded it for better understanding.
+
+- We reduced the size of Fig 1
+
+- We added a new section "6 Encoding Model Invariants" in which we explain how to verify emergent properties of the model as a whole. We think that this is another compelling example for the benefits of property-based testing.
+
+- In reply to a reviewers comment "The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system.": We made it more clear now that our approach applies to EVENT DRIVEN agent-based system in general. We hope this satisfies the reviewers request.
+
+- In reply to a reviewers comment "There is no really a theoretical and experimental evaluation. Hence, the many unsupported claims in the paper. This is a fundamental weakness of this paper.": This is not the aim, nor is this actually possible to derive some theory, after all ABS does not really rest on any formal theory as well. However, we think that we have indeed shown substantial experimental evaluation by showing how property-based testing actually works in a concrete example. Also all the other papers we refer to in the related work section have not developed theory but followed a similar method of conducting their research as we did. Especially the work of Collier et al. (reference [14]) on Test-Driven Development in ABS does not develop a new theory but shows by example how TDD works in ABS by showing a few examples of unit tests. 
+
+- We did NOT conduct the requested user study, as it is both beyond the context of the paper and completely beyond our expertise. We agree that to undertake a user study in various ABS development / testing techniques would be a highly interesting topic and worth a journal paper, however it is completely beyond our expertise. If done properly, it would require the designing and evaluating of questionaires with the right tools, which in itself is highly advanced science, for which we have no expertise at all. Most probably there would have been the need for an ethic commission approval. All this is not feasible for our department, our expertise and the given time frame.
+
+Concluding we want to say that with the help of the useful comments of the reviewers we think the paper is now much stronger and in a much better shape with a lot of additional work done. We therefore hope that our major changes are acknowledged and that the paper will get accepted.

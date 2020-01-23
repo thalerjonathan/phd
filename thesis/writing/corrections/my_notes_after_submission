@@ -1,3 +1,4 @@
-Add to "10.1.1 Deriving the Specification" at the susceptible agent specification point 1. MakeContact:
+- Add to "10.1.1 Deriving the Specification" at the susceptible agent specification point 1. MakeContact:
+ 	"Additionally, to continue the pro-active contact making process, the agent schedules \texttt{MakeContact} to itself 1 time unit into the future."
 
-Additionally, to continue the pro-active contact making process, the agent schedules \texttt{MakeContact} to itself 1 time unit into the future.
+

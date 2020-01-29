@@ -2,3 +2,10 @@
  	"Additionally, to continue the pro-active contact making process, the agent schedules \texttt{MakeContact} to itself 1 time unit into the future."
 
 
+- Page 4, Publications, Point 4 (A Tale...): "and the Sugarscape model as the second being the second."
+
+- Capitalise section headings consistently: 2.4, 5.2, A.1, A.2, A.3, B.1
+
+- add "the free lunch is over" by Herb Sutter to support how important Parallel / Concurrent ABS is. Add reference to http://www.gotw.ca/publications/concurrency-ddj.htm into the Introduction and the very beginning of Chapter 6
+
+- in chapter 8.2 "STM in ABS" i am saying that i am emplyoing a parallel update strategy, which is simply wrong, it is the concurrent one from Chapter 2.3.3 !!!! I don't know why i didnt notice this mistake until after the submission... maybe the examiners will notice it. if not i can correct it during the viva 

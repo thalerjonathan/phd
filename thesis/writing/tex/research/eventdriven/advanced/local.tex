@@ -70,7 +70,7 @@ type AgentLocalMonad g = WriterT (SugAgentOut g)
 --          (Rand g)))))
 \end{HaskellCode}
 
-Now we can define the \texttt{MSF} which handles an event. It has the \texttt{AgentLocalMonad} monadic context, takes an \texttt{ABSEvent} parametrised over \texttt{SugEvent} (it has also to handle \texttt{Tick}). What might come as a surprise is that it returns unit type, implying that the results of handling an event are only visible as side effects in the Monad stack. This is intended. We could pass all arguments explicitly as input and output but that would complicate the handling code substantially, thus we opted for a monadic, imperative style handling of events.
+Now we can define the \texttt{MSF} which handles an event. It has the \\ \texttt{AgentLocalMonad} monadic context, takes an \texttt{ABSEvent} parametrised over \\ \texttt{SugEvent} (it has also to handle \texttt{Tick}). What might come as a surprise is that it returns unit type, implying that the results of handling an event are only visible as side effects in the Monad stack. This is intended. We could pass all arguments explicitly as input and output but that would complicate the handling code substantially, thus we opted for a monadic, imperative style handling of events.
 
 \begin{HaskellCode}
 type EventHandler g = MSF (AgentLocalMonad g) (ABSEvent SugEvent) ()
@@ -83,7 +83,7 @@ sugarscapeAgent :: RandomGen g => SugarScapeAgent g
 sugarscapeAgent scen aid s0 = feedback s0 (proc (evt, s) -> do
   (s', (ao', _)) <- runStateS 
                       (runReaderS 
-                        (runWriterS generalEventHandler)) -< (s, ((scen, aid), evt))
+                        (runWriterS generalEventHandler)) -< (s,((scen,aid),evt))
   let obs = sugObservableFromState s
   returnA -< ((ao', obs), s'))
 

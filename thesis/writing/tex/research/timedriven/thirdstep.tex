@@ -44,11 +44,11 @@ We could have chosen to use a \texttt{StateT} transformer with the \texttt{SIREn
 
 The implementation of the susceptible, infected and recovered agents is almost the same with only the neighbour querying now in a slightly different way. 
 
-Stepping the simulation needs a new approach, because in each step we need to collect the agent outputs and update the environment for the next step. For this we implemented a separate \texttt{MSF}, which receives the coordinates for every agent to be able to update the state in the environment after the agent was run. It is important to understand that we need use \texttt{mapM} to run the agents because we are now running in the context of the \texttt{Rand} Monad. This has the consequence that the agents are, in fact, run sequentially one after the other. But, because they cannot see the other agents actions nor observe changes in the read-only environment, it is \textit{conceptually} a \textit{parallel} update strategy where agents run in lock-step, isolated from each other at conceptually the same time.
+Stepping the simulation needs a new approach, because in each step we need to collect the agent outputs and update the environment for the next step. For this we implemented a separate \texttt{MSF}, which receives the coordinates for every agent to be able to update the state in the environment after the agent was run. It is important to understand that we need to use \texttt{mapM} to run the agents because we are now running in the context of the \texttt{Rand} Monad. This has the consequence that the agents are, in fact, run sequentially one after the other. But, because they cannot see the other agents actions nor observe changes in the read-only environment, it is \textit{conceptually} a \textit{parallel} update strategy where agents run in lock-step, isolated from each other at conceptually the same time.
   
 \begin{HaskellCode}
-simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)]
-               -> SIREnv -> SF (Rand g) () SIREnv
+simulationStep :: RandomGen g => [(SIRAgent g, Disc2dCoord)] -> SIREnv
+               -> SF (Rand g) () SIREnv
 simulationStep sfsCoords env = MSF (\_ -> do
   let (sfs, coords) = unzip sfsCoords 
   -- run agents sequentially but with read-only environment
@@ -96,6 +96,6 @@ We implemented rendering of the environments using the  \href{http://hackage.has
 The dynamics of the spatial SIR simulation, which are seen in Figure \ref{fig:sir_dunai_env_dynamics}, look quite different from the reference dynamics of Figure \ref{fig:sir_sd_dynamics}. This is due to a much more restricted neighbourhood, resulting in far fewer infected agents at a time, as well as a lower number of recovered agents at the end of the epidemic. This result then indicates that fewer agents got infected overall.
 
 \subsection{Discussion}
-Introducing a structured environment with a Moore neighbourhood, shows the ability of ABS to place the heterogeneous agents in a generic environment. This scenario shows the fundamental advantage of an agent-based approach over other simulation methodologies and allows us to simulate much more realistic scenarios.
+Introducing a structured environment with a Moore neighbourhood shows the ability of ABS to place the heterogeneous agents in a generic environment. This scenario shows the fundamental advantage of an agent-based approach over other simulation methodologies and allows us to simulate much more realistic scenarios.
 
 An environment is not restricted to a discrete 2D grid and can be anything from a continuous N-dimensional space to a complex network. One only needs to change the type of the environment and agent input and provide corresponding neighbourhood querying functions in order to make change of this kind. 

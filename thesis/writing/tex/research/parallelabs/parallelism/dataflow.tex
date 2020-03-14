@@ -11,7 +11,7 @@ runPar (do
   fork (put j (fib m)) -- fork new task compute fib m and put result into IVar j
   a <- get i           -- wait for the result from IVar i and collect it
   b <- get j           -- wait for the result from IVar j and collect it
-  return (a,b)         -- return the sum
+  return (a,b)         -- return the results
 \end{HaskellCode}
 
 Note that data-flow parallelism makes it possible to express parallel evaluation of a list or a tuple, as with evaluation strategies. The difference though is, that data-flow parallelism does avoid lazy evaluation. More importantly, putting a value into an \texttt{IVar} requires the type of the value to have an instance of the \texttt{NFData} type class. This simply means that a value of this type can be fully evaluated, not just to WHNF but to evaluate the full expression to the value it represents.

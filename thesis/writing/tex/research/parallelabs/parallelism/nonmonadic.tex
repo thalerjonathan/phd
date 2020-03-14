@@ -22,7 +22,7 @@ switchingEvt = arr (\ (_, newAs) -> parEvalAgents newAs)
         -- newAs' = withStrategy (parList rseq) newAs
 \end{HaskellCode}
 
-Which evaluation strategy results in the best performance depends on how we observe the results of the simulation. Due to Haskell's non-strict nature, as long as no output is \textit{observed}, nothing would get computed ever. We have developed three different ways to observe the output of this simulation and thus we measured the timings for all of them:
+Which evaluation strategy results in the best performance depends on how we observe the results of the simulation. Due to Haskell's non-strict nature, as long as no output is \textit{observed}, nothing would get computed ever. We have developed four different ways to observe the output of this simulation and thus we measured the timings for all of them:
 
 \begin{enumerate}
 	% Parallel : 3.86, 3.77, 3.87, 3.83, 4.13, 3.77, 3.88, 4.15 = 3.9 (0.15 std)
@@ -47,7 +47,7 @@ Which evaluation strategy results in the best performance depends on how we obse
 	\item A combined approach of 1 and 2 where the output of the last simulation step is printed and then the aggregate is written to a file.
 \end{enumerate}
 
-The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All timings were measured with 1000 agents running for 150 time steps, and $\Delta t = 0.1$. We performed 8 runs and report the average timing in seconds. The parallel version was compiled with the '-threaded' option and used all 8 available cores with the '-N' option. For the sequential implementation the '-threaded' option and the evaluation strategies were removed, to leave no chance that it is purely sequential code. All experiments were carried out on the same machine \footnote{Dell XPS 13 (9370) with Intel Core i7-8550U (8 cores), 16 GB, 512 GByte SDD, plugged in.}
+The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All timings were measured with 1000 agents running for 150 time steps, and $\Delta t = 0.1$. We performed 8 runs and report the average timing in seconds. The parallel version used all 8 available cores. For the sequential implementation the evaluation strategies were removed, to leave no chance that it is purely sequential code. All experiments were carried out on the same machine \footnote{Dell XPS 13 (9370) with Intel Core i7-8550U (8 cores), 16 GB, 512 GByte SDD, plugged in.}
 
 \begin{table}
 	\centering

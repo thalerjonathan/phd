@@ -1,6 +1,6 @@
 \section{Software Transactional Memory in ABS}
 \label{sec:stm_abs}
-In this section we give a short overview of how we apply STM to pure functional ABS. In both case studies we fundamentally follow a time-driven, parallel approach as introduced in Chapter \ref{sub:par_strategy}, where the simulation is advanced by a given $\Delta t$ and in each step all agents are executed. To employ parallelism, each agent runs within its own thread and agents are executed in lock-step, synchronising between each $\Delta t$, which is controlled by the main thread. See Figure \ref{fig:stm_abs_structure} for a visualisation of the concurrent, parallel time-driven lock-step approach.
+In this section we give a short overview of how we apply STM to pure functional ABS. In both case studies we fundamentally follow a time-driven, concurrent approach as introduced in Chapter \ref{sub:con_strategy}, where the simulation is advanced by a given $\Delta t$ and in each step all agents are executed. To employ parallelism, each agent runs within its own thread and agents are executed in lock-step, synchronising between each $\Delta t$, which is controlled by the main thread. See Figure \ref{fig:stm_abs_structure} for a visualisation of the concurrent, concurrent time-driven lock-step approach.
 
 By running each agent in a thread will guarantee the execution in parallel even if the agent has a monadic context. This forces us to evaluate each agent's monadic context separately instead of running them all in a common context. This means that we are ending up in the \texttt{IO} Monad, because \texttt{STM} can be only transacted from within an \texttt{IO} context, due to non-deterministic side effects. This is no contradiction to our original claim. Yes, we are running in \texttt{IO} but the agent behaviour itself is not, which is a fundamental difference.
 
@@ -11,7 +11,7 @@ As will be described in subsequent sections, central to both case studies is an 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\textwidth, angle=0]{./fig/concurrentabs/stm_abs.png}
-	\caption[Diagram of the parallel time-driven lock-step approach]{Diagram of the parallel time-driven lock-step approach.}
+	\caption[Diagram of the concurrent time-driven lock-step approach]{Diagram of the parallel time-driven lock-step approach.}
 	\label{fig:stm_abs_structure}
 \end{figure}
 

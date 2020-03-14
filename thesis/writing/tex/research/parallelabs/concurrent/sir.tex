@@ -56,7 +56,7 @@ In this experiment we held the grid size constant at 51 x 51 (2,601 agents) and 
   	\end{tabular}
 	\end{adjustbox}
 	
-  	\caption{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{Atomic IO} and \textit{STM} SIR implementations under varying cores with grid size of 51x51 (2,601) agents. Timings in seconds (lower is better), standard deviation in parentheses.}
+  	\caption[Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{Atomic IO} and \textit{STM} SIR implementations under varying cores with grid size of 51x51 (2,601) agents]{Performance comparison of \textit{Sequential}, \textit{Lock-Based}, \textit{Atomic IO} and \textit{STM} SIR implementations under varying cores with grid size of 51x51 (2,601) agents. Timings in seconds (lower is better), standard deviation in parentheses.}
 	\label{tab:sir_varyingcores_constgrid}
 \end{table}
 
@@ -86,7 +86,7 @@ In this experiment, we varied the grid size and used 4 cores constantly. The res
    		251 x 251 (63,001)  & 861.0 (0.62)          & \textbf{571.0} (0.71)  & 608.0 (1.20)   \\ \hline \hline
   	\end{tabular}
 
-  	\caption{Performance comparison of \textit{Lock-Based Read-Write}, \textit{Atomic IO} and \textit{STM} SIR implementations with varying grid sizes on 4 cores. Timings in seconds (lower is better), standard deviation in parentheses.}
+  	\caption[Performance comparison of \textit{Lock-Based Read-Write}, \textit{Atomic IO} and \textit{STM} SIR implementations with varying grid sizes on 4 cores]{Performance comparison of \textit{Lock-Based Read-Write}, \textit{Atomic IO} and \textit{STM} SIR implementations with varying grid sizes on 4 cores. Timings in seconds (lower is better), standard deviation in parentheses.}
 	\label{tab:sir_varyinggrid_constcores} 
 \end{table}
 
@@ -143,7 +143,7 @@ To test how far we can scale up the number of cores in the best performing cases
 		%\multicolumn{1}{ |c| }{64} & TODO    & TODO      \\ \hline \hline 
 	\end{tabular}
 
-  	\caption{Performance comparison of \textit{Atomic IO} and \textit{STM} SIR implementations on 16 and 32 cores on an Amazon EC2 \texttt{m5ad.16xlarge} instance. Timings in seconds (lower is better), standard deviations in parentheses.}
+  	\caption[Performance comparison of \textit{Atomic IO} and \textit{STM} SIR implementations on 16 and 32 cores on an Amazon EC2 \texttt{m5ad.16xlarge} instance]{Performance comparison of \textit{Atomic IO} and \textit{STM} SIR implementations on 16 and 32 cores on an Amazon EC2 \texttt{m5ad.16xlarge} instance. Timings in seconds (lower is better), standard deviations in parentheses.}
 	\label{tab:sir_varying_cores_amazon}
 \end{table}
 
@@ -159,6 +159,6 @@ What is interesting is that with more cores, the \textit{STM} implementations ha
 %32 cores 51x51: 0.0 retry ratio
 
 \subsection{Summary}
-The timing measurements speak a clear language. Running in \texttt{STM} and sharing state using a transactional variable \texttt{TVar} is much more time efficient than the \textit{Sequential} and both \textit{Lock-Based} approaches. On 5 cores \textit{STM} achieves a speedup factor of 3.2 over the \textit{Sequential} implementation, which is a big improvement compared to the simplicity of the approach. What came as a surprise was that the \textit{Atomic IO} approach slightly outperforms the \textit{STM} implementation. However, the \textit{Atomic IO} approach, which uses an atomic modification operation, is only applicable in the event there is just a single reference in the program and requires that all operations go through this atomic modification operation. Whether the latter condition is possible or not is highly dependent on the model semantics, which support it in the case of the SIR model but unfortunately not in the case of Sugarscape.
+The timing measurements speak a clear language. Running in \texttt{STM} and sharing state using a transactional variable \texttt{TVar} is much more time efficient than the \textit{Sequential} and both \textit{Lock-Based} approaches. On 5 cores \textit{STM} achieves a speedup factor of 3.2 over the \textit{Sequential} implementation, which is a big improvement compared to the simplicity of the approach. What came as a surprise was that the \textit{Atomic IO} approach slightly outperforms the \textit{STM} implementation. However, the \textit{Atomic IO} approach, which uses an atomic modification operation, is only applicable in the event when there is just a single reference in the program and requires that all operations go through this atomic modification operation. Whether the latter condition is possible or not is highly dependent on the model semantics, which support it in the case of the SIR model but unfortunately not in the case of Sugarscape.
 
 Obviously both \textit{Lock-Based}, \textit{Atomic IO} and \textit{STM} sacrifice determinism, which means that repeated runs might not lead to the same dynamics despite the same initial conditions. However, when sticking to STM, we get the guarantee that the source of this non-determinism is concurrency within the \texttt{STM} Monad but \textit{nothing else}. This cannot be guaranteed in the case of both \textit{Lock-Based} and \textit{Atomic IO} approaches as we lose certain static guarantees when running within the \texttt{IO} Monad. The fact that \textit{STM} achieves \textit{both} a substantial speedup \textit{and} provides stronger static guarantees, makes the \textit{STM} approach \textit{very} compelling.

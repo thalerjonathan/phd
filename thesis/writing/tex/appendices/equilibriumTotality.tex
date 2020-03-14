@@ -1,4 +1,4 @@
-\chapter{Equilibrium-totality correspondence}
+\chapter{Equilibrium-Totality Correspondence}
 \label{app:equilibrium_totality}
 In the property tests of Chapter \ref{sec:timedriven_specification} and \ref{sec:prop_invariants_dynamics} we limited the time an individual simulation is run to a random range between 0 and 50. In this context, the decision to do so was for practical reasons to guarantee termination as both the event- and time-driven implementations would run forever if no time- and/or event-limit is specified \footnote{The event-driven implementation would terminate if the event queue is empty but in the case of the SIR this will never be the case due to susceptible agents keep scheduling \texttt{MakeContact}, resulting in an infinite stream of events.}.
 

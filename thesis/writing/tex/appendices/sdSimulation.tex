@@ -1,4 +1,4 @@
-\chapter{Pure functional System Dynamics}
+\chapter{Pure Functional System Dynamics}
 \label{app:sd_simulation}
 In this appendix we develop a pure functional, correct-by-construction implementation of the SIR System Dynamics (SD) simulation. %Note that the constant parameters \textit{populationSize, infectedCount, contactRate, infectivity, illnessDuration} are defined globally and omitted for clarity.
 
@@ -15,7 +15,7 @@ Next, we use a signal function to define the top-level function of the SIR SD si
 sir :: SF () SIRStep
 \end{HaskellCode}
 
-An SD model is fundamentally built on feedback, where the values at time \textit{t} depend on the previous step. Thus, we introduce feedback in which we feed the last step into the next step. Yampa provides the \texttt{loopPre :: c $\to$ SF (a, c) (b, c) $\to$ SF a b} function for that. It takes an initial value \texttt{c} and a feedback signal function which receives the input \texttt{a} and the previous (or initial) value of the feedback \texttt{c} and has to return the output \texttt{b} and the new feedback value \texttt{c}. \texttt{loopPre} then returns simply a signal function from \texttt{a} to \texttt{b} with the feedback happening transparent in the feedback signal function. The initial feedback value is the initial state of the SD model at $t = 0$. Further, we define the type of the feedback signal function.
+An SD model is fundamentally built on feedback, where the values at time \textit{t} depend on the previous step. Thus, we introduce feedback in which we feed the last step into the next step. Yampa provides the \texttt{loopPre :: c $\to$ SF (a, c) (b, c) $\to$ SF a b} function for that. It takes an initial value \texttt{c} and a feedback signal function, which receives the input \texttt{a} and the previous (or initial) value of the feedback \texttt{c} and has to return the output \texttt{b} and the new feedback value \texttt{c}. \texttt{loopPre} then returns simply a signal function from \texttt{a} to \texttt{b} with the feedback happening transparent in the feedback signal function. The initial feedback value is the initial state of the SD model at $t = 0$. Further, we define the type of the feedback signal function.
 
 \begin{HaskellCode}
 sir = loopPre (0, initSus, initInf, initRec) sirFeedback
@@ -33,7 +33,7 @@ The next step is to implement the feedback signal function. As input we get \tex
 sirFeedback = proc (_, (_, s, i, _)) -> do
 \end{HaskellCode}
 
-Now we define the flows which are \texttt{infection rate} and \texttt{recovery rate}. The formulas for both of them can be seen in the differential equations of Chapter \ref{sec:prop_sirspecs}. This directly translates into Haskell code:
+Now we define the flows which are \texttt{infectionRate} and \texttt{recoveryRate}. The formulas for both of them can be seen in the differential equations of Chapter \ref{sec:prop_sirspecs}. This directly translates into Haskell code:
 
 \begin{HaskellCode}
 infectionRate = (i * beta * s * gamma) / populationSize
@@ -127,7 +127,7 @@ We claim that our implementation is correct-by-construction because the code \te
 
 Further, we showed the influence of different $\Delta t$ and validated our implementation against the industry-strength SD simulation software AnyLogic Personal Learning Edition 8.3.1 where we could match our results with the one of AnyLogic, proving the correctness of our system also on the dynamics level.
 
-Obviously the numerical behaviour depends on the integral function which uses the rectangle rule. We showed that for the SIR model and small enough $\Delta t$, the rectangle rule works well enough. Still it might be of benefit if we provide more sophisticated numerical integration like Runge-Kutta methods. We leave this for further research.
+Obviously the numerical behaviour depends on the integral function, which uses the rectangle rule. We showed that for the SIR model and small enough $\Delta t$, the rectangle rule works well enough. Still it might be of benefit if we provide more sophisticated numerical integration like Runge-Kutta methods. We leave this for further research.
 
 The key strength of existing System Dynamic simulation software is their visual representation which allows non-programmers to 'draw' SD models and simulate them. We believe that one can auto-generate Haskell code using our approach to implement SD from such diagrams but leave this for further research.
 

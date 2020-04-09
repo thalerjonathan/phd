@@ -15,7 +15,7 @@ switchingEvt = arr (\ (_, newAs) -> parEvalAgents newAs)
     parEvalAgents newAs = newAs' `seq` Event newAs' 
       where
         -- NOTE: chunks of 200 agents seem to deliver the best performance
-        -- when we are purely CPU bound and don't have any IO
+        -- when we are completely CPU bound and don't have any IO
         newAs' = withStrategy (parListChunk 200 rseq) newAs
         -- NOTE: alternative is to run every agent in parallel
         -- only use when IO of simulation output is required
@@ -47,7 +47,7 @@ Which evaluation strategy results in the best performance depends on how we obse
 	\item A combined approach of 1 and 2 where the output of the last simulation step is printed and then the aggregate is written to a file.
 \end{enumerate}
 
-The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All timings were measured with 1000 agents running for 150 time steps, and $\Delta t = 0.1$. We performed 8 runs and report the average timing in seconds. The parallel version used all 8 available cores. For the sequential implementation the evaluation strategies were removed, to leave no chance that it is purely sequential code. All experiments were carried out on the same machine \footnote{Dell XPS 13 (9370) with Intel Core i7-8550U (8 cores), 16 GB, 512 GByte SDD, plugged in.}
+The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All timings were measured with 1000 agents running for 150 time steps, and $\Delta t = 0.1$. We performed 8 runs and report the average timing in seconds. The parallel version used all 8 available cores. For the sequential implementation the evaluation strategies were removed, to leave no chance that it is pure sequential code. All experiments were carried out on the same machine \footnote{Dell XPS 13 (9370) with Intel Core i7-8550U (8 cores), 16 GB, 512 GByte SDD, plugged in.}
 
 \begin{table}
 	\centering
@@ -63,7 +63,7 @@ The timings are reported in Table \ref{tab:parallel_nonmonadic_sir_timings}. All
 	\label{tab:parallel_nonmonadic_sir_timings}
 \end{table}
 
-The table clearly indicates that because we are purely CPU bound we get quite an impressive speedup of 4.24 on 8 cores. Parallelism clearly pays off here, especially because it is so easy to add. On the other hand, it seems that as soon as we are IO bound, the parallelism performance benefit is completely wasted. This does not come as a surprise and it is well established that generally as soon as IO is involved, performance benefits from parallelism will suffer. This point will be addressed by the use of concurrency, where due to concurrent evaluation, IO is decoupled from the computation making the latter one completely CPU bound and resulting in an impressive speedup in this case as well.
+The table clearly indicates that because we are completely CPU bound we get quite an impressive speedup of 4.24 on 8 cores. Parallelism clearly pays off here, especially because it is so easy to add. On the other hand, it seems that as soon as we are IO bound, the parallelism performance benefit is completely wasted. This does not come as a surprise and it is well established that generally as soon as IO is involved, performance benefits from parallelism will suffer. This point will be addressed by the use of concurrency, where due to concurrent evaluation, IO is decoupled from the computation making the latter one completely CPU bound and resulting in an impressive speedup in this case as well.
 
 What comes as a bit of a surprise is that, in the case of the sequential implementation, the CPU bound implementation (1), that performs no IO is actually slower than the ones which do perform IO. This result can be attributed to lazy evaluation, which seems to increase performance, because IO can actually be performed while the simulation computes the next step, interleaving the evaluation and IO. Thus, when comparing the parallel CPU bound approach (1) to the IO bound sequential ones (2), and (3) results in a lower speedup factor of roughly 2.6.
 The combined approach (4) then shows that we can actually have the substantial speedup of CPU bound (1), but still write the result to the file like as in (2). This is of fundamental importance in simulation, because after all simulations almost always produce large amounts of data that needs to be stored somewhere for later analysis.

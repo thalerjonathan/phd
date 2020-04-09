@@ -100,7 +100,7 @@ It is clear that the \textit{STM} implementation outperforms the \textit{Lock-Ba
 \end{figure}
 
 \subsection{Retries}
-Of very much importance when using STM is the retry ratio, which indicates how many of the total \texttt{STM} actions had to be re-run. A high retry ratio shows that a lot of work is wasted on re-running \texttt{STM} actions due to many concurrent read and writes. Obviously, it is highly dependent on the read-write patterns of the implementation and indicates how well an STM approach is suitable for the problem at hand. We used the \href{http://hackage.haskell.org/package/stm-stats}{stm-stats}~\cite{stm_stats_library} library to record statistics of commits, retries and the ratio. The results are reported in Table \ref{tab:retries_stm}.
+Of very high importance when using STM is the retry ratio, which indicates how many of the total \texttt{STM} actions had to be re-run. A high retry ratio shows that a lot of work is wasted on re-running \texttt{STM} actions due to many concurrent read and writes. Obviously, it is highly dependent on the read-write patterns of the implementation and indicates how well an STM approach is suitable for the problem at hand. We used the \href{http://hackage.haskell.org/package/stm-stats}{stm-stats}~\cite{stm_stats_library} library to record statistics of commits, retries and the ratio. The results are reported in Table \ref{tab:retries_stm}.
 
 \begin{table}
 	\centering

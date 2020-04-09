@@ -1,0 +1,91 @@
+- NOTE by me: replace with "impure" - “the non-deterministic IO Monad” is not conventional terminology (“the non-deterministic monad” is just the list monad)
+
+Some references are “off”:
+- page 102: [84] does not seem to be the best reference for illustrating the advantages of doing parallelism in Haskell
+- [91] should probably be marked “2nd Ed”
+- [92] doesn’t do the job required by the sentence “The same problem was reported in [92], which tried to reproduce the work of Gintis [63].” The article to be cited is probably Botta et al. 2013
+- page 44 [179] seems to be given as a reference for SIR
+- I haven’t been able to find in [10] the report of difficulties in reproducing [8]. I only checked because the two papers have the same author. A page number would be helpful here.
+
+Some stilted formulations:
+page 121: “by running each agent in a thread will guarantee” something seems to be missing
+
+- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
+
+- Individual contributions of the candidate to each of the listed papers should be added, to make it clear how these publications relate to what is written in the thesis.
+
+- p 15 add objectivity to random PBT statement by providing contrast with unit testing
+
+- p 16 Why is FP ‘notoriously slow’? Please clarify why this is the case notably show to clarify
+
+- P16 Discussion on Internet of Things is detracting in motivation and should either be explained or removed
+
+- P17 “In conclusion, this thesis claims that the ABS community needs functional programming because of its scientific computing nature, where results need to be
+reproducible and correct, while simulations can massively scale up as well. As pointed out above, the established object-oriented approach needs a considerably level of effort and might even fail to deliver these objectives due to its conceptually different approach to computing with unrestricted side effects. “ – this needs to be disambiguated as it is unclear what you are trying to say here.
+
+- P18 add Test Driven Development as part of a contribution
+
+- In the introduction identify for which research community the chapters are aimed at
+
+- P23 missing reference to Anylogic and Repast
+
+- P24 ABS SIR and networked SIR, the differences in the two models need to be mentioned
+
+- P24 The differences between Agent based simulation and ABMS needs to be clarified.
+
+- NOTE by me: add UML activity diagram - p 27 add diagram to explained
+
+- Provide better definitions of FRP, Yampa and arrowised systems.
+
+- P63 discussion of the correlation and a random number generator around g.; susceptible g -> infected g,: is occasionally g being updated or not? Clarify.
+
+- Are you creating the same deterministic random number stream? Clarify.
+
+- Are the dynamic correlated versus not correlated? Clarify.
+
+- Do you need to use monadic stream functions? Can this threading be done manually with Yampa? → Would you have to change the implementation of ‘occasionally’. Clarify.
+
+- Add an illustration to show the difference IF it makes a difference to the results.
+
+- Does this dependency between agents on a determinate random number generator exist depending on the implementation of the random number generator? I.e. true vs pseudorandom number generators as pseudo numbers are not independent ⇒ would be worth checking and clarifying.
+
+- To do these tests : Yampa with correlation, MSF without generator; will you see a significant difference? Clarify as this DOES have implcations for the effectiveness due to correlations. This should be added to the thesis IF you see a difference. If so this needs to be tied in to other chapters.
+
+- Pg 99 Why performance difference between Java and FP versions? Clarify. Is this due to differences in: Array updates; Nested loops in Haskell to update the sleeping agents; Fixing this with mutable arrays.
+
+- Explain the reasons here as opposed to deferring any discussion until Chapters 7&8.
+
+- P100 bridging sentence required
+
+- P100 be dismantle big reference block and only use the references that you need.
+
+- Some comments about references:
+	some minor e.g. [91] is Graham's book including 2nd Edition.
+	Some references which are out of context. e. g. [92] is not the point of this paper
+	-> see EE report for these corrections for more appropriate suggestions for replacements including correct citing of Dr Botta.
+
+- P102 citing [84] Marlow book for example would be more appropriate
+
+- Go through references again and check for appropriateness of references, sometimes they are a bit strange and not the standard references. Ask for advice on this from IE if needed.
+
+- [10] and [8] has to be checked and if it is in there you have to add a page numbers
+
+- P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
+based on the corrected information in the next two screenshot panels of notes: See notes below.
+
+- P116 clarify the definition of reproducibility in terms of processes or results
+
+- P121 Diagram is not described, fix to be concurrent or label as appropriate
+
+- P148 Chapter needs a summary
+
+- P144 prop_reverse_reverse you have written as ‘pass’; it fails! Fix please.
+	E.g. head(1: undefined)=1
+		Head(reverse(reverse(1:undefined)) -> undefined.
+
+- P165 Justify your 90% and missing parentheses in code
+
+- P176 12.1.3 refer to precisely in Chapter 8, p139.
+
+- P143 Do not be so bold regarding your statements on PBT 
+

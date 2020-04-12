@@ -1,17 +1,15 @@
 #########################################################################
-## REFERENCES
+## ACTIVITY DIAGRAM NEEDED
 #########################################################################
-Some references are “off”:
-- page 102: [84] does not seem to be the best reference for illustrating the advantages of doing parallelism in Haskell
-- [91] should probably be marked “2nd Ed”
-- [92] doesn’t do the job required by the sentence “The same problem was reported in [92], which tried to reproduce the work of Gintis [63].” The article to be cited is probably Botta et al. 2013
-- page 44 [179] seems to be given as a reference for SIR
-- I haven’t been able to find in [10] the report of difficulties in reproducing [8]. I only checked because the two papers have the same author. A page number would be helpful here.
-- Some comments about references:
-	some minor e.g. [91] is Graham's book including 2nd Edition.
-	Some references which are out of context. e. g. [92] is not the point of this paper
-	-> see EE report for these corrections for more appropriate suggestions for replacements including correct citing of Dr Botta.
-- Go through references again and check for appropriateness of references, sometimes they are a bit strange and not the standard references. Ask for advice on this from IE if needed.
+- NOTE by me: add UML activity diagram - p 27 add diagram to explained
+
+#########################################################################
+## PERFORMANCE explanations
+#########################################################################
+- Pg 99 Why performance difference between Java and FP versions? Clarify. Is this due to differences in: Array updates; Nested loops in Haskell to update the sleeping agents; Fixing this with mutable arrays.
+	- Explain the reasons here as opposed to deferring any discussion until Chapters 7&8.
+- NOTE BY ME: java code is to be found in thesis/code/java
+
 
 #########################################################################
 ## QUICKCHECK BOTTOM issue
@@ -41,23 +39,6 @@ read and cite https://www.cs.ox.ac.uk/jeremy.gibbons/publications/fast+loose.pdf
 
 
 #########################################################################
-## PERFORMANCE explanations
-#########################################################################
-- Pg 99 Why performance difference between Java and FP versions? Clarify. Is this due to differences in: Array updates; Nested loops in Haskell to update the sleeping agents; Fixing this with mutable arrays.
-	- Explain the reasons here as opposed to deferring any discussion until Chapters 7&8.
-- NOTE BY ME: java code is to be found in thesis/code/java
-
-#########################################################################
-## ACTIVITY DIAGRAM NEEDED
-#########################################################################
-- NOTE by me: add UML activity diagram - p 27 add diagram to explained
-
-#########################################################################
-## Rewrite abstract
-#########################################################################
-- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
-
-#########################################################################
 ## ParT ISSUE
 #########################################################################
 - P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
@@ -83,6 +64,30 @@ based on the corrected information in the next two screenshot panels of notes: S
 - Does this dependency between agents on a determinate random number generator exist depending on the implementation of the random number generator? I.e. true vs pseudorandom number generators as pseudo numbers are not independent ⇒ would be worth checking and clarifying.
 
 
+NOTE BY ME: i already conducted the tests a few weeks ago and the results were as follows:
+when comparing the correlated version with the uncorrelated 96% tests passed. therefore they are very similar but not the same.
+after i compared the uncorrelated version with itself, by using two different initial RNGs i arrived at the same result: 96% similar, tehrefore i conclude that because self comparison results in same results as with uncorrelated, we are on the safe side and the correlation has no impact worth mentioning on the actual results
+
+-- TRIED WITH cover of 90
+-- OK (7822.74s)
+--    +++ OK, passed 400 tests (96.0% SIR correlated and uncorrelated time-driven produce equal distributions).
+-- TRIED WITH cover of 100
+-- FAIL (2634.78s)
+--     *** Failed! Insufficient coverage (after 100 tests):
+--     96% SIR correlated and uncorrelated time-driven produce equal distributions
+    
+--     Only 96% SIR correlated and uncorrelated time-driven produce equal distributions, but expected 100%
+--     Use --quickcheck-replay=589446 to reproduce.
+
+
+
+#########################################################################
+## Rewrite abstract
+#########################################################################
+- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
+
+
+
 
 
 #########################################################################
@@ -105,8 +110,9 @@ page 121: “by running each agent in a thread will guarantee” something seems
 - P24 The differences between Agent based simulation and ABMS needs to be clarified. 
 	Instead of clarifying it at this point, i added a short introduction and clarification of the term ABMS (vs ABS) in the background section on ABS right after the ABS properties list. TODO add where this is to be found now
 
+- I haven’t been able to find in [10] the report of difficulties in reproducing [8]. I only checked because the two papers have the same author. A page number would be helpful here.
 - [10] and [8] has to be checked and if it is in there you have to add a page numbers
-	- original submission: [10] and [8] were correct. However, [10] did not conduct the study but [12] did, so we left [10] in the text, because it only talks about the struggles, and then we clarified that the reproduction of [8] happened in [12], not in [10]. 
+	- original submission: [10] and [8] were correct. However, [10] did not conduct the study but [12] did (which included also [10] as author, amongst others, with Axtell as main author, this caused the confusion), so we left [10] in the text, because it only talks about the struggles, and then we clarified that the reproduction of [8] happened in [12], not in [10]. 
 	- resubmission: this can be found in the second paragraph of chapter 1 motivation. references have changed each by 1: [8] -> [9], [10] -> [11], [12] -> [13]
 
 - P165 Justify your 90% and missing parentheses in code

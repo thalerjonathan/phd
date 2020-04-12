@@ -784,12 +784,12 @@ References},
 	year = {2007}
 }
 
-@techreport{grief_semantics_1975,
+@phdthesis{grief_semantics_1975,
 	address = {Cambridge, MA, USA},
-	title = {{SEMANTICS} {OF} {COMMUNICATING} {PARALLEL} {PROCESSES}},
+	title = {{Semantics} of {Communicating} {Parallel} {Processes}},
 	abstract = {The thesis of this dissertation is that an understanding of the ordering constraints that are introduced among events of parallel process is essential to the understanding of synchronization and that therefore any language for specifying synchronization of parallel process should be based on a theory of such orderings. While it is possible to write specifications for systems of communicating parallel processes by reference to the time ordering of some global clock external to the system, such specifications cannot be as useful as ones which are in terms of orderings derivable within the system. Specifications should place constraints on intended behavior of the computer system itself rather than on the possible observations of the system''s behaviors from some global viewpoint which may in fact be totally unrealizable. The dissertation is a development of a specification language. It is based on a model of computation in which an individual process is represented by a totally ordered set of events. Synchronization properties of systems of independent processes are guarantees that in fact the set of events in the system can be ordered by a partial order which properly contains the union of the processes'' total orders. This system ordering can be caused by the presence in a system of side-effect primitives or of synchronization primitives. Thus this model applies equally well both to busy waiting synchronization based on coordinated use of storage cells by independent processes and to non-busy waiting synchronization such as that induced by semaphores and structured synchronization primitives. In addition to applying to a range of types of synchronization, the specification language is also used to define a programming language. The meaning of a program is the specification of the behavior of the system into which that program is compiled. Specifications can be written for synchronization problems and for their implementations in terms of various primitives.},
 	institution = {Massachusetts Institute of Technology},
-	author = {Grief, I. and Greif, Irene},
+	author = {Greif, I.},
 	year = {1975}
 }
 
@@ -896,7 +896,7 @@ References},
 	file = {ACM Full Text PDF:/home/jonathan/Zotero/storage/GMXBBVK6/Henderson - 1982 - Functional Geometry.pdf:application/pdf;ACM Full Text PDF:/home/jonathan/Zotero/storage/3HMA3EWS/Henderson - 1982 - Functional Geometry.pdf:application/pdf}
 }
 
-@techreport{clinger_foundations_1981,
+@phdthesis{clinger_foundations_1981,
 	address = {Cambridge, MA, USA},
 	title = {Foundations of {Actor} {Semantics}},
 	abstract = {The actor message-passing model of concurrent computation has inspired new ideas in the areas of knowledge-based systems, programming languages and their semantics, and computer systems architecture. This thesis extends and unifies the work of Carl Hewitt, Irene Greif, Henry Baker, and Giuseppe Attardi, who developed the mathematical content of the model. The ordering laws postulated by Hewitt and Baker can be proved using a notion of global time. The most general ordering laws are equivalent to an axiom of realizability in global time. Since nondeterministic concurrency is more fundamental than deterministic sequential computation, there may be no need to take fixed points in the underlying domain of a power domain. Power domains built from incomplete domains can solve the problem of providing a fixed point semantics for a class of nondeterministic programming languages in which a fair merge can be written. The locality laws postulated by Hewitt and Baker may be proved for the semantics of an actor-based language. Altering the semantics slightly can falsify the locality laws. The locality laws thus constrain what counts as an actor semantics.},
@@ -1232,16 +1232,13 @@ References},
 }
 
 @book{hutton_programming_2016,
-	title = {Programming in {Haskell}},
-	isbn = {978-1-316-87597-1},
-	abstract = {Haskell is a purely functional language that allows programmers to rapidly develop clear, concise, and correct software. The language has grown in popularity in recent years, both in teaching and in industry. This book is based on the author's experience of teaching Haskell for more than twenty years. All concepts are explained from first principles and no programming experience is required, making this book accessible to a broad spectrum of readers. While Part I focuses on basic concepts, Part II introduces the reader to more advanced topics. This new edition has been extensively updated and expanded to include recent and more advanced features of Haskell, new examples and exercises, selected solutions, and freely downloadable lecture slides and example code. The presentation is clean and simple, while also being fully compliant with the latest version of the language, including recent changes concerning applicative, monadic, foldable, and traversable types.},
-	language = {en},
-	publisher = {Cambridge University Press},
-	author = {Hutton, Graham},
-	month = aug,
-	year = {2016},
-	note = {Google-Books-ID: 1xHPDAAAQBAJ},
-	keywords = {Computers / Programming Languages / General, Mathematics / Discrete Mathematics, Mathematics / Numerical Analysis}
+author = {Hutton, Graham},
+title = {Programming in {Haskell}},
+year = {2016},
+isbn = {1316626229},
+publisher = {Cambridge University Press},
+address = {USA},
+edition = {2nd}
 }
 
 @book{michaelson_introduction_2011,
@@ -1398,9 +1395,9 @@ are used in a compiler for Haskell that is written in Haskell.},
 	number = {Under Review},
 	journal = {Autonomous Agents and Multi-Agent Systems},
 	author = {Thaler, Jonathan and Siebers, Peer-Olaf},
-	month = aug,
-	year = {2019},
-	pages = {15}
+	month = jan,
+	year = {2020},
+	pages = {20}
 }
 
 @inproceedings{asta_investigation_2014,
@@ -2152,21 +2149,6 @@ sockets, asynchronous programming with threads, and a high level network applica
 	year = {2017}
 }
 
-@book{payne_social_2019,
-	series = {Springer {Proceedings} in {Complexity}},
-	title = {Social {Simulation} for a {Digital} {Society}: {Applications} and {Innovations} in {Computational} {Social} {Science}},
-	isbn = {978-3-030-30297-9},
-	shorttitle = {Social {Simulation} for a {Digital} {Society}},
-	url = {https://www.springer.com/gp/book/9783030302979},
-	abstract = {“Social Simulation for a Digital Society” provides a cross-section of state-of-the-art research in social simulation and computational social science. With the availability of big data and faster computing power, the social sciences are undergoing a tremendous transformation. Research in computational social sciences has received considerable attention in the last few years, with advances in a wide range of methodologies and applications. Areas of application of computational methods range from the study of opinion and information dynamics in social networks, the formal modeling of resource use, the study of social conflict and cooperation to the development of cognitive models for social simulation and many more. This volume is based on the Social Simulation Conference of 2017 in Dublin and includes applications from across the social sciences, providing the reader with a demonstration of the highly versatile research in social simulation, with a particular focus on public policy relevance in a digital society. Chapters in the book include contributions to the methodology of simulation-based research, theoretical and philosophical considerations, as well as applied work. This book will appeal to students and researchers in the field.},
-	language = {en},
-	urldate = {2019-10-12},
-	publisher = {Springer International Publishing},
-	editor = {Payne, Diane and Elkink, Jos and Friel, Nial and Grund, Thomas and Hochstrasser, Tamara and Lucas, Pablo and Ottewill, Adrian},
-	year = {2019},
-	file = {Snapshot:/home/jonathan/Zotero/storage/A9NX4EP2/9783030302979.html:text/html}
-}
-
 @misc{diehl_wishknewhaskell,
 	title = {What {I} {W}ish {I} {K}new {W}hen {L}earning {H}askell},
 	url = {http://dev.stephendiehl.com/hask/},
@@ -2197,42 +2179,43 @@ sockets, asynchronous programming with threads, and a high level network applica
 	pages = {22--35}
 }
 
-@inproceedings{thaler_art_2017,
-	address = {Dublin, Ireland},
-	series = {Springer {Proceedings} in {Complexity}},
-	title = {The {Art} {Of} {Iterating}: {Update}-{Strategies} in {Agent}-{Based}},
-	isbn = {978-3-030-30297-9},
-	shorttitle = {Social {Simulation} for a {Digital} {Society}},
-	url = {https://www.springer.com/gp/book/9783030302979},
-	abstract = {When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model as simulation results can vary vastly across different update-strategies. This awareness, we claim, is still underdeveloped in the majority of the field of ABS. In this paper we propose a new terminology to classify update strategies and then identify different strategies using this terminology. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.},
-	language = {en},
-	author = {Thaler, Jonathan and Siebers, Peer-Olaf},
-	month = sep,
-	urldate = {2019-10-12},
-	publisher = {Springer International Publishing},
-	editor = {Payne, Diane and Elkink, Jos and Friel, Nial and Grund, Thomas and Hochstrasser, Tamara and Lucas, Pablo and Ottewill, Adrian},
-	year = {2019},
-	file = {Snapshot:/home/jonathan/Zotero/storage/A9NX4EP2/9783030302979.html:text/html}
+@Inbook{thaler_art_2017,
+author="Thaler, Jonathan
+and Siebers, Peer-Olaf",
+editor="Payne, Diane
+and Elkink, Johan A.
+and Friel, Nial
+and Grund, Thomas U.
+and Hochstrasser, Tamara
+and Lucas, Pablo
+and Ottewill, Adrian",
+title="The Art of Iterating: Update-Strategies in Agent-Based Simulation",
+bookTitle="Social Simulation for a Digital Society: Applications and Innovations in Computational Social Science",
+year="2019",
+publisher="Springer International Publishing",
+address="Cham",
+pages="21--36",
+abstract="When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model as simulation results can vary vastly across different update-strategies. This awareness, we claim, is still underdeveloped in the majority of the field of ABS. In this paper we propose a new terminology to classify update strategies and then identify different strategies using this terminology. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns, whereas the pattern of the continuous game seems to be robust under varying update-strategies.",
+isbn="978-3-030-30298-6",
+doi="10.1007/978-3-030-30298-6_3",
+url="https://doi.org/10.1007/978-3-030-30298-6_3"
 }
 
 @inproceedings{thaler_pure_2018,
-	address = {New York, NY, USA},
-	series = {{IFL} 2018},
-	title = {Pure {Functional} {Epidemics}: {An} {Agent}-{Based} {Approach}},
-	isbn = {978-1-4503-7143-8},
-	shorttitle = {Pure {Functional} {Epidemics}},
-	url = {http://doi.acm.org/10.1145/3310232.3310372},
-	doi = {10.1145/3310232.3310372},
-	abstract = {Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global system behaviour emerges. So far mainly object-oriented techniques and languages have been used in ABS. Using the SIR model of epidemiology, which simulates the spreading of an infectious disease through a population, we demonstrate how to use pure Functional Reactive Programming to implement ABS. With our approach we can guarantee the reproducibility of the simulation at compile time and rule out specific classes of run-time bugs, something that is not possible with traditional object-oriented languages. Also, we found that the representation in a purely functional format is conceptually quite elegant and opens the way to formally reason about ABS.},
-	urldate = {2019-05-03},
-	booktitle = {Proceedings of the 30th {Symposium} on {Implementation} and {Application} of {Functional} {Languages}},
-	publisher = {ACM},
-	author = {Thaler, Jonathan and Altenkirch, Thorsten and Siebers, Peer-Olaf},
-	year = {2018},
-	note = {event-place: Lowell, MA, USA},
-	keywords = {Functional Reactive Programming, Agent-Based Simulation, Monadic Stream Functions},
-	pages = {1--12},
-	file = {Submitted Version:/home/jonathan/Zotero/storage/WL2PCIGX/Thaler et al. - 2018 - Pure Functional Epidemics An Agent-Based Approach.pdf:application/pdf}
+author = {Thaler, Jonathan and Altenkirch, Thorsten and Siebers, Peer-Olaf},
+title = {Pure Functional Epidemics: An Agent-Based Approach},
+year = {2018},
+isbn = {9781450371438},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3310232.3310372},
+doi = {10.1145/3310232.3310372},
+booktitle = {Proceedings of the 30th Symposium on Implementation and Application of Functional Languages},
+pages = {1–12},
+numpages = {12},
+keywords = {Monadic Stream Functions, Functional Reactive Programming, Agent-Based Simulation},
+location = {Lowell, MA, USA},
+series = {IFL 2018}
 }
 
 @incollection{wald_sequential_1992,
@@ -2482,31 +2465,30 @@ Early Smalltalk was the first complete realization of these new points of view a
 }
 
 @inproceedings{thaler_show_2019,
- author = {Thaler, Jonathan and Siebers, Peer-Olaf},
- title = {Show Me Your Properties: The Potential of Property-based Testing in Agent-based Simulation},
- booktitle = {Proceedings of the 2019 Summer Simulation Conference},
- series = {SummerSim '19},
- year = {2019},
- location = {Berlin, Germany},
- pages = {1:1--1:12},
- articleno = {1},
- numpages = {12},
- url = {http://dl.acm.org/citation.cfm?id=3374138.3374139},
- acmid = {3374139},
- publisher = {Society for Computer Simulation International},
- address = {San Diego, CA, USA},
- keywords = {Haskell, agent-based simulation, property-based testing, validation \&\#38; verification}
+author = {Thaler, Jonathan and Siebers, Peer-Olaf},
+title = {Show Me Your Properties: The Potential of Property-Based Testing in Agent-Based Simulation},
+year = {2019},
+publisher = {Society for Computer Simulation International},
+address = {San Diego, CA, USA},
+booktitle = {Proceedings of the 2019 Summer Simulation Conference},
+articleno = {Article 1},
+numpages = {12},
+keywords = {agent-based simulation, Haskell, validation & verification, property-based testing},
+location = {Berlin, Germany},
+series = {SummerSim ’19}
 }
 
 @article{thaler_tale_2018,
-	title = {A {Tale} {Of} {Lock}-{Free} {Agents}: {Towards} {Software} {Transactional} {Memory} in parallel {Agent}-{Based} {Simulation}},
-	language = {English},
-	journal = {Complex Adaptive Systems Modeling},
-	author = {Thaler, Jonathan and Siebers, Peer-Olaf},
-	month = dec,
-	year = {2019},
-	pages = {25},
-	doi = {10.1186/s40294-019-0067-9}
+  title={A {Tale} {Of} {Lock}-{Free} {Agents}: {Towards} {Software} {Transactional} {Memory} in parallel {Agent}-{Based} {Simulation}},
+  author={Thaler, Jonathan and Siebers, Peer-Olaf},
+  journal={Complex Adaptive Systems Modeling},
+  volume={7},
+  number={1},
+  pages={1--28},
+  year={2019},
+  publisher={SpringerOpen},
+  pages = {25},
+  doi = {10.1186/s40294-019-0067-9}
 }
 
 @misc{thaler_sugarscape_repository,
@@ -2517,7 +2499,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	author = {Thaler, J.},
 	month = May,
 	year = {2019},
-	note = {Last Access October 11, 2019}
+	note = {Last Access April 12, 2020}
 }
 
 @misc{thaler_sir_repository,
@@ -2528,7 +2510,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	author = {Thaler, J.},
 	month = May,
 	year = {2019},
-	note = {Last Access October 11, 2019}
+	note = {Last Access April 12, 2020}
 }
 
 @misc{gintis_herbert_website,
@@ -2620,7 +2602,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	author = {Thaler, J.},
 	month = Oct,
 	year = {2019},
-	note = {Last Access October 11, 2019}
+	note = {Last Access April, 2020}
 }
 
 @misc{stm_stats_library,
@@ -2642,7 +2624,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	author = {Thaler, J.},
 	month = Oct,
 	year = {2019},
-	note = {Last Access October 11, 2019}
+	note = {Last Access April, 2020}
 }
 
 @misc{thaler_zerointelligence_repository,
@@ -2653,7 +2635,7 @@ Early Smalltalk was the first complete realization of these new points of view a
 	author = {Thaler, J.},
 	month = mar,
 	year = {2019},
-	note = {Last Access October 11, 2019}
+	note = {Last Access April, 2020}
 }
 
 @misc{lebaron_zerointelligence,
@@ -3047,4 +3029,11 @@ Early Smalltalk was the first complete realization of these new points of view a
     booktitle = {Nature},
     year = {June 1998},
     pages = {393:440–442}
+}
+
+@inproceedings{botta2013mathematical,
+  title={Mathematical specification of an agent-based model of exchange},
+  author={Botta, Nicola and Mandel, Antoine and Hofmann, Mareen and Schupp, Sibylle and Ionescu, Cezar},
+  booktitle={Proceedings of the AISB Convention},
+  year={2013}
 }

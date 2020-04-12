@@ -1,34 +1,6 @@
 #########################################################################
-## QUICKCHECK BOTTOM issue
-#########################################################################
-- P144 prop_reverse_reverse you have written as ‘pass’; it fails! Fix please.
-	E.g. head(1: undefined)=1
-		Head(reverse(reverse(1:undefined)) -> undefined.
-atm my plan is to add a clarification that explains that strictly speaking this fails if we also incorporate bottom, however we deliberately ignore cases of bottom and assume that they will not occur: quickcheck does not generate it and if we produce it ourselves, it will crash, which will clearly show there is something wrong
-
-Martin: I think the terminology is “partial versus total correctness”. You can’t say that rev(rev x) == x is “totally correct” because of the bottom issue (it’s partially correct as it works in all other cases), but it doesn’t matter really and so we ignore bottom as argued by that paper I just sent
-In fact that paper makes a stronger argument — it shows, using the language presented in the paper, that you can’t change a terminating expression into a non-terminating one by rewriting according to partial equalities (such as your example)
-
-All quickcheck properties are assumed to be total
-
-read and cite https://www.cs.ox.ac.uk/jeremy.gibbons/publications/fast+loose.pdf
-
-@article{danielsson2006fast,
-  title={Fast and loose reasoning is morally correct},
-  author={Danielsson, Nils Anders and Hughes, John and Jansson, Patrik and Gibbons, Jeremy},
-  journal={ACM SIGPLAN Notices},
-  volume={41},
-  number={1},
-  pages={206--217},
-  year={2006},
-  publisher={ACM New York, NY, USA}
-}
-
-#########################################################################
 ## RNG / CORRELATION ISSUE
 #########################################################################
-- Provide better definitions of FRP, Yampa and arrowised systems.
-
 - P63 discussion of the correlation and a random number generator around g.; susceptible g -> infected g,: is occasionally g being updated or not? Clarify.
 
 - Are you creating the same deterministic random number stream? Clarify.
@@ -82,12 +54,10 @@ after i compared the uncorrelated version with itself, by using two different in
 - P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
 based on the corrected information in the next two screenshot panels of notes: See notes below.
 
-
 #########################################################################
-## Rewrite abstract
+## FRP DEFINITION issue
 #########################################################################
-- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
-
+- Provide better definitions of FRP, Yampa and arrowised systems.
 
 
 
@@ -107,15 +77,25 @@ page 121: “by running each agent in a thread will guarantee” something seems
 ## clarifications by me when submitting to internal
 #########################################################################
 - P18 add Test Driven Development as part of a contribution
-	I have already added Test Driven Development, however as far as I remember the issue was that i did not explain it before, so i added a minimal explanation. TODO add where this is to be found now
+	ME I have already added Test Driven Development, however as far as I remember the issue was that i did not explain it before, so i added a minimal explanation. TODO add where this is to be found now
 
 - P24 The differences between Agent based simulation and ABMS needs to be clarified. 
-	Instead of clarifying it at this point, i added a short introduction and clarification of the term ABMS (vs ABS) in the background section on ABS right after the ABS properties list. TODO add where this is to be found now
+	ME Instead of clarifying it at this point, i added a short introduction and clarification of the term ABMS (vs ABS) in the background section on ABS right after the ABS properties list. TODO add where this is to be found now
 
 - I haven’t been able to find in [10] the report of difficulties in reproducing [8]. I only checked because the two papers have the same author. A page number would be helpful here.
 - [10] and [8] has to be checked and if it is in there you have to add a page numbers
-	- original submission: [10] and [8] were correct. However, [10] did not conduct the study but [12] did (which included also [10] as author, amongst others, with Axtell as main author, this caused the confusion), so we left [10] in the text, because it only talks about the struggles, and then we clarified that the reproduction of [8] happened in [12], not in [10]. 
+	ME original submission: [10] and [8] were correct. However, [10] did not conduct the study but [12] did (which included also [10] as author, amongst others, with Axtell as main author, this caused the confusion), so we left [10] in the text, because it only talks about the struggles, and then we clarified that the reproduction of [8] happened in [12], not in [10]. 
 	- resubmission: this can be found in the second paragraph of chapter 1 motivation. references have changed each by 1: [8] -> [9], [10] -> [11], [12] -> [13]
 
 - P165 Justify your 90% and missing parentheses in code
-	- i already pointed out that we expect 90% but i clarified on it a bit more, i hope this is sufficient now
+	ME i already pointed out that we expect 90% but i clarified on it a bit more, i hope this is sufficient now
+	TODO new page is
+
+- P144 prop_reverse_reverse you have written as ‘pass’; it fails! Fix please.
+	E.g. head(1: undefined)=1
+		Head(reverse(reverse(1:undefined)) -> undefined.
+	ME is 'fixed' now by explaining that we ignore bottom (undefined), supported by a paper which justifies why reasining is morally correct when we ignore bottom.
+	TODO it is the paragraph starting with "Strictly speaking prop reverse reverse..." on page TODO
+
+- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
+	ME the abstract is shorter now, more concise with stronger focus on the contributions and findings of the thesis. I hope this is ok now.

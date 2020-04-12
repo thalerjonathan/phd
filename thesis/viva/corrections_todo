@@ -1,22 +1,61 @@
 #########################################################################
-## RNG / CORRELATION ISSUE
+## ParT ISSUE
 #########################################################################
+- P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
+based on the corrected information in the next two screenshot panels of notes: See notes below.
+
+#########################################################################
+## FRP DEFINITION issue
+#########################################################################
+- Provide better definitions of FRP, Yampa and arrowised systems.
+
+
+
+#########################################################################
+## clarifications by me when submitting to internal
+#########################################################################
+- page 121: “by running each agent in a thread will guarantee” something seems to be missing
+	unclear to me what was missing there, i clarified the sentence a bit, should be clear now
+
+- Publications: Individual contributions of the candidate to each of the listed papers should be added, to make it clear how these publications relate to what is written in the thesis.
+	- i clarified in the beginning of the section that i was corresponding author in all papers, sole contributor to wiriting, research and content with the other authors supervising me and giving feedback.
+
+- P18 add Test Driven Development as part of a contribution
+	ME I have already added Test Driven Development, however as far as I remember the issue was that i did not explain it before, so i added a minimal explanation. TODO add where this is to be found now
+
+- P24 The differences between Agent based simulation and ABMS needs to be clarified. 
+	ME Instead of clarifying it at this point, i added a short introduction and clarification of the term ABMS (vs ABS) in the background section on ABS right after the ABS properties list. TODO add where this is to be found now
+
+- I haven’t been able to find in [10] the report of difficulties in reproducing [8]. I only checked because the two papers have the same author. A page number would be helpful here.
+- [10] and [8] has to be checked and if it is in there you have to add a page numbers
+	ME original submission: [10] and [8] were correct. However, [10] did not conduct the study but [12] did (which included also [10] as author, amongst others, with Axtell as main author, this caused the confusion), so we left [10] in the text, because it only talks about the struggles, and then we clarified that the reproduction of [8] happened in [12], not in [10]. 
+	- resubmission: this can be found in the second paragraph of chapter 1 motivation. references have changed each by 1: [8] -> [9], [10] -> [11], [12] -> [13]
+
+- P165 Justify your 90% and missing parentheses in code
+	ME i already pointed out that we expect 90% but i clarified on it a bit more, i hope this is sufficient now
+	TODO new page is
+
+- P144 prop_reverse_reverse you have written as ‘pass’; it fails! Fix please.
+	E.g. head(1: undefined)=1
+		Head(reverse(reverse(1:undefined)) -> undefined.
+	ME is 'fixed' now by explaining that we ignore bottom (undefined), supported by a paper which justifies why reasining is morally correct when we ignore bottom.
+	TODO it is the paragraph starting with "Strictly speaking prop reverse reverse..." on page TODO
+
+- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
+	ME the abstract is shorter now, more concise with stronger focus on the contributions and findings of the thesis. I hope this is ok now.
+
 - P63 discussion of the correlation and a random number generator around g.; susceptible g -> infected g,: is occasionally g being updated or not? Clarify.
-
 - Are you creating the same deterministic random number stream? Clarify.
-
 - Are the dynamic correlated versus not correlated? Clarify.
-
 - Do you need to use monadic stream functions? Can this threading be done manually with Yampa? → Would you have to change the implementation of ‘occasionally’. Clarify.
-
-- To do these tests : Yampa with correlation, MSF without generator; will you see a significant difference? Clarify as this DOES have implcations for the effectiveness due to correlations. This should be added to the thesis IF you see a difference. If so this needs to be tied in to other chapters.
-
-- Add an illustration to show the difference IF it makes a difference to the results.
+	ME added a longer discussion at TODO to clarify all these things
 
 - Does this dependency between agents on a determinate random number generator exist depending on the implementation of the random number generator? I.e. true vs pseudorandom number generators as pseudo numbers are not independent ⇒ would be worth checking and clarifying.
+	ME i am sorry but i could not get my hands on a true random number generator, but i added a few sentences in the discussion sectuion Going Monadic on page TODO
 
-
-NOTE BY ME: i already conducted the tests a few weeks ago and the results were as follows:
+- To do these tests : Yampa with correlation, MSF without generator; will you see a significant difference? Clarify as this DOES have implcations for the effectiveness due to correlations. This should be added to the thesis IF you see a difference. If so this needs to be tied in to other chapters.
+- Add an illustration to show the difference IF it makes a difference to the results.
+NOTE BY ME: i conducted the tests and the results were as follows:
 when comparing the correlated version with the uncorrelated 96% tests passed. therefore they are very similar but not the same.
 after i compared the uncorrelated version with itself, by using two different initial RNGs i arrived at the same result: 96% similar, tehrefore i conclude that because self comparison results in same results as with uncorrelated, we are on the safe side and the correlation has no impact worth mentioning on the actual results
 
@@ -47,55 +86,3 @@ after i compared the uncorrelated version with itself, by using two different in
 --     Only 96% SIR correlated and uncorrelated time-driven produce equal distributions, but expected 100%
 --     Use --quickcheck-replay=395489 to reproduce.
 
-
-#########################################################################
-## ParT ISSUE
-#########################################################################
-- P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
-based on the corrected information in the next two screenshot panels of notes: See notes below.
-
-#########################################################################
-## FRP DEFINITION issue
-#########################################################################
-- Provide better definitions of FRP, Yampa and arrowised systems.
-
-
-
-
-#########################################################################
-## UNCLEAR, questions to internal
-#########################################################################
-- Individual contributions of the candidate to each of the listed papers should be added, to make it clear how these publications relate to what is written in the thesis.
-
-Some stilted formulations:
-page 121: “by running each agent in a thread will guarantee” something seems to be missing
-
-
-
-
-#########################################################################
-## clarifications by me when submitting to internal
-#########################################################################
-- P18 add Test Driven Development as part of a contribution
-	ME I have already added Test Driven Development, however as far as I remember the issue was that i did not explain it before, so i added a minimal explanation. TODO add where this is to be found now
-
-- P24 The differences between Agent based simulation and ABMS needs to be clarified. 
-	ME Instead of clarifying it at this point, i added a short introduction and clarification of the term ABMS (vs ABS) in the background section on ABS right after the ABS properties list. TODO add where this is to be found now
-
-- I haven’t been able to find in [10] the report of difficulties in reproducing [8]. I only checked because the two papers have the same author. A page number would be helpful here.
-- [10] and [8] has to be checked and if it is in there you have to add a page numbers
-	ME original submission: [10] and [8] were correct. However, [10] did not conduct the study but [12] did (which included also [10] as author, amongst others, with Axtell as main author, this caused the confusion), so we left [10] in the text, because it only talks about the struggles, and then we clarified that the reproduction of [8] happened in [12], not in [10]. 
-	- resubmission: this can be found in the second paragraph of chapter 1 motivation. references have changed each by 1: [8] -> [9], [10] -> [11], [12] -> [13]
-
-- P165 Justify your 90% and missing parentheses in code
-	ME i already pointed out that we expect 90% but i clarified on it a bit more, i hope this is sufficient now
-	TODO new page is
-
-- P144 prop_reverse_reverse you have written as ‘pass’; it fails! Fix please.
-	E.g. head(1: undefined)=1
-		Head(reverse(reverse(1:undefined)) -> undefined.
-	ME is 'fixed' now by explaining that we ignore bottom (undefined), supported by a paper which justifies why reasining is morally correct when we ignore bottom.
-	TODO it is the paragraph starting with "Strictly speaking prop reverse reverse..." on page TODO
-
-- The abstract is excessively long and this should be shortened to be more concise (ideally one page maximum), and to stress the findings of the thesis.
-	ME the abstract is shorter now, more concise with stronger focus on the contributions and findings of the thesis. I hope this is ok now.

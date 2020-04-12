@@ -282,6 +282,30 @@ We conclude that our first step already introduced most of the fundamental conce
 
 Using FRP in Yampa results in a clear, expressive and robust implementation. State is implicitly encoded, depending on which signal function is active. By using explicit time semantics with \texttt{occasionally} we can achieve extremely fine grained stochastics by sampling the system with small $\Delta t$. We are treating it as a truly continuous time-driven agent-based system.
 
-A severe problem, which is hard to find with testing, is the fact that in the susceptible agent the same random number generator is used in \texttt{occasionally}, \texttt{drawRandomElemSF} and \texttt{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level. We left this severe bug in for explanatory reasons, as it shows an example where functional programming actually encourages very subtle bugs, if one is not careful. A possible, but not very elegant, solution would be to simply split the initial random number generator in \texttt{sirAgent} three times and pass three random number generators to \texttt{susceptibleAgent}. A much more elegant solution would be to use the \texttt{Rand} Monad, which unfortunately is not possible, because Yampa is not monadic.
+A severe problem, which is hard to find, is the fact that in the susceptible agent the same random number generator is used in \texttt{occasionally}, \\ \texttt{drawRandomElemSF} and \texttt{randomBoolSF}. Each of these functions take an initial random number generator \texttt{g}, which they update internally through continuations, similar to the \texttt{superSampling} signal function discussed above. For a better understanding we show how the signal function \texttt{noiseR}, which is used in \texttt{randomBoolSF} and \texttt{drawRandomElemSF} is implemented in Yampa (comments and \texttt{error} by me):
 
-So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is an elegant solution to the random number correlation and a general treatment of an environment. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context and gives us a method for an elegant solution to the random number correlation.
+\begin{HaskellCode}
+noiseR :: (RandomGen g, Random b) => (b,b) -> g -> SF a b
+noiseR range g0 = streamToSF (randomRs range g0)
+
+streamToSF :: [b] -> SF a b
+streamToSF []     = error "Empty list!"
+streamToSF (b:bs) = SF {sfTF = tf0} -- continuation at t = 0
+  where
+    -- continuation at t = 0, ignore input a
+    tf0 _ = (stsfAux bs, b) -- return first element of stream
+    
+    stsfAux []     = error "Empty list!"
+    stsfAux (b:bs) = SF' tf -- continuation at t > 0
+      where
+        -- continuation at t > 0, ignore input a and time t
+        tf _ _ = (stsfAux bs, b) -- return first element of stream
+\end{HaskellCode}
+
+We see that \texttt{noiseR} transforms an infinite list of random numbers within a given range, produced by \texttt{randomRs}, into a stream of deterministic random numbers from a signal function, ignoring its input argument \texttt{a}. It does this by extracting the first element of the infinite list and returning it together with a continuation which captures the rest of the infinite list. The signal function \texttt{occasionally} is doing conceptually the same. Therefore we see clearly that when we provide the same initial random number generator to the three functions, the resulting random number streams produced by \texttt{randomRs} are identical due to the same initial seed. The seed is the same because it is copied when passing the random number generator to the functions. It is \textit{not} updated across invocations by different signal functions, which would require side effects, which are not possible in Yampa.
+
+Therefore, passing the same random number generator (seed) to all three stochastic functions means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level. We left this severe bug in for explanatory reasons, as it shows an example where functional programming actually encourages very subtle bugs, if one is not careful.
+
+A possible solution would be to change the implementation of any of the three stochastic functions to thread the random number generator as explicit input and output argument. However this would defy the concept of signal functions, and would reduce \texttt{drawRandomElemSF} and \texttt{randomBoolSF} to pure functions as they do not depend on time $t$ anyway. Another possible, but not very elegant, solution would be to simply split the initial random number generator in \texttt{sirAgent} three times, creating three different random number generators with different seeds, passing them to \texttt{susceptibleAgent}. A much more elegant solution would be to use the \texttt{Rand} Monad, which unfortunately is not possible, because Yampa is not monadic. 
+
+So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is an elegant solution to the random number correlation and a general treatment of an environment. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016}, which allows FRP within a monadic context, gives us a method for an elegant solution to the random number correlation.

@@ -29,4 +29,8 @@ drawRandomElemSF :: MonadRandom m => SF m [a] a
 \end{HaskellCode}
 
 \subsection{Discussion} 
-Running in the \texttt{Rand} Monad elegantly solves the problem of correlated random numbers and guarantees that we will not have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of an explicit, discrete 2D environment.
+Running in the \texttt{Rand} Monad elegantly solves the problem of correlated random numbers and guarantees that we will not have correlated stochastics as discussed in the previous section. 
+
+Also by switching to MSFs potentially opens up the direction for the use of a true random number source. This would allow to address the issue whether the fact that the \textit{pseudo} random numbers we are currently generating have an effect on correlation, as opposed to \textit{true} random numbers. To have true random numbers we need to be able to access a true random source, which is by definition only possible through the \texttt{IO} Monad. Running in the \texttt{IO} Monad using MSFs is trivial, however we leave the issue whether true random numbers have a significant influence on the dynamics for further research because we have currently no means to access a true random number source.
+
+In the next step we introduce the concept of an explicit, discrete 2D environment.

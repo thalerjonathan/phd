@@ -1,9 +1,4 @@
 #########################################################################
-## ACTIVITY DIAGRAM NEEDED
-#########################################################################
-- NOTE by me: add UML activity diagram - p 27 add diagram to explained
-
-#########################################################################
 ## PERFORMANCE explanations
 #########################################################################
 - Pg 99 Why performance difference between Java and FP versions? Clarify. Is this due to differences in: Array updates; Nested loops in Haskell to update the sleeping agents; Fixing this with mutable arrays.
@@ -36,13 +31,6 @@ read and cite https://www.cs.ox.ac.uk/jeremy.gibbons/publications/fast+loose.pdf
   year={2006},
   publisher={ACM New York, NY, USA}
 }
-
-
-#########################################################################
-## ParT ISSUE
-#########################################################################
-- P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
-based on the corrected information in the next two screenshot panels of notes: See notes below.
 
 #########################################################################
 ## RNG / CORRELATION ISSUE
@@ -79,6 +67,12 @@ after i compared the uncorrelated version with itself, by using two different in
 --     Only 96% SIR correlated and uncorrelated time-driven produce equal distributions, but expected 100%
 --     Use --quickcheck-replay=589446 to reproduce.
 
+
+#########################################################################
+## ParT ISSUE
+#########################################################################
+- P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
+based on the corrected information in the next two screenshot panels of notes: See notes below.
 
 
 #########################################################################

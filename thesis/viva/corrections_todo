@@ -1,12 +1,4 @@
 #########################################################################
-## PERFORMANCE explanations
-#########################################################################
-- Pg 99 Why performance difference between Java and FP versions? Clarify. Is this due to differences in: Array updates; Nested loops in Haskell to update the sleeping agents; Fixing this with mutable arrays.
-	- Explain the reasons here as opposed to deferring any discussion until Chapters 7&8.
-- NOTE BY ME: java code is to be found in thesis/code/java
-
-
-#########################################################################
 ## QUICKCHECK BOTTOM issue
 #########################################################################
 - P144 prop_reverse_reverse you have written as ‘pass’; it fails! Fix please.
@@ -66,6 +58,22 @@ after i compared the uncorrelated version with itself, by using two different in
     
 --     Only 96% SIR correlated and uncorrelated time-driven produce equal distributions, but expected 100%
 --     Use --quickcheck-replay=589446 to reproduce.
+
+-- CHECKED ALSO AGAINST A COMPARISON OF UNCORRELATED WITH ITSELF (but using 2 different initial RNGs)
+-- FAIL (2174.63s)
+--     *** Failed! Insufficient coverage (after 100 tests):
+--     97% SIR correlated and uncorrelated time-driven produce equal distributions
+    
+--     Only 97% SIR correlated and uncorrelated time-driven produce equal distributions, but expected 100%
+--     Use --quickcheck-replay=232632 to reproduce.
+
+-- CHECKED ALSO AGAINST A COMPARISON OF CORRELATED WITH ITSELF (but using 2 different initial RNGs)
+-- FAIL (1644.38s)
+--     *** Failed! Insufficient coverage (after 100 tests):
+--     96% SIR correlated and uncorrelated time-driven produce equal distributions
+    
+--     Only 96% SIR correlated and uncorrelated time-driven produce equal distributions, but expected 100%
+--     Use --quickcheck-replay=395489 to reproduce.
 
 
 #########################################################################

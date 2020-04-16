@@ -1,13 +1,9 @@
 #########################################################################
-## FRP DEFINITION issue
-#########################################################################
-- Provide better definitions of FRP, Yampa and arrowised systems.
-
-
-
-#########################################################################
 ## clarifications by me when submitting to internal
 #########################################################################
+- Provide better definitions of FRP, Yampa and arrowised systems.
+	ME: added substantial additional explanation on FRP, Yampa and arrowized signal functions in the beginning of section 2.2.4 which we hope should make the topic more understandable.
+
 - P107 Discussion of ParT: this explanation needs strengthening by thinking about monads differently, {Bind vs unit and join}, 7.2.1 rewrite for clarity
 based on the corrected information in the next two screenshot panels of notes: See notes below.
 	ME: Section 7.2.1 was basically rewritten completely with substantial clarification on bind vs join and how this applies to parallel computation in monads. Also added citation of Botta and Ionescu paper which explains more in-depth what the extrnal (who is one of the authors) explained during the viva and clarified in additional notes, in the report. Also this necessitated a slightly different argumentation in sections 7.3.2 and 7.5 which were adjust accordingly.

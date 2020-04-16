@@ -1,22 +1,6 @@
 \section{Pure Computation}
 \label{sec:timedriven_firststep}
-As described in Chapter \ref{sec:back_frp}, Arrowized FRP \cite{hughes_generalising_2000} is a way to implement systems with continuous and discrete time semantics, where the central concept is the signal function, which can be understood as a process over time, mapping an input to an output signal. Early, non-arrowized implementations of FRP had the flaw that the $\Delta t$ or event $time$ itself was exposed, which could lead to non-causal signal functions. To make this more clear, we give an example of a signal function \texttt{futureSignal}, which returns a picture of a solid circle with radius 100, positioned at the coordinates of the mouse pointer \textit{100 years in the future}.
-
-\begin{HaskellCode}
-futureSignal :: Time -> Picture
-futureSignal t = Translate p (circleSolid 100)
-  where
-    p = mousePosition (t + 100years)
-
-mousePosition :: Time -> Position
-\end{HaskellCode}
-
-The problem is that the signal function \texttt{futureSignal}, does depend on a future mouse position, which directly leads to non-causality. Therefore it is not possible to run or simulate this program, at least not without inconsistencies.
-Using Arrowized FRP with its implementation of signal functions as arrows, it is possible to solve this issue, as arrows parametrise also over the input type, thus making it possible to deal with this issue. Technically speaking, an arrowized signal function is a continuation which allows to capture state using closures and hides away the $\Delta t$. This has the result, that the $\Delta t$ can be hidden and therefore never be exposed explicitly to the programmer. Consequently the programmer can neither manipulate it nor define non-causal systems where a signal function depends on a signal in the future. We show more in technical detail how a signal function hides $\Delta t$ with the function \texttt{superSampling} in section \ref{sub:timedriven_results} below.
-
-\medskip
-
-As already pointed out, agents need to perceive time, which means that the concept of processes over time is an ideal match for agents and ABS as a whole, thus we will implement them and the whole system as signal functions.
+As described in Chapter \ref{sec:back_frp}, Arrowized FRP \cite{hughes_generalising_2000} is a way to implement systems with continuous and discrete time semantics, where the central concept is the signal function, which can be understood as a process over time, mapping an input to an output signal. As already pointed out, agents need to perceive time, which means that the concept of processes over time is an ideal match for agents and ABS as a whole, thus we will implement them and the whole system as signal functions.
 
 According to the model, every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents, thus we model this by generating a random event on average every $\frac{1}{\beta}$ time units. We need to sample from an exponential distribution because the rate is proportional to the size of the population \cite{borshchev_system_2004}. An agent does not know the other agents' states when making contact with them, thus we need a mechanism in which agents reveal the state in which they are in \textit{at the moment of making contact}. This mechanism is an implementation detail, which we will derive in our implementation steps. For now, we only assume that agents can contact each other somehow.
 

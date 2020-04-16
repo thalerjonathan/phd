@@ -1,0 +1,51 @@
+(1) there are claims that need to be better justified and make sure they are supported (R1; R2); 
+
+R1 "There are still some claims that could be better justified." Unfortunately R1 did not tell which claims need to better justified, so we could not improve on it.
+
+(2) the related work section should include a brief comparison between the proposed approach and the related works as well as some related work on V&V of agent-based simulation (R1; R2);
+
+R1 "The related work section should include a brief comparison between the proposed approach and the related works"
+
+TODO i clearly need to improve on that
+
+(3) and given the work presented previously by the authors [34], clarify the main contributions of this paper warranting a journal publication (R1; R2).
+
+R1 "The work presented is significant and important yet it is build on a previous, recent paper by the same authors. The added value of the article is still not so clear."
+
+TODO I clearly need to improve on that, explaining it better in the introduction and mention it more often in the text by referring to my original work [34]
+
+##########
+Individual comments by Reviewers
+##########
+
+R2:
+- Abstract is extremely long and lacks focus
+TODO
+
+- This was a question I had before, and it remais: given the work presented previously by the authors [34], I wonder whether the contributions of this paper warrants a journal publication.
+- It is not clear what are the advances of this paper when compared to the previous paper by the same authors. After a quick scan, that conceptual paper seems pretty solid already
+TODO make it more clear
+
+-  I commend the authors for including a related work section, but it seems to be missing several works on V&V of agent-based simulation. 
+TODO https://dl.acm.org/doi/abs/10.1145/1363686.1363696?casa_token=wLqIFCFkIFEAAAAA:gSFqeN-SyPQBQCl_jI5Mljj2mEeFOTX3ZVhzTTD_L5Kr2XyevQmUxaNxBhEpIbTECdz_NJZSjUw.
+
+- I would suggest to make it clear that [13] is a paper published by the authors. 
+[13] is clearly a mistake by the reviewer as it refers to "Colell, A.M.: Microeconomic Theory". We published [34], which is the paper this journal submission builds on. However, we clearly stated this in the introduction.
+Additionally we refer to another paper published by us: [33], however this has a very different focus than this journal submission.
+TODO We made now clear that we published [33].
+
+- Section 5 without a user study is a bit problematic. At least the authors need to discuss a bit more the potential issues when asking someone to encode a specification (learning curve, etc).
+TODO again we do not have the means to conduct a user study as carefully explained in the resubmission. Therefore a user study is simply not possible. If this is not accepted by the reviewer, then we will agree to the consequences and retract the paper.
+TODO add further research section, where we put user study
+
+-- More importantly, I think the authors missed my point about generalisation. Showing that it works on a concrete example does not give the reader
+concrete evidence that it will work for any ABS system. This needs to be clearly discussed. Otherwise the contributions of the paper are rather limited.
+- The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an
+example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system.
+TODO
+
+
+
+R3 
+- "However, the authors refer to the source code of their software in the following reference:" 32. Thaler, J.: Repository of Agent-Based SIR implementation in Haskell (2019). URL https://github.com/thalerjonathan/haskell-sir. A Github repository should not be the only source of the source code, as it is unlikely to be available in the long term (>5 years). The authors should archive their code somewhere else as well, preferably an institutional repository with a DOI.
+

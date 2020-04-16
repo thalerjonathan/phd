@@ -258,10 +258,21 @@ Depending on whether we want the \texttt{String} returned by the computation or 
 
 \subsection{Functional Reactive Programming}
 \label{sec:back_frp}
-TODO Provide better definitions of FRP, Yampa and arrowised systems.
+Functional Reactive Programming (FRP) is a way to implement dataflow systems with continuous and discrete time semantics in pure functional languages. It has been successfully applied to implement GUIs, robotics, games and music. The original paper \cite{elliott1997functional} which invented this concept applied it in the context of graphical animation. It introduced so called \textit{behaviours} which are time-varying, reactive values, and \textit{events} which are sets of complex conditions. Behaviours are (reactive) values, which can change over time and react to events. Therefore, when interpreting images as behaviours they become animations. To make this more clear, we give an example of a behaviour \texttt{animatedPicture}, which returns a picture of a rotating solid circle with radius 100:
 
+\begin{HaskellCode}
+animatedPicture :: Time -> Picture
+animatedPicture t = Translate (px, py) (circleSolid 100)
+  where
+    centerX = 30
+    centerY = 30
+    radius  = 100
+    
+    px = centerX + cos t * radius
+    py = centerY + sin t * radius
+\end{HaskellCode}
 
-Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time semantics in pure functional languages. There are many different approaches and implementations but, in this thesis, \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{courtney_yampa_2003,hudak_arrows_2003,nilsson_functional_2002} and Dunai \cite{perez_functional_2016} (see below) is used.
+The animation is driven by accessing the changing \texttt{Time t}, transforming it into the circle coordinates. By now, there are many different approaches and implementations but, in this thesis, \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{courtney_yampa_2003,hudak_arrows_2003,nilsson_functional_2002} and Dunai \cite{perez_functional_2016} (see below) is used.
 
 The central concept in Arrowized FRP is the signal function (SF), which can be understood as a \textit{process over time} which maps an input- to an output signal. A signal can be understood as a value which varies over time. Therefore, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time steps, the system is sampled with:
 
@@ -270,7 +281,43 @@ Signal \, \alpha \approx Time \rightarrow \alpha \\
 SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
 \end{flalign*}
 
-Yampa provides a number of combinators for expressing time semantics, events and state changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. Below, the relevant combinators and concepts used throughout the thesis are discussed briefly. For a more in-depth discussion we refer to \cite{courtney_yampa_2003, hudak_arrows_2003, nilsson_functional_2002}.
+Arrowised FRP solves a fundamental flaw of early FRP, which is also visible in the example above: \texttt{Time} itself is exposed directly which could lead to non-causal signal functions. Consider the following example:
+
+\begin{HaskellCode}
+futureSignal :: Time -> Picture
+futureSignal t = Translate p (circleSolid 100)
+  where
+    p = mousePosition (t + 100years)
+
+mousePosition :: Time -> Position
+\end{HaskellCode}
+
+The problem is that the signal function \texttt{futureSignal} does depend on a future mouse position, which directly leads to non-causality. Therefore it is not possible to run or simulate this program, at least not without inconsistencies.
+
+Using Arrowized FRP with its implementation of signal functions as arrows, it is possible to solve this issue, as arrows parametrise also over the input type, thus making it possible to deal with this issue. Technically speaking, an arrowized signal function is a continuation which allows to capture state using closures and hides away the $\Delta t$. This has the result, that the $\Delta t$ can be hidden and therefore never be exposed explicitly to the programmer. Consequently the programmer can neither manipulate it nor define non-causal systems where a signal function depends on a signal in the future. The way this is implemented in Yampa is through the \texttt{SF} type, which is a signal function defined at $t = 0$, which returns a continuation of type \texttt{SF'} which is the signal function defined for $t > 0$:
+
+\begin{HaskellCode}
+data SF a b  = SF { sfTF :: a -> (SF' a b, b) }
+data SF' a b = DTime -> a -> (SF' a b, b)
+\end{HaskellCode}
+
+Both take an input \texttt{a} and return a value \texttt{b}. However at $t = 0$ no $\Delta t$ is available in the signal function, which is the one the programmer works with. At $t > 0$ all signal functions have changed into type \texttt{SF'} which is hidden by Yampas implementation and only visible to implementers of new signal functions. As an example we give the implementation of the \texttt{constant} signal function, which constantly returns value \texttt{b}, ignoring the input \texttt{a}:
+
+\begin{HaskellCode}
+constant :: b -> SF a b
+constant b = SF {sfTF = tf0}
+  where
+    tf0 :: a -> (SF' a b, b)
+    tf0 a = (sfConst b, b)
+
+    sfConst :: b -> SF' a b
+    sfConst b = sf
+      where
+        sf :: SF' a b
+        sf = SF' (\dt a -> (sf, b))
+\end{HaskellCode}
+
+Yampa provides a number of combinators for expressing time semantics, events and state changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. Below, the relevant combinators and concepts used throughout the thesis are discussed briefly. For code examples we refer to the respective examples on arrowized programming and Monadic Stream Functions below, as they all build on concepts introduced by Yampa. For a more in-depth discussion we refer to \cite{courtney_yampa_2003, hudak_arrows_2003, nilsson_functional_2002}. 
 
 \paragraph{Event}
 An event in FRP is an occurrence at a specific point in time, which has no duration. An example of such an event would be the recovery of an infected agent. Yampa represents events through the \texttt{Event} type, which is programmatically equivalent to the \texttt{Maybe} type. 

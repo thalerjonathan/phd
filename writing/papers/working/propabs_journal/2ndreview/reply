@@ -48,4 +48,5 @@ TODO
 
 R3 
 - "However, the authors refer to the source code of their software in the following reference:" 32. Thaler, J.: Repository of Agent-Based SIR implementation in Haskell (2019). URL https://github.com/thalerjonathan/haskell-sir. A Github repository should not be the only source of the source code, as it is unlikely to be available in the long term (>5 years). The authors should archive their code somewhere else as well, preferably an institutional repository with a DOI.
+TODO: i have published also in other journals and conferences which have accepted github. Also i argue that a github repo is much more likely to be available than an institutional repo. besides, the gitrepo comes with a number of benefits: checkout, cloning, forking, history of changes,... Therefore we have to turn down this request.
 

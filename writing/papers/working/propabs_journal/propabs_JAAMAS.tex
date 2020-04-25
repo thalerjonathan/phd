@@ -66,9 +66,12 @@
               7301 Wollaton Rd, Nottingham, UK \\
               \email{jonathan.thaler@nottingham.ac.uk}           %  \\
 %             \emph{Present address:} of F. Author  %  if needed
-%           \and
-%           S. Author \at
-%              second address
+           \and
+           First Author \at
+			  Department of Computer Science \\
+              FH Vorarlberg \\
+              Hochschulstrasse 1, 6850 Dornbirn, Austria \\
+              \email{jonathan.thaler@fhv.at}           %  \\
 }
 
 %\date{Received: 16 Aug 2019 / Accepted: date}
@@ -78,9 +81,9 @@
 \maketitle
 
 \begin{abstract}
-The importance of Agent-Based Simulation (ABS) as scientific method to generate data for scientific models in general and for informed policy decisions in particular has been widely recognised. Due to the implications of the outcomes of an ABS, verification and validation has found its way into this field as well, which is reflected by substantial research on verification and validation, discussing various methods and approaches. However, the important technique of code testing of implementations like unit testing has not generated much research interested so far. We hypothesise that this is due to a conceptual mismatch between the deterministic nature of unit testing and the rather stochastic nature of ABS. As a possible solution, in previous work we have explored the conceptual use of \textit{property-based testing}. In this code testing method, model specifications and invariants are expressed directly in code and tested through \textit{automated} and \textit{randomised} test data generation. This maps much more natural to the stochastic nature of ABS and also scales better than deterministic unit tests which need to be constructed manually for each edge case. 
+The importance of Agent-Based Simulation (ABS) as scientific method to generate data for scientific models in general and for informed policy decisions in particular has been widely recognised. However, the important technique of code testing of implementations like unit testing has not generated much research interested so far. As a possible solution, in previous work we have explored the conceptual use of \textit{property-based testing}. In this code testing method, model specifications and invariants are expressed directly in code and tested through \textit{automated} and \textit{randomised} test data generation.
 
-This paper expands on our previous work and explores how to use property-based testing on a technical level to encode and test specifications of ABS. As use case the simple agent-based SIR model is used, where it is shown how to test agent behaviour, transition probabilities and model invariants. The outcome are specifications expressed directly in code, which relate whole classes of random input to expected classes of output. During test execution, random test data is generated automatically, potentially covering the equivalent of thousands of unit tests, run within seconds on modern hardware. This makes property-based testing in the context of ABS strictly more powerful than unit testing, as it is a much more natural fit due to its stochastic nature. The expressiveness and power of property-based testing is not limited to be part of a test-driven development process, where it acts as a method for specification, verification and regression tests but can be integrated as a fundamental part of the model development, supporting hypothesis and discovery making processes. By incorporating this powerful technique into simulation development, confidence in the correctness of an implementation is likely to increase substantially, something of fundamental importance for ABS in general and for models supporting far-reaching policy decision in particular.
+This paper expands on our previous work and explores how to use property-based testing on a technical level to encode and test specifications of ABS. As use case the simple agent-based SIR model is used, where it is shown how to test agent behaviour, transition probabilities and model invariants. The outcome are specifications expressed directly in code, which relate whole classes of random input to expected classes of output. During test execution, random test data is generated automatically, potentially covering the equivalent of thousands of unit tests, run within seconds on modern hardware. This makes property-based testing in the context of ABS strictly more powerful than unit testing, as it is a much more natural fit due to its stochastic nature. 
 
 \keywords{Agent-Based Simulation Testing \and Code Testing \and Test Driven Development \and Model Specification}
 % \PACS{PACS code1 \and PACS code2 \and more}

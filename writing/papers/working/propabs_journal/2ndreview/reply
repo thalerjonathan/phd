@@ -1,18 +1,50 @@
-(1) there are claims that need to be better justified and make sure they are supported (R1; R2); 
+It is unclear why in the notification email, which I have received on 15th April, it reads that I have time for 60 days and then follows with the deadline as 15th May - which would be 30 days.
+The first author (who is the main author) has now changed the affiliation, which was added: because he started the work on the paper and did most of the work in Nottingham we left it in (Both Authors...) and simply added the new affiliation.
 
-R1 "There are still some claims that could be better justified." Unfortunately R1 did not tell which claims need to better justified, so we could not improve on it.
-
-(2) the related work section should include a brief comparison between the proposed approach and the related works as well as some related work on V&V of agent-based simulation (R1; R2);
+R1 pointed out that "There are still some claims that could be better justified." Unfortunately R1 did not tell which claims need to better justified, so we could not improve on it.
 
 R1 "The related work section should include a brief comparison between the proposed approach and the related works"
-
-TODO i clearly need to improve on that
-
-(3) and given the work presented previously by the authors [34], clarify the main contributions of this paper warranting a journal publication (R1; R2).
+We made clear that most of the related work section is using unit testing (because this paper is about code testing ABS), therefore we briefly compare unit testing with property-based testing in section "3.4 Comparison with Unit Testing".
 
 R1 "The work presented is significant and important yet it is build on a previous, recent paper by the same authors. The added value of the article is still not so clear."
+We added clarifying information in the related works section, where we refer to our oringinal work [34].
+We added a few clarifications in the 2nd last paragraph of the introduction "In this paper we pick up our conceptual work [34]...". We think it is now very clear that this paper goes clearly beyond our original work [34], especially in technical terms AND by introducing sequential statistical hypothesis testing to express properties. If this is still not enough, we can write a bulletpoint list which clearly expresses in the paper the differences, but we are not sure if this is really necessary and we think it would distract from the reading flow, as it is not of very much importance for a normal read HOW exactly this paper differs from [34].
 
-TODO I clearly need to improve on that, explaining it better in the introduction and mention it more often in the text by referring to my original work [34]
+- I would suggest to make it clear that [13] is a paper published by the authors. 
+[13] is clearly a mistake by the reviewer as it refers to "Colell, A.M.: Microeconomic Theory". We published [34], which is the paper this journal submission builds on. However, we clearly stated this in the introduction.
+Additionally we cite another paper published by us: [33], however this has a very different focus than this journal submission. We made now clear in the paper that [33] is also our work.
+
+- "However, the authors refer to the source code of their software in the following reference:" 32. Thaler, J.: Repository of Agent-Based SIR implementation in Haskell (2019). URL https://github.com/thalerjonathan/haskell-sir. A Github repository should not be the only source of the source code, as it is unlikely to be available in the long term (>5 years). The authors should archive their code somewhere else as well, preferably an institutional repository with a DOI.
+We have published also in other journals and conferences which have accepted github. Also we argue that a github repo is much more likely to be available than an institutional repo (for example the first author has changed affiliations now after his PhD and the first thing the uni does is wipe all data/email/information of former phd students). Besides, the gitrepo comes with a number of benefits: checkout, cloning, forking, history of changes,... Therefore we have to turn down this request.
+
+- Section 5 without a user study is a bit problematic. At least the authors need to discuss a bit more the potential issues when asking someone to encode a specification (learning curve, etc).
+Again, we do not have the means to conduct a user study as carefully explained in the first resubmission. Therefore a user study is simply not possible, however we added it as further research in further research section.
+
+
+-- More importantly, I think the authors missed my point about generalisation. Showing that it works on a concrete example does not give the reader
+concrete evidence that it will work for any ABS system. This needs to be clearly discussed. Otherwise the contributions of the paper are rather limited.
+- The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an
+example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system.
+I don't see the point of the reviewer - everything has to start with some examples. Yes, we could go on and generalise our example into a more general form of event-driven ABS, however one will always find angles to attack the generality of the work - unless it is some mathematical proof, which we cannot provide so far (maybe dependently typed programming languages could provide a viable direction in the context of simulation / ABS). What we did was to change some expressions to make our claims not so bold - which we agree was probably the case.
+More specifically, we replaced "argue" with "hypothesise" in "Although our research uses the simple agent-based SIR model to demonstrate our approach, we hypothesise that it is applicable to event-driven ABS [27] in general...."
+Also we added a sentence about generalisation into a full framework left for further research.
+
+-  I commend the authors for including a related work section, but it seems to be missing several works on V&V of agent-based simulation. 
+TODO https://dl.acm.org/doi/abs/10.1145/1363686.1363696?casa_token=wLqIFCFkIFEAAAAA:gSFqeN-SyPQBQCl_jI5Mljj2mEeFOTX3ZVhzTTD_L5Kr2XyevQmUxaNxBhEpIbTECdz_NJZSjUw.
+Our paper is on *code testing* of ABS, not a full V&V framework, therefore the related work section focuses on this, not on V&V in general, which would be completely beyond the scope of the paper. We read the propsed paper, which is in itself very vague, never even mentions code testing and therefore it is not clear how to fit this into the related work section.
+
+- Abstract is extremely long and lacks focus
+We have shortened the abstract, it should have now a much better focus.
+
+---------------------------------------------------------------------------
+(1) there are claims that need to be better justified and make sure they are supported (R1; R2); 
+OK
+
+(2) the related work section should include a brief comparison between the proposed approach and the related works as well as some related work on V&V of agent-based simulation (R1; R2);
+OK
+
+(3) and given the work presented previously by the authors [34], clarify the main contributions of this paper warranting a journal publication (R1; R2).
+OK
 
 ##########
 Individual comments by Reviewers
@@ -20,33 +52,29 @@ Individual comments by Reviewers
 
 R2:
 - Abstract is extremely long and lacks focus
-TODO
+OK
 
 - This was a question I had before, and it remais: given the work presented previously by the authors [34], I wonder whether the contributions of this paper warrants a journal publication.
 - It is not clear what are the advances of this paper when compared to the previous paper by the same authors. After a quick scan, that conceptual paper seems pretty solid already
-TODO make it more clear
+OK
 
 -  I commend the authors for including a related work section, but it seems to be missing several works on V&V of agent-based simulation. 
 TODO https://dl.acm.org/doi/abs/10.1145/1363686.1363696?casa_token=wLqIFCFkIFEAAAAA:gSFqeN-SyPQBQCl_jI5Mljj2mEeFOTX3ZVhzTTD_L5Kr2XyevQmUxaNxBhEpIbTECdz_NJZSjUw.
+OK
 
 - I would suggest to make it clear that [13] is a paper published by the authors. 
-[13] is clearly a mistake by the reviewer as it refers to "Colell, A.M.: Microeconomic Theory". We published [34], which is the paper this journal submission builds on. However, we clearly stated this in the introduction.
-Additionally we refer to another paper published by us: [33], however this has a very different focus than this journal submission.
-TODO We made now clear that we published [33].
+OK
 
 - Section 5 without a user study is a bit problematic. At least the authors need to discuss a bit more the potential issues when asking someone to encode a specification (learning curve, etc).
-TODO again we do not have the means to conduct a user study as carefully explained in the resubmission. Therefore a user study is simply not possible. If this is not accepted by the reviewer, then we will agree to the consequences and retract the paper.
-TODO add further research section, where we put user study
+OK
 
 -- More importantly, I think the authors missed my point about generalisation. Showing that it works on a concrete example does not give the reader
 concrete evidence that it will work for any ABS system. This needs to be clearly discussed. Otherwise the contributions of the paper are rather limited.
 - The authors support their claims using an agent-based SIR model as use case and demonstrate how property-based testing. This is just an
 example and either the authors discuss potential threats to generalisation or they discuss how to apply this to any agent-based system.
-TODO
-
-
+OK
 
 R3 
 - "However, the authors refer to the source code of their software in the following reference:" 32. Thaler, J.: Repository of Agent-Based SIR implementation in Haskell (2019). URL https://github.com/thalerjonathan/haskell-sir. A Github repository should not be the only source of the source code, as it is unlikely to be available in the long term (>5 years). The authors should archive their code somewhere else as well, preferably an institutional repository with a DOI.
-TODO: i have published also in other journals and conferences which have accepted github. Also i argue that a github repo is much more likely to be available than an institutional repo. besides, the gitrepo comes with a number of benefits: checkout, cloning, forking, history of changes,... Therefore we have to turn down this request.
+OK
 

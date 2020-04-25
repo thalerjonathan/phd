@@ -166,3 +166,75 @@ When we run the example from above but now with \texttt{checkCoverage} we get th
 \end{footnotesize}
 
 We see that after QuickCheck ran 12,800 tests it came to the statistically robust conclusion that, indeed, at least 15\% of the test cases have a random list with at least 50 elements. 
+
+\subsection{Comparison with Unit Testing}
+Section \ref{sec:related} shows that the standard in code testing of ABS is unit testing. For a better understanding and how our work relates to this other technique we briefly introduce unit testing in Java and compare it with property-based testing as introduced above.
+
+As already pointed out in the introduction, unit tests are small pieces of code which test other code. These pieces of code are call test cases, and should be as small as possible, testing only a single aspect of the code under test. The way to implement unit tests is using the unit testing library JUnit, which provides annotations, assertions and test executors, to annotate test cases, express invariants, execute test cases and generate reports of the results. 
+
+In the following we briefly show how to express the properties of lists, as introduced above, with unit testing. We write a class \texttt{ListTest}, which contains all test cases, each annotated by \texttt{@Test}, which tells the test executor that this is a test to run. Invariants are expressed in our case with \texttt{assertEquals}, however JUnit provides all sorts of \texttt{asserts}, to express different invariants.
+
+\begin{footnotesize}
+\begin{verbatim}
+public class ListTest {
+    // reverse of reverse restores the original order
+    @Test
+    public void testReverseReverse() {
+        List<String> xs = new ArrayList<>();
+        xs.add("Test1");
+        xs.add("Test2");
+        xs.add("Test3");
+
+        // make a copy to compare original state
+        List<String> xsOrig = new ArrayList<>(xs);
+
+        // reverse twice, mutates xs
+        Collections.reverse(xs);
+        Collections.reverse(xs);
+
+        // test invariant
+        assertEquals(xs, xsOrig, "Lists not equal after reverse of reverse");
+    }
+
+    // reverse distributes over append (addAll in Java)
+    @Test
+    public void testReverseDistribute() {
+        List<String> xs = new ArrayList<>();
+        xs.add("A");
+        xs.add("B");
+        xs.add("C");
+
+        List<String> ys = new ArrayList<>();
+        ys.add("X");
+        ys.add("Y");
+        ys.add("Z");
+
+        // copy lists
+        List<String> xsCpy = new ArrayList<>(xs);
+        List<String> ysCpy = new ArrayList<>(ys);
+
+        // reverse (xs ++ ys) =>
+        // append ys to xs, mutates xs
+        xs.addAll(ys);
+        // reverse xs, mutates xs 
+        Collections.reverse(xs);
+
+        // reverse ys ++ reverse xs =>
+        Collections.reverse(xsCpy);
+        Collections.reverse(ysCpy);
+        ysCpy.addAll(xsCpy);
+
+        // express invariant (==)
+        assertEquals(xs, ysCpy, "Lists not equal after reverse distributive");
+    }
+}
+\end{verbatim}
+\end{footnotesize}
+
+We immediately see how verbose unit tests are over property tests. The reason is not only found in object-oriented programming, but also that unit tests are not expressing specifications but following a very operational, imperative approach, stating \textit{how} to test something instead of \textit{what} is actually tested. We argue that without the comments added by us and appropriate naming of the tests, it would be not very obvious what exactly the unit tests are testing, whereas in property-based testing this is immediately clear.
+
+A very important detail is that in this listing we only provide tests with 3 elements in each list. This does not cover all test cases, for example lists with a single element, empty lists, or lists of different sizes in the case of \texttt{testReverseDistribute} are missing. For a proper test coverage, we would need to manually provide all edge cases as additional test cases. This is implicitly covered in property-based testing, which generates the input data, automatically covering edge cases as well.
+
+As for the \texttt{label}, \texttt{cover} and \texttt{checkCoverage} feature from property-based testing with QuickCheck, there is simply no equal in unit testing with JUnit. Therefore it is simply not possible to express such specifications.
+
+It might look like that property-based testing is superior to unit testing, however it is not as both focus on different types of tests. Whereas property-based testing is ideally suited for testing data-centric problems, which can be expressed in specifications, such as the list properties above, unit testing is better suited for testing side effects of imperative code in a rather operational way. Therefore we see property-based testing and unit testing as complementary techniques.

@@ -1,6 +1,6 @@
 \section{Related Work}
 \label{sec:related}
-Research on code testing of ABS is quite new with few publications so far. Our own work \cite{thaler_show_2019} is the first paper to introduce property-based testing to ABS. In it we show on a conceptual level that property-based testing allows to do both verification and validation of an implementation. However, we do not go into technical details of actual implementations, nor how to use property-based testing on a technical level.
+Research on code testing of ABS is quite new with few publications so far. Our own work \cite{thaler_show_2019} is the first paper to introduce property-based testing to ABS. In it we show on a conceptual level that property-based testing allows to do both verification and validation of an implementation. However, we do not go into technical details of actual implementations, nor how to use property-based testing on a technical level, nor do we introduce the sequential statistical hypothesis testing of the QuickCheck library to express probabilities. 
 
 The use of unit testing in the context of ABS was first discussed by Collier et al. \cite{collier_test-driven_2013}. The authors introduce Test-Driven Development to ABS and use RePast to show how to verify the correctness of an implementation with unit tests. A similar approach has been discussed for Discrete Event Simulation in the AnyLogic software toolkit \cite{asta_investigation_2014}. 
 
@@ -9,3 +9,5 @@ Unit tests to verify an ABS implementation of maritime search operations was men
 Property-based testing has also connections to data generators \cite{gurcan_generic_2013} and load generators and random testing \cite{burnstein_practical_2010} with the important benefit that property-based testing allows to express them directly in code.
 
 The authors of \cite{gurcan_generic_2013} provide a case study of an agent-based simulation of synaptic connectivity, for demonstrating their generic testing framework in RePast and MASON, which rely on JUnit to run automated tests.
+
+As most of these works are using unit testing, we provide a comparison between our proposed approach and unit testing in the following section.

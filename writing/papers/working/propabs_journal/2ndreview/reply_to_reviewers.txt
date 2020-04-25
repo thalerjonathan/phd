@@ -1,0 +1,26 @@
+We would like to thank the reviewers for their time reviewing our paper and their many helpful comments. We addressed many of the changes which were requested by the reviewers, see below for our changes / replies.
+
+- The first author (who is the main author) has now changed the affiliation, which was added: because he started the work on the paper and did most of the work in Nottingham we left it in (Both Authors...) and simply added the new affiliation.
+
+- Comparing related work to the proposed approach: We made clear that most of the related work section is using unit testing (because this paper is about code testing ABS), therefore we briefly compare unit testing with property-based testing in section "3.4 Comparison with Unit Testing".
+
+- Paper built on previous work by the same authors: We added clarifying information in the related works section, where we refer to our oringinal work [34]. We added a few clarifications in the 2nd last paragraph of the introduction "In this paper we pick up our conceptual work [34]...". We think it is now very clear that this paper goes clearly beyond our original work [34], especially in technical terms AND by introducing sequential statistical hypothesis testing to express properties. If this is still not enough, we can write a bulletpoint list which clearly expresses in the paper the differences, but we are not sure if this is really necessary and we think it would distract from the reading flow, as it is not of very much importance for a normal read HOW exactly this paper differs from [34].
+
+- "I would suggest to make it clear that [13] is a paper published by the authors": [13] is clearly a mistake by the reviewer as it refers to "Colell, A.M.: Microeconomic Theory". We published [34], which is the paper this journal submission builds on. However, we clearly stated this in the introduction.
+Additionally we cite another paper published by us: [33], however this has a very different focus than this journal submission. We made now clear in the paper that [33] is also our work.
+
+- Github: We have published also in other journals and conferences which have accepted github. Also we argue that a github repo is much more likely to be available than an institutional repo (for example the first author has changed affiliations now after his PhD and the first thing the uni does is wipe all data/email/information of former phd students). Besides, the gitrepo comes with a number of benefits: checkout, cloning, forking, history of changes,... Therefore we have to turn down this request.
+
+- User study: Again, we do not have the means to conduct a user study as carefully explained in the first resubmission. Therefore a user study is simply not possible, however we added it as further research in further research section.
+
+- Generalisation claims: I don't see the point of the reviewer which critisised the generalisation - everything has to start with some examples. Yes, we could go on and generalise our example into a more general form of event-driven ABS, however one will always find angles to attack the generality of the work - unless it is some mathematical proof, which we cannot provide so far (maybe dependently typed programming languages could provide a viable direction in the context of simulation / ABS). What we did was to change some expressions to make our claims not so bold - which we agree was probably the case.
+More specifically, we replaced "argue" with "hypothesise" in "Although our research uses the simple agent-based SIR model to demonstrate our approach, we hypothesise that it is applicable to event-driven ABS [27] in general...."
+Also we added a sentence about generalisation into a full framework left for further research.
+
+- Related Work: Our paper is on *code testing* of ABS, not a full V&V framework, therefore the related work section focuses on this, not on V&V in general, which would be completely beyond the scope of the paper. We read the propsed paper (https://dl.acm.org/doi/abs/10.1145/1363686.1363696?casa_token=wLqIFCFkIFEAAAAA:gSFqeN-SyPQBQCl_jI5Mljj2mEeFOTX3ZVhzTTD_L5Kr2XyevQmUxaNxBhEpIbTECdz_NJZSjUw), which is in itself very vague, never even mentions code testing and therefore it is not clear how to fit this into the related work section.
+
+- Abstract: We have shortened the abstract, it should have now a much better focus.
+
+Concluding we want to say that with the help of the useful comments of the reviewers we think the quality of the paper has increased even further. We therefore hope that our major changes are acknowledged and that the paper will get accepted.
+
+P.S.: It is unclear why in the notification email, which I have received on 15th April, it reads that I have time for 60 days and then follows with the deadline as 15th May - which would be 30 days.
